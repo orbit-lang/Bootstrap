@@ -67,7 +67,7 @@ class NodeTests {
 
 		node.annotate(99, MockAnnotationTag.A)
 
-		val result = node.getAnnotation<Int>(MockAnnotationTag.A)
+		val result = node.getAnnotation(MockAnnotationTag.A)
 
 		assertNotNull(result)
 		assertEquals(MockAnnotationTag.A, result!!.tag)
