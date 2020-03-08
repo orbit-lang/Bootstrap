@@ -3,13 +3,13 @@ package org.orbit.core.nodes
 interface NodeAnnotationTag<T>
 
 data class KeyedNodeAnnotationTag<T>(
-	private val identifier: String) : NodeAnnotationTag<T> {
+	private val key: String) : NodeAnnotationTag<T> {
 
 	override fun equals(other: Any?) : Boolean = when (other) {
 		null -> false
 		else -> {
 			other is KeyedNodeAnnotationTag<*>
-				&& other.identifier == identifier
+				&& other.key == key
 		}
 	}		
 }
