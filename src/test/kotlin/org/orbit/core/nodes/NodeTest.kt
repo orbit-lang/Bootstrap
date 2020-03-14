@@ -11,9 +11,11 @@ sealed class MockAnnotationTag {
 	object B : NodeAnnotationTag<String>
 }
 
+private class MockNode : Node()
+
 class NodeTests {
 	@Test fun annotateNonUnique() {
-		val node = Node()
+		val node = MockNode()
 
 		assert(node.annotations.isEmpty())
 
@@ -31,7 +33,7 @@ class NodeTests {
 	}
 
 	@Test fun annotateUnique() {
-		val node = Node()
+		val node = MockNode()
 		
 		assert(node.annotations.isEmpty())
 
@@ -49,7 +51,7 @@ class NodeTests {
 	}
 
 	@Test fun annotateUniqueKeyed() {
-		val node = Node()
+		val node = MockNode()
 
 		assertDoesNotThrow {
 			node.annotate(1, KeyedNodeAnnotationTag("1"))
@@ -63,7 +65,7 @@ class NodeTests {
 	}
 
 	@Test fun getAnnotation() {
-		val node = Node()
+		val node = MockNode()
 
 		node.annotate(99, MockAnnotationTag.A)
 
@@ -75,7 +77,7 @@ class NodeTests {
 	}
 
 	@Test fun getAnnotationWrongType() {
-		val node = Node()
+		val node = MockNode()
 		
 		node.annotate(99, MockAnnotationTag.A)
 		

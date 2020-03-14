@@ -1,6 +1,10 @@
 package org.orbit.core.nodes
 
-interface NodeAnnotationTag<T>
+import org.json.*
+
+interface NodeAnnotationTag<T> {
+	fun toJson() : JSONObject
+}
 
 data class KeyedNodeAnnotationTag<T>(
 	private val key: String) : NodeAnnotationTag<T> {
@@ -11,7 +15,17 @@ data class KeyedNodeAnnotationTag<T>(
 			other is KeyedNodeAnnotationTag<*>
 				&& other.key == key
 		}
-	}		
+	}
+
+	override fun toJson() : JSONObject {
+		val json = JSONObject()
+
+		json.put("tag.simpleName", this::class.java.getSimpleName())
+		json.put("tag.canonicalName", this::class.java.getCanonicalName())
+		json.put("tag.key", key)
+
+		return json
+	}
 }
 
 data class NodeAnnotation<T>(
@@ -25,14 +39,10 @@ data class NodeAnnotation<T>(
 	}
 }
 
-class Node {
-	var annotations: Array<NodeAnnotation<*>>
+abstract class Node {
+	var annotations: Array<NodeAnnotation<*>> = emptyArray()
 
-	init {
-		annotations = emptyArray()
-	}
-
-	inline fun <reified T> annotate(value: T, tag: NodeAnnotationTag<T>) {
+	final inline fun <reified T> annotate(value: T, tag: NodeAnnotationTag<T>) {
 		val annotation = NodeAnnotation(tag, value)
 		if (annotations.contains(annotation)) {
 			throw Exception("Node is already annotated with tag: $tag")
@@ -51,5 +61,9 @@ class Node {
 			1 -> results[0]
 			else -> throw Exception("Multiple annotations found for tag: $tag")
 		}
+	}
+
+	final fun getNumberOfAnnotations() : Int {
+		return annotations.size
 	}
 }
