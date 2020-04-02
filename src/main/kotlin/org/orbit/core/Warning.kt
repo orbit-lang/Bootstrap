@@ -1,6 +1,10 @@
 package org.orbit.core
 
-abstract class Warning(
-	open val message: String,
-	open val position: SourcePosition
-)
+data class Warning(
+	val message: String,
+	val position: SourcePosition
+) {
+	override fun toString(): String {
+		return "WARNING @ $position:\n\t$message"
+	}
+}

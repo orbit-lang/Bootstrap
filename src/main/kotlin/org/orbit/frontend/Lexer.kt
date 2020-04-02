@@ -21,12 +21,13 @@ class Lexer(
 		val tokenTypes = tokenTypeProvider.getTokenTypes()
 		var tokens = emptyArray<Token>()
 		var content = source
-
+		
 		while (content.isNotEmpty()) {
 			var matched = false
-
+			
 			for (tt in tokenTypes) {
 				var nextChar = content.getOrNull(0) ?: break
+				
 				if (tt.ignoreWhitespace && isWhitespace(nextChar)) {
 					matched = true
 					// We want to skip these whitespace characters but also move the source position forward
@@ -59,6 +60,7 @@ class Lexer(
 
 					tokens += Token(tt, match.value, position)
 					position = position.moveCharacter(match.range.count())
+					break
 				}
 			}
 

@@ -15,18 +15,11 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		data class MissingName(override val position: SourcePosition)
 			: ParseError("Api definition requires a name", position)
 	}
-	
-	sealed class Warnings {
-		data class EmptyApi(val name: String, override val position: SourcePosition)
-			: Warning("Api '$name' is empty and may be erased by a later compilation phase", position)
-	}
 
 	override fun parse(context: Parser) : ApiDefNode {
 		val start = context.expect(TokenTypes.Api)
 		val typeIdentifierNode = context.attempt(TypeIdentifierRule)
 			?: throw ApiDefRule.Errors.MissingName(start.position)
-
-		// TODO - Parser 'with' & 'within' statements
 
 		val withinNode = context.attempt(WithinRule)
 		var with = context.attempt(WithRule)
@@ -40,16 +33,33 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		context.expect(TokenTypes.LBrace)
 		
 		var typeDefNodes = mutableListOf<TypeDefNode>()
+		var traitDefNodes = mutableListOf<TraitDefNode>()
+		var methodDefNodes = mutableListOf<MethodSignatureNode>()
 		var next: Token = context.peek()
 
 		while (next.type != TokenTypes.RBrace) {
-			// TODO - Parse other api level expressions
+			
 			when (next.type) {
 				TokenTypes.Type -> {
 					val typeDefNode = context.attempt(TypeDefRule)
-						?: throw Exception("???: ${next.type.identifier}")
+						?: throw Exception("Expected type decl following 'type' at api-level")
 
 					typeDefNodes.add(typeDefNode)
+				}
+
+				TokenTypes.Trait -> {
+					val traitDefNode = context.attempt(TraitDefRule)
+						?: throw Exception("Expected trait decl following 'trait' at api-level")
+
+					traitDefNodes.add(traitDefNode)
+				}
+
+				// Method defs
+				TokenTypes.LParen -> {
+					val methodDefNode = context.attempt(MethodSignatureRule(false))
+						?: throw Exception("Expected method signature following '(' at api-level")
+
+					methodDefNodes.add(methodDefNode)
 				}
 
 				else -> throw Exception("Unexpected token: $next")
@@ -61,20 +71,9 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		context.expect(TokenTypes.RBrace)
 
 		if (typeDefNodes.isEmpty()) {
-			context.warn(ApiDefRule.Warnings.EmptyApi(
-				typeIdentifierNode.typeIdentifier, start.position))
+			context.warn(Warning("Api '${typeIdentifierNode.typeIdentifier}' is empty and may be erased by a later compilation phase", start.position))
 		}
 		
-		val node = ApiDefNode(typeIdentifierNode, typeDefNodes)
-
-		if (withinNode != null) {
-			node.annotate(withinNode, KeyedNodeAnnotationTag("api.within"))
-		}
-
-		if (withNodes.isNotEmpty()) {
-			node.annotate(withNodes, KeyedNodeAnnotationTag("api.with"))
-		}
-
-		return node
+		return ApiDefNode(typeIdentifierNode, typeDefNodes, traitDefNodes, methodDefNodes, withinNode, withNodes)
 	}
 }

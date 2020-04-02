@@ -1,0 +1,25 @@
+api Orb {}
+api Core within Orb {}
+api Primitives within Orb::Core {
+	type Int
+	type Real
+	type Char
+	type Bool
+}
+
+api Test {
+	type Foo(x Int)
+}
+
+api List : Orb::Core::Collection
+	with Orb::FX::PureReturn {
+	
+	data type List<Element, Size Int>(size Int = Self.Size)
+		: Collection<Element>
+
+	# Pure return guarantees method body consists of a single
+	# expression, which is free from side-effects.
+	@PureReturn (List) append<N Int>
+		(elementsOf other: List<Element, N>)
+		(List<Element, Size + N>) = Self.Return()
+}

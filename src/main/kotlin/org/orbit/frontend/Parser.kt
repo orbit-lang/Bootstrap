@@ -1,10 +1,13 @@
 package org.orbit.frontend
 
+import org.jetbrains.annotations.Contract
 import org.orbit.core.TokenType
 import org.orbit.core.Token
 import org.orbit.core.nodes.*
 import org.orbit.core.Phase
 import org.orbit.core.Warning
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 interface ParseRule<N: Node> {
 	fun parse(context: Parser) : N
@@ -25,6 +28,9 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 	
 	private var tokens: MutableList<Token> = mutableListOf()
 
+	private var isRecording = false
+	private var recordedTokens = mutableListOf<Token>()
+
 	var hasMore: Boolean = false
 		get() = tokens.isNotEmpty()
 
@@ -39,7 +45,11 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 	fun consume() : Token {
 		if (!hasMore) throw Parser.Errors.NoMoreTokens
 		
-		return tokens.removeAt(0)
+		return tokens.removeAt(0).apply {
+			if (isRecording) {
+				recordedTokens.add(this)
+			}
+		}
 	}
 
 	fun expect(type: TokenType) : Token {
@@ -65,6 +75,21 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 		}
 
 		throw Parser.Errors.UnexpectedToken(next.type)
+	}
+
+	fun startRecording() {
+		isRecording = true
+	}
+
+	fun stopRecording() {
+		isRecording = false
+	}
+
+	fun autoRewind() {
+		stopRecording()
+
+		rewind(recordedTokens)
+		recordedTokens = mutableListOf()
 	}
 
 	fun rewind(consumed: List<Token>) {

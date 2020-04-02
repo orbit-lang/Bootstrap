@@ -7,7 +7,7 @@ interface NodeAnnotationTag<T> {
 }
 
 data class KeyedNodeAnnotationTag<T>(
-	private val key: String) : NodeAnnotationTag<T> {
+	val key: String) : NodeAnnotationTag<T> {
 
 	override fun equals(other: Any?) : Boolean = when (other) {
 		null -> false
@@ -51,6 +51,10 @@ abstract class Node {
 		annotations += annotation
 	}
 
+	final inline fun <reified T> annotateByKey(value: T, key: String) {
+		annotate(value, KeyedNodeAnnotationTag<T>(key))
+	}
+
 	inline fun <reified T> getAnnotation(tag: NodeAnnotationTag<T>) : NodeAnnotation<T>? {
 		val results = annotations
 			.filterIsInstance<NodeAnnotation<T>>()
@@ -63,7 +67,19 @@ abstract class Node {
 		}
 	}
 
+	inline fun <reified T> getAnnotationByKey(key: String) : NodeAnnotation<T>? {
+		return getAnnotation(KeyedNodeAnnotationTag<T>(key))
+	}
+
 	final fun getNumberOfAnnotations() : Int {
 		return annotations.size
+	}
+
+	abstract fun getChildren() : List<Node>
+
+	final fun <N: Node> search(nodeType: Class<N>) : List<N> {
+		val matches = getChildren().filterIsInstance(nodeType)
+
+		return matches + getChildren().flatMap { it.search(nodeType) }
 	}
 }

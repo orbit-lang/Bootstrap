@@ -21,6 +21,9 @@ object TokenTypes : TokenTypeProvider {
     object Annotation : TokenType("Annotation", "@", true, false)
     object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false)
 
+	// Comments
+	object MultiLineComment : TokenType("MultiLineComment", "\\/\\*.**\\/", true, false)
+	
     // Keywords
     object Api : TokenType("API", "api", true, false)
     object Type : TokenType("Type", "type", true, false)
@@ -33,11 +36,11 @@ object TokenTypes : TokenTypeProvider {
     object Real : TokenType("Real", "[0-9]+\\\\.[0-9]+", true, false)
     object Identifier : TokenType("Identifier", "[a-z_]+[a-zA-Z0-9_]*", true, false)
     object TypeIdentifier : TokenType("TypeIdentifier", "([A-Z]+[a-zA-Z0-9_]*)(::[A-Z]+[a-zA-Z0-9_]*)*", true, false)
-
-    override fun getTokenTypes() : Array<TokenType> {
+	
+    override fun getTokenTypes() : List<TokenType> {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
-        return arrayOf(
+        return listOf(
             Int, Real, Api, TypeIdentifier,
             Colon, Comma, Dot, Assignment, Operator, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,

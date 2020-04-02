@@ -12,4 +12,8 @@ data class TypeIdentifierNode(val typeIdentifier: String) : Node() {
 			return json
 		}
 	}
+
+	override fun getChildren() : List<Node> {
+		return emptyList()
+	}
 }

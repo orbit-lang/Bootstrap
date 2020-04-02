@@ -12,6 +12,10 @@ data class SourcePosition(
 	fun moveCharacter(by: Int) : SourcePosition {
 		return SourcePosition(line, character + by)
 	}
+
+	override fun toString(): String {
+		return "(line: $line, offset: $character)"
+	}
 }
 
 abstract class TokenType(
@@ -28,7 +32,7 @@ data class Token(
 )
 
 interface TokenTypeProvider {
-	fun getTokenTypes() : Array<TokenType>
+	fun getTokenTypes() : List<TokenType>
 }
 
 interface SourceProvider {

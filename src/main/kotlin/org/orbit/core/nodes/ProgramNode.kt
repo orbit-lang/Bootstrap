@@ -16,4 +16,6 @@ data class ProgramNode(
 			return json
 		}
 	}
+
+	override fun getChildren() : List<Node> = apis
 }

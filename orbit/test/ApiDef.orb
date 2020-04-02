@@ -1,9 +1,5 @@
-api Test within Orb::Core
-	with Orb::Compiler
-	with Orb::Bootstrap {
-	type TestType
-
-	(TestType) foo (x Int, y Int) (Int) {
-		return x * y
+api Test {
+	trait Number {
+		
 	}
 }
