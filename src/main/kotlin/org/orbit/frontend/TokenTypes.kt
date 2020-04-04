@@ -42,10 +42,10 @@ object TokenTypes : TokenTypeProvider {
         // Generally, the order of this list matters!
         return listOf(
             Int, Real, Api, TypeIdentifier,
-            Colon, Comma, Dot, Assignment, Operator, Annotation, Whitespace,
+            Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
             Type, Trait, Within, With,
-            Identifier
+            Operator, Identifier
         )
     }
 }

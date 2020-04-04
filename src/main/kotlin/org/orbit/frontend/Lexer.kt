@@ -1,6 +1,5 @@
 package org.orbit.frontend
 
-import org.orbit.core.TokenType
 import org.orbit.core.Token
 import org.orbit.core.TokenTypeProvider
 import org.orbit.core.SourceProvider
@@ -9,17 +8,17 @@ import org.orbit.core.Phase
 
 class Lexer(
 	private val tokenTypeProvider: TokenTypeProvider	
-) : Phase<SourceProvider, Array<Token>> {
+) : Phase<SourceProvider, List<Token>> {
 	private var position = SourcePosition(0, 0)
 
 	private fun isWhitespace(character: Char) : Boolean {
 		return character == '\n' || character == '\r' || character == ' ' || character == '\t'
 	}
 
-	override fun execute(input: SourceProvider) : Array<Token> {
+	override fun execute(input: SourceProvider) : List<Token> {
 		val source = input.getSource()
 		val tokenTypes = tokenTypeProvider.getTokenTypes()
-		var tokens = emptyArray<Token>()
+		var tokens = mutableListOf<Token>()
 		var content = source
 		
 		while (content.isNotEmpty()) {
@@ -58,7 +57,7 @@ class Lexer(
 					content = content.slice(IntRange(match.range.count(), content.length - 1))
 					matched = true
 
-					tokens += Token(tt, match.value, position)
+					tokens.add(Token(tt, match.value, position))
 					position = position.moveCharacter(match.range.count())
 					break
 				}

@@ -13,25 +13,28 @@ import org.orbit.core.Warning
 object TraitDefRule : ParseRule<TraitDefNode> {
 	override fun parse(context: Parser) : TraitDefNode {
 		val start = context.expect(TokenTypes.Trait)
+		
 		val typeIdentifierNode = context.attempt(TypeIdentifierRule)
 			?: throw Exception("TODO")
 
 		var next = context.peek()
 		var propertyPairs = emptyList<PairNode>()
 
+		var end = typeIdentifierNode.lastToken
+
 		if (next.type == TokenTypes.LParen) {
 			// NOTE - Same ambiguity as TypeDef
-			context.startRecording()
-			if (context.attempt(MethodSignatureRule(false)) != null) {
-				context.autoRewind()
+			val lookaheadParser = Parser(MethodSignatureRule(false))
 
-				return TraitDefNode(typeIdentifierNode)
+			try {
+				lookaheadParser.execute(context.tokens)
+
+				return TraitDefNode(start, end, typeIdentifierNode)
+			} catch (_: Exception) {
+				// fallthrough
 			}
 
-			context.autoRewind()
 			context.consume()
-
-			next = context.peek()
 
 			while (true) {
 				val propertyPair = context.attempt(PairRule)
@@ -44,7 +47,7 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 				if (next.type == TokenTypes.Comma) {
 					context.consume()
 				} else {
-					context.expect(TokenTypes.RParen)
+					end = context.expect(TokenTypes.RParen)
 					break
 				}
 			}
@@ -71,9 +74,11 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 				next = context.peek()
 			}
 
-			context.expect(TokenTypes.RBrace)
+			end = context.expect(TokenTypes.RBrace)
 		}
-
-		return TraitDefNode(typeIdentifierNode, propertyPairs, signatures)
+		
+		return TraitDefNode(start, end,
+			typeIdentifierNode,
+			propertyPairs, signatures)
 	}
 }

@@ -1,6 +1,7 @@
 package org.orbit.core.nodes
 
 import org.json.*
+import org.orbit.core.Token
 
 interface NodeAnnotationTag<T> {
 	fun toJson() : JSONObject
@@ -39,7 +40,7 @@ data class NodeAnnotation<T>(
 	}
 }
 
-abstract class Node {
+abstract class Node(open val firstToken: Token, open val lastToken: Token) {
 	var annotations: Array<NodeAnnotation<*>> = emptyArray()
 
 	final inline fun <reified T> annotate(value: T, tag: NodeAnnotationTag<T>) {

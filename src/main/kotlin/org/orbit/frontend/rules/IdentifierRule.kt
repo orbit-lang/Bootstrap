@@ -7,8 +7,8 @@ import org.orbit.core.nodes.*
 
 object IdentifierRule : ParseRule<IdentifierNode> {
 	override fun parse(context: Parser) : IdentifierNode {
-		val token = context.expect(TokenTypes.Identifier)
+		val start = context.expect(TokenTypes.Identifier)
 		
-		return IdentifierNode(token.text)
+		return IdentifierNode(start, start, start.text)
 	}
 }

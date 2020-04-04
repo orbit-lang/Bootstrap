@@ -30,7 +30,7 @@ class Main {
 
 			val environment = CanonicalNameResolver.execute(result.ast as ProgramNode)
 			
-            //print(ProgramNode.JsonSerialiser.serialise(result.ast as ProgramNode).toString(4))
+            //print(ProgramNode.JsonSerialiser.serialise(resuelt.ast as ProgramNode).toString(4))
 			
             val types = result.ast
             	.search(TypeDefNode::class.java)
@@ -40,18 +40,30 @@ class Main {
 			
             val methods = result.ast
             	.search(MethodSignatureNode::class.java)
+
+            val bounded = result.ast
+            	.search(BoundedTypeParameterNode::class.java)
+
+            val dependent = result.ast
+            	.search(DependentTypeParameterNode::class.java)
             	//.mapNotNull {
             	//	val path = it.getAnnotationByKey<Path>("path")?.value ?: return
 				//	OrbitMangler.mangle(path)
             	//}
 
+            val typeIds = result.ast
+            	.search(TypeIdentifierNode::class.java)
+
 			println("TYPES: ${types.size}")
 			println("TRAITS: ${traits.size}")
 			println("METHODS: ${methods.size}")
 			
-			types.forEach { println(it) }
-			traits.forEach { println(it) }
-			methods.forEach { println(it) }
+			//types.forEach { println(it) }
+			//traits.forEach { println(it) }
+			//methods.forEach { println(it) }
+			//bounded.forEach { println(it) }
+			//dependent.forEach { println(it) }
+			typeIds.forEach { println(it) }
 			
 			print(environment)
         }

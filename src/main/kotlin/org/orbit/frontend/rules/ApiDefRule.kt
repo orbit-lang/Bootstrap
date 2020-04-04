@@ -41,7 +41,7 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 			
 			when (next.type) {
 				TokenTypes.Type -> {
-					val typeDefNode = context.attempt(TypeDefRule)
+					val typeDefNode = context.attempt(TypeDefRule, true)
 						?: throw Exception("Expected type decl following 'type' at api-level")
 
 					typeDefNodes.add(typeDefNode)
@@ -68,12 +68,9 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 			next = context.peek()
 		}
 
-		context.expect(TokenTypes.RBrace)
-
-		if (typeDefNodes.isEmpty()) {
-			context.warn(Warning("Api '${typeIdentifierNode.typeIdentifier}' is empty and may be erased by a later compilation phase", start.position))
-		}
+		val end = context.expect(TokenTypes.RBrace)
 		
-		return ApiDefNode(typeIdentifierNode, typeDefNodes, traitDefNodes, methodDefNodes, withinNode, withNodes)
+		return ApiDefNode(start, end,
+			typeIdentifierNode, typeDefNodes, traitDefNodes, methodDefNodes, withinNode, withNodes)
 	}
 }

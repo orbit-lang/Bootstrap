@@ -8,6 +8,7 @@ import org.orbit.frontend.TokenTypes
 
 object ProgramRule : ParseRule<ProgramNode> {
 	override fun parse(context: Parser) : ProgramNode {
+		val start = context.peek()
 		var next = context.peek()
 		var apiDefs = emptyList<ApiDefNode>()
 		
@@ -21,6 +22,6 @@ object ProgramRule : ParseRule<ProgramNode> {
 			next = context.peek()
 		}
 		
-		return ProgramNode(apiDefs)
+		return ProgramNode(start, next, apiDefs)
 	}
 }

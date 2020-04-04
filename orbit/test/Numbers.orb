@@ -1,0 +1,110 @@
+api Relations within Orb::Core {
+	trait Comparable {
+		(Self) lt (other Self) (Bool)
+	}
+
+	trait Equatable {
+		(Self) eq (other Self) (Bool)
+	}
+
+	trait Relatable : Comparable, Equatable
+}
+
+api Closed within Orb::Meta::Types {
+	trait Closed {
+		type Min
+		type Max
+	}
+}
+
+api Binary within Orb::Core::Primitives
+	with Orb::Meta::Types {
+	type Bit : Closed {
+		case Zero
+		case One
+
+		(Bit) and (other Bit) (Bit) {
+			case (Bit::One) (other Bit::One) (Bit::One)
+
+			return Bit::Zero
+		}
+
+		(Bit) or (other Bit) (Bit) {
+			case (Bit::One) (other Bit) (Bit::One)
+			case (Bit) (other Bit::One) (Bit::One)
+
+			return Bit::Zero
+		}
+
+		(Bit) xor (other Bit) (Bit) {
+			case (Bit::One) (other Bit::Zero) (Bit::One)
+			case (Bit::Zero) (other Bit::One) (Bit::One)
+
+			return Bit::Zero
+		}
+
+		(Bit) xnor (other Bit) (Bit) {
+			case (Bit::Zero) (other Bit::Zero) (Bit::One)
+			case (Bit::One) (other Bit::One) (Bit::One)
+
+			return Bit::Zero
+		}
+
+		(Bit) not () (Bit) {
+			case (Bit::Zero) () (Bit.One)
+			case (Bit::One)  () (Bit.Zero) 
+		}
+	}
+
+	trait Bool(val _bit: Bit) {
+		type True(Bit::Zero)
+		type False(Bit::One)
+
+		(Bool) not () (Bool) = Bool(_bit.not())
+	}
+
+	trait
+
+	type Int<width Int<8>>(val bits List<Bit, Width>) {
+		case Zero(List<Bit, Width>())
+		case Min(())
+		case Max((Int<8>.Zero .. width / 2).map { 1 } + 0)
+	}
+
+	(I) plus<I: Int> (other I) (I) {
+		case (I.Max) (other I) (I) = 
+	}
+}
+
+api Number within Orb::Core::Primitives
+	with Orb::Core::Relations
+	with Orb::Meta::Types {
+	
+	trait Number<W Int> : Closed, Relatable {
+		type Zero
+		type One
+		type Min
+		type Max
+		type Epsilon
+	
+		(Self) Next () (Self) {
+			(Self.Zero) Next () (Self.One)
+			(Self) Next () (Self)
+		}
+		
+		(Self) Previous () (Self)
+	}
+}
+
+@Orb::Bootstrap::Platform::Interface
+api Integer : Number within Orb::Core::Primitives {
+	type Int<W Int> : Number<W> {
+		type Max
+		type Min
+		type Zero
+
+		(Int<W Int>) lt (other Int) (Bool)
+		(Int<W Int>) eq (other Int) (Bool)
+	}
+}
+

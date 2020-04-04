@@ -1,8 +1,11 @@
 package org.orbit.core.nodes
 
 import org.json.JSONObject
+import org.orbit.core.Token
 
 data class ApiDefNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
 	val identifierNode: TypeIdentifierNode,
 	val typeDefNodes: List<TypeDefNode>,
 	val traitDefNodes: List<TraitDefNode>,
@@ -10,7 +13,7 @@ data class ApiDefNode(
 	val withinNode: TypeIdentifierNode?,
 	val withNodes: List<TypeIdentifierNode>
 	// TODO - Other top level nodes, e.g. methods
-) : Node() {
+) : Node(firstToken, lastToken) {
 	object JsonSerialiser : JsonNodeSerialiser<ApiDefNode> {
 		override fun serialise(obj: ApiDefNode) : JSONObject {
 			val json = jsonify(obj)

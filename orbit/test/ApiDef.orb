@@ -1,5 +1,3 @@
-api Test {
-	trait Number {
-		
-	}
+api Numerics within Orb::Core {
+	
 }

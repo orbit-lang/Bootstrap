@@ -23,6 +23,6 @@ object PairRule : ParseRule<PairNode> {
 		val typeIdentifierNode = context.attempt(TypeIdentifierRule)
 			?: throw PairRule.Errors.MissingType(start.position)
 
-		return PairNode(identifierNode, typeIdentifierNode)
+		return PairNode(start, typeIdentifierNode.lastToken, identifierNode, typeIdentifierNode)
 	}
 }

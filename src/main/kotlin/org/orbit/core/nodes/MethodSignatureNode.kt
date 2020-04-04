@@ -1,19 +1,28 @@
 package org.orbit.core.nodes
 
+import org.orbit.core.Token
+
 data class MethodSignatureNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
 	val identifierNode: IdentifierNode,
 	val receiverTypeNode: PairNode,
 	val parameterNodes: List<PairNode>,
 	val returnTypeNode: TypeIdentifierNode
-) : Node() {
+) : Node(firstToken, lastToken) {
 	constructor(
+		firstToken: Token,
+		lastToken: Token,
 		identifierNode: IdentifierNode,
 		receiverTypeNode: TypeIdentifierNode,
 		parameterNodes: List<PairNode>,
 		returnTypeNode: TypeIdentifierNode
 	) : this(
+		firstToken,
+		lastToken,
 		identifierNode,
-		PairNode(IdentifierNode("Self"), receiverTypeNode),
+		PairNode(receiverTypeNode.firstToken, receiverTypeNode.lastToken,
+			IdentifierNode(receiverTypeNode.firstToken, receiverTypeNode.lastToken, "Self"), receiverTypeNode),
 		parameterNodes,
 		returnTypeNode
 	)
