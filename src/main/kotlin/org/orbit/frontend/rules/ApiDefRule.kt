@@ -34,7 +34,7 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		
 		var typeDefNodes = mutableListOf<TypeDefNode>()
 		var traitDefNodes = mutableListOf<TraitDefNode>()
-		var methodDefNodes = mutableListOf<MethodSignatureNode>()
+		var methodDefNodes = mutableListOf<MethodDefNode>()
 		var next: Token = context.peek()
 
 		while (next.type != TokenTypes.RBrace) {
@@ -48,7 +48,7 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 				}
 
 				TokenTypes.Trait -> {
-					val traitDefNode = context.attempt(TraitDefRule)
+					val traitDefNode = context.attempt(TraitDefRule, true)
 						?: throw Exception("Expected trait decl following 'trait' at api-level")
 
 					traitDefNodes.add(traitDefNode)
@@ -56,7 +56,7 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 
 				// Method defs
 				TokenTypes.LParen -> {
-					val methodDefNode = context.attempt(MethodSignatureRule(false))
+					val methodDefNode = context.attempt(MethodDefRule, true)
 						?: throw Exception("Expected method signature following '(' at api-level")
 
 					methodDefNodes.add(methodDefNode)

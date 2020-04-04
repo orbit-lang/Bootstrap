@@ -91,25 +91,6 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 		throw Parser.Errors.UnexpectedToken(next)
 	}
 
-	fun startRecording() {
-		stopRecording()
-
-		recordedTokens = mutableListOf()
-
-		isRecording = true
-	}
-
-	fun stopRecording() {
-		isRecording = false
-	}
-
-	fun autoRewind() {
-		stopRecording()
-
-		rewind(recordedTokens)
-		recordedTokens = mutableListOf()
-	}
-
 	fun rewind(consumed: List<Token>) {
 		tokens.addAll(0, consumed)
 	}
@@ -131,27 +112,22 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 
 	// This is about as close to vararg generics as we can get
 	fun <T: Node, U: Node> attemptAny(of1: ParseRule<T>, of2: ParseRule<U>) : Pair<T?, U?>? {
-		//startRecording()
 		val backup = tokens
 		val result1 = attempt(of1)
 
 		if (result1 != null) {
-			stopRecording()
 			return Pair(result1, null)
 		}
 
 		tokens = backup
-		//autoRewind()
 
 		val result2 = attempt(of2)
 
 		if (result2 != null) {
-			//stopRecording()
 			return Pair(null, result2)
 		}
 
 		tokens = backup
-		//autoRewind()
 
 		return null
 	}
@@ -159,22 +135,16 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 	fun attemptAny(vararg of: ParseRule<*>) : Node? {
 		val backup = tokens
 		for (rule in of) {
-			// Start capturing consumed tokens, in case 
-			// this rule fails and we have to rewind
-			//startRecording()
-
 			val expr = attempt(rule)
 
 			if (expr == null) {
 				// Failed to parse this rule, return token stack to
 				// previous state and move on to next rule
 				tokens = backup
-//				autoRewind()
 				continue
 			}
 
 			// Success! No need to try any remaining rules
-			//stopRecording()
 			return expr
 		}
 

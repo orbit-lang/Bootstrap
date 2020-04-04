@@ -7,11 +7,9 @@ import kotlin.test.fail
 import org.orbit.core.*
 import org.orbit.core.nodes.*
 
-private data class MockNode(val value: Int) : Node()
-
 private class MockParseRule(private val value: Int) : ParseRule<MockNode> {
 	override fun parse(context: Parser) : MockNode {
-		return MockNode(value)
+		return MockNode()
 	}
 }
 
@@ -19,7 +17,7 @@ private class MockIntParseRule : ParseRule<MockNode> {
 	override fun parse(context: Parser) : MockNode {
 		val token = context.expect(MockTokenTypeProvider.Int)
 
-		return MockNode(token.text.toInt())
+		return MockNode()
 	}
 }
 
@@ -28,13 +26,13 @@ class ParserTests {
 		val parser = Parser(MockParseRule(99))
 
 		assertThrows<Parser.Errors.NoMoreTokens> {
-			parser.execute(emptyArray())
+			parser.execute(emptyList())
 		}
 	}
 
 	@Test fun parseSingleInt() {
 		val parser = Parser(MockIntParseRule())
-		val tokens = arrayOf(
+		val tokens = listOf(
 			Token(MockTokenTypeProvider.Int, "99", SourcePosition(0, 0))
 		)
 

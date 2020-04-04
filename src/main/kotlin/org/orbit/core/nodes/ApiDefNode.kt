@@ -9,7 +9,7 @@ data class ApiDefNode(
 	val identifierNode: TypeIdentifierNode,
 	val typeDefNodes: List<TypeDefNode>,
 	val traitDefNodes: List<TraitDefNode>,
-	val methodDefNodes: List<MethodSignatureNode>,
+	val methodDefNodes: List<MethodDefNode>,
 	val withinNode: TypeIdentifierNode?,
 	val withNodes: List<TypeIdentifierNode>
 	// TODO - Other top level nodes, e.g. methods

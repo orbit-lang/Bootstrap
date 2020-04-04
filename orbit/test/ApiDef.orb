@@ -1,3 +1,5 @@
 api Numerics within Orb::Core {
-	
+	(self Int) add (n Int) (Int) {
+		A<B: C, D E>
+	}
 }

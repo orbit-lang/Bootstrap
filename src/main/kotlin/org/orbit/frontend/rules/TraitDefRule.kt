@@ -55,30 +55,45 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 
 		next = context.peek()
 
-		var signatures = emptyList<MethodSignatureNode>()
+		var traitConformances = mutableListOf<TypeIdentifierNode>()
 
-		if (next.type == TokenTypes.LBrace) {
-			val blockStartPosition = next.position
+		if (next.type == TokenTypes.Colon) {
 			context.consume()
+
 			next = context.peek()
 
-			if (next.type == TokenTypes.RBrace) {
-				context.warn(Warning("Trait does not declare any method signatures, redundant braces can be deleted.", blockStartPosition))
-			}
+			while (next.type == TokenTypes.TypeIdentifier) {
+				val traitConformance = context.attempt(TypeIdentifierRule)
+					?: throw Parser.Errors.UnexpectedToken(next)
 
-			while (next.type != TokenTypes.RBrace) {
-				val signature = context.attempt(MethodSignatureRule(false))
-					?: throw Exception("TODO")
+				traitConformances.add(traitConformance)
 
-				signatures += signature
+				end = traitConformance.lastToken
+
 				next = context.peek()
-			}
 
-			end = context.expect(TokenTypes.RBrace)
+				if (next.type == TokenTypes.Comma) {
+					context.consume()
+
+					next = context.peek()
+
+					if (next.type != TokenTypes.TypeIdentifier) {
+						// Dangling comma
+						throw Parser.Errors.UnexpectedToken(next)
+					}
+				}
+			}
+		}
+
+		if (next.type == TokenTypes.LBrace) {
+			val bodyNode = context.attempt(BlockRule(TypeDefRule, TraitDefRule, MethodSignatureRule(false)), true)
+				?: throw Exception("TODO")
+			
+			return TraitDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode)
 		}
 		
 		return TraitDefNode(start, end,
 			typeIdentifierNode,
-			propertyPairs, signatures)
+			propertyPairs, traitConformances)
 	}
 }

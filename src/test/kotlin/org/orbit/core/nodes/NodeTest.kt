@@ -1,17 +1,33 @@
 package org.orbit.core.nodes
 
+import org.json.JSONObject
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
+import org.orbit.core.SourcePosition
+import org.orbit.core.Token
+import org.orbit.core.TokenType
 import kotlin.test.fail
 
 sealed class MockAnnotationTag {
-	object A : NodeAnnotationTag<Int>
-	object B : NodeAnnotationTag<String>
+	object A : NodeAnnotationTag<Int> {
+		override fun toJson(): JSONObject = JSONObject()
+	}
+
+	object B : NodeAnnotationTag<String> {
+		override fun toJson(): JSONObject = JSONObject()
+	}
 }
 
-private class MockNode : Node()
+private object MockTokenType : TokenType("mock", "", true, false)
+
+class MockNode : Node(
+	Token(MockTokenType, "mock", SourcePosition(0, 0)),
+	Token(MockTokenType, "mock", SourcePosition(0, 0))
+) {
+	override fun getChildren(): List<Node> = emptyList()
+}
 
 class NodeTests {
 	@Test fun annotateNonUnique() {

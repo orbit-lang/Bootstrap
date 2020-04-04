@@ -9,7 +9,7 @@ data class TypeDefNode(
 	val typeIdentifierNode: TypeIdentifierNode,
 	val propertyPairs: List<PairNode> = emptyList(),
 	val traitConformances: List<TypeIdentifierNode> = emptyList(),
-	val body: BlockNode? = null
+	val body: BlockNode = BlockNode(lastToken, lastToken, emptyList())
 ) : Node(firstToken, lastToken) {
 	object JsonSerialiser : JsonNodeSerialiser<TypeDefNode> {
 		override fun serialise(obj: TypeDefNode) : JSONObject {
@@ -21,8 +21,6 @@ data class TypeDefNode(
 		}
 	}
 
-	override fun getChildren() : List<Node> = when (body) {
-		null -> listOf(typeIdentifierNode) + propertyPairs + traitConformances
-		else -> listOf(typeIdentifierNode, body) + propertyPairs + traitConformances
-	}
+	override fun getChildren() : List<Node>
+		= listOf(typeIdentifierNode, body) + propertyPairs + traitConformances
 }

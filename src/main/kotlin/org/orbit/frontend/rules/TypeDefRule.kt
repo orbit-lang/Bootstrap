@@ -124,8 +124,9 @@ object TypeDefRule : ParseRule<TypeDefNode> {
 					- Nested type def (making this an enum type)
 					- Method implementations (marking them as part of this type's public api)
 			*/
+
 			// TODO - Swap MethodSignatureRule out for MethodDefRule
-			val bodyNode = context.attempt(BlockRule(TypeDefRule, MethodSignatureRule(false)), true)
+			val bodyNode = context.attempt(BlockRule(TraitDefRule, TypeDefRule, MethodSignatureRule(false)), true)
 				?: throw Exception("TODO")
 
 			return TypeDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode)

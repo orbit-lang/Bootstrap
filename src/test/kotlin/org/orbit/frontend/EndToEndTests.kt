@@ -16,7 +16,7 @@ class EndToEndTests {
 		val path = "/Users/davie/dev/Orbit/kotlin/Orbit/orbit/test/$file"
 		val sourceProvider = FileSourceProvider(path)
 		val lexer = Lexer(TokenTypes)
-		val parser = Parser(ProgramRule())
+		val parser = Parser(ProgramRule)
 		val tokens = lexer.execute(sourceProvider)
 		
 		return parser.execute(tokens)
@@ -25,7 +25,7 @@ class EndToEndTests {
 	private fun compileString(string: String) : ParseResult {
 		val sourceProvider = MockSourceProvider(string)
 		val lexer = Lexer(TokenTypes)
-		val parser = Parser(ProgramRule())
+		val parser = Parser(ProgramRule)
 		val tokens = lexer.execute(sourceProvider)
 
 		return parser.execute(tokens)
@@ -34,18 +34,6 @@ class EndToEndTests {
 	@Test fun apiDefMissingName() {
 		assertThrows<ApiDefRule.Errors.MissingName> {
 			compileString("api {}")
-		}
-	}
-
-	@Test fun emptyApiDefSimple() {
-		assertDoesNotThrow {
-			val result = compile("ApiDef.orb")
-			val program = result.ast as ProgramNode
-			val api = program.apis[0]
-
-			assertEquals("Test", api.identifierNode.typeIdentifier)
-			assertEquals(1, result.warnings.size)
-			assert(result.warnings[0] is ApiDefRule.Warnings.EmptyApi)
 		}
 	}
 }

@@ -13,11 +13,11 @@ internal object MockTokenTypeProvider : TokenTypeProvider {
 	object Int : TokenType("Int", "\\d+", true, false)
 	object Whitespace : TokenType("Whitespace", "[\\s\\n\\r]+", true, false)
 
-	override fun getTokenTypes(): Array<TokenType> {
-		return arrayOf(Int, Whitespace)
+	override fun getTokenTypes(): List<TokenType> {
+		return listOf(Int, Whitespace)
 	}
 }
 
 internal object MockEmptyTokenTypeProvider : TokenTypeProvider {
-	override fun getTokenTypes(): Array<TokenType> = emptyArray()
+	override fun getTokenTypes(): List<TokenType> = emptyList()
 }

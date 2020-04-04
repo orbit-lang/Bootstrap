@@ -9,6 +9,7 @@ import org.orbit.core.nodes.*
 import org.orbit.graph.CanonicalNameResolver
 import org.orbit.core.OrbitMangler
 import org.orbit.frontend.CommentParser
+import org.orbit.analysis.semantics.*
 
 class Main {
     companion object {
@@ -39,7 +40,7 @@ class Main {
 				.search(TraitDefNode::class.java)
 			
             val methods = result.ast
-            	.search(MethodSignatureNode::class.java)
+            	.search(MethodDefNode::class.java)
 
             val bounded = result.ast
             	.search(BoundedTypeParameterNode::class.java)
@@ -54,18 +55,20 @@ class Main {
             val typeIds = result.ast
             	.search(TypeIdentifierNode::class.java)
 
-			println("TYPES: ${types.size}")
-			println("TRAITS: ${traits.size}")
+			//println("TYPES: ${types.size}")
+			//println("TRAITS: ${traits.size}")
 			println("METHODS: ${methods.size}")
 			
 			//types.forEach { println(it) }
 			//traits.forEach { println(it) }
-			//methods.forEach { println(it) }
+			methods.forEach { println(it) }
 			//bounded.forEach { println(it) }
 			//dependent.forEach { println(it) }
-			typeIds.forEach { println(it) }
-			
-			print(environment)
+			//typeIds.forEach { println(it) }
+
+			val analyses = NestedTraitAnalyser.execute(result.ast)
+
+			analyses.forEach { println(it) }
         }
     }
 }

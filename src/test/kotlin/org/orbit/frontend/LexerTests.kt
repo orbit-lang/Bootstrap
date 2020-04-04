@@ -8,7 +8,7 @@ import org.orbit.core.*
 
 class LexerTests {
 	private fun lex(source: String, tokenTypeProvider: TokenTypeProvider)
-			: Array<Token> {
+			: List<Token> {
 
 		val sourceProvider = MockSourceProvider(source)
 
@@ -16,7 +16,7 @@ class LexerTests {
 			.execute(sourceProvider)
 	}
 
-	private fun verify(tokens: Array<Token>, vararg expected: TokenType) {
+	private fun verify(tokens: List<Token>, vararg expected: TokenType) {
 		assertEquals(tokens.size, expected.size)
 
 		tokens.zip(expected).forEach {
