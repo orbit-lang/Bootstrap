@@ -10,6 +10,8 @@ import org.orbit.graph.CanonicalNameResolver
 import org.orbit.core.OrbitMangler
 import org.orbit.frontend.CommentParser
 import org.orbit.analysis.semantics.*
+import org.orbit.analysis.*
+import org.orbit.util.*
 
 class Main {
     companion object {
@@ -17,9 +19,9 @@ class Main {
             if (args.isEmpty()) throw Exception("usage: orbit <source_files>")
 
             var sourceProvider: SourceProvider = FileSourceProvider(args[0])
-			val commentParseResult = CommentParser.execute(sourceProvider)
+			//val commentParseResult = CommentParser.execute(sourceProvider)
 
-			sourceProvider = commentParseResult.first 
+			//sourceProvider = commentParseResult.first
             
             val lexer = Lexer(TokenTypes)
             val parser = Parser(ProgramRule)
@@ -57,18 +59,21 @@ class Main {
 
 			//println("TYPES: ${types.size}")
 			//println("TRAITS: ${traits.size}")
-			println("METHODS: ${methods.size}")
+			//println("METHODS: ${methods.size}")
 			
 			//types.forEach { println(it) }
 			//traits.forEach { println(it) }
-			methods.forEach { println(it) }
+			//methods.forEach { println(it) }
 			//bounded.forEach { println(it) }
 			//dependent.forEach { println(it) }
 			//typeIds.forEach { println(it) }
 
-			val analyses = NestedTraitAnalyser.execute(result.ast)
-
-			analyses.forEach { println(it) }
+			val printer = Printer(Unix)
+			
+			val semanticAnalyser = Analyser("Semantics", NestedTraitAnalyser, UnreachableReturnAnalyser)
+			val semanticAnalysisReport = semanticAnalyser.execute(result.ast)
+						
+			println(semanticAnalysisReport.toString(printer))
         }
     }
 }

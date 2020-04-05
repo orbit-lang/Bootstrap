@@ -17,16 +17,17 @@ class Lexer(
 
 	override fun execute(input: SourceProvider) : List<Token> {
 		val source = input.getSource()
+
 		val tokenTypes = tokenTypeProvider.getTokenTypes()
 		var tokens = mutableListOf<Token>()
 		var content = source
-		
+
 		while (content.isNotEmpty()) {
 			var matched = false
 			
 			for (tt in tokenTypes) {
 				var nextChar = content.getOrNull(0) ?: break
-				
+
 				if (tt.ignoreWhitespace && isWhitespace(nextChar)) {
 					matched = true
 					// We want to skip these whitespace characters but also move the source position forward

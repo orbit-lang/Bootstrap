@@ -8,7 +8,12 @@ data class TypeIdentifierNode(
 	override val lastToken: Token,
 	val typeIdentifier: String,
 	val typeParametersNode: TypeParametersNode = TypeParametersNode(firstToken, lastToken)
-) : Node(firstToken, lastToken) {
+) : ExpressionNode(firstToken, lastToken) {
+	companion object {
+		fun unit(token: Token) : TypeIdentifierNode
+			= TypeIdentifierNode(token, token, "Unit")
+	}
+
 	object JsonSerialiser : JsonNodeSerialiser<TypeIdentifierNode> {
 		override fun serialise(obj: TypeIdentifierNode) : JSONObject {
 			val json = jsonify(obj)

@@ -30,6 +30,7 @@ object TokenTypes : TokenTypeProvider {
     object Trait : TokenType("Trait", "trait", true, false)
     object With : TokenType("With", "with", true, false)
     object Within : TokenType("Within", "within", true, false)
+	object Return : TokenType("Return", "return", true, false)
 
     // Literals
     object Int : TokenType("Int", "[0-9]+", true, false)
@@ -44,7 +45,7 @@ object TokenTypes : TokenTypeProvider {
             Int, Real, Api, TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
-            Type, Trait, Within, With,
+            Type, Trait, Within, With, Return,
             Operator, Identifier
         )
     }

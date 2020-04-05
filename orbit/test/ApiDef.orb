@@ -1,5 +1,15 @@
 api Numerics within Orb::Core {
+	type A {
+		trait B
+	}
+
+	type C {
+		trait D
+		trait E
+	}
+
 	(self Int) add (n Int) (Int) {
-		A<B: C, D E>
+		return A<B: C, D E>
+		return C
 	}
 }

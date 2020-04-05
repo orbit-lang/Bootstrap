@@ -5,10 +5,9 @@ import org.orbit.frontend.ParseRule
 import org.orbit.frontend.Parser
 import org.orbit.frontend.TokenTypes
 
-object TypeIdentifierRule : ParseRule<TypeIdentifierNode> {
+object TypeIdentifierRule : ValueRule<TypeIdentifierNode> {
 	override fun parse(context: Parser) : TypeIdentifierNode {
 		val start = context.expect(TokenTypes.TypeIdentifier)
-
 		val next = context.peek()
 
 		if (next.type == TokenTypes.LAngle) {
