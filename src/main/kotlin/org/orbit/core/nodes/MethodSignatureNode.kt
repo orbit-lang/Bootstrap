@@ -8,7 +8,7 @@ data class MethodSignatureNode(
 	val identifierNode: IdentifierNode,
 	val receiverTypeNode: PairNode,
 	val parameterNodes: List<PairNode>,
-	val returnTypeNode: TypeIdentifierNode
+	val returnTypeNode: TypeIdentifierNode?
 ) : Node(firstToken, lastToken) {
 	constructor(
 		firstToken: Token,
@@ -16,7 +16,7 @@ data class MethodSignatureNode(
 		identifierNode: IdentifierNode,
 		receiverTypeNode: TypeIdentifierNode,
 		parameterNodes: List<PairNode>,
-		returnTypeNode: TypeIdentifierNode
+		returnTypeNode: TypeIdentifierNode?
 	) : this(
 		firstToken,
 		lastToken,
@@ -27,11 +27,8 @@ data class MethodSignatureNode(
 		returnTypeNode
 	)
 
-	override fun getChildren() : List<Node> {
-		return listOf(
-			identifierNode,
-			receiverTypeNode,
-			returnTypeNode
-		) + parameterNodes
+	override fun getChildren() : List<Node> = when (returnTypeNode) {
+		null -> listOf(identifierNode, receiverTypeNode) + parameterNodes
+		else -> listOf(identifierNode, receiverTypeNode, returnTypeNode) + parameterNodes
 	}
 }

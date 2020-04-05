@@ -5,6 +5,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileReader
 
-class FileSourceProvider(private val path: String) : SourceProvider {
-	override fun getSource() : String = File(path).readText()
+class FileSourceProvider(private val file: File) : SourceProvider {
+	override fun getSource() : String = file.readText()
 }

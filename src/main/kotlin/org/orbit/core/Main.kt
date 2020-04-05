@@ -16,13 +16,15 @@ import org.orbit.util.*
 class Main {
     companion object {
         @JvmStatic fun main(args: Array<String>) {
-            if (args.isEmpty()) throw Exception("usage: orbit <source_files>")
+            val orbit = Orbit()
 
-            var sourceProvider: SourceProvider = FileSourceProvider(args[0])
+            orbit.main(args)
+
+            var sourceProvider: SourceProvider = FileSourceProvider(orbit.source)
 			val commentParseResult = CommentParser.execute(sourceProvider)
 
 			sourceProvider = commentParseResult.first
-            
+
             val lexer = Lexer(TokenTypes)
             val parser = Parser(ProgramRule)
 
@@ -70,9 +72,9 @@ class Main {
 
 			val printer = Printer(Unix)
 			
-			val semanticAnalyser = Analyser("Semantics", NestedTraitAnalyser, UnreachableReturnAnalyser)
+			val semanticAnalyser = Analyser("Semantics", NestedTraitAnalyser, UnreachableReturnAnalyser, RedundantReturnAnalyser)
 			val semanticAnalysisReport = semanticAnalyser.execute(result.ast)
-						
+			
 			println(semanticAnalysisReport.toString(printer))
         }
     }

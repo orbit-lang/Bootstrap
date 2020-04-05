@@ -1,0 +1,32 @@
+api Phase {
+	trait Phase<I, O, Injector?: Phase<_, I>, Consumer?: Phase<O, _>> {
+		type Component<I, O> {
+			type Injector<I>
+			type Consumer<O>
+		}
+
+		(Self) Register<I, O, C: Component<I, O>> () (Self) {
+			case <_, _, Component<I, O>::Injector<I>> = Self<I, O, Injector = C>
+			case <_, _, Component<I, O>::Consumer<O>> = Self<I, O, Consumer = C>
+		}
+
+		(self Self) _execute (input Self::I) (Self::O)
+
+		(Self) execute (input Self::I) (Self::O) {
+			val phase = Self()
+			val input = Self::Injector?.execute(input) ?: input
+			val result = phase._execute(input)
+
+			return Self::Consumer?.execute(result) ?: result
+		}
+	}
+}
+
+api Frontend with Phase {
+	type Lexer : Phase<String, List<Token>>
+	type Parser : Phase<List<Token>, Node>
+
+	@Phase::Register<Parser::Component::Injector>
+	@Phase::Register<Lexer::Component::Consumer>
+	type Foo : Phase<List<Token>, List<Token>>
+}

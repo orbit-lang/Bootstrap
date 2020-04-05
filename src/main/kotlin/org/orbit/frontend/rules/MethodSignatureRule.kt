@@ -73,11 +73,15 @@ final class MethodSignatureRule(private val anonymous: Boolean, private val auto
 
 		next = context.expect(TokenTypes.LParen)
 		
-		val returnTypeNode = context.attempt(TypeIdentifierRule)
-			?: throw MethodSignatureRule.Errors.MissingReturnType(next.position)
+		val returnTypeNode =
+			if (context.peek().type == TokenTypes.RParen) {
+				null
+			} else {
+				context.attempt(TypeIdentifierRule)
+					?: throw MethodSignatureRule.Errors.MissingReturnType(next.position)
+			}
 
 		val end = context.expect(TokenTypes.RParen)
-
 		val id = identifierNode ?: IdentifierNode(idStart, idStart, autoName)
 
 		return when {

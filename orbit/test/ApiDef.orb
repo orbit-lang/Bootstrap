@@ -10,8 +10,7 @@ api Numerics within Orb::Core {
 		trait E
 	}
 
-	(self Int) add (n Int) (Int) {
-		return A<B: C, D E>
-		return C
+	(Int) foo () () {
+		return T
 	}
 }
