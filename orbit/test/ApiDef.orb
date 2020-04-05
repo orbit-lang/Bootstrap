@@ -1,10 +1,12 @@
+# A comment
 api Numerics within Orb::Core {
 	type A {
+		# Another comment
 		trait B
 	}
 
 	type C {
-		trait D
+		trait D # Also a comment
 		trait E
 	}
 

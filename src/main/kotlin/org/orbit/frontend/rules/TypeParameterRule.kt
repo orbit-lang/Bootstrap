@@ -69,12 +69,12 @@ object TypeParametersRule : ParseRule<TypeParametersNode> {
 			try {
 				result = lookaheadParser.execute(context.tokens)
 
-				if (result.ast is DependentTypeParameterNode) {
+				typeParameterNode = if (result.ast is DependentTypeParameterNode) {
 					// We need to manually remove the tokens parsed by the lookahead parser
 					context.consume(result.ast.firstToken, result.ast.lastToken)
-					typeParameterNode = result.ast as DependentTypeParameterNode
+					result.ast as DependentTypeParameterNode
 				} else {
-					typeParameterNode = context.attempt(BoundedTypeParameterRule)
+					context.attempt(BoundedTypeParameterRule)
 						?: throw Exception("TODO")
 				}
 			} catch (_: Exception) {

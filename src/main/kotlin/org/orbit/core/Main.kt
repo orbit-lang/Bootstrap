@@ -19,9 +19,9 @@ class Main {
             if (args.isEmpty()) throw Exception("usage: orbit <source_files>")
 
             var sourceProvider: SourceProvider = FileSourceProvider(args[0])
-			//val commentParseResult = CommentParser.execute(sourceProvider)
+			val commentParseResult = CommentParser.execute(sourceProvider)
 
-			//sourceProvider = commentParseResult.first
+			sourceProvider = commentParseResult.first
             
             val lexer = Lexer(TokenTypes)
             val parser = Parser(ProgramRule)
