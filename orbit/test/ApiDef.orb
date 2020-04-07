@@ -1,16 +1,7 @@
-# A comment
-api Numerics within Orb::Core {
-	type A {
-		# Another comment
-		trait B
-	}
+api Numerics {
+	type Int<N Int>
 
-	type C {
-		trait D # Also a comment
-		trait E
-	}
-
-	(Int) foo () () {
-		return T
+	(Int) next () (Int) {
+		return 889483457
 	}
 }

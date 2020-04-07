@@ -1,12 +1,9 @@
 package org.orbit.frontend
 
 import org.jetbrains.annotations.Contract
-import org.orbit.core.TokenType
-import org.orbit.core.Token
+import org.orbit.core.*
 import org.orbit.core.nodes.*
-import org.orbit.core.Phase
-import org.orbit.core.Warning
-import org.orbit.core.SourcePosition
+import org.orbit.util.Invocation
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -16,8 +13,29 @@ interface ParseRule<N: Node> {
 
 data class ParseResult(val ast: Node, val warnings: List<Warning>)
 
-class Parser(private val topLevelParseRule: ParseRule<*>)
-	: Phase<List<Token>, ParseResult> {
+class Parser(
+	override val invocation: Invocation,
+	private val topLevelParseRule: ParseRule<*>
+) : ReifiedPhase<Parser.InputType, ParseResult> {
+	data class InputType(val tokens: List<Token>)
+
+	class AdapterPhase(override val invocation: Invocation) : ReifiedPhase<Lexer.Result, Parser.InputType> {
+		override val inputType: Class<Lexer.Result>
+			get() = Lexer.Result::class.java
+
+		override val outputType: Class<InputType>
+			get() = InputType::class.java
+
+		override fun execute(input: Lexer.Result) : InputType {
+			return InputType(input.tokens)
+		}
+	}
+
+	override val inputType: Class<InputType>
+		get() = InputType::class.java
+
+	override val outputType: Class<ParseResult>
+		get() = ParseResult::class.java
 
 	private var warnings = mutableListOf<Warning>()
 	
@@ -72,7 +90,7 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 		
 		return when (next.type) {
 			type -> consume()
-			else -> throw Parser.Errors.UnexpectedToken(next)
+			else -> throw invocation.make(Parser.Errors.UnexpectedToken(next))
 		}
 	}
 
@@ -88,7 +106,7 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 			return next
 		}
 
-		throw Parser.Errors.UnexpectedToken(next)
+		throw invocation.make(Parser.Errors.UnexpectedToken(next))
 	}
 
 	fun rewind(consumed: List<Token>) {
@@ -111,8 +129,9 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 	}
 
 	// This is about as close to vararg generics as we can get
-	fun <T: Node, U: Node> attemptAny(of1: ParseRule<T>, of2: ParseRule<U>) : Pair<T?, U?>? {
+	fun <T: Node, U: Node> attemptAny(of1: ParseRule<T>, of2: ParseRule<U>, throwOnNull: Boolean = false) : Pair<T?, U?>? {
 		val backup = tokens
+		val start = peek()
 		val result1 = attempt(of1)
 
 		if (result1 != null) {
@@ -129,11 +148,14 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 
 		tokens = backup
 
+		if (throwOnNull) throw invocation.make(Parser.Errors.UnexpectedToken(start))
+
 		return null
 	}
 	
-	fun attemptAny(vararg of: ParseRule<*>) : Node? {
+	fun attemptAny(vararg of: ParseRule<*>, throwOnNull: Boolean = false) : Node? {
 		val backup = tokens
+		val start = peek()
 		for (rule in of) {
 			val expr = attempt(rule)
 
@@ -148,14 +170,16 @@ class Parser(private val topLevelParseRule: ParseRule<*>)
 			return expr
 		}
 
+		if (throwOnNull) throw invocation.make(Parser.Errors.UnexpectedToken(start))
+
 		// All rules failed. Token stack is already rewound to initial state
 		return null
 	}
 
-	override fun execute(input: List<Token>) : ParseResult {
-		if (input.isEmpty()) throw Parser.Errors.NoMoreTokens
+	override fun execute(input: InputType) : ParseResult {
+		if (input.tokens.isEmpty()) throw Parser.Errors.NoMoreTokens
 		
-		tokens = input.toMutableList()
+		tokens = input.tokens.toMutableList()
 
 		val ast = topLevelParseRule.parse(this)
 		

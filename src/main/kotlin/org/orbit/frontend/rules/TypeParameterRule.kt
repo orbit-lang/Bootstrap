@@ -7,18 +7,25 @@ import org.orbit.core.SourcePosition
 import org.orbit.core.Warning
 import org.orbit.frontend.*
 
-private object BoundedTypeParameterRule : ParseRule<TypeParameterNode> {
-	override fun parse(context: Parser) : TypeParameterNode {
-		val nameNode = context.attempt(TypeIdentifierRule)
-			?: throw Exception("TODO")
+abstract class TypeParameterRule() : ParseRule<TypeParameterNode>
 
+private object BoundedTypeParameterRule : TypeParameterRule() {
+	override fun parse(context: Parser) : TypeParameterNode {
+		val nameNode = TypeIdentifierRule.Naked.parse(context)
 		val next = context.peek()
 
 		if (next.type == TokenTypes.Colon) {
 			context.consume()
-			
-			val boundNode = context.attempt(TypeIdentifierRule)
-				?: throw Exception("TODO")
+
+			/*
+				NOTE - This is an interesting case!
+
+				EXAMPLE:
+					`type A<B: C<D>>`
+
+				In this context, `C<D>` is an rval type, so we must parse it as a literal
+			 */
+			val boundNode = LiteralRule(TypeIdentifierRule.LValue).parse(context)
 
 			return BoundedTypeParameterNode(nameNode.firstToken, boundNode.lastToken, nameNode, boundNode)
 		}
@@ -27,19 +34,24 @@ private object BoundedTypeParameterRule : ParseRule<TypeParameterNode> {
 	}
 }
 
-private object DependentTypeParameterRule : ParseRule<TypeParameterNode> {
+private object DependentTypeParameterRule : TypeParameterRule() {
 	override fun parse(context: Parser) : TypeParameterNode {
-		val nameNode = context.attempt(TypeIdentifierRule)
-			?: throw Exception("TODO")
-
-		val typeNode = context.attempt(TypeIdentifierRule)
-			?: throw Exception("TODO")
+		val nameNode = TypeIdentifierRule.Naked.parse(context)
+		val typeNode = LiteralRule(TypeIdentifierRule.LValue).parse(context)
 
 		return DependentTypeParameterNode(nameNode.firstToken, typeNode.lastToken, nameNode, typeNode)
 	}
 }
 
-object TypeParametersRule : ParseRule<TypeParametersNode> {
+private object ValueTypeParameterRule : TypeParameterRule() {
+	override fun parse(context: Parser): TypeParameterNode {
+		val valueNode = LiteralRule().parse(context)
+
+		return ValueTypeParameterNode(valueNode.firstToken, valueNode.lastToken, valueNode)
+	}
+}
+
+class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeParametersNode> {
 	override fun parse(context: Parser) : TypeParametersNode {
 		var typeParameterNodes = mutableListOf<TypeParameterNode>()
 
@@ -54,50 +66,69 @@ object TypeParametersRule : ParseRule<TypeParametersNode> {
 
 		var end = next
 
-		val lookaheadParser = Parser(DependentTypeParameterRule)
+		val lookaheadParser = Parser(context.invocation, DependentTypeParameterRule)
 
 		while (next.type != TokenTypes.RAngle) {
 			// Parsing precedence is critical here, must check for `<N Int>` style expressions before `N` or `N: Int`,
 			// otherwise we end up with an ambiguity in the grammar
-			if (next.type != TokenTypes.TypeIdentifier) {
-				throw Exception("TODO")
-			}
+			if (isRValueContext) {
+				// We're instantiating a generic type in an rval position, so only concrete Types/Values are allowed
+				val typeParameterNode = ValueTypeParameterRule.parse(context)
 
-			var result: ParseResult? = null
-			var typeParameterNode: TypeParameterNode
+				typeParameterNodes.add(typeParameterNode)
 
-			try {
-				result = lookaheadParser.execute(context.tokens)
+				next = context.peek()
 
-				typeParameterNode = if (result.ast is DependentTypeParameterNode) {
-					// We need to manually remove the tokens parsed by the lookahead parser
-					context.consume(result.ast.firstToken, result.ast.lastToken)
-					result.ast as DependentTypeParameterNode
+				if (next.type == TokenTypes.Comma) {
+					next = context.consume()
 				} else {
-					context.attempt(BoundedTypeParameterRule)
+					context.expect(TokenTypes.RAngle)
+					next = context.peek()
+					break
+				}
+			} else {
+				// Type parameters are in an lval position, meaning we're
+				// declaring something, so concrete Types/Values are not allowed
+				if (next.type != TokenTypes.TypeIdentifier) {
+					throw Exception("TODO")
+				}
+
+				var result: ParseResult? = null
+				var typeParameterNode: TypeParameterNode
+
+				try {
+					result = lookaheadParser.execute(Parser.InputType(context.tokens))
+
+					typeParameterNode = if (result.ast is DependentTypeParameterNode) {
+						// We need to manually remove the tokens parsed by the lookahead parser
+						context.consume(result.ast.firstToken, result.ast.lastToken)
+						result.ast as DependentTypeParameterNode
+					} else {
+						context.attempt(BoundedTypeParameterRule)
+							?: throw Exception("TODO")
+					}
+				} catch (_: Exception) {
+					if (result != null) {
+						context.consume(result.ast.firstToken, result.ast.lastToken)
+					}
+
+					typeParameterNode = context.attempt(BoundedTypeParameterRule, true)
 						?: throw Exception("TODO")
 				}
-			} catch (_: Exception) {
-				if (result != null) {
-					context.consume(result.ast.firstToken, result.ast.lastToken)
-				}
 
-				typeParameterNode = context.attempt(BoundedTypeParameterRule)
-					?: throw Exception("TODO")
-			}
+				typeParameterNodes.add(typeParameterNode)
 
-			typeParameterNodes.add(typeParameterNode)
+				end = typeParameterNode.lastToken
 
-			end = typeParameterNode.lastToken
-
-			next = context.peek()
-
-			if (next.type == TokenTypes.Comma) {
-				context.consume()
 				next = context.peek()
-			} else {
-				end = context.expect(TokenTypes.RAngle)
-				break
+
+				if (next.type == TokenTypes.Comma) {
+					context.consume()
+					next = context.peek()
+				} else {
+					end = context.expect(TokenTypes.RAngle)
+					break
+				}
 			}
 		}
 		

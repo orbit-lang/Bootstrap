@@ -13,3 +13,15 @@ abstract class ExpressionNode(
 	override val firstToken: Token,
 	override val lastToken: Token
 ) : Node(firstToken, lastToken)
+
+data class RValueNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
+	val expressionNode: ExpressionNode,
+	val typeParametersNode: TypeParametersNode = TypeParametersNode(lastToken, lastToken)
+) : Node(firstToken, lastToken) {
+	constructor(expressionNode: ExpressionNode)
+		: this(expressionNode.firstToken, expressionNode.lastToken, expressionNode)
+
+	override fun getChildren() : List<Node> = listOf(expressionNode, typeParametersNode)
+}

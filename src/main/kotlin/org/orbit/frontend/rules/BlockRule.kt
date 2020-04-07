@@ -23,8 +23,8 @@ class BlockRule(vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNode> {
 		var body = mutableListOf<Node>()
 		
 		while (next.type != TokenTypes.RBrace) {
-			body.add(context.attemptAny(*bodyRules)
-				?: throw BlockRule.Errors.UnexpectedBlockStatement(next))
+			body.add(context.attemptAny(*bodyRules, throwOnNull = true)
+				?: throw context.invocation.make(BlockRule.Errors.UnexpectedBlockStatement(next)))
 
 			next = context.peek()
 		}

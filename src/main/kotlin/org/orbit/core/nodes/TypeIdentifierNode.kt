@@ -6,9 +6,9 @@ import org.orbit.core.Token
 data class TypeIdentifierNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
-	val typeIdentifier: String,
+	override val value: String,
 	val typeParametersNode: TypeParametersNode = TypeParametersNode(firstToken, lastToken)
-) : ExpressionNode(firstToken, lastToken) {
+) : LiteralNode<String>(firstToken, lastToken, value) {
 	companion object {
 		fun unit(token: Token) : TypeIdentifierNode
 			= TypeIdentifierNode(token, token, "Unit")
@@ -18,7 +18,8 @@ data class TypeIdentifierNode(
 		override fun serialise(obj: TypeIdentifierNode) : JSONObject {
 			val json = jsonify(obj)
 
-			json.put("type.identifier", obj.typeIdentifier)
+			json.put("type.identifier", obj.value)
+			//json.put("type.type_parameters", obj.typeParametersNode.to)
 			
 			return json
 		}
@@ -29,5 +30,5 @@ data class TypeIdentifierNode(
 	}
 
 	override fun toString() : String
-		= "${typeIdentifier}<${typeParametersNode.typeParameterNodes.joinToString(", ") { it.toString() }}>"
+		= "${value}<${typeParametersNode.typeParameterNodes.joinToString(", ") { it.toString() }}>"
 }

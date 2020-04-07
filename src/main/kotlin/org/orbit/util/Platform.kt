@@ -28,5 +28,5 @@ object Unix : Platform, PrintableFactory {
 		= "\u001b[4m"
 
 	override fun getSuccess() : String
-		= "\u001b[32;1m"
+		= "\u001b[92;1m"
 }

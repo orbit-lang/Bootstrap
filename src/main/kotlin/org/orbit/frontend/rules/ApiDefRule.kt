@@ -18,8 +18,8 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 
 	override fun parse(context: Parser) : ApiDefNode {
 		val start = context.expect(TokenTypes.Api)
-		val typeIdentifierNode = context.attempt(TypeIdentifierRule)
-			?: throw ApiDefRule.Errors.MissingName(start.position)
+		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
+			?: throw context.invocation.make(ApiDefRule.Errors.MissingName(start.position))
 
 		val withinNode = context.attempt(WithinRule)
 		var with = context.attempt(WithRule)

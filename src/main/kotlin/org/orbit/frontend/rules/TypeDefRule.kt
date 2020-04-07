@@ -21,8 +21,8 @@ object TypeDefRule : ParseRule<TypeDefNode> {
 
 	override fun parse(context: Parser) : TypeDefNode {
 		val start = context.expect(TokenTypes.Type)
-		val typeIdentifierNode = context.attempt(TypeIdentifierRule, true)
-			?: throw TypeDefRule.Errors.MissingName(start.position)
+		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue, true)
+			?: throw context.invocation.make(TypeDefRule.Errors.MissingName(start.position))
 
 		var next = context.peek()
 		var propertyPairs = emptyList<PairNode>()
@@ -47,10 +47,10 @@ object TypeDefRule : ParseRule<TypeDefNode> {
 			// We use a separate parser here to keep our avoid popping from our own token stack,
 			// which would otherwise be quite difficult to rewind if the following case parses
 
-			val lookaheadParser = Parser(MethodSignatureRule(false))
+			val lookaheadParser = Parser(context.invocation, MethodSignatureRule(false))
 
 			try {
-				lookaheadParser.execute(context.tokens)
+				lookaheadParser.execute(Parser.InputType(context.tokens))
 
 				// This is the ambiguous case described above.
 				// We can jump out here, safe in the knowledge that
@@ -66,7 +66,7 @@ object TypeDefRule : ParseRule<TypeDefNode> {
 
 			while (true) {
 				val propertyPair = context.attempt(PairRule)
-					?: throw TypeDefRule.Errors.MissingPair(start.position)
+					?: throw context.invocation.make(TypeDefRule.Errors.MissingPair(start.position))
 
 				propertyPairs += propertyPair
 
@@ -94,8 +94,8 @@ object TypeDefRule : ParseRule<TypeDefNode> {
 			next = context.peek()
 
 			while (next.type == TokenTypes.TypeIdentifier) {
-				val traitConformance = context.attempt(TypeIdentifierRule)
-					?: throw Parser.Errors.UnexpectedToken(next)
+				val traitConformance = context.attempt(TypeIdentifierRule.LValue)
+					?: throw context.invocation.make(Parser.Errors.UnexpectedToken(next))
 
 				traitConformances.add(traitConformance)
 
@@ -111,7 +111,8 @@ object TypeDefRule : ParseRule<TypeDefNode> {
 
 					if (next.type != TokenTypes.TypeIdentifier) {
 						// Dangling comma
-						throw Parser.Errors.UnexpectedToken(next)
+						// TODO - Better error message
+						throw context.invocation.make(Parser.Errors.UnexpectedToken(next))
 					}
 				}
 			}

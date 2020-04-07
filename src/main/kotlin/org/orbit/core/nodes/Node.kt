@@ -41,6 +41,11 @@ data class NodeAnnotation<T>(
 }
 
 abstract class Node(open val firstToken: Token, open val lastToken: Token) {
+	interface MapFilter<N> {
+		fun filter(node: Node) : Boolean
+		fun map(node: Node) : List<N>
+	}
+
 	var annotations: Array<NodeAnnotation<*>> = emptyArray()
 
 	final inline fun <reified T> annotate(value: T, tag: NodeAnnotationTag<T>) {
@@ -82,5 +87,13 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) {
 		val matches = getChildren().filterIsInstance(nodeType)
 
 		return matches + getChildren().flatMap { it.search(nodeType) }
+	}
+
+	fun <N: Node> search(mapFilter: Node.MapFilter<N>) : List<N> {
+		val mine = getChildren()
+			.filter(mapFilter::filter)
+			.flatMap(mapFilter::map)
+
+		return mine + getChildren().flatMap { it.search(mapFilter) }
 	}
 }

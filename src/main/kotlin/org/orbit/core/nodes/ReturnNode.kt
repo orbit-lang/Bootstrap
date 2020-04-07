@@ -9,8 +9,11 @@ import org.orbit.core.Token
 data class ReturnStatementNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
-	val valueNode: ExpressionNode
+	val valueNode: RValueNode
 ) : Node(firstToken, lastToken) {
+	constructor(firstToken: Token, lastToken: Token, expressionNode: ExpressionNode)
+		:this (firstToken, lastToken, RValueNode(expressionNode))
+
 	override fun getChildren() : List<Node>
 		= listOf(valueNode)
 }

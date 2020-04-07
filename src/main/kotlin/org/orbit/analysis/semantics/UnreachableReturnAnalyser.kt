@@ -3,8 +3,11 @@ package org.orbit.analysis.semantics
 import org.orbit.analysis.NodeAnalyser
 import org.orbit.analysis.Analysis
 import org.orbit.core.nodes.*
+import org.orbit.util.Invocation
 
-object UnreachableReturnAnalyser : NodeAnalyser<BlockNode>(BlockNode::class.java) {
+class UnreachableReturnAnalyser(
+	override val invocation: Invocation
+) : NodeAnalyser<BlockNode>(invocation, BlockNode::class.java) {
 	override fun analyse(node: BlockNode) : List<Analysis> {
 		val clazz = UnreachableReturnAnalyser::class.java.simpleName
 		var analyses = mutableListOf<Analysis>()
@@ -15,9 +18,8 @@ object UnreachableReturnAnalyser : NodeAnalyser<BlockNode>(BlockNode::class.java
 				count += 1
 
 				if (count > 1) {
-					analyses.add(
-						Analysis(clazz, Analysis.Level.Warning,
-						"Unreachable return statement in block, will be ignored by future phases", statement.firstToken, statement.lastToken))
+					analyses.add(Analysis(clazz, Analysis.Level.Warning,
+					"Unreachable return statement in block, will be ignored by future phases", statement.firstToken, statement.lastToken))
 				}
 			}
 		}

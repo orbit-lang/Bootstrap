@@ -22,6 +22,7 @@ data class Analysis(private val analyser: String, val level: Level, val message:
 }
 
 final class Analyser(
+	override val invocation: Invocation,
 	private val reportName: String,
 	private vararg val analysers: NodeAnalyser<*>) : Phase<ProgramNode, Analyser.Report> {
 	data class Report(val name: String, val warnings: List<Analysis>, val errors: List<Analysis>) {
@@ -31,25 +32,37 @@ final class Analyser(
 			val header = "$h1 $h2"
 
 			if (warnings.isEmpty() && errors.isEmpty()) {
-				return "$header\n${printer.apply("Success!", PrintableKey.Success)}"
+				return "$header\n${printer.apply("\nSuccess ✓", PrintableKey.Success)}"
 			}
 			
-			val warnings = when (warnings.isEmpty()) {
+			val warningsString = when (warnings.isEmpty()) {
 				true -> ""
 				else -> warnings.joinToString("\n\n") { it.toString(printer) }
 			}
 
-			val errors = when (errors.isEmpty()) {
+			val errorsString = when (errors.isEmpty()) {
 				true -> ""
 				else -> errors.joinToString("\n\n") { it.toString(printer) }
 			}
 			
+			val footer = when {
+				errors.isNotEmpty() -> {
+					printer.apply("Failed with ${errors.size} error(s) ✗", PrintableKey.Error)
+				}
+
+				warnings.isNotEmpty() -> {
+					printer.apply("Succeeded with ${warnings.size} warning(s) ✓", PrintableKey.Warning)
+				}
+
+				else -> ""
+			}
+			
 			return """
-$header
+			|$header
+			|$warningsString
+			|$errorsString
 
-$warnings
-
-$errors"""
+			|$footer""".trimMargin()
 		}
 	}
 
@@ -61,7 +74,7 @@ $errors"""
 			analyser.execute(input).forEach {
 				when (it.level) {
 					Analysis.Level.Warning -> warnings.add(it)
-					Analysis.Level.Error -> warnings.add(it)
+					Analysis.Level.Error -> errors.add(it)
 				}
 			}
 		}

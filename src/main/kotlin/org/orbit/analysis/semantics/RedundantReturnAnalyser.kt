@@ -3,8 +3,11 @@ package org.orbit.analysis.semantics
 import org.orbit.analysis.NodeAnalyser
 import org.orbit.analysis.Analysis
 import org.orbit.core.nodes.*
+import org.orbit.util.Invocation
 
-object RedundantReturnAnalyser : NodeAnalyser<MethodDefNode>(MethodDefNode::class.java) {
+class RedundantReturnAnalyser(
+	override val invocation: Invocation
+) : NodeAnalyser<MethodDefNode>(invocation, MethodDefNode::class.java) {
 	override fun analyse(node: MethodDefNode) : List<Analysis> {
 		val analyser = this::class.java.simpleName
 		var analyses = mutableListOf<Analysis>()

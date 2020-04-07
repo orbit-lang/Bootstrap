@@ -7,6 +7,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.core.nodes.ApiDefNode
 import org.orbit.core.nodes.ProgramNode
+import org.orbit.util.Invocation
 
 sealed class GraphErrors {
 	// TODO - Better error message with pointers to conflicting definitions
@@ -42,28 +43,30 @@ final class Environment(private var bindings: List<Binding> = emptyList()) {
 
 private interface PathResolver<N: Node> : Phase<Pair<Environment, N>, Unit>
 
-private class TypeDefPathResolver(private val parentPath: Path) : PathResolver<TypeDefNode> {
+private class TypeDefPathResolver(
+	override val invocation: Invocation,
+	private val parentPath: Path) : PathResolver<TypeDefNode> {
 	override fun execute(input: Pair<Environment, TypeDefNode>) : Unit {
-		val path = parentPath + Path(input.second.typeIdentifierNode.typeIdentifier)
+		val path = parentPath + Path(input.second.typeIdentifierNode.value)
 
 		input.second.annotateByKey(path, "path")
-		input.first.bind(input.second.typeIdentifierNode.typeIdentifier, path)
+		input.first.bind(input.second.typeIdentifierNode.value, path)
 		
 		return Unit
 	}
 }
 
-private object ApiDefPathResolver : PathResolver<ApiDefNode> {
+private class ApiDefPathResolver(override val invocation: Invocation) : PathResolver<ApiDefNode> {
 	override fun execute(input: Pair<Environment, ApiDefNode>) : Unit {
-		var path = OrbitMangler.unmangle(input.second.identifierNode.typeIdentifier)
+		var path = OrbitMangler.unmangle(input.second.identifierNode.value)
 	
 		if (input.second.withinNode != null) {
-			val withinPath = OrbitMangler.unmangle(input.second.withinNode!!.typeIdentifier)
+			val withinPath = OrbitMangler.unmangle(input.second.withinNode!!.value)
 
 			path = withinPath + path
 		}
 
-		val typeDefResolver = TypeDefPathResolver(path)
+		val typeDefResolver = TypeDefPathResolver(invocation, path)
 
 		input.second.typeDefNodes.forEach { typeDefResolver.execute(Pair(input.first, it)) }
 		input.second.annotateByKey(path, "path")
@@ -72,11 +75,11 @@ private object ApiDefPathResolver : PathResolver<ApiDefNode> {
 	}
 }
 
-object CanonicalNameResolver : Phase<ProgramNode, Environment> {
+class CanonicalNameResolver(override val invocation: Invocation) : Phase<ProgramNode, Environment> {
 	override fun execute(input: ProgramNode) : Environment {
 		val environment = Environment()
 		
-		input.apis.forEach { ApiDefPathResolver.execute(Pair(environment, it)) }
+		input.apis.forEach { ApiDefPathResolver(invocation).execute(Pair(environment, it)) }
 		
 		return environment
 	}

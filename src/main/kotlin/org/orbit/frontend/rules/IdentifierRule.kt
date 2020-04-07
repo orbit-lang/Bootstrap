@@ -5,7 +5,7 @@ import org.orbit.frontend.ParseRule
 import org.orbit.frontend.TokenTypes
 import org.orbit.core.nodes.*
 
-object IdentifierRule : ParseRule<IdentifierNode> {
+object IdentifierRule : ValueRule<IdentifierNode> {
 	override fun parse(context: Parser) : IdentifierNode {
 		val start = context.expect(TokenTypes.Identifier)
 		

@@ -8,17 +8,26 @@ abstract class LiteralNode<T>(
 	override val firstToken: Token,
 	override val lastToken: Token,
 	open val value: T
-) : Node(firstToken, lastToken) {
+) : ExpressionNode(firstToken, lastToken) {
 	override fun getChildren() : List<Node> {
 		return emptyList()
 	}
 }
 
-data class IntegerLiteralNode(
+data class IntLiteralNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
-	override val value: Int
-) : LiteralNode<Int>(firstToken, lastToken, value)
+	override val value: Pair<Int, Int>
+) : LiteralNode<Pair<Int, Int>>(firstToken, lastToken, value) {
+	constructor(f: Token, l: Token, width: Int, value: Int)
+		: this(f, l, Pair(width, value))
+
+	// Ints are 32 bit by default
+	// TODO - We could be clever and set the width
+	// to be the smallest power of 2 that fits `value`
+	constructor(f: Token, l: Token, value: Int)
+		: this(f, l, Pair(32, value))
+}
 
 data class RealLiteralNode(
 	override val firstToken: Token,
@@ -31,3 +40,12 @@ data class BoolLiteralNode(
 	override val lastToken: Token,
 	override val value: Boolean
 ) : LiteralNode<Boolean>(firstToken, lastToken, value)
+
+data class SymbolLiteralNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
+	override val value: Pair<Int, String>
+) : LiteralNode<Pair<Int, String>>(firstToken, lastToken, value) {
+	constructor(f: Token, l: Token, length: Int, value: String)
+		: this(f, l, Pair(length, value))
+}

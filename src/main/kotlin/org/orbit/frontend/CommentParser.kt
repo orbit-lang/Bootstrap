@@ -1,7 +1,9 @@
 package org.orbit.frontend
 
 import org.orbit.core.Phase
+import org.orbit.core.ReifiedPhase
 import org.orbit.core.SourceProvider
+import org.orbit.util.Invocation
 
 data class Comment(val type: Comment.Type, val text: String) {
 	enum class Type {
@@ -15,24 +17,17 @@ class StringSourceProvider(private val source: String) : SourceProvider {
 	}
 }
 
-object CommentParser : Phase<SourceProvider, Pair<SourceProvider, List<Comment>>> {
-	// TODO - There is probably a much more efficient (and clean!) way to do this.
-	// Kotlin doesn't have mutable parameters, so there is a large copy here (I think!)
-//	private fun nextSignificantCharacter(source: String, from: Int) : Char? {
-//		var ptr = from
-//		while (ptr++ < source.length) {
-//			// Loop over source[from ... end], looking for the next char that isn't whitespace
-//			val char = source[ptr]
-//			if (!char.isWhitespace()) {
-//				return char
-//			}
-//		}
-//
-//		// Either the rest of the string is whitespace, or there's not characters left
-//		return null
-//	}
+class CommentParser(override val invocation: Invocation) :
+	ReifiedPhase<SourceProvider, CommentParser.Result> {
+	data class Result(val sourceProvider: SourceProvider, val comments: List<Comment>)
 
-	override fun execute(input: SourceProvider) : Pair<SourceProvider, List<Comment>> {
+	override val inputType: Class<SourceProvider>
+		get() = SourceProvider::class.java
+
+	override val outputType: Class<Result>
+		get() = Result::class.java
+
+	override fun execute(input: SourceProvider) : Result {
 		val source = input.getSource()
 		var comments = mutableListOf<Comment>()
 
@@ -108,6 +103,6 @@ object CommentParser : Phase<SourceProvider, Pair<SourceProvider, List<Comment>>
 			}
 		}
 
-		return Pair(StringSourceProvider(stripped), comments)
+		return Result(StringSourceProvider(stripped), comments)
 	}
 }

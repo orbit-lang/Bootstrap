@@ -14,7 +14,7 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 	override fun parse(context: Parser) : TraitDefNode {
 		val start = context.expect(TokenTypes.Trait)
 		
-		val typeIdentifierNode = context.attempt(TypeIdentifierRule)
+		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
 			?: throw Exception("TODO")
 
 		var next = context.peek()
@@ -24,10 +24,10 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 
 		if (next.type == TokenTypes.LParen) {
 			// NOTE - Same ambiguity as TypeDef
-			val lookaheadParser = Parser(MethodSignatureRule(false))
+			val lookaheadParser = Parser(context.invocation, MethodSignatureRule(false))
 
 			try {
-				lookaheadParser.execute(context.tokens)
+				lookaheadParser.execute(Parser.InputType(context.tokens))
 
 				return TraitDefNode(start, end, typeIdentifierNode)
 			} catch (_: Exception) {
@@ -63,8 +63,8 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 			next = context.peek()
 
 			while (next.type == TokenTypes.TypeIdentifier) {
-				val traitConformance = context.attempt(TypeIdentifierRule)
-					?: throw Parser.Errors.UnexpectedToken(next)
+				val traitConformance = context.attempt(TypeIdentifierRule.LValue)
+					?: throw context.invocation.make(Parser.Errors.UnexpectedToken(next))
 
 				traitConformances.add(traitConformance)
 
@@ -79,7 +79,8 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 
 					if (next.type != TokenTypes.TypeIdentifier) {
 						// Dangling comma
-						throw Parser.Errors.UnexpectedToken(next)
+						// TODO - Better error message
+						throw context.invocation.make(Parser.Errors.UnexpectedToken(next))
 					}
 				}
 			}

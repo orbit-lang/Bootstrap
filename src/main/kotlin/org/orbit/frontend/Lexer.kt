@@ -1,10 +1,7 @@
 package org.orbit.frontend
 
-import org.orbit.core.Token
-import org.orbit.core.TokenTypeProvider
-import org.orbit.core.SourceProvider
-import org.orbit.core.SourcePosition
-import org.orbit.core.Phase
+import org.orbit.core.*
+import org.orbit.util.Invocation
 
 fun Char.isWhitespace() : Boolean = when (this) {
 	'\n', '\r', ' ', '\t' -> true
@@ -17,11 +14,32 @@ fun Char.isNewline() : Boolean = when (this) {
 }
 
 class Lexer(
+	override val invocation: Invocation,
 	private val tokenTypeProvider: TokenTypeProvider	
-) : Phase<SourceProvider, List<Token>> {
+) : ReifiedPhase<SourceProvider, Lexer.Result> {
+	data class Result(val tokens: List<Token>)
+
+	class AdapterPhase(override val invocation: Invocation) : ReifiedPhase<CommentParser.Result, SourceProvider> {
+		override val inputType: Class<CommentParser.Result>
+			get() = CommentParser.Result::class.java
+
+		override val outputType: Class<SourceProvider>
+			get() = SourceProvider::class.java
+
+		override fun execute(input: CommentParser.Result): SourceProvider {
+			return input.sourceProvider
+		}
+	}
+
+	override val inputType: Class<SourceProvider>
+		get() = SourceProvider::class.java
+
+	override val outputType: Class<Result>
+		get() = Result::class.java
+
 	private var position = SourcePosition(0, 0)
 
-	override fun execute(input: SourceProvider) : List<Token> {
+	override fun execute(input: SourceProvider) : Result {
 		val source = input.getSource()
 
 		val tokenTypes = tokenTypeProvider.getTokenTypes()
@@ -75,6 +93,6 @@ class Lexer(
 			}
 		}
 		
-		return tokens
+		return Result(tokens)
 	}
 }

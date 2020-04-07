@@ -37,12 +37,13 @@ object TokenTypes : TokenTypeProvider {
     object Real : TokenType("Real", "[0-9]+\\\\.[0-9]+", true, false)
     object Identifier : TokenType("Identifier", "[a-z_]+[a-zA-Z0-9_]*", true, false)
     object TypeIdentifier : TokenType("TypeIdentifier", "([A-Z]+[a-zA-Z0-9_]*)(::[A-Z]+[a-zA-Z0-9_]*)*", true, false)
+	object Symbol : TokenType("Symbol", "\\:[a-zA-Z_]+[a-zA-Z0-9_]*", false, false)
 	
     override fun getTokenTypes() : List<TokenType> {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Int, Real, Api, TypeIdentifier,
+            Int, Real, Api, TypeIdentifier, Symbol,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
             Type, Trait, Within, With, Return,
