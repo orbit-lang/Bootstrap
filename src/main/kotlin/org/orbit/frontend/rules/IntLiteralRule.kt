@@ -15,6 +15,6 @@ object IntLiteralRule : ValueRule<IntLiteralNode> {
 	override fun parse(context: Parser) : IntLiteralNode {
 		val start = context.expect(TokenTypes.Int)
 		
-		return IntLiteralNode(start, start, start.text.toInt())
+		return IntLiteralNode(start, start, start.text.toBigInteger())
 	}
 }

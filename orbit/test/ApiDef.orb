@@ -2,6 +2,6 @@ api Numerics {
 	type Int<N Int>
 
 	(Int) next () (Int) {
-		return 889483457
+		return 128<8>
 	}
 }

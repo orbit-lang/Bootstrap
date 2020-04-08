@@ -112,7 +112,7 @@ class Main {
 				println(typeAnalysisReport.toString(printer))
 			} catch (ex: Exception) {
 				println(ex.message)
-				//throw ex
+				throw ex
 			}
         }
     }

@@ -14,7 +14,29 @@ class Orbit : CliktCommand() {
 }
 
 data class Invocation(val platform: Platform) {
-	inline fun<P: Phase<*, *>> make(error: OrbitError<P>) : Exception {
+	data class OrbitErrorImpl<P: Phase<*, *>>(
+		override val phaseClazz: Class<P>,
+		override val message: String) : OrbitError<P>
+
+	fun<P: Phase<*, *>> make(error: OrbitError<P>) : Exception {
+		val printer = Printer(platform.getPrintableFactory())
+		val h1 = printer.apply("Error", PrintableKey.Error)
+		val h2 = printer.apply("reported by phase:", PrintableKey.Bold)
+		val phase = printer.apply(error.phaseClazz.simpleName, PrintableKey.Underlined)
+
+		val message = printer.apply(error.message, PrintableKey.Error)
+
+		val str = """
+		|$h1 $h2 $phase
+		|	$message
+		""".trimMargin()
+
+		return Exception(str)
+	}
+
+	inline fun<reified P: Phase<*, *>> make(message: String) : Exception {
+		val error = OrbitErrorImpl<P>(P::class.java, message)
+
 		val printer = Printer(platform.getPrintableFactory())
 		val h1 = printer.apply("Error", PrintableKey.Error)
 		val h2 = printer.apply("reported by phase:", PrintableKey.Bold)

@@ -1,6 +1,7 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.Token
+import java.math.BigInteger
 
 // NOTE: Literals might work better as annotations controlled
 // and owned by a phase, rather than baked in like this
@@ -17,15 +18,15 @@ abstract class LiteralNode<T>(
 data class IntLiteralNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
-	override val value: Pair<Int, Int>
-) : LiteralNode<Pair<Int, Int>>(firstToken, lastToken, value) {
-	constructor(f: Token, l: Token, width: Int, value: Int)
+	override val value: Pair<Int, BigInteger>
+) : LiteralNode<Pair<Int, BigInteger>>(firstToken, lastToken, value) {
+	constructor(f: Token, l: Token, width: Int, value: BigInteger)
 		: this(f, l, Pair(width, value))
 
 	// Ints are 32 bit by default
 	// TODO - We could be clever and set the width
 	// to be the smallest power of 2 that fits `value`
-	constructor(f: Token, l: Token, value: Int)
+	constructor(f: Token, l: Token, value: BigInteger)
 		: this(f, l, Pair(32, value))
 }
 
