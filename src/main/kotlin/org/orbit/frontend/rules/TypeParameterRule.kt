@@ -93,7 +93,7 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 					throw Exception("TODO")
 				}
 
-				var result: ParseResult? = null
+				var result: Parser.Result? = null
 				var typeParameterNode: TypeParameterNode
 
 				try {

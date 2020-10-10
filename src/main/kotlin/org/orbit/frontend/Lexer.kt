@@ -1,6 +1,7 @@
 package org.orbit.frontend
 
 import org.orbit.core.*
+import org.orbit.util.Fatal
 import org.orbit.util.Invocation
 
 fun Char.isWhitespace() : Boolean = when (this) {
@@ -16,28 +17,34 @@ fun Char.isNewline() : Boolean = when (this) {
 class Lexer(
 	override val invocation: Invocation,
 	private val tokenTypeProvider: TokenTypeProvider	
-) : ReifiedPhase<SourceProvider, Lexer.Result> {
-	data class Result(val tokens: List<Token>)
-
-	class AdapterPhase(override val invocation: Invocation) : ReifiedPhase<CommentParser.Result, SourceProvider> {
-		override val inputType: Class<CommentParser.Result>
-			get() = CommentParser.Result::class.java
-
-		override val outputType: Class<SourceProvider>
-			get() = SourceProvider::class.java
-
-		override fun execute(input: CommentParser.Result): SourceProvider {
-			return input.sourceProvider
+) : AdaptablePhase<SourceProvider, Lexer.Result>() {
+	sealed class Errors {
+		data class UnexpectedLexeme(
+			val str: String,
+			override val phaseClazz: Class<out Parser> = Parser::class.java,
+			override val sourcePosition: SourcePosition
+		) : Fatal<Parser> {
+			override val message: String = "Unexpected lexeme: $str"
 		}
 	}
 
-	override val inputType: Class<SourceProvider>
-		get() = SourceProvider::class.java
+	data class Result(val tokens: List<Token>) {
+		val size: Int get() { return tokens.size }
+		fun isEmpty() = tokens.isEmpty()
+	}
 
-	override val outputType: Class<Result>
-		get() = Result::class.java
+	private object CommentParserAdapter : PhaseAdapter<CommentParser.Result, SourceProvider> {
+		override fun bridge(output: CommentParser.Result): SourceProvider = output.sourceProvider
+	}
+
+	override val inputType: Class<SourceProvider> = SourceProvider::class.java
+	override val outputType: Class<Result> = Result::class.java
 
 	private var position = SourcePosition(0, 0)
+
+	init {
+	    registerAdapter(CommentParserAdapter)
+	}
 
 	override fun execute(input: SourceProvider) : Result {
 		val source = input.getSource()
@@ -89,7 +96,7 @@ class Lexer(
 			}
 
 			if (!matched) {
-				throw Exception("Unexpected lexeme: $content")
+				invocation.reportError(Errors.UnexpectedLexeme(content, sourcePosition = position))
 			}
 		}
 		

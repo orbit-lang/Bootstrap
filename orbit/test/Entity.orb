@@ -1,0 +1,11 @@
+module Entities {
+    type Entity()
+}
+
+module Traits {
+    @Meta::RegisterEntity () trait (
+        context Context,
+        name TypeIdentifier,
+        properties ... Pair<Identifier, TypeIdentifier> = [],
+        signatures ... Signature = []) (entity Entity::Mutable)
+}

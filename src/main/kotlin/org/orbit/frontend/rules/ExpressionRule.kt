@@ -9,6 +9,12 @@ import org.orbit.frontend.TokenTypes
 interface ValueRule<E: ExpressionNode> : ParseRule<E>
 
 class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<ExpressionNode> {
+	companion object {
+		val defaultValue = ExpressionRule(
+			LiteralRule()
+		)
+	}
+
 	override fun parse(context: Parser) : ExpressionNode {
 		val start = context.peek()
 		var isGrouped = false
@@ -21,6 +27,18 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<Ex
 	
 		val expr = context.attemptAny(*valueRules) as? ExpressionNode
 			?: throw Exception("TODO")
+
+		val next = context.peek()
+
+		if (next.type == TokenTypes.Operator) {
+			try {
+				val partialExpressionRule = PartialExpressionRule(expr)
+
+				return partialExpressionRule.parse(context)
+			} finally {
+				if (isGrouped) context.expect(TokenTypes.RParen)
+			}
+		}
 
 		if (isGrouped) context.expect(TokenTypes.RParen)
 

@@ -12,11 +12,11 @@ import org.orbit.core.Warning
 
 object TypeDefRule : ParseRule<TypeDefNode> {
 	sealed class Errors {
-		data class MissingName(override val position: SourcePosition)
-			: ParseError("Type definition requires a name", position)
+		data class MissingName(override val sourcePosition: SourcePosition)
+			: ParseError("Type definition requires a name", sourcePosition)
 			
-		data class MissingPair(override val position: SourcePosition)
-			: ParseError("Expected property declarations following type definition", position)
+		data class MissingPair(override val sourcePosition: SourcePosition)
+			: ParseError("Expected property declarations following type definition", sourcePosition)
 	}
 
 	override fun parse(context: Parser) : TypeDefNode {

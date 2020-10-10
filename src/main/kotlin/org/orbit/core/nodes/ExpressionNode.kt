@@ -1,6 +1,7 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.Token
+import org.orbit.frontend.rules.LiteralRule
 
 /**
 	This is really a "phantom" type, that allows us
@@ -19,7 +20,7 @@ data class RValueNode(
 	override val lastToken: Token,
 	val expressionNode: ExpressionNode,
 	val typeParametersNode: TypeParametersNode = TypeParametersNode(lastToken, lastToken)
-) : Node(firstToken, lastToken) {
+) : ExpressionNode(firstToken, lastToken) {
 	constructor(expressionNode: ExpressionNode)
 		: this(expressionNode.firstToken, expressionNode.lastToken, expressionNode)
 

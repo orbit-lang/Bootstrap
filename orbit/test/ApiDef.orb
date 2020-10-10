@@ -1,7 +1,15 @@
-api Numerics {
-	type Int<N Int>
+api Orb {}
+api Core within Orb {}
+api Collections within Orb::Core {}
 
-	(Int) next () (Int) {
-		return 128<8>
+api Collection<Element> within Orb::Core::Collections {
+	trait Collection<Self::Element> {
+		(self Self) size () (Int)
+		(self Self) get (elementAtIndex Int) (Self::Element)
+	}
+
+	trait Iterator {
+	    (self Self) next () (Self::Element)
+	    (self Self) hasNext () (Bool)
 	}
 }

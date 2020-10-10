@@ -6,6 +6,7 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.fail
 import org.orbit.core.*
 import org.orbit.core.nodes.*
+import org.orbit.util.*
 
 private class MockParseRule(private val value: Int) : ParseRule<MockNode> {
 	override fun parse(context: Parser) : MockNode {
@@ -15,29 +16,31 @@ private class MockParseRule(private val value: Int) : ParseRule<MockNode> {
 
 private class MockIntParseRule : ParseRule<MockNode> {
 	override fun parse(context: Parser) : MockNode {
-		val token = context.expect(MockTokenTypeProvider.Int)
+		//val token = context.expect(MockTokenTypeProvider.Int)
 
 		return MockNode()
 	}
 }
 
 class ParserTests {
+	private val inv = Invocation(Unix)
+
 	@Test fun parseEmptyTokens() {
-		val parser = Parser(MockParseRule(99))
+		val parser = Parser(inv, MockParseRule(99))
 
 		assertThrows<Parser.Errors.NoMoreTokens> {
-			parser.execute(emptyList())
+			parser.execute(Parser.InputType(emptyList()))
 		}
 	}
 
 	@Test fun parseSingleInt() {
-		val parser = Parser(MockIntParseRule())
+		val parser = Parser(inv, MockIntParseRule())
 		val tokens = listOf(
 			Token(MockTokenTypeProvider.Int, "99", SourcePosition(0, 0))
 		)
 
 		assertDoesNotThrow {
-			val result = parser.execute(tokens)
+			val result = parser.execute(Parser.InputType(tokens))
 
 			assert(result.ast is MockNode)
 		}

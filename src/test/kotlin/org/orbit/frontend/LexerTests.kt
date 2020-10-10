@@ -5,21 +5,24 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.fail
 import org.orbit.core.*
+import org.orbit.util.*
 
 class LexerTests {
+	private val inv = Invocation(Unix)
+
 	private fun lex(source: String, tokenTypeProvider: TokenTypeProvider)
-			: List<Token> {
+			: Lexer.Result {
 
 		val sourceProvider = MockSourceProvider(source)
 
-		return Lexer(tokenTypeProvider)
+		return Lexer(inv, tokenTypeProvider)
 			.execute(sourceProvider)
 	}
 
-	private fun verify(tokens: List<Token>, vararg expected: TokenType) {
-		assertEquals(tokens.size, expected.size)
+	private fun verify(result: Lexer.Result, vararg expected: TokenType) {
+		assertEquals(result.tokens.size, expected.size)
 
-		tokens.zip(expected).forEach {
+		result.tokens.zip(expected).forEach {
 			assertEquals(it.second, it.first.type)
 		}
 	}
@@ -53,7 +56,7 @@ class LexerTests {
 
 		assert(result.size == 1)
 
-		var token = result[0]
+		var token = result.tokens[0]
 
 		assertEquals(MockTokenTypeProvider.Int, token.type)
 		assertEquals("1", token.text)
@@ -64,14 +67,14 @@ class LexerTests {
 
 		assert(result.size == 2)
 
-		token = result[0]
+		token = result.tokens[0]
 
 		assertEquals(MockTokenTypeProvider.Int, token.type)
 		assertEquals("123", token.text)
 		assertEquals(0, token.position.line)
 		assertEquals(0, token.position.character)
 
-		token = result[1]
+		token = result.tokens[1]
 
 		assertEquals(MockTokenTypeProvider.Int, token.type)
 		assertEquals("99", token.text)
@@ -86,7 +89,7 @@ class LexerTests {
 		 123
 		""", MockTokenTypeProvider)
 
-		var token = result[0]
+		var token = result.tokens[0]
 
 		assertEquals(MockTokenTypeProvider.Int, token.type)
 		assertEquals("99", token.text)
@@ -94,7 +97,7 @@ class LexerTests {
 		assertEquals(2, token.position.line)
 		assertEquals(2, token.position.character)
 
-		token = result[1]
+		token = result.tokens[1]
 
 		assertEquals(MockTokenTypeProvider.Int, token.type)
 		assertEquals("123", token.text)

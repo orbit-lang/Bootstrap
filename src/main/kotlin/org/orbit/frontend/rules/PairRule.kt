@@ -10,8 +10,8 @@ import org.orbit.frontend.ParseError
 
 object PairRule : ParseRule<PairNode> {
 	sealed class Errors {
-		data class MissingIdentifier(override val position: SourcePosition) : ParseError("Expected to find identifier as part of (t T) pair expression", position)
-		data class MissingType(override val position: SourcePosition) : ParseError("Expected to find type as part of (t T) pair expression", position)
+		data class MissingIdentifier(override val sourcePosition: SourcePosition) : ParseError("Expected to find identifier as part of (t T) pair expression", sourcePosition)
+		data class MissingType(override val sourcePosition: SourcePosition) : ParseError("Expected to find type as part of (t T) pair expression", sourcePosition)
 	}
 
 	override fun parse(context: Parser) : PairNode {

@@ -6,7 +6,7 @@ import org.orbit.frontend.ParseRule
 import org.orbit.frontend.TokenTypes
 import java.lang.Exception
 
-class LiteralRule(private vararg val accepts: ValueRule<*> = LiteralRule.Default) : ParseRule<RValueNode> {
+class LiteralRule(private vararg val accepts: ValueRule<*> = Default, private val allowsPartial: Boolean = false) : ValueRule<RValueNode> {
 	private companion object {
 		val Default = arrayOf<ValueRule<*>>(
 			TypeIdentifierRule.RValue,
@@ -20,6 +20,8 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = LiteralRule.Default
 		val start = context.peek()
 		val expr = context.attemptAny(*accepts, throwOnNull =  true)
 			as? ExpressionNode ?: throw Exception("TODO")
+
+		if (allowsPartial && !context.hasMore) return RValueNode(expr)
 
 		val next = context.peek()
 

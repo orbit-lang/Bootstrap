@@ -1,0 +1,56 @@
+package org.orbit.graph
+
+import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
+import org.orbit.core.SourcePosition
+import org.orbit.core.nodes.MethodSignatureNode
+import org.orbit.util.Invocation
+
+class MethodSignaturePathResolver(
+    override val invocation: Invocation,
+    override val environment: Environment,
+	override val graph: Graph
+) : PathResolver<MethodSignatureNode> {
+	override fun resolve(input: MethodSignatureNode, pass: PathResolver.Pass) : PathResolver.Result {
+		// A method's canonical path is `<ReceiverType>::<MethodName>[::ArgType1, ::ArgType2, ...]::<ReturnType>`
+		val receiver = input.receiverTypeNode.typeIdentifierNode.value
+		val receiverResult = environment.getBinding(receiver, Binding.Kind.Type)
+		val receiverBinding = receiverResult
+			.unwrap(this, input.receiverTypeNode.typeIdentifierNode.firstToken.position)
+
+		val name = input.identifierNode.identifier
+		val ret = input.returnTypeNode?.value ?: "Unit"
+		val retResult = environment.getBinding(ret, Binding.Kind.Type)
+		val retPath = retResult.unwrap(this, input.returnTypeNode?.firstToken?.position ?: SourcePosition.unknown)
+		// TODO - Should method names contain parameter names as well as/instead of types?
+		// i.e. Are parameter names important/overloadable?
+		val argPaths = input.parameterNodes.map {
+			val result = environment.getBinding(it.typeIdentifierNode.value, Binding.Kind.Type)
+			val binding = result.unwrap(this, it.typeIdentifierNode.firstToken.position)
+
+			binding.path
+		}
+
+		var path = receiverBinding.path + Path(name)
+
+		for (arg in argPaths) {
+			path += arg
+		}
+
+		path += retPath.path
+
+		input.annotate(path, Annotations.Path)
+		environment.bind(Binding.Kind.Method, name, path)
+
+		val methodName = path.relativeNames
+			.slice(IntRange(path.relativeNames.indexOf(name), path.relativeNames.size - 1))
+			.joinToString("::")
+
+		val receiverID = graph.find(receiverBinding.path.toString(OrbitMangler))
+		val vertexID = graph.insert(methodName)
+
+		graph.link(receiverID, vertexID)
+
+		return PathResolver.Result.Success(path)
+	}
+}

@@ -87,10 +87,11 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 		}
 
 		if (next.type == TokenTypes.LBrace) {
-			val bodyNode = context.attempt(BlockRule(TypeDefRule, TraitDefRule, MethodSignatureRule(false)), true)
+			val bodyNode = context.attempt(BlockRule(MethodSignatureRule(false)), true)
 				?: throw Exception("TODO")
-			
-			return TraitDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode)
+
+			@Suppress("UNCHECKED_CAST")
+			return TraitDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode.body as List<MethodSignatureNode>)
 		}
 		
 		return TraitDefNode(start, end,

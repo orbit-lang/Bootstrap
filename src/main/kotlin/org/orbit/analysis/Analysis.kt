@@ -1,11 +1,17 @@
 package org.orbit.analysis
 
+import org.orbit.core.*
 import org.orbit.core.nodes.*
-import org.orbit.core.Phase
-import org.orbit.core.Token
+import org.orbit.graph.Environment
 import org.orbit.util.*
 
 data class Analysis(private val analyser: String, val level: Level, val message: String, val start: Token, val end: Token) {
+	companion object {
+		fun collate(reports: List<Analyser.Report>, printer: Printer) {
+			reports.forEach { println(it.toString(printer)) }
+		}
+	}
+
 	enum class Level(private val str: String, private val printableKey: PrintableKey) {
 		Warning("Warning", PrintableKey.Warning), Error("Error", PrintableKey.Error);
 
@@ -21,10 +27,29 @@ data class Analysis(private val analyser: String, val level: Level, val message:
 	}
 }
 
-final class Analyser(
+class Analyser(
 	override val invocation: Invocation,
 	private val reportName: String,
-	private vararg val analysers: NodeAnalyser<*>) : Phase<ProgramNode, Analyser.Report> {
+	private vararg val analysers: NodeAnalyser<*>
+) : AdaptablePhase<ProgramNode, Analyser.Report>() {
+	override val inputType: Class<ProgramNode> = ProgramNode::class.java
+	override val outputType: Class<Report> = Report::class.java
+
+	object SemanticsAdapter : PhaseAdapter<SemanticPhaseType, ProgramNode> {
+		override fun bridge(output: SemanticPhaseType): ProgramNode {
+			val semanticsResult = output.phaseLinker.execute(output.initialPhaseInput)
+
+			return semanticsResult.ast as ProgramNode
+		}
+	}
+
+	override val phaseName: String
+		get() = reportName
+
+	init {
+	    registerAdapter(SemanticsAdapter)
+	}
+
 	data class Report(val name: String, val warnings: List<Analysis>, val errors: List<Analysis>) {
 		fun toString(printer: Printer) : String {
 			val h1 = printer.apply("Analysis report:", PrintableKey.Bold)
@@ -64,6 +89,14 @@ final class Analyser(
 
 			|$footer""".trimMargin()
 		}
+	}
+
+	private object EnvironmentAdapter : PhaseAdapter<Environment, ProgramNode> {
+		override fun bridge(output: Environment): ProgramNode = output.ast as ProgramNode
+	}
+
+	init {
+	    registerAdapter(EnvironmentAdapter)
 	}
 
 	override fun execute(input: ProgramNode) : Report {

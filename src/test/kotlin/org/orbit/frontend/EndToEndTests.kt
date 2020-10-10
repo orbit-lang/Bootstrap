@@ -1,39 +1,45 @@
 package org.orbit.frontend
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.fail
-import org.orbit.core.nodes.*
+import org.orbit.core.*
 import org.orbit.frontend.rules.*
-import org.orbit.core.Token
-import org.orbit.core.SourceProvider
 import java.io.File
+import org.orbit.util.*
 
 class EndToEndTests {
-	private fun compile(file: String) : ParseResult {
+	private val inv = Invocation(Unix)
+
+	private fun compile(file: String) : Parser.Result {
 		// TODO - Remove this hardcoded path
 		val path = "/Users/davie/dev/Orbit/kotlin/Orbit/orbit/test/$file"
-		val sourceProvider = FileSourceProvider(path)
-		val lexer = Lexer(TokenTypes)
-		val parser = Parser(ProgramRule)
-		val tokens = lexer.execute(sourceProvider)
+		val sourceProvider = FileSourceProvider(File(path))
+		val lexer = Lexer(inv, TokenTypes)
+		val parser = Parser(inv, ProgramRule)
 		
-		return parser.execute(tokens)
+		val linker = PhaseLinker(inv, lexer, finalPhase = parser)
+
+		return linker.execute(sourceProvider)
 	}
 
-	private fun compileString(string: String) : ParseResult {
+	private fun compileString(string: String) : Parser.Result {
 		val sourceProvider = MockSourceProvider(string)
-		val lexer = Lexer(TokenTypes)
-		val parser = Parser(ProgramRule)
-		val tokens = lexer.execute(sourceProvider)
+		val lexer = Lexer(inv, TokenTypes)
+		val parser = Parser(inv, ProgramRule)
 
-		return parser.execute(tokens)
+		val linker = PhaseLinker(inv, lexer, finalPhase = parser)
+
+		return linker.execute(sourceProvider)
 	}
 
 	@Test fun apiDefMissingName() {
-		assertThrows<ApiDefRule.Errors.MissingName> {
+		assertThrows<Exception> {
 			compileString("api {}")
 		}
+	}
+
+	@Test fun apiDefSimpleNameEmpty() {
+		val result = compileString("api Foo {}")
+		print(result)
 	}
 }

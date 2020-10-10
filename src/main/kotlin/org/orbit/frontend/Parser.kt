@@ -1,49 +1,41 @@
 package org.orbit.frontend
 
-import org.jetbrains.annotations.Contract
 import org.orbit.core.*
-import org.orbit.core.nodes.*
+import org.orbit.core.nodes.Node
 import org.orbit.util.Invocation
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
+import org.orbit.util.OrbitException
 
 interface ParseRule<N: Node> {
 	fun parse(context: Parser) : N
 }
 
-data class ParseResult(val ast: Node, val warnings: List<Warning>)
-
 class Parser(
 	override val invocation: Invocation,
 	private val topLevelParseRule: ParseRule<*>
-) : ReifiedPhase<Parser.InputType, ParseResult> {
-	data class InputType(val tokens: List<Token>)
+) : AdaptablePhase<Parser.InputType, Parser.Result>() {
+	data class InputType(val tokens: List<Token>) : Any()
+	data class Result(val ast: Node)
 
-	class AdapterPhase(override val invocation: Invocation) : ReifiedPhase<Lexer.Result, Parser.InputType> {
-		override val inputType: Class<Lexer.Result>
-			get() = Lexer.Result::class.java
+	object LexerAdapter : PhaseAdapter<Lexer.Result, Parser.InputType> {
+		override fun bridge(output: Lexer.Result): InputType = InputType(output.tokens)
+	}
 
-		override val outputType: Class<InputType>
-			get() = InputType::class.java
+	object FrontendAdapter : PhaseAdapter<FrontendPhaseType, Parser.InputType> {
+		override fun bridge(output: FrontendPhaseType): InputType {
+			val deferredInput = output.phaseLinker.execute(output.initialPhaseInput)
 
-		override fun execute(input: Lexer.Result) : InputType {
-			return InputType(input.tokens)
+			return LexerAdapter.bridge(deferredInput)
 		}
 	}
 
-	override val inputType: Class<InputType>
-		get() = InputType::class.java
+	override val inputType: Class<InputType> = InputType::class.java
+	override val outputType: Class<Result> = Result::class.java
 
-	override val outputType: Class<ParseResult>
-		get() = ParseResult::class.java
-
-	private var warnings = mutableListOf<Warning>()
-	
 	sealed class Errors {
-		object NoMoreTokens : Exception("There are no more tokens left to parse")
-		object NoParseRules : Exception("Parse rules were not provided")
-		data class UnsuccessfulParseAttempt(override val position: SourcePosition) : ParseError("All rules failed to parse", position)
-		data class UnexpectedToken(val token: Token) : ParseError("Unexpected token: ${token.type.identifier}", token.position)
+		object NoMoreTokens : OrbitException("There are no more tokens left to parse")
+		object NoParseRules : OrbitException("Parse rules were not provided")
+		data class UnsuccessfulParseAttempt(override val sourcePosition: SourcePosition) : ParseError("All rules failed to parse", sourcePosition)
+		data class UnexpectedToken(val token: Token, override val sourcePosition: SourcePosition = token.position) : ParseError("Unexpected token: ${token.type.identifier}", sourcePosition)
 	}
 	
 	var tokens: MutableList<Token> = mutableListOf()
@@ -52,19 +44,20 @@ class Parser(
 	private var isRecording = false
 	private var recordedTokens = mutableListOf<Token>()
 
+	init {
+	    registerAdapter(LexerAdapter)
+		registerAdapter(FrontendAdapter)
+	}
+
 	var hasMore: Boolean = false
 		get() = tokens.isNotEmpty()
-
-	fun warn(warning: Warning) {
-		warnings.add(warning)
-	}
 	
 	fun peek() : Token {
-		return tokens.getOrNull(0) ?: throw Parser.Errors.NoMoreTokens
+		return tokens.getOrNull(0) ?: throw Errors.NoMoreTokens
 	}
 
 	fun consume() : Token {
-		if (!hasMore) throw Parser.Errors.NoMoreTokens
+		if (!hasMore) throw Errors.NoMoreTokens
 		
 		return tokens.removeAt(0).apply {
 			if (isRecording) {
@@ -85,7 +78,7 @@ class Parser(
 	}
 
 	fun expect(type: TokenType) : Token {
-		if (!hasMore) throw Parser.Errors.NoMoreTokens
+		if (!hasMore) throw Errors.NoMoreTokens
 		val next = peek()
 		
 		return when (next.type) {
@@ -95,7 +88,7 @@ class Parser(
 	}
 
 	fun expectAny(vararg types: TokenType, consumes: Boolean) : Token {
-		if (!hasMore) throw Parser.Errors.NoMoreTokens
+		if (!hasMore) throw Errors.NoMoreTokens
 		val next = peek()
 
 		if (next.type in types) {
@@ -176,13 +169,18 @@ class Parser(
 		return null
 	}
 
-	override fun execute(input: InputType) : ParseResult {
-		if (input.tokens.isEmpty()) throw Parser.Errors.NoMoreTokens
+	override fun execute(input: InputType) : Result {
+		if (input.tokens.isEmpty()) throw Errors.NoMoreTokens
 		
 		tokens = input.tokens.toMutableList()
 
 		val ast = topLevelParseRule.parse(this)
-		
-		return ParseResult(ast, warnings)
+		val result = Result(ast)
+
+		invocation.mergeResult(this, result) {
+			it is Parser
+		}
+
+		return result
 	}
 }

@@ -1,6 +1,8 @@
 package org.orbit.core.nodes
 
+import org.json.JSONObject
 import org.orbit.core.Token
+import org.orbit.serial.Serial
 import java.math.BigInteger
 
 // NOTE: Literals might work better as annotations controlled
@@ -9,9 +11,13 @@ abstract class LiteralNode<T>(
 	override val firstToken: Token,
 	override val lastToken: Token,
 	open val value: T
-) : ExpressionNode(firstToken, lastToken) {
+) : ExpressionNode(firstToken, lastToken), Serial {
 	override fun getChildren() : List<Node> {
 		return emptyList()
+	}
+
+	override fun describe(json: JSONObject) {
+		json.put("LITERAL", value)
 	}
 }
 

@@ -5,9 +5,9 @@ import org.orbit.core.Token
 data class TypeParametersNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
-	val typeParameterNodes: List<TypeParameterNode> = emptyList()
+	val typeParameters: List<TypeParameterNode> = emptyList()
 ) : Node(firstToken, lastToken) {
-	override fun getChildren() : List<Node> = typeParameterNodes
+	override fun getChildren() : List<Node> = typeParameters
 }
 
 abstract class TypeParameterNode(
@@ -15,13 +15,17 @@ abstract class TypeParameterNode(
 	override val lastToken: Token
 ) : Node(firstToken, lastToken)
 
+interface LValueTypeParameter {
+	val name: TypeIdentifierNode
+}
+
 data class BoundedTypeParameterNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
 	/// The name on the left of an optional `: Type` expression
-	val name: TypeIdentifierNode,
+	override val name: TypeIdentifierNode,
 	val bound: RValueNode = RValueNode(TypeIdentifierNode(firstToken, firstToken, "Any"))
-) : TypeParameterNode(firstToken, lastToken) {
+) : TypeParameterNode(firstToken, lastToken), LValueTypeParameter {
 	override fun getChildren() : List<Node> = listOf(name, bound)
 	override fun toString() : String = "${name.value}: $bound"
 }
@@ -29,9 +33,9 @@ data class BoundedTypeParameterNode(
 data class DependentTypeParameterNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
-	val name: TypeIdentifierNode,
+	override val name: TypeIdentifierNode,
 	val type: RValueNode
-) : TypeParameterNode(firstToken, lastToken) {
+) : TypeParameterNode(firstToken, lastToken), LValueTypeParameter {
 	override fun getChildren() : List<Node> = listOf(name, type)
 	override fun toString() : String = "$name $type"
 }

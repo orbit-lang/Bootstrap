@@ -12,14 +12,14 @@ api Test {
 }
 
 api List : Orb::Core::Collection
-	with Orb::FX::PureReturn {
+	with Orb::FX::Pure {
 	
 	data type List<Element, Size Int>(size Int = Self.Size)
 		: Collection<Element>
 
 	# Pure return guarantees method body consists of a single
 	# expression, which is free from side-effects.
-	@PureReturn (List) append<N Int>
-		(elementsOf other: List<Element, N>)
-		(List<Element, Size + N>) = Self.Return()
+	@Pure (List<Element, N>) appendAll<Element, implicit N Int, implicit M Int>
+		(elementsOf other: List<Element, M>)
+		(List<Element, N + M>) = self + other
 }

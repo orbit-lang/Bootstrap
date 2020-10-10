@@ -11,8 +11,8 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 	LValue(Context.LValue), RValue(Context.RValue), Naked(Context.Naked);
 
 	sealed class Errors {
-		data class NakedTypeContext(override val position: SourcePosition)
-			: ParseError("Cannot declare type parameters on a type in this context", position)
+		data class NakedTypeContext(override val sourcePosition: SourcePosition)
+			: ParseError("Cannot declare type parameters on a type in this context", sourcePosition)
 	}
 
 	enum class Context {

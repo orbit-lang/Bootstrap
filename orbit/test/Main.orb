@@ -1,0 +1,6 @@
+module Main with Orb::{Main,IO} {
+    @Main (self Invocation) main () (Int) {
+        IO.printLine("Number of arguments: ${self.arguments.count}"
+        IO.printLine("Arguments: ${arguments.join()}")
+    }
+}

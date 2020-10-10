@@ -1,6 +1,5 @@
 package org.orbit.core.nodes
 
-import org.json.JSONObject
 import org.orbit.core.Token
 
 data class TypeIdentifierNode(
@@ -14,21 +13,10 @@ data class TypeIdentifierNode(
 			= TypeIdentifierNode(token, token, "Unit")
 	}
 
-	object JsonSerialiser : JsonNodeSerialiser<TypeIdentifierNode> {
-		override fun serialise(obj: TypeIdentifierNode) : JSONObject {
-			val json = jsonify(obj)
-
-			json.put("type.identifier", obj.value)
-			//json.put("type.type_parameters", obj.typeParametersNode.to)
-			
-			return json
-		}
-	}
-
 	override fun getChildren() : List<Node> {
-		return typeParametersNode.typeParameterNodes
+		return typeParametersNode.typeParameters
 	}
 
 	override fun toString() : String
-		= "${value}<${typeParametersNode.typeParameterNodes.joinToString(", ") { it.toString() }}>"
+		= "${value}<${typeParametersNode.typeParameters.joinToString(", ") { it.toString() }}>"
 }

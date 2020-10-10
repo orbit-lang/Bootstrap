@@ -1,19 +1,16 @@
 package org.orbit.core
 
-import org.orbit.frontend.TokenTypes
-import org.orbit.frontend.Lexer
+import org.orbit.analysis.Analysis
+import org.orbit.core.nodes.MethodDefNode
 import org.orbit.frontend.FileSourceProvider
 import org.orbit.frontend.Parser
-import org.orbit.frontend.ParseError
-import org.orbit.frontend.rules.ProgramRule
-import org.orbit.core.nodes.*
 import org.orbit.graph.CanonicalNameResolver
-import org.orbit.core.OrbitMangler
-import org.orbit.frontend.CommentParser
-import org.orbit.analysis.semantics.*
-import org.orbit.analysis.*
-import org.orbit.analysis.types.IntLiteralAnalyser
-import org.orbit.util.*
+import org.orbit.graph.Environment
+import org.orbit.serial.Serialiser
+import org.orbit.util.Invocation
+import org.orbit.util.Orbit
+import org.orbit.util.Printer
+import org.orbit.util.Unix
 
 class Main {
     companion object {
@@ -27,92 +24,40 @@ class Main {
 				// TODO - Support non *nix platforms
 				val invocation = Invocation(Unix)
 
-	            var sourceProvider: SourceProvider = FileSourceProvider(orbit.source)
-				val commentParser = CommentParser(invocation)
-				val commentParseResult = commentParser.execute(sourceProvider)
+				val frontend = Frontend(invocation)
+	            val semantics = Semantics(invocation)
+				val correctness = Correctness(invocation)
 
-				sourceProvider = commentParseResult.sourceProvider
+				val phaseLinker = PhaseLinker(invocation,
+					initialPhase = frontend,
+					subsequentPhases = arrayOf(semantics, correctness),
+					finalPhase = UnitPhase(invocation))
 
-	            val lexer = Lexer(invocation, TokenTypes)
-	            val parser = Parser(invocation, ProgramRule)
-				val canonicalNameResolver = CanonicalNameResolver(invocation)
+				val compiler = Compiler(invocation, phaseLinker)
+				compiler.execute(FileSourceProvider(orbit.source))
 
-//				val linker = PhaseLinker(invocation,
-//					commentParser,
-//					Lexer.AdapterPhase(invocation) as ReifiedPhase<Any, Any>,
-//					lexer as ReifiedPhase<Any, Any>,
-//					Parser.AdapterPhase(invocation) as ReifiedPhase<Any, Any>,
-//					finalPhase = parser)
-//
-//				val result = linker.execute(sourceProvider)
+				val result = invocation.getResult<Parser.Result>("Parser")
+				val nameResolver = CanonicalNameResolver(invocation)
 
-	            val lexerResult = lexer.execute(sourceProvider)
-	            val result = parser.execute(Parser.InputType(lexerResult.tokens))
+				val blocks = result.ast.search(MethodDefNode::class.java)
 
-	            result.warnings.forEach { println(it) }
+				val json = Serialiser.serialise(result.ast)
+				println(json.toString(2))
 
-				val environment = CanonicalNameResolver(invocation).execute(result.ast as ProgramNode)
+				val environment = invocation.getResult<Environment>("CanonicalNameResolver")
 
-	            //print(ProgramNode.JsonSerialiser.serialise(resuelt.ast as ProgramNode).toString(4))
+				println(invocation.dumpWarnings())
+				println(invocation.dumpErrors())
 
-	            //val types = result.ast
-	            //	.search(TypeDefNode::class.java)
-
-				//val traits = result.ast
-				//	.search(TraitDefNode::class.java)
-
-	            //val methods = result.ast
-	            //	.search(MethodDefNode::class.java)
-
-	            //val bounded = result.ast
-	            //	.search(BoundedTypeParameterNode::class.java)
-
-	            //val dependent = result.ast
-	            //	.search(DependentTypeParameterNode::class.java)
-	            	//.mapNotNull {
-	            	//	val path = it.getAnnotationByKey<Path>("path")?.value ?: return
-					//	OrbitMangler.mangle(path)
-	            	//}
-
-	            //val typeIds = result.ast
-	            //	.search(TypeIdentifierNode::class.java)
-
-				//val exprs = result.ast
-				//	.search(LiteralNode::class.java)
-
-				//exprs.forEach { println(it) }
-				//println("TYPES: ${types.size}")
-				//println("TRAITS: ${traits.size}")
-				//println("METHODS: ${methods.size}")
-
-				//types.forEach { println(it) }
-				//traits.forEach { println(it) }
-				//methods.forEach { println(it) }
-				//bounded.forEach { println(it) }
-				//dependent.forEach { println(it) }
-				//typeIds.forEach { println(it) }
+//				println(environment)
 
 				val printer = Printer(Unix)
+				val correctnessResults = invocation.getResult(correctness)
 
-				val semanticAnalyser = Analyser(invocation, "Semantics",
-					NestedTraitAnalyser(invocation),
-					UnreachableReturnAnalyser(invocation),
-					RedundantReturnAnalyser(invocation))
-
-				val semanticAnalysisReport = semanticAnalyser.execute(result.ast)
-
-				println(semanticAnalysisReport.toString(printer))
-
-				val typeAnalyser = Analyser(invocation, "Types",
-					IntLiteralAnalyser(invocation)
-				)
-
-				val typeAnalysisReport = typeAnalyser.execute(result.ast)
-
-				println(typeAnalysisReport.toString(printer))
+				Analysis.collate(correctnessResults, printer)
 			} catch (ex: Exception) {
 				println(ex.message)
-				throw ex
+//				throw ex
 			}
         }
     }

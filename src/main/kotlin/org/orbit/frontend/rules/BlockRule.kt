@@ -11,10 +11,10 @@ import org.orbit.core.SourcePosition
 import org.orbit.core.Token
 import org.orbit.core.Warning
 
-class BlockRule(vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNode> {
+class BlockRule(private vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNode> {
 	sealed class Errors {
-		data class UnexpectedBlockStatement(private val token: Token)
-			: ParseError("Unexpected token inside block: ${token.type}", token.position)
+		class UnexpectedBlockStatement(private val token: Token, override val sourcePosition: SourcePosition = token.position)
+			: ParseError("Unexpected token inside block: ${token.type}", sourcePosition)
 	}
 	
 	override fun parse(context: Parser) : BlockNode {

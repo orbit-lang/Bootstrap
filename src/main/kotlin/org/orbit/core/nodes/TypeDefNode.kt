@@ -11,16 +11,6 @@ data class TypeDefNode(
 	val traitConformances: List<TypeIdentifierNode> = emptyList(),
 	val body: BlockNode = BlockNode(lastToken, lastToken, emptyList())
 ) : Node(firstToken, lastToken) {
-	object JsonSerialiser : JsonNodeSerialiser<TypeDefNode> {
-		override fun serialise(obj: TypeDefNode) : JSONObject {
-			val json = jsonify(obj)
-
-			json.put("typeDef.type", TypeIdentifierNode.JsonSerialiser.serialise(obj.typeIdentifierNode))
-						
-			return json
-		}
-	}
-
 	override fun getChildren() : List<Node>
 		= listOf(typeIdentifierNode, body) + propertyPairs + traitConformances
 }

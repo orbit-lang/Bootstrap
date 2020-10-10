@@ -30,19 +30,19 @@ class IntLiteralAnalyser(override val invocation: Invocation) :
 		val typeParams = node.typeParametersNode
 
 		// TODO - A preceding typecheck phase will ensure type params are of expected type
-		if (typeParams.typeParameterNodes.size > 1) {
-			throw invocation.make<IntLiteralAnalyser>("Int accepts 1 (optional) type parameter, `type Int<Width Int>`")
+		if (typeParams.typeParameters.size > 1) {
+			throw invocation.make<IntLiteralAnalyser>("Int accepts 1 (optional) type parameter, `type Int<Width Int>`", node.firstToken.position)
 		}
 
 		var width = 32.toBigInteger()
-		if (typeParams.typeParameterNodes.isNotEmpty()) {
-			val widthNode = typeParams.typeParameterNodes.first() as ValueTypeParameterNode
+		if (typeParams.typeParameters.isNotEmpty()) {
+			val widthNode = typeParams.typeParameters.first() as ValueTypeParameterNode
 
 			val rValueNode = widthNode.literalNode as? RValueNode
-				?: throw invocation.make<IntLiteralAnalyser>("Int is dependently typed on its `<Width Int>` parameter")
+				?: throw invocation.make<IntLiteralAnalyser>("Int is dependently typed on its `<Width Int>` parameter", widthNode.literalNode.firstToken.position)
 
 			width = (rValueNode.expressionNode as? IntLiteralNode)?.value?.second
-				?: throw invocation.make<IntLiteralAnalyser>("Int is dependently typed on its `<Width Int>` parameter")
+				?: throw invocation.make<IntLiteralAnalyser>("Int is dependently typed on its `<Width Int>` parameter", rValueNode.expressionNode.firstToken.position)
 		}
 
 		val p = 2.toDouble().pow(width.toDouble())

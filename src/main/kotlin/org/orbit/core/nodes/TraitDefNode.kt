@@ -8,8 +8,8 @@ data class TraitDefNode(
 	val typeIdentifierNode: TypeIdentifierNode,
 	val propertyPairs: List<PairNode> = emptyList(),
 	val traitConformances: List<TypeIdentifierNode> = emptyList(),
-	val body: BlockNode = BlockNode(lastToken, lastToken, emptyList())
+	val signatures: List<MethodSignatureNode> = emptyList()
 ) : Node(firstToken, lastToken) {
 	override fun getChildren() : List<Node>
-		= listOf(typeIdentifierNode, body) + traitConformances + propertyPairs
+		= listOf(typeIdentifierNode) + traitConformances + propertyPairs + signatures
 }

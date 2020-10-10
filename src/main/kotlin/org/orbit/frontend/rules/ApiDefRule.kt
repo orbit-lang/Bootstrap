@@ -12,8 +12,8 @@ import org.orbit.core.Warning
 
 object ApiDefRule : ParseRule<ApiDefNode> {
 	sealed class Errors {
-		data class MissingName(override val position: SourcePosition)
-			: ParseError("Api definition requires a name", position)
+		data class MissingName(override val sourcePosition: SourcePosition)
+			: ParseError("Api definition requires a name", sourcePosition)
 	}
 
 	override fun parse(context: Parser) : ApiDefNode {

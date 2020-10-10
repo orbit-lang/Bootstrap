@@ -1,24 +1,17 @@
 package org.orbit.core.nodes
 
-import org.json.JSONObject
 import org.orbit.core.Token
 
 data class ProgramNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
-	val apis: List<ApiDefNode>
+	val declarations: List<TopLevelDeclarationNode>
 ) : Node(firstToken, lastToken) {
-	object JsonSerialiser : JsonNodeSerialiser<ProgramNode> {
-		override fun serialise(obj: ProgramNode) : JSONObject {
-			val json = jsonify(obj)
+	override fun getChildren() : List<Node> = declarations
 
-			json.put("program.apis", obj.apis.map {
-				ApiDefNode.JsonSerialiser.serialise(it)
-			})
-		
-			return json
-		}
-	}
+	fun getApiDefs() : List<ApiDefNode>
+		= declarations.filterIsInstance(ApiDefNode::class.java)
 
-	override fun getChildren() : List<Node> = apis
+	fun getModuleDefs() : List<ModuleNode>
+		= declarations.filterIsInstance(ModuleNode::class.java)
 }

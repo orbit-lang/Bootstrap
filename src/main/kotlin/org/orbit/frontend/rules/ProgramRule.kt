@@ -10,18 +10,22 @@ object ProgramRule : ParseRule<ProgramNode> {
 	override fun parse(context: Parser) : ProgramNode {
 		val start = context.peek()
 		var next = context.peek()
-		var apiDefs = emptyList<ApiDefNode>()
+		val declarationNodes = mutableListOf<TopLevelDeclarationNode>()
 		
-		while (next.type == TokenTypes.Api) {
-			val apiDef = context.attempt(ApiDefRule, true)
-				?: throw Exception("Expected api at top level")
-			
-			apiDefs += apiDef
+		while (context.hasMore) {
+			val decl: TopLevelDeclarationNode = when (next.type) {
+				TokenTypes.Api -> ApiDefRule.parse(context)
+				TokenTypes.Module -> ModuleRule.parse(context)
+				else -> throw context.invocation.make<Parser>("Unexpected decl at program-level: ${next.type}", next.position)
+			}
+
+			declarationNodes.add(decl)
+
 			if (!context.hasMore) break
 			
 			next = context.peek()
 		}
 		
-		return ProgramNode(start, next, apiDefs)
+		return ProgramNode(start, next, declarationNodes)
 	}
 }

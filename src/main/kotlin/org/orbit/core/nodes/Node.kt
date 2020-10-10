@@ -1,15 +1,19 @@
 package org.orbit.core.nodes
 
-import org.json.*
+import org.json.JSONObject
 import org.orbit.core.Token
+import org.orbit.serial.Serial
+import org.orbit.serial.Serialiser
+import org.orbit.util.PriorityComparator
+import org.orbit.util.prioritise
 
-interface NodeAnnotationTag<T> {
-	fun toJson() : JSONObject
+interface NodeAnnotationTag<T: Serial> : Serial {
+	override fun describe(json: JSONObject) {
+		json.put("annotation.tag.type", javaClass.simpleName)
+	}
 }
 
-data class KeyedNodeAnnotationTag<T>(
-	val key: String) : NodeAnnotationTag<T> {
-
+data class KeyedNodeAnnotationTag<T: Serial>(val key: String) : NodeAnnotationTag<T> {
 	override fun equals(other: Any?) : Boolean = when (other) {
 		null -> false
 		else -> {
@@ -18,62 +22,59 @@ data class KeyedNodeAnnotationTag<T>(
 		}
 	}
 
-	override fun toJson() : JSONObject {
-		val json = JSONObject()
+	override fun describe(json: JSONObject) {
+		super.describe(json)
 
-		json.put("tag.simpleName", this::class.java.getSimpleName())
-		json.put("tag.canonicalName", this::class.java.getCanonicalName())
-		json.put("tag.key", key)
-
-		return json
+		json.put("annotation.tag.key", key)
 	}
 }
 
-data class NodeAnnotation<T>(
+data class NodeAnnotation<T: Serial>(
 	val tag: NodeAnnotationTag<T>?,
-	val value: T) {
+	val value: T) : Serial {
 
 	override fun equals(other: Any?) : Boolean = when (other) {
 		null -> false
 		is NodeAnnotation<*> -> other.tag == tag
 		else -> false
 	}
+
+	override fun describe(json: JSONObject) {
+		json.put("annotation.tag", Serialiser.serialise(tag))
+		json.put("annotation.value", Serialiser.serialise(value))
+	}
 }
 
-abstract class Node(open val firstToken: Token, open val lastToken: Token) {
+abstract class Node(open val firstToken: Token, open val lastToken: Token) : Serial {
 	interface MapFilter<N> {
 		fun filter(node: Node) : Boolean
 		fun map(node: Node) : List<N>
 	}
 
-	var annotations: Array<NodeAnnotation<*>> = emptyArray()
+	var annotations: MutableSet<NodeAnnotation<*>> = mutableSetOf()
 
-	final inline fun <reified T> annotate(value: T, tag: NodeAnnotationTag<T>) {
+	inline fun <reified T: Serial> annotate(value: T, tag: NodeAnnotationTag<T>) {
 		val annotation = NodeAnnotation(tag, value)
-		if (annotations.contains(annotation)) {
-			throw Exception("Node is already annotated with tag: $tag")
-		}
-		
-		annotations += annotation
+		annotations.add(annotation)
 	}
 
-	final inline fun <reified T> annotateByKey(value: T, key: String) {
-		annotate(value, KeyedNodeAnnotationTag<T>(key))
+	inline fun <reified T: Serial> annotateByKey(value: T, key: String) {
+		annotate(value, KeyedNodeAnnotationTag(key))
 	}
 
-	inline fun <reified T> getAnnotation(tag: NodeAnnotationTag<T>) : NodeAnnotation<T>? {
+	inline fun <reified T: Serial> getAnnotation(tag: NodeAnnotationTag<T>) : NodeAnnotation<T>? {
 		val results = annotations
 			.filterIsInstance<NodeAnnotation<T>>()
 			.filter { it.tag == tag }
 
 		return when (results.size) {
-			0 -> throw Exception("No annotations found for tag: $tag")
+			0 -> null
 			1 -> results[0]
 			else -> throw Exception("Multiple annotations found for tag: $tag")
 		}
 	}
 
-	inline fun <reified T> getAnnotationByKey(key: String) : NodeAnnotation<T>? {
+	inline fun <reified T: Serial> getAnnotationByKey(key: String) : NodeAnnotation<T>? {
 		return getAnnotation(KeyedNodeAnnotationTag<T>(key))
 	}
 
@@ -83,10 +84,11 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) {
 
 	abstract fun getChildren() : List<Node>
 
-	final fun <N: Node> search(nodeType: Class<N>) : List<N> {
+	fun <N: Node> search(nodeType: Class<N>, priorityComparator: PriorityComparator<N> ? = null) : List<N> {
 		val matches = getChildren().filterIsInstance(nodeType)
 
 		return matches + getChildren().flatMap { it.search(nodeType) }
+			.prioritise(priorityComparator)
 	}
 
 	fun <N: Node> search(mapFilter: Node.MapFilter<N>) : List<N> {
@@ -95,5 +97,15 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) {
 			.flatMap(mapFilter::map)
 
 		return mine + getChildren().flatMap { it.search(mapFilter) }
+	}
+
+	override fun describe(json: JSONObject) {
+		json.put("node.type", javaClass.simpleName)
+
+		val ann = annotations.map { Serialiser.serialise(it) }
+		json.put("node.annotations", ann)
+
+		val children = getChildren().map { Serialiser.serialise(it) }
+		json.put("node.children", children)
 	}
 }

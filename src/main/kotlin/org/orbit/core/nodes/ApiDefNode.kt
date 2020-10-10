@@ -1,32 +1,34 @@
 package org.orbit.core.nodes
 
-import org.json.JSONObject
 import org.orbit.core.Token
+
+abstract class TopLevelDeclarationNode(
+	override val firstToken: Token,
+	override val lastToken: Token
+) : Node(firstToken, lastToken)
+
+abstract class ContainerNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
+	open val identifier: TypeIdentifierNode,
+	open val within: TypeIdentifierNode?,
+	open val with: List<TypeIdentifierNode>,
+	open val typeDefs: List<TypeDefNode>,
+	open val traitDefs: List<TraitDefNode>,
+	open val methodDefs: List<MethodDefNode>
+) : TopLevelDeclarationNode(firstToken, lastToken)
 
 data class ApiDefNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
-	val identifierNode: TypeIdentifierNode,
-	val typeDefNodes: List<TypeDefNode>,
-	val traitDefNodes: List<TraitDefNode>,
-	val methodDefNodes: List<MethodDefNode>,
-	val withinNode: TypeIdentifierNode?,
-	val withNodes: List<TypeIdentifierNode>
-	// TODO - Other top level nodes, e.g. methods
-) : Node(firstToken, lastToken) {
-	object JsonSerialiser : JsonNodeSerialiser<ApiDefNode> {
-		override fun serialise(obj: ApiDefNode) : JSONObject {
-			val json = jsonify(obj)
-
-			json.put("api.identifier", TypeIdentifierNode.JsonSerialiser.serialise(obj.identifierNode))
-			json.put("api.types", obj.typeDefNodes.map { TypeDefNode.JsonSerialiser.serialise(it) })
-//			json.put("api.methods", obj.)
-		
-			return json
-		}
-	}
-
+	override val identifier: TypeIdentifierNode,
+	override val typeDefs: List<TypeDefNode>,
+	override val traitDefs: List<TraitDefNode>,
+	override val methodDefs: List<MethodDefNode>,
+	override val within: TypeIdentifierNode?,
+	override val with: List<TypeIdentifierNode>
+) : ContainerNode(firstToken, lastToken, identifier, within, with, typeDefs, traitDefs, methodDefs) {
 	override fun getChildren() : List<Node> {
-		return typeDefNodes + traitDefNodes + methodDefNodes
+		return typeDefs + traitDefs + methodDefs
 	}
 }

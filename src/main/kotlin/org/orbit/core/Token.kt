@@ -3,6 +3,9 @@ package org.orbit.core
 data class SourcePosition(
 	val line: Int,
 	val character: Int) {
+	companion object {
+		val unknown = SourcePosition(-1, -1)
+	}
 
 	fun moveLine(by: Int) : SourcePosition {
 		// Moving on by > 0 lines resets character back to 0
@@ -19,7 +22,7 @@ data class SourcePosition(
 	}
 
 	override fun toString(): String {
-		return "(line: $line, offset: $character)"
+		return "(line: ${line + 1}, offset: ${character + 1})"
 	}
 }
 
