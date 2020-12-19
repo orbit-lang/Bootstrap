@@ -1,6 +1,9 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.Token
+import org.orbit.graph.Annotations
+import org.orbit.graph.annotate
+import org.orbit.serial.Serial
 
 data class MethodSignatureNode(
 	override val firstToken: Token,
@@ -26,6 +29,10 @@ data class MethodSignatureNode(
 		parameterNodes,
 		returnTypeNode
 	)
+
+	inline fun <reified T: Serial> annotateParameter(idx: Int, value: T, tag: Annotations) {
+		parameterNodes[idx].annotate(value, tag)
+	}
 
 	override fun getChildren() : List<Node> = when (returnTypeNode) {
 		null -> listOf(identifierNode, receiverTypeNode) + parameterNodes

@@ -1,0 +1,28 @@
+module Test {
+    type Int
+
+    (Int) add (x Int, y Int) (Int) {
+        return x + y
+    }
+}
+
+property Associative<T> {
+    trait (T) operator (lhs T, rhs T) (T) {
+        case ((a T) operator (b T)) operator (c T)
+        case (a T) operator ((b T) operator (c T))
+    }
+}
+
+api Semigroup {
+    trait Interface : Associative {
+        (Self) infix <> (lhs Self, rhs Self) (Self)
+    }
+}
+
+module Integer with Semigroup {
+    type Int : Semigroup::Interface
+
+    (Int) infix <> (lhs Int, rhs Int) (Self) {
+        return lhs + rhs
+    }
+}

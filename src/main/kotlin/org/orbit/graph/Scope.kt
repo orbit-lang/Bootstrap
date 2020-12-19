@@ -6,6 +6,8 @@ import org.orbit.core.Path
 import org.orbit.core.SourcePosition
 import org.orbit.core.nodes.Node
 import org.orbit.serial.Serial
+import org.orbit.types.Context
+import org.orbit.types.Entity
 import org.orbit.util.Fatal
 import java.util.*
 
@@ -177,9 +179,16 @@ class Scope(
 		return "SCOPE($identifier) <- PARENT(${parentScope?.identifier})\n" + bindings.joinToString("\n") { "\t" + it.toString() }
 	}
 
-	override fun describe(json: JSONObject) {
+	override fun describe(json: JSONObject) {}
+}
 
+fun Scope.exportTypes(context: Context) {
+	val types = bindings.filter { it.kind is Binding.Kind.Entity }
+	val entities = types.map {
+		Entity(it.simpleName)
 	}
+
+	entities.forEach { context.add(it) }
 }
 
 fun Node.getScopeIdentifier() : ScopeIdentifier {

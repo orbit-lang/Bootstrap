@@ -1,12 +1,11 @@
 package org.orbit.core
 
-import org.orbit.analysis.Analysis
-import org.orbit.core.nodes.MethodDefNode
 import org.orbit.frontend.FileSourceProvider
 import org.orbit.frontend.Parser
 import org.orbit.graph.CanonicalNameResolver
 import org.orbit.graph.Environment
 import org.orbit.serial.Serialiser
+import org.orbit.types.TypeChecker
 import org.orbit.util.Invocation
 import org.orbit.util.Orbit
 import org.orbit.util.Printer
@@ -39,22 +38,25 @@ class Main {
 				val result = invocation.getResult<Parser.Result>("Parser")
 				val nameResolver = CanonicalNameResolver(invocation)
 
-				val blocks = result.ast.search(MethodDefNode::class.java)
-
-				val json = Serialiser.serialise(result.ast)
-				println(json.toString(2))
+//				val json = Serialiser.serialise(result.ast)
+//				println(json.toString(2))
 
 				val environment = invocation.getResult<Environment>("CanonicalNameResolver")
 
-				println(invocation.dumpWarnings())
-				println(invocation.dumpErrors())
+//				println(invocation.dumpWarnings())
+//				println(invocation.dumpErrors())
 
 //				println(environment)
 
 				val printer = Printer(Unix)
 				val correctnessResults = invocation.getResult(correctness)
 
-				Analysis.collate(correctnessResults, printer)
+//				Analysis.collate(correctnessResults, printer)
+
+				val typeResolver = TypeChecker(invocation)
+				val context = typeResolver.execute(environment)
+
+				println(Serialiser.serialise(context).toString(2))
 			} catch (ex: Exception) {
 				println(ex.message)
 //				throw ex

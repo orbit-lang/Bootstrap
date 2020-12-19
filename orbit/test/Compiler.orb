@@ -1,0 +1,46 @@
+api Orb::Compiler
+
+api Core within Orb::Compiler {
+    type Invocation
+
+    trait Phase<I, O>(invocation Invocation) {
+        (self Self) execute (input I) (O)
+    }
+}
+
+trait Equality {
+    (Self) operator `==` (lhs Self, rhs Self) (Bool)
+}
+
+api Orb::Compiler::Syntax
+
+type Map<A, B> = (self A) () (B)
+
+api Tokens within Orb::Compiler::Syntax {
+    type SourcePosition(line Int, offset Int)
+
+    type TokenType(identifier String, pattern String, ignoreWhitespace Bool, isWhitespace Bool) : Equality
+
+    (TokenType) operator `==` (lhs TokenType, rhs TokenType) (Bool) = (lhs == rhs)
+
+    type Token(type TokenType, text String, position SourcePosition) : Equality
+
+    (Token) operator `==` (lhs Token, rhs Token) (Bool)
+        = (lhs.type == rhs.type) && (lhs.position == rhs.position)
+
+    trait TokenTypeProvider {
+        (self Self) getTokenTypes () ([TokenType])
+    }
+}
+
+api Source within Orb::Compiler::Syntax with Orb::Compiler::Core {
+    trait SourceProvider<T> : Phase<T, String>
+}
+
+api Lex within Orb::Compiler::Syntax with Orb::Compiler::{Core, Source} {
+    type Lexer(invocation Invocation) : Phase<SourceProvider, [Token]>(invocation)
+
+    (self Lexer) execute (input SourceProvider) ([Token]) {
+
+    }
+}

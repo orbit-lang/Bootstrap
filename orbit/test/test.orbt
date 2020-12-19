@@ -1,0 +1,4 @@
+Nat {
+    Zero
+    Succ
+}

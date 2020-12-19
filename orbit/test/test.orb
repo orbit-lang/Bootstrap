@@ -1,7 +1,8 @@
 module Test {
+    type Unit
     type Int
 
-    (Int) add (x Int, y Int) (Int) {
+    (Int) foo (x Int, y Int) (Int) {
         return x + y
     }
 }

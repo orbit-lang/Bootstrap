@@ -16,13 +16,6 @@ data class Binding(val kind: Binding.Kind, val simpleName: String, val path: Pat
 		object Method : Kind
 	}
 
-//	enum class Kind {
-//		Api, Module, Type, Trait, Package, Method, Self;
-//
-//		override fun toString() : String
-//			= this.name
-//	}
-
 	override fun equals(other: Any?) : Boolean = when (other) {
 		// Bindings can share a simple name, but must resolve to unique canonical names
 		is Binding -> other.kind == kind && other.simpleName == simpleName && other.path == path

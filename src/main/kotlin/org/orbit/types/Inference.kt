@@ -1,5 +1,9 @@
 package org.orbit.types
 
+import org.json.JSONObject
+import org.orbit.serial.Serial
+import org.orbit.serial.Serialiser
+
 interface Expression {
     fun infer(context: Context) : Type
 }
@@ -55,7 +59,7 @@ data class Block(val body: List<Expression>) : Expression {
     }
 }
 
-class Context(builtIns: Set<Type> = emptySet()) {
+class Context(builtIns: Set<Type> = emptySet()) : Serial {
     constructor(builtIns: List<Type>) : this(builtIns.toSet())
     constructor(vararg builtIns: Type) : this(builtIns.toSet())
     internal constructor(vararg builtIns: String) : this(builtIns.map { Entity(it) })
@@ -75,11 +79,16 @@ class Context(builtIns: Set<Type> = emptySet()) {
     init {
         types.addAll(builtIns)
     }
+
+    override fun describe(json: JSONObject) {
+        val typesJson = types.map { Serialiser.serialise(it) }
+
+        json.put("context.types", typesJson)
+    }
 }
 
 object TypeInferenceUtil {
     fun infer(context: Context, expression: Expression): Type
         = expression.infer(context)
 }
-
 

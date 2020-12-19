@@ -153,7 +153,7 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		// of all containers in this program, as well as their imported containers.
 		// Later phases will now know where to find symbols that reside outside of the
 		// current scope.
-		println(graph)
+//		println(graph)
 
 		return environment
 	}

@@ -30,6 +30,9 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 
 	override fun parse(context: Parser) : TypeIdentifierNode {
 		val start = context.expect(TokenTypes.TypeIdentifier)
+
+		if (!context.hasMore) return TypeIdentifierNode(start, start, start.text)
+
 		val next = context.peek()
 
 		if (ctxt == Context.Naked) {

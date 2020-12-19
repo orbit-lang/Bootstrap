@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.orbit.core.TokenType
 import org.orbit.core.TokenTypeProvider
-import org.orbit.core.nodes.IntLiteralNode
-import org.orbit.core.nodes.RValueNode
-import org.orbit.core.nodes.SymbolLiteralNode
+import org.orbit.core.nodes.*
 import org.orbit.frontend.TokenTypes
 import org.orbit.frontend.rules.LiteralRule
 import org.orbit.util.OrbitException
@@ -23,14 +21,16 @@ internal class LiteralTests : IntegrationTest {
 
     @Test
     fun testEmpty() {
+        // Proposition: Frontend rejects ""
         assertThrows<Exception> {
-            generateFrontendResult(TokenTypeProviderImpl, LiteralRule(allowsPartial = true), "")
+            generateFrontendResult(TokenTypeProviderImpl, LiteralRule(), "")
         }
     }
 
     @Test
     fun testIntLiteralTrue() {
-        val result = generateFrontendResult(TokenTypeProviderImpl, LiteralRule(allowsPartial = true), "99")
+        // Proposition: Frontend parses a well-formed integer literal
+        val result = generateFrontendResult(TokenTypeProviderImpl, LiteralRule(), "99")
 
         assertIs<RValueNode>(result.ast)
 
@@ -40,20 +40,46 @@ internal class LiteralTests : IntegrationTest {
     }
 
     @Test
-    fun testIntLiteralFalse() {
-        assertThrows<OrbitException> {
-            generateFrontendResult(TokenTypeProviderImpl, LiteralRule(allowsPartial = true), "99.9")
-        }
-    }
-
-    @Test
     fun testSymbolTrue() {
-        val result = generateFrontendResult(TokenTypeProviderImpl, LiteralRule(allowsPartial = true), ":symbol")
+        // Proposition: Frontend parses a well-formed symbol literal
+        val result = generateFrontendResult(TokenTypeProviderImpl, LiteralRule(), ":symbol")
 
         assertIs<RValueNode>(result.ast)
 
         val symbolLiteralNode = (result.ast as RValueNode).expressionNode as SymbolLiteralNode
 
         assertEquals("symbol", symbolLiteralNode.value.second)
+    }
+
+    @Test
+    fun testSymbolFalse() {
+        // Proposition: Frontend rejects a malformed symbol, e.g. ":"
+        assertThrows<OrbitException> {
+            generateFrontendResult(TokenTypeProviderImpl, LiteralRule(), ":")
+        }
+    }
+
+    @Test
+    fun testTypeIdentifierTrue() {
+        // Proposition: Frontend parses a well-formed Type identifier
+        val result = generateFrontendResult(TokenTypeProviderImpl, LiteralRule(), "Type")
+
+        assertIs<RValueNode>(result.ast)
+
+        val typeIdentifierNode = (result.ast as RValueNode).expressionNode as TypeIdentifierNode
+
+        assertEquals("Type", typeIdentifierNode.value)
+    }
+
+    @Test
+    fun testIdentifierTrue() {
+        // Proposition: Frontend parses a well-formed identifier, e.g. "name"
+        val result = generateFrontendResult(TokenTypeProviderImpl, LiteralRule(), "name")
+
+        assertIs<RValueNode>(result.ast)
+
+        val identifierNode = (result.ast as RValueNode).expressionNode as IdentifierNode
+
+        assertEquals("name", identifierNode.identifier)
     }
 }

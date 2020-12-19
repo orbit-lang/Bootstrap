@@ -24,9 +24,14 @@ class MethodSignaturePathResolver(
 		val retPath = retResult.unwrap(this, input.returnTypeNode?.firstToken?.position ?: SourcePosition.unknown)
 		// TODO - Should method names contain parameter names as well as/instead of types?
 		// i.e. Are parameter names important/overloadable?
-		val argPaths = input.parameterNodes.map {
+
+		input.returnTypeNode?.annotate(retPath.path, Annotations.Path)
+
+		val argPaths = input.parameterNodes.mapIndexed { idx, it ->
 			val result = environment.getBinding(it.typeIdentifierNode.value, Binding.Kind.Type)
 			val binding = result.unwrap(this, it.typeIdentifierNode.firstToken.position)
+
+			input.annotateParameter(idx, binding.path, Annotations.Path)
 
 			binding.path
 		}
