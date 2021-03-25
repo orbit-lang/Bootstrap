@@ -1,6 +1,7 @@
 module Test {
     type Unit
     type Int
+    type Float
 
     (Int) foo (x Int, y Int) (Int) {
         return x + y

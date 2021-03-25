@@ -1,10 +1,14 @@
 package org.orbit.core
 
+import org.orbit.analysis.Analysis
 import org.orbit.frontend.FileSourceProvider
 import org.orbit.frontend.Parser
 import org.orbit.graph.CanonicalNameResolver
 import org.orbit.graph.Environment
 import org.orbit.serial.Serialiser
+import org.orbit.types.Context
+import org.orbit.types.Entity
+import org.orbit.types.Lambda
 import org.orbit.types.TypeChecker
 import org.orbit.util.Invocation
 import org.orbit.util.Orbit
@@ -53,10 +57,16 @@ class Main {
 
 //				Analysis.collate(correctnessResults, printer)
 
-				val typeResolver = TypeChecker(invocation)
-				val context = typeResolver.execute(environment)
+				val context = Context()
 
-				println(Serialiser.serialise(context).toString(2))
+				// TODO - Remove these bootstrap types
+				context.bind("Test::Int+Test::Int", Lambda(Entity("Test::Int"), Entity("Test::Int")))
+
+				val typeResolver = TypeChecker(invocation, context)
+
+				typeResolver.execute(environment)
+
+//				println(Serialiser.serialise(context).toString(2))
 			} catch (ex: Exception) {
 				println(ex.message)
 //				throw ex

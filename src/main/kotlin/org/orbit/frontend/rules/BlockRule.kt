@@ -24,7 +24,7 @@ class BlockRule(private vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNod
 		
 		while (next.type != TokenTypes.RBrace) {
 			body.add(context.attemptAny(*bodyRules, throwOnNull = true)
-				?: throw context.invocation.make(BlockRule.Errors.UnexpectedBlockStatement(next)))
+				?: throw context.invocation.make(Errors.UnexpectedBlockStatement(next)))
 
 			next = context.peek()
 		}

@@ -1,6 +1,10 @@
 package org.orbit.types
 
 import org.json.JSONObject
+import org.orbit.core.nodes.BinaryExpressionNode
+import org.orbit.core.nodes.ExpressionNode
+import org.orbit.core.nodes.IdentifierNode
+import org.orbit.core.nodes.RValueNode
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
 
@@ -15,10 +19,10 @@ data class Variable(val name: String) : Expression {
 }
 
 data class Binary(val op: String, val left: Type, val right: Type) : Expression {
-    override fun infer(context: Context): Type {
+    override fun infer(context: Context) : Type {
         val opFuncName = "${left.name}$op${right.name}"
 
-        return context.get(opFuncName) as? Lambda
+        return (context.get(opFuncName) as? Lambda)?.outputType
             ?: throw Exception("Failed to infer type of binary expression: '$opFuncName'")
     }
 }
@@ -64,8 +68,8 @@ class Context(builtIns: Set<Type> = emptySet()) : Serial {
     constructor(vararg builtIns: Type) : this(builtIns.toSet())
     internal constructor(vararg builtIns: String) : this(builtIns.map { Entity(it) })
 
-    private val types: MutableSet<Type> = builtIns.toMutableSet()
-    private val bindings = mutableMapOf<String, Type>()
+    val types: MutableSet<Type> = builtIns.toMutableSet()
+    val bindings = mutableMapOf<String, Type>()
     private var next = 0
 
     fun bind(name: String, type: Type) {
@@ -75,6 +79,14 @@ class Context(builtIns: Set<Type> = emptySet()) : Serial {
 
     fun add(type: Type) = types.add(type)
     fun get(name: String) : Type? = bindings[name]
+
+    fun remove(name: String) {
+        bindings.remove(name)
+    }
+
+    fun removeAll(names: List<String>) {
+        names.forEach { remove(it) }
+    }
 
     init {
         types.addAll(builtIns)
@@ -90,5 +102,18 @@ class Context(builtIns: Set<Type> = emptySet()) : Serial {
 object TypeInferenceUtil {
     fun infer(context: Context, expression: Expression): Type
         = expression.infer(context)
+
+    fun infer(context: Context, expressionNode: ExpressionNode) : Type = when (expressionNode) {
+        is IdentifierNode -> infer(context, Variable(expressionNode.identifier))
+        is BinaryExpressionNode -> {
+            val leftType = infer(context, expressionNode.left)
+            val rightType = infer(context, expressionNode.right)
+
+            infer(context, Binary(expressionNode.operator, leftType, rightType))
+        }
+        is RValueNode -> infer(context, expressionNode.expressionNode)
+        else ->
+            throw RuntimeException("FATAL - Cannot determine type of expression '${expressionNode::class.java}'")
+    }
 }
 

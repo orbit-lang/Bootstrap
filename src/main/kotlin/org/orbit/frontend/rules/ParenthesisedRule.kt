@@ -5,7 +5,7 @@ import org.orbit.frontend.ParseRule
 import org.orbit.frontend.Parser
 import org.orbit.frontend.TokenTypes
 
-class ParenthesisedNode<N: Node>(private val innerRule: ParseRule<N>) : ParseRule<N> {
+class ParenthesisedRule<N: Node>(private val innerRule: ParseRule<N>) : ParseRule<N> {
     override fun parse(context: Parser): N {
         context.expect(TokenTypes.LParen)
 

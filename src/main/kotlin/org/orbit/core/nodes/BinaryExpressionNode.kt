@@ -9,8 +9,8 @@ data class BinaryExpressionNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
 	val operator: String,
-	val left: Node,
-	val right: Node
+	val left: ExpressionNode,
+	val right: ExpressionNode
 ) : ExpressionNode(firstToken, lastToken), Serial {
 	override fun getChildren() : List<Node> {
 		return listOf(left, right)
