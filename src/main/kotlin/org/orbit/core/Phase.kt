@@ -1,9 +1,15 @@
 package org.orbit.core
 
-import kotlinx.coroutines.*
+import javafx.beans.property.ListProperty
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import org.orbit.util.Invocation
 import org.orbit.util.OrbitError
-import kotlin.coroutines.coroutineContext
+import java.util.*
+import kotlin.properties.Delegates
+import kotlin.reflect.KProperty
 
 interface Phase<I, O> {
     val invocation: Invocation
@@ -55,6 +61,11 @@ abstract class AdaptablePhase<I: Any, O: Any> : ReifiedPhase<I, O> {
         return adapters[clazz] as? P
     }
 
+    @Suppress("UNCHECKED_CAST")
+    fun <T, P: PhaseAdapter<T, I>> getAdapterSafe(clazz: Class<T>) : P? {
+        return adapters[clazz] as? P
+    }
+
     inline fun <reified T: Any, reified InputType: I> bridgeCast(obj: T) : I {
         val result = InputType::class.java.safeCast(obj)
 
@@ -71,6 +82,10 @@ abstract class AdaptablePhase<I: Any, O: Any> : ReifiedPhase<I, O> {
 
 inline fun <reified I, reified O> Phase<I, O>.asInputType(obj: Any) : I? {
     return obj as? I
+}
+
+fun <I, O> Phase<I, O>.asInputType(obj: Any, clazz: Class<I>) : I? {
+    return clazz.safeCast(obj)
 }
 
 inline fun <reified I, reified O> Phase<I, O>.getInputType() : Class<I> {
@@ -283,4 +298,54 @@ fun <T> Class<T>.safeCast(obj: Any) : T? = try {
 fun <T, U> Iterable<T>.flatMapNotNull(transform: (T) -> Iterable<U>?) : Iterable<U> {
     return mapNotNull(transform)
         .flatten()
+}
+
+fun interface Observer<T> {
+    fun observe(value: T)
+}
+
+class Observable<T>(initialValue: T? = null) {
+    private var _value: T? = initialValue
+    private val observers = mutableSetOf<Observer<T>>()
+
+    fun registerObserver(observer: Observer<T>) {
+        observers.add(observer)
+    }
+
+    fun unregisterObserver(observer: Observer<T>) {
+        observers.remove(observer)
+    }
+
+    fun get(): T? = _value
+    fun post(value: T) {
+        _value = value
+        observers.forEach { it.observe(value) }
+    }
+}
+
+interface CompilationEvent {
+    val identifier: String
+}
+
+class CompilationEventBus {
+    val events = Observable<CompilationEvent>()
+
+    fun notify(event: CompilationEvent) {
+        events.post(event)
+    }
+}
+
+enum class PhaseLifecycle {
+    Init, Before, After;
+
+    data class Event(val lifecycleEvent: PhaseLifecycle, val uniqueIdentifier: String) : CompilationEvent {
+        override val identifier: String = "${lifecycleEvent.name} - $uniqueIdentifier"
+    }
+}
+
+class PhaseContainer(val name: String) {
+    private val phases = mutableMapOf<String, Phase<*, *>>()
+
+    operator fun set(key: String, value: Phase<*, *>) = phases.put(key, value)
+    operator fun get(key: String) : Phase<*, *>? = phases[key]
 }

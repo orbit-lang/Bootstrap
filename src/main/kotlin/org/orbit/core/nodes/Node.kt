@@ -2,6 +2,7 @@ package org.orbit.core.nodes
 
 import org.json.JSONObject
 import org.orbit.core.Token
+import org.orbit.frontend.rules.PhaseAnnotationNode
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
 import org.orbit.util.PriorityComparator
@@ -52,6 +53,14 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 	}
 
 	var annotations: MutableSet<NodeAnnotation<*>> = mutableSetOf()
+	var phaseAnnotationNodes = mutableListOf<PhaseAnnotationNode>()
+
+	val range: IntRange
+		get() = IntRange(firstToken.position.absolute, lastToken.position.absolute)
+
+	fun insertPhaseAnnotation(phaseAnnotationNode: PhaseAnnotationNode) {
+		phaseAnnotationNodes.add(phaseAnnotationNode)
+	}
 
 	inline fun <reified T: Serial> annotate(value: T, tag: NodeAnnotationTag<T>) {
 		val annotation = NodeAnnotation(tag, value)
@@ -103,9 +112,12 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 		json.put("node.type", javaClass.simpleName)
 
 		val ann = annotations.map { Serialiser.serialise(it) }
+
 		json.put("node.annotations", ann)
+		json.put("node.phaseAnnotations", phaseAnnotationNodes)
 
 		val children = getChildren().map { Serialiser.serialise(it) }
+
 		json.put("node.children", children)
 	}
 }

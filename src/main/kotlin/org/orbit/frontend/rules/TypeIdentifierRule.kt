@@ -47,7 +47,7 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 			return TypeIdentifierNode(start, start, start.text)
 		}
 
-		val typeParametersNode = TypeParametersRule(false).parse(context)
+		val typeParametersNode = TypeParametersRule(false).execute(context)
 
 		return TypeIdentifierNode(start, typeParametersNode.lastToken, start.text, typeParametersNode)
 	}

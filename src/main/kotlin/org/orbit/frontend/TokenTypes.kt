@@ -32,6 +32,8 @@ object TokenTypes : TokenTypeProvider {
     object Within : TokenType("Within", "within", true, false)
 	object Return : TokenType("Return", "return", true, false)
     object Module : TokenType("Module", "module", true, false)
+    object Define : TokenType("Define", "define", true, false)
+    object Observe : TokenType("Observer", "observe", true, false)
 
     // Literals
     object Int : TokenType("Int", "[0-9]+", true, false)
@@ -44,7 +46,7 @@ object TokenTypes : TokenTypeProvider {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Int, Real, Api, Module, TypeIdentifier, Symbol,
+            Int, Real, Api, Module, Define, Observe, TypeIdentifier, Symbol,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
             Type, Trait, Within, With, Return,

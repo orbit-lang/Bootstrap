@@ -9,7 +9,7 @@ class ParenthesisedRule<N: Node>(private val innerRule: ParseRule<N>) : ParseRul
     override fun parse(context: Parser): N {
         context.expect(TokenTypes.LParen)
 
-        val node = innerRule.parse(context)
+        val node = innerRule.execute(context)
 
         context.expect(TokenTypes.RParen)
 

@@ -5,6 +5,8 @@ import org.orbit.core.Path
 import org.orbit.core.SourcePosition
 import org.orbit.core.getPath
 import org.orbit.core.nodes.ContainerNode
+import org.orbit.core.nodes.TraitDefNode
+import org.orbit.core.nodes.TypeDefNode
 import org.orbit.util.Fatal
 import org.orbit.util.Invocation
 
@@ -29,11 +31,14 @@ class ContainerResolver(
 			val typeResolver = TypeDefPathResolver(invocation, environment, graph, path)
 			val traitResolver = TraitDefPathResolver(invocation, environment, graph, path)
 
-			for (traitDef in input.traitDefs) {
+			val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
+			val typeDefs= input.entityDefs.filterIsInstance<TypeDefNode>()
+
+			for (traitDef in traitDefs) {
 				traitResolver.execute(PathResolver.InputType(traitDef, pass))
 			}
 
-			for (typeDef in input.typeDefs) {
+			for (typeDef in typeDefs) {
 				typeResolver.execute(PathResolver.InputType(typeDef, pass))
 			}
 

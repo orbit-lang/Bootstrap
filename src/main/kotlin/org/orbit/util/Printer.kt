@@ -1,7 +1,23 @@
-	package org.orbit.util
+package org.orbit.util
 
-enum class PrintableKey {
-	Bold, Warning, Error, Underlined, Success
+import java.awt.print.Printable
+
+enum class PrintableKey(val generator: (PrintableFactory) -> String) {
+	Bold(PrintableFactory::getBold),
+	Warning(PrintableFactory::getWarning),
+	Error(PrintableFactory::getError),
+	Underlined(PrintableFactory::getUnderlined),
+	Success(PrintableFactory::getSuccess);
+
+	operator fun plus(other: PrintableKey) : List<PrintableKey> {
+		return listOf(this, other)
+	}
+}
+
+fun <T, U> partial(arg: T, fn: (T) -> U) : () -> U {
+	return {
+		fn(arg)
+	}
 }
 
 interface PrintableFactory {
@@ -12,19 +28,23 @@ interface PrintableFactory {
 	fun getUnderlined() : String
 	fun getSuccess() : String
 
-	fun getPrintable(key: PrintableKey) : String = when (key) {
-		PrintableKey.Bold -> getBold()
-		PrintableKey.Warning -> getWarning()
-		PrintableKey.Error -> getError()
-		PrintableKey.Underlined -> getUnderlined()
-		PrintableKey.Success -> getSuccess()
+	private fun appendIfPresent(keys: Array<out PrintableKey>, key: PrintableKey, fn: () -> String) : String? {
+		return when (keys.contains(key)) {
+			true -> fn()
+			else -> null
+		}
+	}
+
+	fun getPrintable(vararg keys: PrintableKey) : String {
+		return keys.mapNotNull { appendIfPresent(keys, it, partial(this, it.generator)) }
+			.joinToString("")
 	}
 }
 
 class Printer(private val factory: PrintableFactory) {
-	fun apply(text: String, key: PrintableKey) : String {
-		val header = factory.getPrintable(key)
+	fun apply(text: String, vararg keys: PrintableKey) : String {
+		val headers = factory.getPrintable(*keys)
 		
-		return "$header$text${factory.getTerminator()}"
+		return "$headers$text${factory.getTerminator()}"
 	}
 }

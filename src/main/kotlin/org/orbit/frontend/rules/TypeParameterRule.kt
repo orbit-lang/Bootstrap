@@ -11,7 +11,7 @@ abstract class TypeParameterRule() : ParseRule<TypeParameterNode>
 
 private object BoundedTypeParameterRule : TypeParameterRule() {
 	override fun parse(context: Parser) : TypeParameterNode {
-		val nameNode = TypeIdentifierRule.Naked.parse(context)
+		val nameNode = TypeIdentifierRule.Naked.execute(context)
 		val next = context.peek()
 
 		if (next.type == TokenTypes.Colon) {
@@ -25,7 +25,7 @@ private object BoundedTypeParameterRule : TypeParameterRule() {
 
 				In this context, `C<D>` is an rval type, so we must parse it as a literal
 			 */
-			val boundNode = LiteralRule(TypeIdentifierRule.LValue).parse(context)
+			val boundNode = LiteralRule(TypeIdentifierRule.LValue).execute(context)
 
 			return BoundedTypeParameterNode(nameNode.firstToken, boundNode.lastToken, nameNode, boundNode)
 		}
@@ -36,8 +36,8 @@ private object BoundedTypeParameterRule : TypeParameterRule() {
 
 private object DependentTypeParameterRule : TypeParameterRule() {
 	override fun parse(context: Parser) : TypeParameterNode {
-		val nameNode = TypeIdentifierRule.Naked.parse(context)
-		val typeNode = LiteralRule(TypeIdentifierRule.LValue).parse(context)
+		val nameNode = TypeIdentifierRule.Naked.execute(context)
+		val typeNode = LiteralRule(TypeIdentifierRule.LValue).execute(context)
 
 		return DependentTypeParameterNode(nameNode.firstToken, typeNode.lastToken, nameNode, typeNode)
 	}
@@ -45,7 +45,7 @@ private object DependentTypeParameterRule : TypeParameterRule() {
 
 private object ValueTypeParameterRule : TypeParameterRule() {
 	override fun parse(context: Parser): TypeParameterNode {
-		val valueNode = LiteralRule().parse(context)
+		val valueNode = LiteralRule().execute(context)
 
 		return ValueTypeParameterNode(valueNode.firstToken, valueNode.lastToken, valueNode)
 	}
@@ -73,7 +73,7 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 			// otherwise we end up with an ambiguity in the grammar
 			if (isRValueContext) {
 				// We're instantiating a generic type in an rval position, so only concrete Types/Values are allowed
-				val typeParameterNode = ValueTypeParameterRule.parse(context)
+				val typeParameterNode = ValueTypeParameterRule.execute(context)
 
 				typeParameterNodes.add(typeParameterNode)
 

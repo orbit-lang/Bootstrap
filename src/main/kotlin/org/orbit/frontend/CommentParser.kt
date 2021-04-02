@@ -103,6 +103,10 @@ class CommentParser(override val invocation: Invocation) :
 			}
 		}
 
-		return Result(StringSourceProvider(stripped), comments)
+		val result = Result(StringSourceProvider(stripped), comments)
+
+		invocation.storeResult(this, result)
+
+		return result
 	}
 }

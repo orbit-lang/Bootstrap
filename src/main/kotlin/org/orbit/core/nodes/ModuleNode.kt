@@ -9,12 +9,11 @@ data class ModuleNode(
     override val identifier: TypeIdentifierNode,
     override val within: TypeIdentifierNode?,
     override val with: List<TypeIdentifierNode> = emptyList(),
-    override val typeDefs: List<TypeDefNode> = emptyList(),
-    override val traitDefs: List<TraitDefNode> = emptyList(),
+    override val entityDefs: List<EntityDefNode> = emptyList(),
     override val methodDefs: List<MethodDefNode> = emptyList()
-) : ContainerNode(firstToken, lastToken, identifier, within, with, typeDefs, traitDefs, methodDefs) {
+) : ContainerNode(firstToken, lastToken, identifier, within, with, entityDefs, methodDefs) {
     override fun getChildren(): List<Node> = when (within) {
-        null -> listOf(identifier) + implements + with + typeDefs + traitDefs + methodDefs
-        else -> listOf(identifier, within) + implements + with + typeDefs + traitDefs + methodDefs
+        null -> listOf(identifier) + implements + with + entityDefs + methodDefs
+        else -> listOf(identifier, within) + implements + with + entityDefs + methodDefs
     }
 }

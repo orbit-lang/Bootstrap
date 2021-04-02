@@ -16,7 +16,7 @@ object ReturnRule : ParseRule<ReturnStatementNode> {
 			return ReturnStatementNode(start, start, TypeIdentifierNode.unit(start))
 		}
 
-		val expr = ExpressionRule.defaultValue.parse(context)
+		val expr = ExpressionRule.defaultValue.execute(context)
 		
 		return ReturnStatementNode(start, expr.lastToken, expr)
 	}

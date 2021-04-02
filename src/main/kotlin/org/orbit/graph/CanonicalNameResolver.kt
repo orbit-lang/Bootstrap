@@ -155,6 +155,8 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		// current scope.
 //		println(graph)
 
+		invocation.storeResult(this, environment)
+
 		return environment
 	}
 }

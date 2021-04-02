@@ -26,7 +26,7 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRul
 		val next = context.peek()
 
 		if (next.type == TokenTypes.LAngle) {
-			val typeParametersNode = TypeParametersRule(true).parse(context)
+			val typeParametersNode = TypeParametersRule(true).execute(context)
 
 			return RValueNode(start, typeParametersNode.lastToken, expr, typeParametersNode)
 		}

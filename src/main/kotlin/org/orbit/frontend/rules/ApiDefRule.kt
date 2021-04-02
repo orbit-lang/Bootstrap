@@ -32,45 +32,30 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		
 		context.expect(TokenTypes.LBrace)
 		
-		var typeDefNodes = mutableListOf<TypeDefNode>()
-		var traitDefNodes = mutableListOf<TraitDefNode>()
+		val entityDefNodes = mutableListOf<EntityDefNode>()
 		var methodDefNodes = mutableListOf<MethodDefNode>()
 		var next: Token = context.peek()
 
 		while (next.type != TokenTypes.RBrace) {
-			
-			when (next.type) {
-				TokenTypes.Type -> {
-					val typeDefNode = context.attempt(TypeDefRule, true)
-						?: throw Exception("Expected type decl following 'type' at api-level")
+			val entity = context.attempt(TypeDefRule)
+				?: context.attempt(TraitDefRule)
 
-					typeDefNodes.add(typeDefNode)
-				}
+			if (entity == null) {
+				val methodDefNode = context.attempt(MethodDefRule, true)
+					?: throw Exception("Expected method signature following '(' at container level")
 
-				TokenTypes.Trait -> {
-					val traitDefNode = context.attempt(TraitDefRule, true)
-						?: throw Exception("Expected trait decl following 'trait' at api-level")
-
-					traitDefNodes.add(traitDefNode)
-				}
-
-				// Method defs
-				TokenTypes.LParen -> {
-					val methodDefNode = context.attempt(MethodDefRule, true)
-						?: throw Exception("Expected method signature following '(' at api-level")
-
-					methodDefNodes.add(methodDefNode)
-				}
-
-				else -> throw Exception("Unexpected token: $next")
+				methodDefNodes.add(methodDefNode)
+			} else {
+				entityDefNodes.add(entity)
 			}
 
 			next = context.peek()
 		}
 
 		val end = context.expect(TokenTypes.RBrace)
-		
+
+		// TODO - Parse
 		return ApiDefNode(start, end,
-			typeIdentifierNode, typeDefNodes, traitDefNodes, methodDefNodes, withinNode, withNodes)
+			typeIdentifierNode, emptyList(), methodDefNodes, withinNode, withNodes)
 	}
 }

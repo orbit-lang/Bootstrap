@@ -1,11 +1,36 @@
 package org.orbit.frontend.rules
 
+import org.orbit.core.Token
 import org.orbit.core.nodes.*
 import org.orbit.frontend.ParseRule
 import org.orbit.frontend.Parser
+import org.orbit.frontend.PrefixPhaseAnnotatedParseRule
 import org.orbit.frontend.TokenTypes
 
-object ModuleRule : ParseRule<ModuleNode> {
+data class PhaseAnnotationNode(
+    override val firstToken: Token,
+    override val lastToken: Token,
+    val annotationIdentifierNode: TypeIdentifierNode) : Node(firstToken, lastToken) {
+
+    override fun getChildren(): List<Node> {
+        return listOf(annotationIdentifierNode)
+    }
+}
+
+object PhaseAnnotationRule : ParseRule<PhaseAnnotationNode> {
+    override fun parse(context: Parser): PhaseAnnotationNode {
+        val start = context.expect(TokenTypes.Annotation)
+        val annotationIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
+            // TODO - Rename ApiDefRule
+            ?: throw context.invocation.make(ApiDefRule.Errors.MissingName(start.position))
+
+        // TODO - Parse annotation parameters
+
+        return PhaseAnnotationNode(start, annotationIdentifierNode.lastToken, annotationIdentifierNode)
+    }
+}
+
+object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
     override fun parse(context: Parser): ModuleNode {
         val start = context.expect(TokenTypes.Module)
         val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
@@ -18,8 +43,8 @@ object ModuleRule : ParseRule<ModuleNode> {
             context.consume()
 
             while (true) {
-                val expr = LiteralRule(TypeIdentifierRule.RValue).parse(context)
-                    //TypeIdentifierRule.RValue.parse(context)
+                val expr = LiteralRule(TypeIdentifierRule.RValue).execute(context)
+                    //TypeIdentifierRule.RValue.execute(context)
 
                 val impl = expr.expressionNode as? TypeIdentifierNode
                     ?: throw Exception("TODO")
@@ -48,36 +73,22 @@ object ModuleRule : ParseRule<ModuleNode> {
 
         context.expect(TokenTypes.LBrace)
 
-        var typeDefNodes = mutableListOf<TypeDefNode>()
-        var traitDefNodes = mutableListOf<TraitDefNode>()
-        var methodDefNodes = mutableListOf<MethodDefNode>()
+        val entityDefNodes = mutableListOf<EntityDefNode>()
+        val methodDefNodes = mutableListOf<MethodDefNode>()
+
         next = context.peek()
 
         while (next.type != TokenTypes.RBrace) {
-            when (next.type) {
-                TokenTypes.Type -> {
-                    val typeDefNode = context.attempt(TypeDefRule, true)
-                        ?: throw Exception("Expected type decl following 'type' at api-level")
+            val entity = context.attempt(TypeDefRule)
+                ?: context.attempt(TraitDefRule)
 
-                    typeDefNodes.add(typeDefNode)
-                }
+            if (entity == null) {
+                val methodDefNode = context.attempt(MethodDefRule, true)
+                    ?: throw Exception("Expected method signature following '(' at container level")
 
-                TokenTypes.Trait -> {
-                    val traitDefNode = context.attempt(TraitDefRule, true)
-                        ?: throw Exception("Expected trait decl following 'trait' at api-level")
-
-                    traitDefNodes.add(traitDefNode)
-                }
-
-                // Method defs
-                TokenTypes.LParen -> {
-                    val methodDefNode = context.attempt(MethodDefRule, true)
-                        ?: throw Exception("Expected method signature following '(' at api-level")
-
-                    methodDefNodes.add(methodDefNode)
-                }
-
-                else -> throw Exception("Unexpected token: $next")
+                methodDefNodes.add(methodDefNode)
+            } else {
+                entityDefNodes.add(entity)
             }
 
             next = context.peek()
@@ -85,6 +96,6 @@ object ModuleRule : ParseRule<ModuleNode> {
 
         val end = context.expect(TokenTypes.RBrace)
 
-        return ModuleNode(start, end, emptyList(), typeIdentifierNode, withinNode, withNodes, typeDefNodes, traitDefNodes, methodDefNodes)
+        return ModuleNode(start, end, emptyList(), typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes)
     }
 }

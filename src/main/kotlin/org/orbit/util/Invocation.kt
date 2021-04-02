@@ -3,11 +3,8 @@ package org.orbit.util
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.types.file
-
-import org.orbit.core.Phase
-import org.orbit.core.ReifiedPhase
-import org.orbit.core.SourcePosition
-import org.orbit.core.Warning
+import org.orbit.core.*
+import java.lang.RuntimeException
 
 open class OrbitException(override val message: String?) : Exception(message) {
 	companion object
@@ -56,6 +53,12 @@ class Invocation(val platform: Platform) {
 		return phaseResults[phase] as O
 	}
 
+	fun <O: Any> getResult(phase: ReifiedPhase<*, O>, clazz: Class<O>) : O {
+		val result = phaseResults[phase] ?: throw RuntimeException("FATAL - Invocation.kt+57")
+
+		return clazz.safeCast(result) ?: throw RuntimeException("FATAL - Invocation.kt+59")
+	}
+
 	inline fun <reified I: Any, reified O: Any> getResultOrNull(phase: ReifiedPhase<I, O>) : O? {
 		return phaseResults[phase] as? O
 	}
@@ -67,15 +70,26 @@ class Invocation(val platform: Platform) {
 			}
 	}
 
+	fun <O: Any> getResults(phaseName: String, clazz: Class<O>) : List<O> {
+		return phaseResults.filter { it.key.phaseName == phaseName }
+			.map {
+				clazz.safeCast(it.value) ?: throw RuntimeException("FATAL - Invocation.kt+70")
+			}
+	}
+
 	inline fun <reified O: Any> getResult(phaseName: String) : O {
 		return getResults<O>(phaseName).first()
+	}
+
+	fun <O: Any> getResult(phaseName: String, clazz: Class<O>) : O {
+		return getResults(phaseName, clazz).first()
 	}
 
 	inline fun <reified O: Any> getResultOrNull(phaseName: String) : O? {
 		return getResults<O>(phaseName).firstOrNull()
 	}
 
-	inline fun <reified O: Any,  reified P: ReifiedPhase<Any, O>> getResults() : List<O> {
+	inline fun <reified O: Any, reified P: ReifiedPhase<Any, O>> getResults() : List<O> {
 		return phaseResults.filter {
 			it.key is P
 		}.map {

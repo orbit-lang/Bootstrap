@@ -2,25 +2,70 @@ package org.orbit.frontend
 
 import org.orbit.core.*
 import org.orbit.core.nodes.Node
+import org.orbit.frontend.rules.PhaseAnnotationNode
+import org.orbit.frontend.rules.PhaseAnnotationRule
+import org.orbit.frontend.rules.ProgramRule
 import org.orbit.util.Invocation
 import org.orbit.util.OrbitException
 
-interface ParseRule<N: Node> {
-	fun parse(context: Parser) : N
+interface ParseRule<N: Node>{
+	fun parse(context: Parser): N
+
+	fun execute(input: Parser): N {
+		return parse(input)
+	}
+}
+
+interface AnnotatedParseRule<N: Node> : ParseRule<N> {
+	fun parsePhaseAnnotations(context: Parser) : List<PhaseAnnotationNode> {
+		val result = mutableListOf<PhaseAnnotationNode>()
+		var next = context.peek()
+		while (next.type == TokenTypes.Annotation) {
+			val phaseAnnotationNode = context.attempt(PhaseAnnotationRule)
+				?: throw context.invocation.make<Parser>("Malformed annotation", next.position)
+
+			result.add(phaseAnnotationNode)
+			next = context.peek()
+		}
+
+		return result
+	}
+}
+
+interface PrefixPhaseAnnotatedParseRule<N: Node> : AnnotatedParseRule<N> {
+	override fun execute(input: Parser): N {
+		val phaseAnnotations = parsePhaseAnnotations(input)
+		val result = super.execute(input)
+
+		phaseAnnotations.forEach { result.insertPhaseAnnotation(it) }
+
+		return result
+	}
+}
+
+interface PostfixPhaseAnnotationParseRule<N: Node> : AnnotatedParseRule<N> {
+	override fun execute(input: Parser): N {
+		val result = super.execute(input)
+		val phaseAnnotations = parsePhaseAnnotations(input)
+
+		phaseAnnotations.forEach { result.insertPhaseAnnotation(it) }
+
+		return result
+	}
 }
 
 class Parser(
 	override val invocation: Invocation,
-	private val topLevelParseRule: ParseRule<*>
+	private val topLevelParseRule: ParseRule<*> = ProgramRule
 ) : AdaptablePhase<Parser.InputType, Parser.Result>() {
 	data class InputType(val tokens: List<Token>) : Any()
 	data class Result(val ast: Node)
 
-	object LexerAdapter : PhaseAdapter<Lexer.Result, Parser.InputType> {
+	object LexerAdapter : PhaseAdapter<Lexer.Result, InputType> {
 		override fun bridge(output: Lexer.Result): InputType = InputType(output.tokens)
 	}
 
-	object FrontendAdapter : PhaseAdapter<FrontendPhaseType, Parser.InputType> {
+	object FrontendAdapter : PhaseAdapter<FrontendPhaseType, InputType> {
 		override fun bridge(output: FrontendPhaseType): InputType {
 			val deferredInput = output.phaseLinker.execute(output.initialPhaseInput)
 
@@ -110,7 +155,7 @@ class Parser(
 		val backup = tokens
 
 		try {
-			return rule.parse(this)
+			return rule.execute(this)
 		} catch (ex: Exception) {
 			// We don't care why this failed, only that it did
 			if (rethrow) throw ex
@@ -174,7 +219,7 @@ class Parser(
 		
 		tokens = input.tokens.toMutableList()
 
-		val ast = topLevelParseRule.parse(this)
+		val ast = topLevelParseRule.execute(this)
 		val result = Result(ast)
 
 		invocation.mergeResult(this, result) {

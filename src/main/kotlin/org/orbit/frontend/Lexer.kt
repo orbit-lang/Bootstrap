@@ -16,14 +16,15 @@ fun Char.isNewline() : Boolean = when (this) {
 
 class Lexer(
 	override val invocation: Invocation,
-	private val tokenTypeProvider: TokenTypeProvider	
+	private val tokenTypeProvider: TokenTypeProvider = TokenTypes,
+	private val allowUnexpectedLexemes: Boolean = false
 ) : AdaptablePhase<SourceProvider, Lexer.Result>() {
 	sealed class Errors {
 		data class UnexpectedLexeme(
 			val str: String,
-			override val phaseClazz: Class<out Parser> = Parser::class.java,
+			override val phaseClazz: Class<out Lexer> = Lexer::class.java,
 			override val sourcePosition: SourcePosition
-		) : Fatal<Parser> {
+		) : Fatal<Lexer> {
 			override val message: String = "Unexpected lexeme: $str"
 		}
 	}
@@ -31,6 +32,10 @@ class Lexer(
 	data class Result(val tokens: List<Token>) {
 		val size: Int get() { return tokens.size }
 		fun isEmpty() = tokens.isEmpty()
+
+		fun filterType(type: TokenType) : List<Token> {
+			return tokens.filter { it.type == type }
+		}
 	}
 
 	private object CommentParserAdapter : PhaseAdapter<CommentParser.Result, SourceProvider> {
@@ -40,7 +45,7 @@ class Lexer(
 	override val inputType: Class<SourceProvider> = SourceProvider::class.java
 	override val outputType: Class<Result> = Result::class.java
 
-	private var position = SourcePosition(0, 0)
+	private var position = SourcePosition(0, -1)
 
 	init {
 	    registerAdapter(CommentParserAdapter)
@@ -96,10 +101,20 @@ class Lexer(
 			}
 
 			if (!matched) {
-				invocation.reportError(Errors.UnexpectedLexeme(content, sourcePosition = position))
+				if (allowUnexpectedLexemes) {
+					position.moveCharacter(1)
+					content = content.slice(IntRange(1, content.length - 1))
+					println(content)
+				} else {
+					invocation.reportError(Errors.UnexpectedLexeme(content, sourcePosition = position))
+				}
 			}
 		}
 		
-		return Result(tokens)
+		val result = Result(tokens)
+
+		invocation.storeResult(this, result)
+
+		return result
 	}
 }

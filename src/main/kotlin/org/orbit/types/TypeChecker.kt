@@ -4,12 +4,13 @@ import org.orbit.core.AdaptablePhase
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.getPathOrNull
-import org.orbit.core.nodes.*
+import org.orbit.core.nodes.BlockNode
+import org.orbit.core.nodes.MethodDefNode
+import org.orbit.core.nodes.ReturnStatementNode
 import org.orbit.graph.Binding
 import org.orbit.graph.Environment
 import org.orbit.graph.exportTypes
 import org.orbit.util.Invocation
-import java.lang.RuntimeException
 
 interface TypeResolver {
     fun resolve(environment: Environment, context: Context, binding: Binding)

@@ -14,8 +14,9 @@ object ProgramRule : ParseRule<ProgramNode> {
 		
 		while (context.hasMore) {
 			val decl: TopLevelDeclarationNode = when (next.type) {
-				TokenTypes.Api -> ApiDefRule.parse(context)
-				TokenTypes.Module -> ModuleRule.parse(context)
+				TokenTypes.Observe -> ObserverRule.execute(context)
+//				TokenTypes.Api -> ApiDefRule.execute(context)
+				TokenTypes.Annotation, TokenTypes.Module -> ModuleRule.execute(context)
 				else -> throw context.invocation.make<Parser>("Unexpected decl at program-level: ${next.type}", next.position)
 			}
 

@@ -9,6 +9,6 @@ object WithRule : ParseRule<TypeIdentifierNode> {
 	override fun parse(context: Parser) : TypeIdentifierNode {
 		context.expect(TokenTypes.With)
 
-		return TypeIdentifierRule.RValue.parse(context)
+		return TypeIdentifierRule.RValue.execute(context)
 	}
 }

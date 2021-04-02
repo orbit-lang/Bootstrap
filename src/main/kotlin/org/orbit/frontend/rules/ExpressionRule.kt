@@ -33,7 +33,7 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<Ex
 			try {
 				val partialExpressionRule = PartialExpressionRule(expr)
 
-				return partialExpressionRule.parse(context)
+				return partialExpressionRule.execute(context)
 			} finally {
 				if (isGrouped) context.expect(TokenTypes.RParen)
 			}
