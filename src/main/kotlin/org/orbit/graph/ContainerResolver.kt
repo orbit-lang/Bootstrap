@@ -39,8 +39,15 @@ class ContainerResolver(
 	}
 
 	// Next, we resolve the containers "within" paths where the
-	private fun resolveSecondPass(input: ContainerNode, context: Path? = null, parentPath: Path? = null) : PathResolver.Result {
+	private fun resolveSecondPass(input: ContainerNode, cycles: Int = 0, context: Path? = null) : PathResolver.Result {
 		val simplePath = input.getPath()
+
+		if (cycles > 5) {
+			// This is almost certainly a circular reference
+			var message = "Circular reference detected between containers '${simplePath.toString(OrbitMangler)}' and '${context?.toString(OrbitMangler)}'"
+
+			throw invocation.make<ContainerResolver>(message, input.identifier.firstToken.position)
+		}
 
 		val within = input.within
 
@@ -53,17 +60,6 @@ class ContainerResolver(
 			return PathResolver.Result.Success(fullyQualifiedPath)
 		}
 
-		if (context != null) {
-			if (context.containsPart(simplePath.relativeNames.last())) {
-				// Circular reference detected
-				val fullyQualifiedPath = FullyQualifiedPath(simplePath)
-
-				completeBinding(input, simplePath, fullyQualifiedPath)
-
-				return PathResolver.Result.Success(fullyQualifiedPath)
-			}
-		}
-
 		val parent = environment.getBinding(within.value, Binding.Kind.Module)
 			.unwrap(this, within.firstToken.position)
 
@@ -72,19 +68,14 @@ class ContainerResolver(
 
 		return when (parent.path) {
 			is FullyQualifiedPath -> {
-				val result = if (parent.path.containsPart(simplePath.toString(OrbitMangler))) {
-					PathResolver.Result.Success(FullyQualifiedPath(parent.path.from(simplePath.toString(OrbitMangler)) + simplePath))
-				} else {
-					PathResolver.Result.Success(FullyQualifiedPath(parent.path + simplePath))
-				}
+				val fullyQualifiedPath = FullyQualifiedPath(simplePath)
+				completeBinding(input, simplePath, fullyQualifiedPath)
 
-				completeBinding(input, simplePath, FullyQualifiedPath(result.path))
-
-				result
+				PathResolver.Result.Success(fullyQualifiedPath)
 			}
 
 			else -> {
-				val parentResult = resolveSecondPass(parentNode, parent.path, simplePath)
+				val parentResult = resolveSecondPass(parentNode, cycles + 1, simplePath)
 
 				if (parentResult !is PathResolver.Result.Success) {
 					TODO()
@@ -92,9 +83,7 @@ class ContainerResolver(
 
 				val fullyQualifiedPath = FullyQualifiedPath(parentResult.path + simplePath)
 
-				input.annotate(fullyQualifiedPath, Annotations.Path, true)
-				environment.unbind(Binding.Kind.Module, input.identifier.value, simplePath)
-				environment.bind(Binding.Kind.Module, input.identifier.value, fullyQualifiedPath)
+				completeBinding(input, simplePath, fullyQualifiedPath)
 
 				PathResolver.Result.Success(fullyQualifiedPath)
 			}

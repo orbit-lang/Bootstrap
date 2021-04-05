@@ -1,1 +1,7 @@
 module A within B {}
+module B within C {}
+module C within D {}
+module D within E {}
+module E within Foo {}
+module Foo within B {}
+
