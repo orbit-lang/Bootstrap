@@ -27,20 +27,29 @@ data class CompilationSchemeEntry(val uniqueIdentifier: String, val resultIdenti
 	}
 }
 
-class CompilationScheme(entries: List<CompilationSchemeEntry>) : MutableListIterator<CompilationSchemeEntry> {
+inline fun <reified O: Any> Invocation.storeResult(key: CompilationSchemeEntry, value: O) {
+	storeResult(key.uniqueIdentifier, value)
+}
+
+inline fun <reified O: Any> Invocation.mergeResult(key: CompilationSchemeEntry, result: O, where: (CompilationSchemeEntry) -> Boolean) {
+	mergeResult(key.uniqueIdentifier, result) { it == key.uniqueIdentifier }
+}
+
+inline fun <reified O: Any> Invocation.getResult(key: CompilationSchemeEntry) : O {
+	return getResults<O>(key.uniqueIdentifier).first()
+}
+
+open class CompilationScheme(entries: List<CompilationSchemeEntry>) : MutableListIterator<CompilationSchemeEntry> {
 	private val _entries = entries.toMutableList()
 
-	companion object Intrinsics {
-		val canonicalScheme = CompilationScheme(listOf(
-			CompilationSchemeEntry.commentParser,
-			CompilationSchemeEntry.lexer,
-			CompilationSchemeEntry.parser,
-			CompilationSchemeEntry.observers,
-			CompilationSchemeEntry.canonicalNameResolver,
-			// TypeChecker might not be intrinsic
-//			CompilationSchemeEntry.typeChecker
-		))
-	}
+	companion object Intrinsics : CompilationScheme(listOf(
+		CompilationSchemeEntry.commentParser,
+		CompilationSchemeEntry.lexer,
+		CompilationSchemeEntry.parser,
+		CompilationSchemeEntry.canonicalNameResolver,
+		CompilationSchemeEntry.observers,
+		CompilationSchemeEntry.typeChecker
+	))
 
 	override fun next(): CompilationSchemeEntry {
 		return _entries.removeFirst()
@@ -86,6 +95,10 @@ class CompilerGenerator(private val invocation: Invocation, phases: Map<String, 
 		phases[key] = value as AnyPhase
 	}
 
+	operator fun set(key: CompilationSchemeEntry, value: ReifiedPhase<*, *>) {
+		set(key.uniqueIdentifier, value)
+	}
+
 	fun run(scheme: CompilationScheme) {
 		for (entry in scheme) {
 			val phase = phases[entry.uniqueIdentifier] ?: throw RuntimeException("Unknown compilation phase '${entry.uniqueIdentifier}'")
@@ -93,7 +106,7 @@ class CompilerGenerator(private val invocation: Invocation, phases: Map<String, 
 
 			eventBus.notify(PhaseLifecycle.Event(PhaseLifecycle.Init, entry.uniqueIdentifier))
 
-			var input = invocation.phaseResults[resultPhase]
+			var input = invocation.phaseResults[entry.resultIdentifier]
 				?: throw RuntimeException("FATAL")
 
 			input = phase.inputType.safeCast(input)

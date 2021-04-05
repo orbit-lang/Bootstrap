@@ -4,6 +4,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.SourcePosition
 import org.orbit.core.nodes.MethodSignatureNode
+import org.orbit.types.IntrinsicTypes
 import org.orbit.util.Invocation
 
 class MethodSignaturePathResolver(
@@ -18,8 +19,10 @@ class MethodSignaturePathResolver(
 		val receiverBinding = receiverResult
 			.unwrap(this, input.receiverTypeNode.typeIdentifierNode.firstToken.position)
 
+		input.receiverTypeNode.annotate(receiverBinding.path, Annotations.Path)
+
 		val name = input.identifierNode.identifier
-		val ret = input.returnTypeNode?.value ?: "Unit"
+		val ret = input.returnTypeNode?.value ?: IntrinsicTypes.Unit.type.name
 		val retResult = environment.getBinding(ret, Binding.Kind.Type)
 		val retPath = retResult.unwrap(this, input.returnTypeNode?.firstToken?.position ?: SourcePosition.unknown)
 		// TODO - Should method names contain parameter names as well as/instead of types?

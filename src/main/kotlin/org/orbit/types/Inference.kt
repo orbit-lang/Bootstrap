@@ -1,10 +1,7 @@
 package org.orbit.types
 
 import org.json.JSONObject
-import org.orbit.core.nodes.BinaryExpressionNode
-import org.orbit.core.nodes.ExpressionNode
-import org.orbit.core.nodes.IdentifierNode
-import org.orbit.core.nodes.RValueNode
+import org.orbit.core.nodes.*
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
 
@@ -14,7 +11,8 @@ interface Expression {
 
 data class Variable(val name: String) : Expression {
     override fun infer(context: Context) : Type {
-        return context.get(name) ?: throw Exception("Failed to infer type of variable '$name'")
+        return context.get(name)
+            ?: throw Exception("Failed to infer type of variable '$name'")
     }
 }
 
@@ -59,11 +57,11 @@ data class Call(val func: Lambda, val args: List<Expression>) : Expression {
 data class Block(val body: List<Expression>) : Expression {
     override fun infer(context: Context): Type {
         // NOTE - Empty blocks resolve to Unit type
-        return body.lastOrNull()?.infer(context) ?: Entity("Unit")
+        return body.lastOrNull()?.infer(context) ?: IntrinsicTypes.Unit.type
     }
 }
 
-class Context(builtIns: Set<Type> = emptySet()) : Serial {
+class Context(builtIns: Set<Type> = IntrinsicTypes.allTypes) : Serial {
     constructor(builtIns: List<Type>) : this(builtIns.toSet())
     constructor(vararg builtIns: Type) : this(builtIns.toSet())
     internal constructor(vararg builtIns: String) : this(builtIns.map { Entity(it) })
@@ -112,6 +110,37 @@ object TypeInferenceUtil {
             infer(context, Binary(expressionNode.operator, leftType, rightType))
         }
         is RValueNode -> infer(context, expressionNode.expressionNode)
+        is IntLiteralNode -> IntrinsicTypes.Int.type
+        is SymbolLiteralNode -> IntrinsicTypes.Symbol.type
+        is InstanceMethodCallNode -> {
+            val receiverType = TypeInferenceUtil.infer(context, expressionNode.receiverNode)
+            val functionType = TypeInferenceUtil.infer(context, expressionNode.methodIdentifierNode) as? Function
+                ?: throw java.lang.RuntimeException("Right-hand side of method call must resolve to a function type")
+
+            // TODO - Infer parameter types from callNode
+            val parameterTypes = listOf(receiverType) + expressionNode.parameterNodes.map {
+                TypeInferenceUtil.infer(context, it)
+            }
+
+            val argumentTypes = functionType.inputTypes
+
+            if (parameterTypes.size != argumentTypes.size) {
+                // TODO - It would be nice to send these errors up to Invocation
+                throw java.lang.RuntimeException("Method '${expressionNode.methodIdentifierNode.identifier}' declares ${argumentTypes.size} arguments (including receiver), found ${parameterTypes.size}")
+            }
+
+            for ((idx, pair) in argumentTypes.zip(parameterTypes).withIndex()) {
+                // TODO - Nominal vs Structural should be programmable
+                // TODO - Named parameters
+                // NOTE - For now, parameters must match order of declared arguments 1-to-1
+                if (!NominalEquality(pair.first, pair.second).satisfied()) {
+                    throw java.lang.RuntimeException("Method '${expressionNode.methodIdentifierNode.identifier}' declares a parameter of type '${pair.first.name}' at position $idx, found '${pair.second.name}'")
+                }
+
+            }
+
+            functionType.outputType
+        }
         else ->
             throw RuntimeException("FATAL - Cannot determine type of expression '${expressionNode::class.java}'")
     }

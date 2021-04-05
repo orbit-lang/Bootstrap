@@ -16,7 +16,8 @@ object ReturnRule : ParseRule<ReturnStatementNode> {
 			return ReturnStatementNode(start, start, TypeIdentifierNode.unit(start))
 		}
 
-		val expr = ExpressionRule.defaultValue.execute(context)
+		val expr = context.attempt(ExpressionRule.defaultValue)
+			?: throw context.invocation.make<Parser>("Expected return expression", context.peek().position)
 		
 		return ReturnStatementNode(start, expr.lastToken, expr)
 	}

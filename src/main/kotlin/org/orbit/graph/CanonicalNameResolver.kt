@@ -1,10 +1,7 @@
 package org.orbit.graph
 
 import org.orbit.core.*
-import org.orbit.core.nodes.ContainerNode
-import org.orbit.core.nodes.ModuleNode
-import org.orbit.core.nodes.Node
-import org.orbit.core.nodes.ProgramNode
+import org.orbit.core.nodes.*
 import org.orbit.frontend.Parser
 import org.orbit.util.*
 
@@ -67,11 +64,32 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		val containers = programNode.search(ContainerNode::class.java, CanonicalNameResolver)
 		val containerResolver = ContainerResolver(invocation, environment, graph)
 
+		// 2. Run an initial container pass to resolve just the individual container names
+		// NOTE - The only expected failures here are duplicate names
+		val initialPassResults = containers.map {
+			containerResolver.execute(PathResolver.InputType(it, PathResolver.Pass.Initial))
+		}
+
+		if (initialPassResults.containsInstances<PathResolver.Result.Failure>()) {
+			// TODO - Better error reporting
+			throw invocation.make<CanonicalNameResolver>("FATAL", SourcePosition(0, 0))
+		}
+
+		val secondaryResults = containers.map {
+			containerResolver.execute(PathResolver.InputType(it, PathResolver.Pass.Subsequent(2)))
+		}
+
+		println(secondaryResults.map { (it as PathResolver.Result.Success).path.toString(OrbitMangler) })
+
+		// At this point, all containers should be resolved to the point where their names are known
+
+		// 3. Now we need to resolve the "within" path for
+
 		val blocked = mutableListOf<ContainerNode>()
 
 		// 3. Build dependency graph for apis
 		containers.forEach {
-			val result = containerResolver.execute(PathResolver.InputType(it, PathResolver.Pass.First))
+			val result = containerResolver.execute(PathResolver.InputType(it, PathResolver.Pass.Initial))
 
 			// If the name resolver reports this api as blocked,
 			// it means that it depends on an api that hasn't been resolved yet.
@@ -86,7 +104,7 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		// NOTE - failure at this point means the dependency has
 		// not been imported, which is a fatal error
 		blocked.forEach { container ->
-			containerResolver.execute(PathResolver.InputType(container, PathResolver.Pass.Second))
+			containerResolver.execute(PathResolver.InputType(container, PathResolver.Pass.Subsequent(2)))
 		}
 
 		containers
@@ -146,7 +164,7 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 
 			scope.importAll(importedScopes)
 
-			containerResolver.execute(PathResolver.InputType(container, PathResolver.Pass.Last))
+			containerResolver.execute(PathResolver.InputType(container, PathResolver.Pass.Subsequent(3)))
 		}
 
 		// All containers are now resolved in terms of their position in the hierarchy
@@ -155,7 +173,7 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		// current scope.
 //		println(graph)
 
-		invocation.storeResult(this, environment)
+		invocation.storeResult(this::class.java.simpleName, environment)
 
 		return environment
 	}

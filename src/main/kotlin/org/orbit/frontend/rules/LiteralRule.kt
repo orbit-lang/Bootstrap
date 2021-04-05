@@ -9,6 +9,7 @@ import java.lang.Exception
 class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRule<RValueNode> {
 	private companion object {
 		val Default = arrayOf<ValueRule<*>>(
+			MethodReferenceRule,
 			TypeIdentifierRule.RValue,
 			IdentifierRule,
 			IntLiteralRule,

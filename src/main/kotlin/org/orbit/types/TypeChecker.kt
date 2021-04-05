@@ -5,15 +5,17 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.getPathOrNull
 import org.orbit.core.nodes.BlockNode
+import org.orbit.core.nodes.InstanceMethodCallNode
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.ReturnStatementNode
 import org.orbit.graph.Binding
 import org.orbit.graph.Environment
 import org.orbit.graph.exportTypes
 import org.orbit.util.Invocation
+import java.lang.RuntimeException
 
 interface TypeResolver {
-    fun resolve(environment: Environment, context: Context, binding: Binding)
+    fun resolve(environment: Environment, context: Context, binding: Binding) : Type
 }
 
 class TypeChecker(override val invocation: Invocation, private val context: Context = Context()) : AdaptablePhase<Environment, Context>() {
@@ -30,14 +32,14 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
 
         methods.forEach { methodResolver.resolve(input, context, it) }
 
-        invocation.storeResult(this, input)
+        invocation.storeResult(this::class.java.simpleName, input)
 
         return context
     }
 }
 
 class MethodTypeResolver : TypeResolver {
-    override fun resolve(environment: Environment, context: Context, binding: Binding) {
+    override fun resolve(environment: Environment, context: Context, binding: Binding) : Type {
         val parameterBindings = mutableListOf<String>()
 
         try {
@@ -55,7 +57,11 @@ class MethodTypeResolver : TypeResolver {
             val argTypes = mutableListOf<Type>()
 
             if (receiver.identifierNode.identifier != "Self") {
+                // TODO - Handle Type methods (no instance receiver)
+                val t = Entity(receiver.getPath().toString(OrbitMangler))
 
+                context.bind(receiver.identifierNode.identifier, t)
+                argTypes.add(t)
             }
 
             signature.parameterNodes.forEach {
@@ -68,11 +74,11 @@ class MethodTypeResolver : TypeResolver {
             }
 
             if (argTypes.isEmpty()) {
-                argTypes.add(Entity.unit)
+                argTypes.add(IntrinsicTypes.Unit.type)
             }
 
             val returnType = if (signature.returnTypeNode == null) {
-                Entity.unit
+                IntrinsicTypes.Unit.type
             } else {
                 Entity(signature.returnTypeNode.getPath().toString(OrbitMangler))
             }
@@ -82,7 +88,7 @@ class MethodTypeResolver : TypeResolver {
 
             if (body.isEmpty) {
                 // Return type is implied to be Unit, check signature agrees
-                if (!NominalEquality(returnType, Entity.unit).satisfied()) {
+                if (!NominalEquality(returnType, IntrinsicTypes.Unit.type).satisfied()) {
                     throw Exception("Method '${signature.identifierNode.identifier}' declares a return type of '${returnType.name}', found 'Unit'")
                 }
             } else {
@@ -91,7 +97,10 @@ class MethodTypeResolver : TypeResolver {
                 methodBodyTypeResolver.resolve(environment, context, binding)
             }
 
-            context.add(funcType)
+            context.bind(signature.identifierNode.identifier, funcType)
+            //context.add(funcType)
+
+            return funcType
         } finally {
             // Garbage collect method parameter types
             context.removeAll(parameterBindings)
@@ -100,16 +109,58 @@ class MethodTypeResolver : TypeResolver {
 }
 
 class MethodBodyTypeResolver(private val block: BlockNode, private val returnType: Type) : TypeResolver {
-    override fun resolve(environment: Environment, context: Context, binding: Binding) {
+    override fun resolve(environment: Environment, context: Context, binding: Binding) : Type {
+        val instanceCalls = block.search(InstanceMethodCallNode::class.java)
+
+        for (call in instanceCalls) {
+            TypeInferenceUtil.infer(context, call)
+        }
+
         val returnStatements = block.search(ReturnStatementNode::class.java)
 
-        returnStatements.forEach {
-            val varExpr = it.valueNode.expressionNode
+        for (returnStatement in returnStatements) {
+            val varExpr = returnStatement.valueNode.expressionNode
             val varType = TypeInferenceUtil.infer(context, varExpr)
 
             if (!NominalEquality(returnType, varType).satisfied()) {
                 throw Exception("Method '${binding.simpleName}' declares a return type of '${returnType.name}', found '${varType.name}'")
             }
         }
+
+        // All return paths have been evaluated at this point. No conflicts were found,
+        // which means its safe to just return the expected return type
+        return returnType
+    }
+}
+
+class InstanceMethodCallTypeResolver(private val callNode: InstanceMethodCallNode, private val expectedType: Type? = null) : TypeResolver {
+    override fun resolve(environment: Environment, context: Context, binding: Binding): Type {
+        val receiverType = TypeInferenceUtil.infer(context, callNode.receiverNode)
+        val functionType = TypeInferenceUtil.infer(context, callNode.methodIdentifierNode) as? Function
+            ?: throw RuntimeException("Right-hand side of method call must resolve to a function type")
+
+        // TODO - Infer parameter types from callNode
+        val parameterTypes = listOf(receiverType) + callNode.parameterNodes.map {
+            TypeInferenceUtil.infer(context, it)
+        }
+
+        val argumentTypes = functionType.inputTypes
+
+        if (parameterTypes.size != argumentTypes.size) {
+            // TODO - It would be nice to send these errors up to Invocation
+            throw RuntimeException("Method '${callNode.methodIdentifierNode.identifier}' declares ${argumentTypes.size} arguments (including receiver), found ${parameterTypes.size}")
+        }
+
+        for ((idx, pair) in argumentTypes.zip(parameterTypes).withIndex()) {
+            // TODO - Nominal vs Structural should be programmable
+            // TODO - Named parameters
+            // NOTE - For now, parameters must match order of declared arguments 1-to-1
+            if (!NominalEquality(pair.first, pair.second).satisfied()) {
+                throw RuntimeException("Method '${callNode.methodIdentifierNode.identifier}' declares a parameter of type '${pair.first.name}' at position $idx, found '${pair.second.name}'")
+            }
+
+        }
+
+        return receiverType
     }
 }

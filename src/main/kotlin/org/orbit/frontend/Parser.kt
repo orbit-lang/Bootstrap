@@ -122,12 +122,12 @@ class Parser(
 		return marked
 	}
 
-	fun expect(type: TokenType) : Token {
+	fun expect(type: TokenType, consume: Boolean = true) : Token {
 		if (!hasMore) throw Errors.NoMoreTokens
 		val next = peek()
 		
 		return when (next.type) {
-			type -> consume()
+			type -> { if (consume) consume() else next }
 			else -> throw invocation.make(Parser.Errors.UnexpectedToken(next))
 		}
 	}
@@ -222,8 +222,8 @@ class Parser(
 		val ast = topLevelParseRule.execute(this)
 		val result = Result(ast)
 
-		invocation.mergeResult(this, result) {
-			it is Parser
+		invocation.mergeResult("Parser", result) {
+			it == "Parser"
 		}
 
 		return result

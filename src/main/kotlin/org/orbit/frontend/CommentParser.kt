@@ -105,7 +105,7 @@ class CommentParser(override val invocation: Invocation) :
 
 		val result = Result(StringSourceProvider(stripped), comments)
 
-		invocation.storeResult(this, result)
+		invocation.storeResult(this::class.java.simpleName, result)
 
 		return result
 	}

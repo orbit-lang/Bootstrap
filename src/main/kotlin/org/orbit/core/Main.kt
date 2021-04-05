@@ -28,17 +28,17 @@ class Main {
 				val sourceReader = FileSourceProvider(orbit.source)
 				val dummyPhase = DummyPhase(invocation, sourceReader)
 
-				invocation.storeResult(dummyPhase, sourceReader)
+				invocation.storeResult("__source__", sourceReader)
 
 				val compilerGenerator = CompilerGenerator(invocation)
 
 				compilerGenerator["__source__"] = dummyPhase
-				compilerGenerator["CommentParser"] = CommentParser(invocation)
-				compilerGenerator["Lexer"] = Lexer(invocation)
-				compilerGenerator["Parser"] = Parser(invocation, ProgramRule)
-				compilerGenerator["Observers"] = ObserverPhase(invocation)
-				compilerGenerator["CanonicalNameResolver"] = CanonicalNameResolver(invocation)
-				compilerGenerator["TypeChecker"] = TypeChecker(invocation)
+				compilerGenerator[CompilationSchemeEntry.commentParser] = CommentParser(invocation)
+				compilerGenerator[CompilationSchemeEntry.lexer] = Lexer(invocation)
+				compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
+				compilerGenerator[CompilationSchemeEntry.observers] = ObserverPhase(invocation)
+				compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
+				compilerGenerator[CompilationSchemeEntry.typeChecker] = TypeChecker(invocation)
 
 				compilerGenerator.eventBus.events.registerObserver {
 					val printer = Printer(invocation.platform.getPrintableFactory())
@@ -47,7 +47,7 @@ class Main {
 					println("Compiler event: $eventName")
 				}
 
-				compilerGenerator.run(CompilationScheme.canonicalScheme)
+				compilerGenerator.run(CompilationScheme.Intrinsics)
 
 //				val frontend = Frontend(invocation)
 //	            val semantics = Semantics(invocation)

@@ -11,7 +11,8 @@ class Environment(
 		get() = scopes.size
 
 	private var currentScope: Scope = Scope(this)
-	val debugBindings = mutableListOf<Binding>()
+	val allBindings: Set<Binding>
+		get() { return scopes.flatMap { it.bindings }.toSet() }
 
 	init {
 	    scopes.add(currentScope)
@@ -54,19 +55,29 @@ class Environment(
 	}
 
 	fun getScope(node: Node) : Scope? {
-		return node.getScopeIdentifier()?.let {
-			getScope(it)
-		}
+		return getScope(node.getScopeIdentifier())
 	}
 
 	fun bind(kind: Binding.Kind, simpleName: String, path: Path) {
-		val binding = currentScope.bind(kind, simpleName, path)
+		currentScope.bind(kind, simpleName, path)
+	}
 
-		debugBindings.add(binding)
+	fun unbind(kind: Binding.Kind, simpleName: String, path: Path) {
+		for (scope in scopes) {
+			scope.unbind(kind, simpleName, path)
+		}
 	}
 
 	fun getBinding(simpleName: String, context: Binding.Kind? = null) : Scope.BindingSearchResult {
 		return currentScope.get(simpleName, context)
+	}
+
+	/// Search across all scopes to resolve a binding
+	// TODO - How to handle name conflicts here? Too dirty?
+	fun searchAllScopes(where: (Binding) -> Boolean) : Scope.BindingSearchResult {
+		return scopes.fold<Scope, Scope.BindingSearchResult>(Scope.BindingSearchResult.None) { acc, next ->
+			return@fold acc + next.filter(where)
+		}
 	}
 
 	override fun toString() : String {

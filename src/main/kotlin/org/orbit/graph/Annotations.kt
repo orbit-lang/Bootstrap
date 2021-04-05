@@ -13,8 +13,8 @@ enum class Annotations(val key: String) {
     GraphID("$KEY::GraphID")
 }
 
-inline fun <reified T: Serial> Node.annotate(value: T, key: Annotations) {
-    annotateByKey(value, key.key)
+inline fun <reified T: Serial> Node.annotate(value: T, key: Annotations, mergeOnConflict: Boolean = false) {
+    annotateByKey(value, key.key, mergeOnConflict)
 }
 
 fun Node.remove(annotation: Annotations) {

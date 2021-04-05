@@ -1,6 +1,6 @@
 package org.orbit.types
 
-class Function(private val inputTypes: List<Type>, val outputType: Type) : Type {
+class Function(val inputTypes: List<Type>, val outputType: Type) : Type {
     override val name: String = "(${inputTypes.joinToString(",") { it.name }}) -> ${outputType.name}"
     override val behaviours: List<Behaviour> = emptyList()
     override val members: List<Member> = emptyList()

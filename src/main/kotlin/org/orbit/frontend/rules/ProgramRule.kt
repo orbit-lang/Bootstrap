@@ -14,6 +14,7 @@ object ProgramRule : ParseRule<ProgramNode> {
 		
 		while (context.hasMore) {
 			val decl: TopLevelDeclarationNode = when (next.type) {
+				TokenTypes.LParen -> MethodDefRule.execute(context)
 				TokenTypes.Observe -> ObserverRule.execute(context)
 //				TokenTypes.Api -> ApiDefRule.execute(context)
 				TokenTypes.Annotation, TokenTypes.Module -> ModuleRule.execute(context)

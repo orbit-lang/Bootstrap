@@ -9,6 +9,7 @@ import org.orbit.serial.Serial
 import org.orbit.types.Context
 import org.orbit.types.Entity
 import org.orbit.util.Fatal
+import org.orbit.util.Monoid
 import java.util.*
 
 data class ScopeIdentifier(private val uuid: UUID) : Serial {
@@ -30,7 +31,7 @@ class Scope(
     val bindings: MutableList<Binding> = mutableListOf(),
 	private val imports: MutableSet<ScopeIdentifier> = mutableSetOf()
 ) : Serial {
-	sealed class BindingSearchResult {
+	sealed class BindingSearchResult : Monoid<BindingSearchResult> {
 		private data class BindingNotFound(
 			override val phaseClazz: Class<out PathResolver<*>>,
 			override val sourcePosition: SourcePosition,
@@ -49,49 +50,61 @@ class Scope(
 				get() = "Multiple candidates found for binding:\n\t" + candidates.joinToString("\n\t")
 		}
 
-		abstract operator fun plus(other: BindingSearchResult) : BindingSearchResult
 		abstract fun unwrap(phase: PathResolver<*>, sourcePosition: SourcePosition) : Binding
 
 		data class Success(val result: Binding) : BindingSearchResult() {
-			override fun plus(other: BindingSearchResult): BindingSearchResult = when (other) {
-				is Success -> Multiple(listOf(result, other.result))
-				is None -> this
-				is Multiple -> Multiple(other.results + result)
-			}
-
 			override fun unwrap(phase: PathResolver<*>, sourcePosition: SourcePosition): Binding {
 				return result
 			}
+
+			override fun BindingSearchResult.combine(other: BindingSearchResult): BindingSearchResult = when (other) {
+				is None -> this
+				is Success -> Multiple(listOf(result, other.result))
+				is Multiple -> Multiple(other.results + result)
+			}
 		}
 
-		data class None(val simpleName: String) : BindingSearchResult() {
-			override fun plus(other: BindingSearchResult): BindingSearchResult = when (other) {
-				is None -> this
-				is Success -> other
-				is Multiple -> other
+		object None : BindingSearchResult() {
+			override fun unwrap(phase: PathResolver<*>, sourcePosition: SourcePosition): Binding {
+				// TODO - Is simpleName a hard requirement here?
+				phase.invocation.reportError(BindingNotFound(phase::class.java, sourcePosition, ""))
+				throw Exception("Unreachable")
 			}
 
-			override fun unwrap(phase: PathResolver<*>, sourcePosition: SourcePosition): Binding {
-				phase.invocation.reportError(BindingNotFound(phase::class.java, sourcePosition, simpleName))
-				throw Exception("Unreachable")
+			override fun BindingSearchResult.combine(other: BindingSearchResult): BindingSearchResult = when (other) {
+				is None -> this
+				else -> other
 			}
 		}
 
 		data class Multiple(val results: List<Binding>) : BindingSearchResult() {
-			override fun plus(other: BindingSearchResult): BindingSearchResult = when (other) {
-				is Multiple -> Multiple(results + other.results)
-				is Success -> Multiple(results + other.result)
-				is None -> this
-			}
-
 			override fun unwrap(phase: PathResolver<*>, sourcePosition: SourcePosition): Binding {
+				if (results.size == 1) {
+					// NOTE - Hack to get around circular dependencies
+					return results.first()
+				}
+
 				phase.invocation.reportError(MultipleBindings(phase::class.java, sourcePosition, results))
 				throw Exception("Unreachable")
 			}
+
+			override fun BindingSearchResult.combine(other: BindingSearchResult): BindingSearchResult = when (other) {
+				is None -> this
+				is Success -> Multiple(results + other.result)
+				is Multiple -> Multiple(other.results + results)
+			}
 		}
+
+		override fun BindingSearchResult.zero(): BindingSearchResult {
+			return None
+		}
+
+		operator fun plus(other: BindingSearchResult) : BindingSearchResult = combine(other)
 	}
 
 	val size: Int get() = bindings.size
+
+	fun getImportedScopes() : List<ScopeIdentifier> = imports.toList()
 
 	fun inject(other: Scope) {
 		bindings += other.bindings
@@ -106,10 +119,17 @@ class Scope(
 	}
 
 	fun bind(kind: Binding.Kind, simpleName: String, path: Path) : Binding {
+		// TODO - This is gross, but it is useful to be able to tell which scope a path belongs to.
+		// The alternative would be to search through all known scopes for a match, which is quite expensive
+		path.enclosingScope = this
 		val binding = Binding(kind, simpleName, path)
 		if (!bindings.contains(binding)) bindings.add(binding)
 
 		return binding
+	}
+
+	fun unbind(kind: Binding.Kind, simpleName: String, path: Path) {
+		bindings.remove(Binding(kind, simpleName, path))
 	}
 
 	fun get(simpleName: String, context: Binding.Kind?) : BindingSearchResult {
@@ -119,35 +139,27 @@ class Scope(
 //			return BindingSearchResult.Success(result)
 //		}
 
-		val candidates = bindings.filter { it.simpleName == simpleName || it.path.toString(OrbitMangler) == simpleName }
-			.toMutableList()
-
-		var result = when (candidates.size) {
-			0 -> BindingSearchResult.None(simpleName)
-			1 -> BindingSearchResult.Success(candidates[0])
-			else -> BindingSearchResult.Multiple(candidates)
+		val all = environment.allBindings
+		val matches = all.filter {
+			(it.simpleName == simpleName || it.path.toString(OrbitMangler) == simpleName)
+				&& (context != null && it.kind == context)
 		}
 
-		result = imports.fold(result) { acc, next ->
-			val scope = environment.getScope(next)
-			acc + scope.get(simpleName, context)
-		}
-
-		result += parentScope?.get(simpleName, context) ?: BindingSearchResult.None(simpleName)
-
-		return when (candidates.size) {
-			0, 1 -> result
+		return when (matches.size) {
+			0 -> BindingSearchResult.None
+			1 -> BindingSearchResult.Success(matches.first())
 			else -> {
 				if (context == null) {
-					return result
+					// If there is no expected Kind, there is no way for us to narrow down the search
+					return BindingSearchResult.Multiple(matches)
 				}
 
-				val refined = candidates.filter { it.kind == context }
+				val refined = matches.filter { it.kind == context }
 
 				when (refined.size) {
-					0 -> BindingSearchResult.None(simpleName)
+					0 -> BindingSearchResult.None
 					1 -> BindingSearchResult.Success(refined[0])
-					else -> result
+					else -> return BindingSearchResult.Multiple(matches)
 				}
 			}
 		}
@@ -157,8 +169,8 @@ class Scope(
 		val candidates = bindings.filter { it.path == path }
 
 		return when (candidates.size) {
-			0 -> BindingSearchResult.None(path.toString(OrbitMangler))
-			1 -> BindingSearchResult.Success(candidates[0])
+			0 -> BindingSearchResult.None
+			1 -> BindingSearchResult.Success(candidates.first())
 			else -> {
 				if (context == null) {
 					return BindingSearchResult.Multiple(candidates)
@@ -167,12 +179,20 @@ class Scope(
 				val refined = candidates.filter { it.kind == context }
 
 				when (refined.size) {
-					0 -> BindingSearchResult.None(path.toString(OrbitMangler))
-					1 -> BindingSearchResult.Success(refined[0])
+					0 -> BindingSearchResult.None
+					1 -> BindingSearchResult.Success(refined.first())
 					else -> BindingSearchResult.Multiple(refined)
 				}
 			}
 		}
+	}
+
+	fun filter(where: (Binding) -> Boolean) : BindingSearchResult {
+		return bindings.filter(where)
+			.map { BindingSearchResult.Success(it) }
+			.fold<BindingSearchResult, BindingSearchResult>(BindingSearchResult.None) { acc, next ->
+				return@fold acc + next
+			}
 	}
 
 	override fun toString(): String {
@@ -185,7 +205,7 @@ class Scope(
 fun Scope.exportTypes(context: Context) {
 	val types = bindings.filter { it.kind is Binding.Kind.Entity }
 	val entities = types.map {
-		Entity(it.simpleName)
+		Entity(it.path.toString(OrbitMangler))
 	}
 
 	entities.forEach { context.add(it) }

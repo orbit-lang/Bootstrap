@@ -4,7 +4,6 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.types.file
 import org.orbit.core.*
-import java.lang.RuntimeException
 
 open class OrbitException(override val message: String?) : Exception(message) {
 	companion object
@@ -25,16 +24,16 @@ class Invocation(val platform: Platform) {
 
 	private val warnings: MutableList<Warning> = mutableListOf()
 	private val errors: MutableList<OrbitError<*>> = mutableListOf()
-	val phaseResults = mutableMapOf<ReifiedPhase<*, *>, Any>()
+	val phaseResults = mutableMapOf<String, Any>()
 
-	fun storeResult(phase: ReifiedPhase<*, *>, result: Any) {
-		phaseResults[phase] = result
+	fun storeResult(key: String, result: Any) {
+		phaseResults[key] = result
 	}
 
-	fun mergeResult(phase: ReifiedPhase<*, *>, result: Any, where: (ReifiedPhase<*, *>) -> Boolean) {
-		val existing = phaseResults.keys.find(where) ?: return storeResult(phase, result)
+	fun mergeResult(key: String, result: Any, where: (String) -> Boolean) {
+		val existing = phaseResults.keys.find(where) ?: return storeResult(key, result)
 		phaseResults.remove(existing)
-		storeResult(phase, result)
+		storeResult(key, result)
 	}
 
 	fun dumpWarnings() : String {
@@ -63,38 +62,30 @@ class Invocation(val platform: Platform) {
 		return phaseResults[phase] as? O
 	}
 
-	inline fun <reified O: Any> getResults(phaseName: String) : List<O> {
-		return phaseResults.filter { it.key.phaseName == phaseName }
+	inline fun <reified O: Any> getResults(key: String) : List<O> {
+		return phaseResults.filter { it.key == key }
 			.map {
 				it.value as O
 			}
 	}
 
-	fun <O: Any> getResults(phaseName: String, clazz: Class<O>) : List<O> {
-		return phaseResults.filter { it.key.phaseName == phaseName }
+	fun <O: Any> getResults(key: String, clazz: Class<O>) : List<O> {
+		return phaseResults.filter { it.key == key }
 			.map {
 				clazz.safeCast(it.value) ?: throw RuntimeException("FATAL - Invocation.kt+70")
 			}
 	}
 
-	inline fun <reified O: Any> getResult(phaseName: String) : O {
-		return getResults<O>(phaseName).first()
+	inline fun <reified O: Any> getResult(key: String) : O {
+		return getResults<O>(key).first()
 	}
 
-	fun <O: Any> getResult(phaseName: String, clazz: Class<O>) : O {
-		return getResults(phaseName, clazz).first()
+	fun <O: Any> getResult(key: String, clazz: Class<O>) : O {
+		return getResults(key, clazz).first()
 	}
 
-	inline fun <reified O: Any> getResultOrNull(phaseName: String) : O? {
-		return getResults<O>(phaseName).firstOrNull()
-	}
-
-	inline fun <reified O: Any, reified P: ReifiedPhase<Any, O>> getResults() : List<O> {
-		return phaseResults.filter {
-			it.key is P
-		}.map {
-			it.value as O
-		}
+	inline fun <reified O: Any> getResultOrNull(key: String) : O? {
+		return getResults<O>(key).firstOrNull()
 	}
 
 	fun reportWarning(warning: Warning) {

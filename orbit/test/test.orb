@@ -1,1 +1,1 @@
-observe @Lexer::Init (lexer Lexer) {}
+module A within B {}

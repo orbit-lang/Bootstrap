@@ -8,11 +8,11 @@ import org.orbit.frontend.TokenTypes
 
 object SymbolRule : ValueRule<SymbolLiteralNode> {
 	override fun parse(context: Parser) : SymbolLiteralNode {
-		val start = context.expect(TokenTypes.Symbol)
-		val value = start.text.substring(1)
+		val start = context.expect(TokenTypes.Colon)
+		val value = context.attempt(IdentifierRule, true)!!
 
 		// `Symbol(length Int, str String)`
 		return SymbolLiteralNode(start, start,
-			value.length, value)
+			value.identifier.length, value.identifier)
 	}
 }

@@ -1,0 +1,12 @@
+api ObservableInterface<P: Phase>(context CompilerGenerator) {
+    (self P) getContext () (::Observable) = Contex
+    (self P) getPhase (entry CompilationSchemeEntry) (Phase) {
+        return context[entry]
+    }
+}
+
+projection Lexer : ObservableInterface<Lexer> {
+    (self Lexer) registerTokenType (identifier Symbol, pattern Symbol) () {
+        TokenTypes::register(TokenType(identifier, pattern))
+    }
+}

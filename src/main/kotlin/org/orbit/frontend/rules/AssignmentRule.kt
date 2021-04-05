@@ -12,6 +12,13 @@ object AssignmentRule : ParseRule<AssignmentStatementNode> {
         val start = context.peek()
         val identifier = context.attempt(IdentifierRule, true)!!
 
+        val next = context.peek()
+
+        if (next.type != TokenTypes.Assignment) {
+            // TODO - Something is wrong with automatic rewinding here
+            context.rewind(listOf(start))
+        }
+
         context.expect(TokenTypes.Assignment)
 
         val value = context.attempt(ExpressionRule.defaultValue, true)!!

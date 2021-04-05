@@ -9,9 +9,15 @@ fun <N: Node> PathResolver<N>.resolveAll(nodes: List<N>, pass: PathResolver.Pass
 }
 
 interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.Result> {
-	enum class Pass {
-		First, Second, Last
+	sealed class Pass {
+		object Initial : Pass()
+		data class Subsequent(val index: Int) : Pass()
+		object Last : Pass()
 	}
+
+//	enum class Pass {
+//		First, Second, Last
+//	}
 
 	class InputType<N: Node>(val node: N, val pass: Pass)
 
@@ -49,7 +55,7 @@ interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.
 			if (result.isFailure) {
 				result.withFailure<Node> {
 					when (input.pass) {
-						Pass.Second -> invocation.reportError(GraphErrors.MissingDependency(input.node))
+						is Pass.Subsequent -> invocation.reportError(GraphErrors.MissingDependency(input.node))
 						else -> {}
 					}
 				}

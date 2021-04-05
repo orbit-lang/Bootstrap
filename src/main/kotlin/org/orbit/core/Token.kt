@@ -14,7 +14,7 @@ data class SourcePosition(
 
 	fun moveLine(by: Int) : SourcePosition {
 		// Moving on by > 0 lines resets character back to 0
-		return SourcePosition(line + by, 0, absolute + 1)
+		return SourcePosition(line + by, 0, absolute + by)
 	}
 
 	fun moveCharacter(by: Int) : SourcePosition {

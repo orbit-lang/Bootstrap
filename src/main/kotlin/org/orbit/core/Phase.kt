@@ -154,7 +154,7 @@ class PhaseLinker<I1: Any, I2: Any, O1: Any, O2: Any>(
         val inputB = performBridgeCast(phaseA, phaseB, input, outputTypeAClazz, phaseB.inputType)
         val resultB = phaseB.execute(inputB)
 
-        invocation.storeResult(phaseB, resultB)
+        invocation.storeResult(phaseB::class.java.simpleName, resultB)
 
         return resultB
     }
@@ -171,7 +171,7 @@ class PhaseLinker<I1: Any, I2: Any, O1: Any, O2: Any>(
         var previousPhase: ReifiedPhase<Any, Any> = initialPhase as ReifiedPhase<Any, Any>
         var result = initialPhase.execute(input)
 
-        invocation.storeResult(initialPhase, result)
+        invocation.storeResult(initialPhase::class.java.simpleName, result)
 
         for (phase in subsequentPhases) {
             val nextInput = performBridgeCast(previousPhase, phase, result, previousPhase.outputType, phase.inputType)
@@ -180,13 +180,13 @@ class PhaseLinker<I1: Any, I2: Any, O1: Any, O2: Any>(
             previousPhase = phase
             result = nextResult
 
-            invocation.storeResult(previousPhase, result)
+            invocation.storeResult(previousPhase::class.java.simpleName, result)
         }
 
         val finalInput = performBridgeCast(previousPhase, finalPhase, result, previousPhase.outputType, finalPhase.inputType)
         val finalResult = finalPhase.execute(finalInput)
 
-        invocation.storeResult(finalPhase, finalResult)
+        invocation.storeResult(finalPhase::class.java.simpleName, finalResult)
 
         return finalResult
     }
@@ -214,7 +214,7 @@ class ImmediateParallelPhase<I: Any, O: Any>(
                 async {
                     val result = it.execute(input)
 
-                    invocation.storeResult(it, result)
+                    invocation.storeResult(it::class.java.simpleName, result)
 
                     result
                 }
@@ -280,7 +280,7 @@ class ParallelPhase<T: Any, I: Any, O: Any>(
                     val bridgedInput = adapter.bridge(input)
                     val result = it.execute(bridgedInput)
 
-                    invocation.storeResult(it, result)
+                    invocation.storeResult(it::class.java.simpleName, result)
 
                     result
                 }

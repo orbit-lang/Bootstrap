@@ -94,7 +94,13 @@ class Lexer(
 					content = content.slice(IntRange(match.range.count(), content.length - 1))
 					matched = true
 
-					tokens.add(Token(tt, match.value, position))
+					// HACK - Dirty fix to avoid keywords clashing with identifiers
+					val finalTokenValue = when (tt.ignoreWhitespace) {
+						true -> match.value.trim()
+						else -> match.value
+					}
+
+					tokens.add(Token(tt, finalTokenValue, position))
 					position = position.moveCharacter(match.range.count())
 					break
 				}
@@ -113,7 +119,7 @@ class Lexer(
 		
 		val result = Result(tokens)
 
-		invocation.storeResult(this, result)
+		invocation.storeResult(this::class.java.simpleName, result)
 
 		return result
 	}

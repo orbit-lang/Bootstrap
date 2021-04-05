@@ -62,13 +62,18 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 		phaseAnnotationNodes.add(phaseAnnotationNode)
 	}
 
-	inline fun <reified T: Serial> annotate(value: T, tag: NodeAnnotationTag<T>) {
+	inline fun <reified T: Serial> annotate(value: T, tag: NodeAnnotationTag<T>, mergeOnConflict: Boolean = false) {
 		val annotation = NodeAnnotation(tag, value)
+
+		if (mergeOnConflict && annotations.any { it.tag == tag }) {
+			annotations.removeAll { it.tag == tag }
+		}
+
 		annotations.add(annotation)
 	}
 
-	inline fun <reified T: Serial> annotateByKey(value: T, key: String) {
-		annotate(value, KeyedNodeAnnotationTag(key))
+	inline fun <reified T: Serial> annotateByKey(value: T, key: String, mergeOnConflict: Boolean = false) {
+		annotate(value, KeyedNodeAnnotationTag(key), mergeOnConflict)
 	}
 
 	inline fun <reified T: Serial> getAnnotation(tag: NodeAnnotationTag<T>) : NodeAnnotation<T>? {

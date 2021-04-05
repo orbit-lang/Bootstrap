@@ -33,7 +33,9 @@ object TokenTypes : TokenTypeProvider {
 	object Return : TokenType("Return", "return", true, false)
     object Module : TokenType("Module", "module", true, false)
     object Define : TokenType("Define", "define", true, false)
-    object Observe : TokenType("Observer", "observe", true, false)
+    // NOTE - This is kind of dirty, but if we want arbitrary keywords, we need a way to make the lexer
+    // avoid recognising them in regular identifiers, e.g. a variable named "observeSomething"
+    object Observe : TokenType("Observer", "observe ", true, false)
 
     // Literals
     object Int : TokenType("Int", "[0-9]+", true, false)
@@ -46,7 +48,7 @@ object TokenTypes : TokenTypeProvider {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Int, Real, Api, Module, Define, Observe, TypeIdentifier, Symbol,
+            Int, Real, Api, Module, Define, Observe, TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
             Type, Trait, Within, With, Return,

@@ -9,7 +9,7 @@ data class MethodDefNode(
 	override val lastToken: Token,
 	val signature: MethodSignatureNode,
 	val body: BlockNode
-) : Node(firstToken, lastToken) {
+) : TopLevelDeclarationNode(firstToken, lastToken) {
 	override fun getChildren() : List<Node>
 		= listOf(signature, body)
 
