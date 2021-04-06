@@ -21,6 +21,10 @@ open class Path(val relativeNames: List<String>) : Serial {
 		return Path(a + b)
 	}
 
+	open operator fun minus(other: Path) : Path {
+		return Path(relativeNames.subList(0, relativeNames.indexOf(other.relativeNames.last())))
+	}
+
 	fun containsSubPath(other: Path, mangler: Mangler = OrbitMangler) : Boolean {
 		return toString(mangler).startsWith(other.toString(mangler))
 	}
@@ -51,6 +55,7 @@ open class Path(val relativeNames: List<String>) : Serial {
 
 class FullyQualifiedPath(relativeNames: List<String>) : Path(relativeNames) {
 	constructor(path: Path) : this(path.relativeNames)
+	constructor(vararg relativeNames: String) : this(relativeNames.toList())
 
 	fun from(other: String) : FullyQualifiedPath {
 		val idx = relativeNames.indexOf(other) + 1

@@ -5,44 +5,44 @@ import org.orbit.core.TokenTypeProvider
 
 object TokenTypes : TokenTypeProvider {
     // Symbols
-    object Colon : TokenType("Colon", "\\:", true, false)
-    object Comma : TokenType("Comma", "\\,", true, false)
-    object Dot : TokenType("Dot", "\\.", true, false)
-    object LParen : TokenType("LParen", "\\(", true, false)
-    object RParen : TokenType("RParen", "\\)", true, false)
-    object LBracket : TokenType("LBracket", "\\[", true, false)
-    object RBracket : TokenType("RBracket", "\\]", true, false)
-    object LBrace : TokenType("LBrace", "\\{", true, false)
-    object RBrace : TokenType("RBrace", "\\}", true, false)
-    object LAngle : TokenType("LAngle", "\\<", true, false)
-    object RAngle : TokenType("RAngle", "\\>", true, false)
-    object Assignment : TokenType("Assignment", "\\=", true, false)
-    object Operator : TokenType("Operator", "[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|]+", true, false)
-    object Annotation : TokenType("Annotation", "@", true, false)
-    object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false)
+    object Colon : TokenType("Colon", "\\:", true, false, Family.Op)
+    object Comma : TokenType("Comma", "\\,", true, false, Family.Op)
+    object Dot : TokenType("Dot", "\\.", true, false, Family.Op)
+    object LParen : TokenType("LParen", "\\(", true, false, Family.Enclosing)
+    object RParen : TokenType("RParen", "\\)", true, false, Family.Enclosing)
+    object LBracket : TokenType("LBracket", "\\[", true, false, Family.Enclosing)
+    object RBracket : TokenType("RBracket", "\\]", true, false, Family.Enclosing)
+    object LBrace : TokenType("LBrace", "\\{", true, false, Family.Enclosing)
+    object RBrace : TokenType("RBrace", "\\}", true, false, Family.Enclosing)
+    object LAngle : TokenType("LAngle", "\\<", true, false, Family.Enclosing)
+    object RAngle : TokenType("RAngle", "\\>", true, false, Family.Enclosing)
+    object Assignment : TokenType("Assignment", "\\=", true, false, Family.Op)
+    object Operator : TokenType("Operator", "[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|]+", true, false, Family.Op)
+    object Annotation : TokenType("Annotation", "@", true, false, Family.Op)
+    object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false, Family.White)
 
 	// Comments
-	object MultiLineComment : TokenType("MultiLineComment", "\\/\\*.**\\/", true, false)
+	object MultiLineComment : TokenType("MultiLineComment", "\\/\\*.**\\/", true, false, Family.Comment)
 	
     // Keywords
-    object Api : TokenType("API", "api", true, false)
-    object Type : TokenType("Type", "type", true, false)
-    object Trait : TokenType("Trait", "trait", true, false)
-    object With : TokenType("With", "with", true, false)
-    object Within : TokenType("Within", "within", true, false)
-	object Return : TokenType("Return", "return", true, false)
-    object Module : TokenType("Module", "module", true, false)
-    object Define : TokenType("Define", "define", true, false)
+    object Api : TokenType("API", "api", true, false, Family.Keyword)
+    object Type : TokenType("Type", "type", true, false, Family.Keyword)
+    object Trait : TokenType("Trait", "trait", true, false, Family.Keyword)
+    object With : TokenType("With", "with", true, false, Family.Keyword)
+    object Within : TokenType("Within", "within", true, false, Family.Keyword)
+	object Return : TokenType("Return", "return", true, false, Family.Keyword)
+    object Module : TokenType("Module", "module", true, false, Family.Keyword)
+    object Define : TokenType("Define", "define", true, false, Family.Keyword)
     // NOTE - This is kind of dirty, but if we want arbitrary keywords, we need a way to make the lexer
     // avoid recognising them in regular identifiers, e.g. a variable named "observeSomething"
-    object Observe : TokenType("Observer", "observe ", true, false)
+    object Observe : TokenType("Observer", "observe ", true, false, Family.Keyword)
 
     // Literals
-    object Int : TokenType("Int", "[0-9]+", true, false)
-    object Real : TokenType("Real", "[0-9]+\\\\.[0-9]+", true, false)
-    object Identifier : TokenType("Identifier", "[a-z_]+[a-zA-Z0-9_]*", true, false)
-    object TypeIdentifier : TokenType("TypeIdentifier", "([A-Z]+[a-zA-Z0-9_]*)(::[A-Z]+[a-zA-Z0-9_]*)*", true, false)
-	object Symbol : TokenType("Symbol", "\\:[a-zA-Z_]+[a-zA-Z0-9_]*", false, false)
+    object Int : TokenType("Int", "[0-9]+", true, false, Family.Num)
+    object Real : TokenType("Real", "[0-9]+\\\\.[0-9]+", true, false, Family.Num)
+    object Identifier : TokenType("Identifier", "[a-z_]+[a-zA-Z0-9_]*", true, false, Family.Id)
+    object TypeIdentifier : TokenType("TypeIdentifier", "([A-Z]+[a-zA-Z0-9_]*)(::[A-Z]+[a-zA-Z0-9_]*)*", true, false, Family.Id)
+	object Symbol : TokenType("Symbol", "\\:[a-zA-Z_]+[a-zA-Z0-9_]*", false, false, Family.Id)
 	
     override fun getTokenTypes() : List<TokenType> {
         // NOTE - Keywords MUST be listed before the Identifier token type

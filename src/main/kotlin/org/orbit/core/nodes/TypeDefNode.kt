@@ -2,6 +2,7 @@ package org.orbit.core.nodes
 
 import org.json.JSONObject
 import org.orbit.core.Token
+import org.orbit.util.HtmlWriter
 
 abstract class EntityDefNode(firstToken: Token, lastToken: Token) : Node(firstToken, lastToken)
 

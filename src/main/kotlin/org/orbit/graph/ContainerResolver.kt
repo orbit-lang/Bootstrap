@@ -68,9 +68,13 @@ class ContainerResolver(
 
 		return when (parent.path) {
 			is FullyQualifiedPath -> {
-				val fullyQualifiedPath = FullyQualifiedPath(simplePath)
-				completeBinding(input, simplePath, fullyQualifiedPath)
+				// TODO - This check shouldn't be necessary. Something is wrong with this algo
+				val fullyQualifiedPath = when (simplePath.containsSubPath(parent.path)) {
+					true -> FullyQualifiedPath(simplePath)
+					else -> FullyQualifiedPath(parent.path + simplePath)
+				}
 
+				completeBinding(input, simplePath, fullyQualifiedPath)
 				PathResolver.Result.Success(fullyQualifiedPath)
 			}
 

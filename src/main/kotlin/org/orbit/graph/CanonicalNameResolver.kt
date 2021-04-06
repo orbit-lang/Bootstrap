@@ -85,87 +85,87 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 
 		// 3. Now we need to resolve the "within" path for
 
-		val blocked = mutableListOf<ContainerNode>()
-
-		// 3. Build dependency graph for apis
-		containers.forEach {
-			val result = containerResolver.execute(PathResolver.InputType(it, PathResolver.Pass.Initial))
-
-			// If the name resolver reports this api as blocked,
-			// it means that it depends on an api that hasn't been resolved yet.
-			// So, we will have to try again later.
-			result.withFailure<ContainerNode> { node ->
-				blocked.add(node)
-			}
-		}
-
-		// We've completed a first pass through our set of apis.
-		// We should now be able to resolve blocked dependencies.
-		// NOTE - failure at this point means the dependency has
-		// not been imported, which is a fatal error
-		blocked.forEach { container ->
-			containerResolver.execute(PathResolver.InputType(container, PathResolver.Pass.Subsequent(2)))
-		}
-
-		containers
-			.forEach {
-				val path = it.getPathOrNull() ?: return@forEach
-				val id = graph.insert(path.toString(OrbitMangler))
-
-				it.annotate(id, Annotations.GraphID)
-			}
-
-		// 4. Iterate through all apis & modules to resolve 'within' dependency graph
-		for (container in containers) {
-			val containerId = container.getGraphID() ?: throw Exception("No path for ${container.identifier.value}")
-			val containerVertex = graph.findVertex(containerId)
-			val within = container.within ?: continue
-			val withinId = graph.find(within.value)
-			val graphID = graph.link(withinId, containerId)
-			val withinVertex = graph.findVertex(withinId)
-			val qualifiedPath = Path(withinVertex.name, containerVertex.name)
-
-			container.remove(Annotations.Path)
-			container.annotate(qualifiedPath, Annotations.Path)
-			container.annotate(graphID, Annotations.GraphID)
-		}
-
-		// 5. Iterate again to resolve 'with' imports
-		for (container in containers) {
-			val containerScopeID = container.getScopeIdentifier()
-			val scope = environment.getScope(containerScopeID)
-
-			val importedScopes = container.with.map {
-				val graphID = graph.find(it.value)
-				val vertex = graph.findVertex(graphID)
-
-				val importedContainer = containers.find { node ->
-					node.getGraphID() == vertex.id
-				} ?: throw Exception("Imported container not found: ${it.value}")
-
-				importedContainer.getScopeIdentifier()
-			}
-
-			// 6. Ensure within api gets imported into child container scope
-			if (container.within != null) {
-				val withinID = graph.find(container.within!!.value)
-				val withinVertex = graph.findVertex(withinID)
-				val withinContainer = containers.first { it.getGraphID() == withinVertex.id }
-
-				if (withinContainer is ModuleNode) {
-					invocation.reportError(WithinNonTerminalContainer(
-						sourcePosition = container.within!!.firstToken.position,
-						childContainerName = container.identifier.value,
-						parentContainerName = container.within!!.value))
-				}
-
-				scope.import(withinContainer.getScopeIdentifier())
-			}
-
-			scope.importAll(importedScopes)
-
-			containerResolver.execute(PathResolver.InputType(container, PathResolver.Pass.Subsequent(3)))
-		}
+//		val blocked = mutableListOf<ContainerNode>()
+//
+//		// 3. Build dependency graph for apis
+//		containers.forEach {
+//			val result = containerResolver.execute(PathResolver.InputType(it, PathResolver.Pass.Initial))
+//
+//			// If the name resolver reports this api as blocked,
+//			// it means that it depends on an api that hasn't been resolved yet.
+//			// So, we will have to try again later.
+//			result.withFailure<ContainerNode> { node ->
+//				blocked.add(node)
+//			}
+//		}
+//
+//		// We've completed a first pass through our set of apis.
+//		// We should now be able to resolve blocked dependencies.
+//		// NOTE - failure at this point means the dependency has
+//		// not been imported, which is a fatal error
+//		blocked.forEach { container ->
+//			containerResolver.execute(PathResolver.InputType(container, PathResolver.Pass.Subsequent(2)))
+//		}
+//
+//		containers
+//			.forEach {
+//				val path = it.getPathOrNull() ?: return@forEach
+//				val id = graph.insert(path.toString(OrbitMangler))
+//
+//				it.annotate(id, Annotations.GraphID)
+//			}
+//
+//		// 4. Iterate through all apis & modules to resolve 'within' dependency graph
+//		for (container in containers) {
+//			val containerId = container.getGraphID() ?: throw Exception("No path for ${container.identifier.value}")
+//			val containerVertex = graph.findVertex(containerId)
+//			val within = container.within ?: continue
+//			val withinId = graph.find(within.value)
+//			val graphID = graph.link(withinId, containerId)
+//			val withinVertex = graph.findVertex(withinId)
+//			val qualifiedPath = Path(withinVertex.name, containerVertex.name)
+//
+//			container.remove(Annotations.Path)
+//			container.annotate(qualifiedPath, Annotations.Path)
+//			container.annotate(graphID, Annotations.GraphID)
+//		}
+//
+//		// 5. Iterate again to resolve 'with' imports
+//		for (container in containers) {
+//			val containerScopeID = container.getScopeIdentifier()
+//			val scope = environment.getScope(containerScopeID)
+//
+//			val importedScopes = container.with.map {
+//				val graphID = graph.find(it.value)
+//				val vertex = graph.findVertex(graphID)
+//
+//				val importedContainer = containers.find { node ->
+//					node.getGraphID() == vertex.id
+//				} ?: throw Exception("Imported container not found: ${it.value}")
+//
+//				importedContainer.getScopeIdentifier()
+//			}
+//
+//			// 6. Ensure within api gets imported into child container scope
+//			if (container.within != null) {
+//				val withinID = graph.find(container.within!!.value)
+//				val withinVertex = graph.findVertex(withinID)
+//				val withinContainer = containers.first { it.getGraphID() == withinVertex.id }
+//
+//				if (withinContainer is ModuleNode) {
+//					invocation.reportError(WithinNonTerminalContainer(
+//						sourcePosition = container.within!!.firstToken.position,
+//						childContainerName = container.identifier.value,
+//						parentContainerName = container.within!!.value))
+//				}
+//
+//				scope.import(withinContainer.getScopeIdentifier())
+//			}
+//
+//			scope.importAll(importedScopes)
+//
+//			containerResolver.execute(PathResolver.InputType(container, PathResolver.Pass.Subsequent(3)))
+//		}
 
 		// All containers are now resolved in terms of their position in the hierarchy
 		// of all containers in this program, as well as their imported containers.

@@ -5,6 +5,7 @@ import org.orbit.core.Token
 import org.orbit.frontend.rules.PhaseAnnotationNode
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
+import org.orbit.util.HtmlWriter
 import org.orbit.util.PriorityComparator
 import org.orbit.util.prioritise
 

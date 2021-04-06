@@ -2,6 +2,7 @@ package org.orbit.core
 
 import org.orbit.analysis.Analysis
 import org.orbit.backend.*
+import org.orbit.core.nodes.ProgramNode
 import org.orbit.frontend.*
 import org.orbit.frontend.rules.DefineRule
 import org.orbit.frontend.rules.ProgramRule
@@ -13,6 +14,10 @@ import org.orbit.types.Entity
 import org.orbit.types.Lambda
 import org.orbit.types.TypeChecker
 import org.orbit.util.*
+import org.orbit.util.nodewriters.html.HtmlNodeWriterFactory
+import org.orbit.util.nodewriters.write
+import java.io.FileReader
+import java.io.FileWriter
 
 class Main {
     companion object {
@@ -48,6 +53,20 @@ class Main {
 				}
 
 				compilerGenerator.run(CompilationScheme.Intrinsics)
+
+				val parserResult = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser)
+				val html = (parserResult.ast as ProgramNode).write(HtmlNodeWriterFactory, 0)
+
+				val fileReader = FileReader("output.css")
+				val css = fileReader.readText()
+
+				fileReader.close()
+
+				val fileWriter = FileWriter("output.html")
+
+				fileWriter.write("<html><head>$css</head><body>${html}</body></html>")
+
+				fileWriter.close()
 
 //				val frontend = Frontend(invocation)
 //	            val semantics = Semantics(invocation)
