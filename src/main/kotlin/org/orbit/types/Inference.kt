@@ -113,13 +113,13 @@ object TypeInferenceUtil {
         is IntLiteralNode -> IntrinsicTypes.Int.type
         is SymbolLiteralNode -> IntrinsicTypes.Symbol.type
         is InstanceMethodCallNode -> {
-            val receiverType = TypeInferenceUtil.infer(context, expressionNode.receiverNode)
-            val functionType = TypeInferenceUtil.infer(context, expressionNode.methodIdentifierNode) as? Function
+            val receiverType = infer(context, expressionNode.receiverNode)
+            val functionType = infer(context, expressionNode.methodIdentifierNode) as? Function
                 ?: throw java.lang.RuntimeException("Right-hand side of method call must resolve to a function type")
 
             // TODO - Infer parameter types from callNode
             val parameterTypes = listOf(receiverType) + expressionNode.parameterNodes.map {
-                TypeInferenceUtil.infer(context, it)
+                infer(context, it)
             }
 
             val argumentTypes = functionType.inputTypes

@@ -64,10 +64,10 @@ class Scope(
 			}
 		}
 
-		object None : BindingSearchResult() {
+		class None(val simpleName: String) : BindingSearchResult() {
 			override fun unwrap(phase: PathResolver<*>, sourcePosition: SourcePosition): Binding {
 				// TODO - Is simpleName a hard requirement here?
-				phase.invocation.reportError(BindingNotFound(phase::class.java, sourcePosition, ""))
+				phase.invocation.reportError(BindingNotFound(phase::class.java, sourcePosition, simpleName))
 				throw Exception("Unreachable")
 			}
 
@@ -96,7 +96,7 @@ class Scope(
 		}
 
 		override fun BindingSearchResult.zero(): BindingSearchResult {
-			return None
+			return None("")
 		}
 
 		operator fun plus(other: BindingSearchResult) : BindingSearchResult = combine(other)
@@ -139,14 +139,16 @@ class Scope(
 //			return BindingSearchResult.Success(result)
 //		}
 
-		val all = environment.allBindings
+		val imported = imports.map { environment.getScope(it) }
+			.flatMap { it.bindings }
+		val all = bindings + imported //environment.allBindings
 		val matches = all.filter {
 			(it.simpleName == simpleName || it.path.toString(OrbitMangler) == simpleName)
 				&& (context != null && it.kind == context)
 		}
 
 		return when (matches.size) {
-			0 -> BindingSearchResult.None
+			0 -> BindingSearchResult.None(simpleName)
 			1 -> BindingSearchResult.Success(matches.first())
 			else -> {
 				if (context == null) {
@@ -157,7 +159,7 @@ class Scope(
 				val refined = matches.filter { it.kind == context }
 
 				when (refined.size) {
-					0 -> BindingSearchResult.None
+					0 -> BindingSearchResult.None(simpleName)
 					1 -> BindingSearchResult.Success(refined[0])
 					else -> return BindingSearchResult.Multiple(matches)
 				}
@@ -169,7 +171,7 @@ class Scope(
 		val candidates = bindings.filter { it.path == path }
 
 		return when (candidates.size) {
-			0 -> BindingSearchResult.None
+			0 -> BindingSearchResult.None(path.toString(OrbitMangler))
 			1 -> BindingSearchResult.Success(candidates.first())
 			else -> {
 				if (context == null) {
@@ -179,7 +181,7 @@ class Scope(
 				val refined = candidates.filter { it.kind == context }
 
 				when (refined.size) {
-					0 -> BindingSearchResult.None
+					0 -> BindingSearchResult.None(path.toString(OrbitMangler))
 					1 -> BindingSearchResult.Success(refined.first())
 					else -> BindingSearchResult.Multiple(refined)
 				}
@@ -190,7 +192,7 @@ class Scope(
 	fun filter(where: (Binding) -> Boolean) : BindingSearchResult {
 		return bindings.filter(where)
 			.map { BindingSearchResult.Success(it) }
-			.fold<BindingSearchResult, BindingSearchResult>(BindingSearchResult.None) { acc, next ->
+			.fold<BindingSearchResult, BindingSearchResult>(BindingSearchResult.None("")) { acc, next ->
 				return@fold acc + next
 			}
 	}

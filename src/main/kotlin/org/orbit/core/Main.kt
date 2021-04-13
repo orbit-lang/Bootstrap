@@ -65,7 +65,6 @@ class Main {
 				val fileWriter = FileWriter("output.html")
 
 				fileWriter.write("<html><head>$css</head><body>${html}</body></html>")
-
 				fileWriter.close()
 
 //				val frontend = Frontend(invocation)

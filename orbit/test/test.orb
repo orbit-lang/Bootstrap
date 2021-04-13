@@ -1,9 +1,13 @@
-module A {
-    type Foo
-    type Bar
+module Orb::Types::Intrinsics {
+    type Unit
+    type Int
+    type List<T>
 }
 
-module B {
-    type Baz
-    type Quux
+module Main with Orb::Types::Intrinsics {
+    type Main
+
+    (self Main) main () () {
+        l = List()
+    }
 }

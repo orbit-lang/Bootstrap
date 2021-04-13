@@ -98,7 +98,8 @@ class Parser(
 		get() = tokens.isNotEmpty()
 	
 	fun peek() : Token {
-		return tokens.getOrNull(0) ?: throw Errors.NoMoreTokens
+		return tokens.getOrNull(0)
+			?: throw Errors.NoMoreTokens
 	}
 
 	fun consume() : Token {

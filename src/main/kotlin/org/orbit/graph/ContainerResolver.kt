@@ -60,11 +60,15 @@ class ContainerResolver(
 			return PathResolver.Result.Success(fullyQualifiedPath)
 		}
 
-		val parent = environment.getBinding(within.value, Binding.Kind.Module)
-			.unwrap(this, within.firstToken.position)
+		val parent = environment.searchAllScopes {
+			(it.simpleName == within.value || it.path.toString(OrbitMangler) == within.value)
+				&& it.kind == Binding.Kind.Module
+		}.unwrap(this, within.firstToken.position)
 
 		val parentNode = environment.ast.search(ContainerNode::class.java)
 			.find { it.getPathOrNull() == parent.path }!!
+
+		input.within?.annotate(parent.path, Annotations.Path)
 
 		return when (parent.path) {
 			is FullyQualifiedPath -> {
@@ -96,6 +100,7 @@ class ContainerResolver(
 
 	private fun resolveLastPass(input: ContainerNode) : PathResolver.Result {
 		val containerPath = input.getPath()
+
 		val typeResolver = TypeDefPathResolver(invocation, environment, graph, containerPath)
 		val traitResolver = TraitDefPathResolver(invocation, environment, graph, containerPath)
 
@@ -112,6 +117,12 @@ class ContainerResolver(
 			typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Initial))
 		}
 
+		val methodDefResolver = MethodDefPathResolver(invocation, environment, graph)
+
+		for (methodDef in input.methodDefs) {
+			methodDefResolver.execute(PathResolver.InputType(methodDef, PathResolver.Pass.Initial))
+		}
+
 		return PathResolver.Result.Success(containerPath)
 	}
 
@@ -121,55 +132,5 @@ class ContainerResolver(
 			is PathResolver.Pass.Subsequent -> resolveSecondPass(input)
 			is PathResolver.Pass.Last -> resolveLastPass(input)
 		}
-//		val path = when (pass) {
-//			is PathResolver.Pass.Initial -> OrbitMangler.unmangle(input.identifier.value)
-//			is PathResolver.Pass.Subsequent -> input.getPath()
-//		}
-//
-//		input.annotate(path, Annotations.Path)
-//
-//		environment.bind(Binding.Kind.Module, input.identifier.value, path)
-//
-//		if (pass == PathResolver.Pass.Last) {
-//			val path = input.getPath()
-//
-//			val typeResolver = TypeDefPathResolver(invocation, environment, graph, path)
-//			val traitResolver = TraitDefPathResolver(invocation, environment, graph, path)
-//
-//			val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
-//			val typeDefs= input.entityDefs.filterIsInstance<TypeDefNode>()
-//
-//			for (traitDef in traitDefs) {
-//				traitResolver.execute(PathResolver.InputType(traitDef, pass))
-//			}
-//
-//			for (typeDef in typeDefs) {
-//				typeResolver.execute(PathResolver.InputType(typeDef, pass))
-//			}
-//
-////			val methodDefs = input.methodDefs
-////			val methodSignatureResolver = MethodSignaturePathResolver(invocation, environment, graph)
-////
-////			methodDefs.forEach {
-////				methodSignatureResolver.execute(PathResolver.InputType(it.signature, pass))
-////			}
-//
-//			return PathResolver.Result.Success(path)
-//		} else {
-//			val path = OrbitMangler.unmangle(input.identifier.value)
-//
-//			input.annotate(path, Annotations.Path)
-//
-//			environment.bind(Binding.Kind.Module, input.identifier.value, path)
-//
-//			val methodDefs = input.methodDefs
-//			val methodSignatureResolver = MethodSignaturePathResolver(invocation, environment, graph)
-//
-//			methodDefs.forEach {
-//				methodSignatureResolver.execute(PathResolver.InputType(it.signature, pass))
-//			}
-//
-//			return PathResolver.Result.Success(path)
-//		}
 	}
 }

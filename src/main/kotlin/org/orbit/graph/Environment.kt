@@ -75,7 +75,7 @@ class Environment(
 	/// Search across all scopes to resolve a binding
 	// TODO - How to handle name conflicts here? Too dirty?
 	fun searchAllScopes(where: (Binding) -> Boolean) : Scope.BindingSearchResult {
-		return scopes.fold<Scope, Scope.BindingSearchResult>(Scope.BindingSearchResult.None) { acc, next ->
+		return scopes.fold<Scope, Scope.BindingSearchResult>(Scope.BindingSearchResult.None("")) { acc, next ->
 			return@fold acc + next.filter(where)
 		}
 	}
