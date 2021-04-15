@@ -11,6 +11,10 @@ object MethodReferenceRule : ValueRule<MethodReferenceNode> {
 
         val typeIdentifier = TypeIdentifierNode(start, start, start.text)
 
+        if (context.peek().type != TokenTypes.Colon) {
+            context.rewind(listOf(typeIdentifier.firstToken))
+        }
+
         context.expect(TokenTypes.Colon)
         context.expect(TokenTypes.Colon)
 

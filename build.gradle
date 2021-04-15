@@ -3,6 +3,7 @@ plugins {
 }
 
 ext.kotlin_version = '1.4.10'
+ext.koin_version = "3.0.1"
 
 apply plugin: 'application'
 
@@ -28,6 +29,9 @@ dependencies {
     testImplementation "junit:junit:+"
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
+
+    implementation "io.insert-koin:koin-core:$koin_version"
+    testImplementation "io.insert-koin:koin-test:$koin_version"
 }
 
 compileKotlin {

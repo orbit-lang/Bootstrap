@@ -1,17 +1,14 @@
 package org.orbit.core
 
-import org.orbit.analysis.Analysis
-import org.orbit.backend.*
+import org.koin.core.KoinApplication
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.frontend.*
-import org.orbit.frontend.rules.DefineRule
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.graph.CanonicalNameResolver
-import org.orbit.graph.Environment
-import org.orbit.serial.Serialiser
-import org.orbit.types.Context
-import org.orbit.types.Entity
-import org.orbit.types.Lambda
 import org.orbit.types.TypeChecker
 import org.orbit.util.*
 import org.orbit.util.nodewriters.html.HtmlNodeWriterFactory
@@ -19,23 +16,33 @@ import org.orbit.util.nodewriters.write
 import java.io.FileReader
 import java.io.FileWriter
 
+private val mainModule = module {
+	single { Invocation(Unix) }
+	single { CompilerGenerator(get()) }
+	single { CompilationEventBus() }
+	single { Printer(get<Invocation>().platform.getPrintableFactory()) }
+}
+
 class Main {
-    companion object {
+    companion object : KoinComponent {
+		private val invocation: Invocation by inject()
+		private val compilerGenerator: CompilerGenerator by inject()
+		private val compilationEventBus: CompilationEventBus by inject()
+
         @JvmStatic fun main(args: Array<String>) {
         	try {
+				startKoin { modules(mainModule) }
+
 	            val orbit = Orbit()
 
 	            orbit.main(args)
 
 				// TODO - Platform should be derived from System.getProperty("os.name") or similar
 				// TODO - Support non *nix platforms
-				val invocation = Invocation(Unix)
 				val sourceReader = FileSourceProvider(orbit.source)
 				val dummyPhase = DummyPhase(invocation, sourceReader)
 
 				invocation.storeResult("__source__", sourceReader)
-
-				val compilerGenerator = CompilerGenerator(invocation)
 
 				compilerGenerator["__source__"] = dummyPhase
 				compilerGenerator[CompilationSchemeEntry.commentParser] = CommentParser(invocation)
@@ -45,7 +52,7 @@ class Main {
 				compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
 				compilerGenerator[CompilationSchemeEntry.typeChecker] = TypeChecker(invocation)
 
-				compilerGenerator.eventBus.events.registerObserver {
+				compilationEventBus.events.registerObserver {
 					val printer = Printer(invocation.platform.getPrintableFactory())
 					val eventName = printer.apply(it.identifier, PrintableKey.Bold, PrintableKey.Underlined)
 

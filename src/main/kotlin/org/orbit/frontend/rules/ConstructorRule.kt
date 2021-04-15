@@ -10,6 +10,10 @@ class ConstructorRule : ValueRule<ConstructorNode> {
         val typeIdentifier = context.attempt(TypeIdentifierRule.RValue)
             ?: throw context.invocation.make<Parser>("TODO", context.peek().position)
 
+        if (context.peek().type != TokenTypes.LParen) {
+            context.rewind(listOf(typeIdentifier.firstToken))
+        }
+
         context.expect(TokenTypes.LParen)
 
         var next = context.peek()

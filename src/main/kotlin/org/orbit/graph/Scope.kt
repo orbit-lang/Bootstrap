@@ -1,15 +1,16 @@
 package org.orbit.graph
 
 import org.json.JSONObject
-import org.orbit.core.OrbitMangler
-import org.orbit.core.Path
-import org.orbit.core.SourcePosition
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.orbit.core.*
 import org.orbit.core.nodes.Node
 import org.orbit.serial.Serial
 import org.orbit.types.Context
 import org.orbit.types.Entity
-import org.orbit.util.Fatal
-import org.orbit.util.Monoid
+import org.orbit.util.*
+import org.orbit.util.PrinterAwareImpl.bold
+import org.orbit.util.PrinterAwareImpl.success
 import java.util.*
 
 data class ScopeIdentifier(private val uuid: UUID) : Serial {
@@ -30,7 +31,11 @@ class Scope(
     val identifier: ScopeIdentifier = ScopeIdentifier.next(),
     val bindings: MutableList<Binding> = mutableListOf(),
 	private val imports: MutableSet<ScopeIdentifier> = mutableSetOf()
-) : Serial {
+) : Serial, CompilationEventBusAware by CompilationEventBusAwareImpl {
+	sealed class Events(override val identifier: String) : CompilationEvent {
+		class BindingCreated(binding: Binding) : Events("Scope Binding Created: $binding")
+	}
+
 	sealed class BindingSearchResult : Monoid<BindingSearchResult> {
 		private data class BindingNotFound(
 			override val phaseClazz: Class<out PathResolver<*>>,
@@ -123,7 +128,10 @@ class Scope(
 		// The alternative would be to search through all known scopes for a match, which is quite expensive
 		path.enclosingScope = this
 		val binding = Binding(kind, simpleName, path)
-		if (!bindings.contains(binding)) bindings.add(binding)
+		if (!bindings.contains(binding)) {
+			bindings.add(binding)
+			compilationEventBus.notify(Events.BindingCreated(binding))
+		}
 
 		return binding
 	}
@@ -133,18 +141,12 @@ class Scope(
 	}
 
 	fun get(simpleName: String, context: Binding.Kind?) : BindingSearchResult {
-//		if (simpleName == "Self") {
-//			val result = Binding(Binding.Kind.Self, "Self", Path("Self"))
-//
-//			return BindingSearchResult.Success(result)
-//		}
-
 		val imported = imports.map { environment.getScope(it) }
 			.flatMap { it.bindings }
 		val all = bindings + imported //environment.allBindings
 		val matches = all.filter {
 			(it.simpleName == simpleName || it.path.toString(OrbitMangler) == simpleName)
-				&& (context != null && it.kind == context)
+				&& (context == null || it.kind == context)
 		}
 
 		return when (matches.size) {
@@ -202,15 +204,6 @@ class Scope(
 	}
 
 	override fun describe(json: JSONObject) {}
-}
-
-fun Scope.exportTypes(context: Context) {
-	val types = bindings.filter { it.kind is Binding.Kind.Entity }
-	val entities = types.map {
-		Entity(it.path.toString(OrbitMangler))
-	}
-
-	entities.forEach { context.add(it) }
 }
 
 fun Node.getScopeIdentifier() : ScopeIdentifier {

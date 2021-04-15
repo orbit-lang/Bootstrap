@@ -1,5 +1,7 @@
 package org.orbit.util
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.awt.print.Printable
 
 enum class PrintableKey(val generator: (PrintableFactory) -> String) {
@@ -47,4 +49,18 @@ class Printer(private val factory: PrintableFactory) {
 		
 		return "$headers$text${factory.getTerminator()}"
 	}
+}
+
+interface PrinterAware {
+	val printer: Printer
+}
+
+object PrinterAwareImpl : PrinterAware, KoinComponent {
+	override val printer: Printer by inject()
+
+	fun bold(text: String) : String = printer.apply(text, PrintableKey.Bold)
+	fun warning(text: String) : String = printer.apply(text, PrintableKey.Warning)
+	fun error(text: String) : String = printer.apply(text, PrintableKey.Error)
+	fun success(text: String) : String = printer.apply(text, PrintableKey.Success)
+	fun underline(text: String) : String = printer.apply(text, PrintableKey.Underlined)
 }

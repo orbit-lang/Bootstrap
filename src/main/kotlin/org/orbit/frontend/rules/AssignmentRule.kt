@@ -1,6 +1,7 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.AssignmentStatementNode
+import org.orbit.core.nodes.ExpressionNode
 import org.orbit.frontend.ParseRule
 import org.orbit.frontend.Parser
 import org.orbit.frontend.TokenTypes
@@ -21,7 +22,9 @@ object AssignmentRule : ParseRule<AssignmentStatementNode> {
 
         context.expect(TokenTypes.Assignment)
 
-        val value = context.attempt(ExpressionRule.defaultValue, true)!!
+        val value = context.attemptAny(*ExpressionRule.defaultValue.valueRules, throwOnNull = true)
+            as? ExpressionNode
+            ?: throw context.invocation.make<Parser>("TODO", context.peek().position)
 
         return AssignmentStatementNode(start, value.lastToken, identifier, value)
     }

@@ -1,18 +1,11 @@
 package org.orbit.types
 
-import org.orbit.core.AdaptablePhase
-import org.orbit.core.OrbitMangler
-import org.orbit.core.getPath
-import org.orbit.core.getPathOrNull
-import org.orbit.core.nodes.BlockNode
-import org.orbit.core.nodes.InstanceMethodCallNode
-import org.orbit.core.nodes.MethodDefNode
-import org.orbit.core.nodes.ReturnStatementNode
+import org.orbit.core.*
+import org.orbit.core.nodes.*
+import org.orbit.frontend.Parser
 import org.orbit.graph.Binding
 import org.orbit.graph.Environment
-import org.orbit.graph.exportTypes
 import org.orbit.util.Invocation
-import java.lang.RuntimeException
 
 interface TypeResolver {
     fun resolve(environment: Environment, context: Context, binding: Binding) : Type
@@ -23,8 +16,22 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
     override val outputType: Class<Context> = Context::class.java
 
     override fun execute(input: Environment): Context {
-        for (scope in input.scopes) {
-            scope.exportTypes(context)
+        val ast = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser).ast
+        val typeDefNodes = ast.search(TypeDefNode::class.java)
+
+        input.scopes.forEach {
+            it.bindings.forEach { b->
+                when (b.kind) {
+                    is Binding.Kind.Entity -> {
+                        val typeDefNode = typeDefNodes.find { n -> n.getPath() == b.path }
+                            ?: throw RuntimeException("TODO")
+
+                        val resolver = TypeDefTypeResolver(typeDefNode)
+
+                        resolver.resolve(input, context, b)
+                    }
+                }
+            }
         }
 
         val methodResolver = MethodTypeResolver()
@@ -35,6 +42,23 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
         invocation.storeResult(this::class.java.simpleName, input)
 
         return context
+    }
+}
+
+class TypeDefTypeResolver(private val typeDefNode: TypeDefNode) : TypeResolver {
+    override fun resolve(environment: Environment, context: Context, binding: Binding): Type {
+        val members = mutableListOf<Member>()
+        for (propertyPair in typeDefNode.propertyPairs) {
+            val propertyType = context.getType(propertyPair.getPath())
+
+            members.add(Member(propertyPair.identifierNode.identifier, propertyType))
+        }
+
+        val type = Entity(typeDefNode.getPath(), members)
+
+        context.add(type)
+
+        return type
     }
 }
 
@@ -110,26 +134,50 @@ class MethodTypeResolver : TypeResolver {
 
 class MethodBodyTypeResolver(private val block: BlockNode, private val returnType: Type) : TypeResolver {
     override fun resolve(environment: Environment, context: Context, binding: Binding) : Type {
-        val instanceCalls = block.search(InstanceMethodCallNode::class.java)
+        // Derive a new scope from the parent scope so we can throw away local bindings when we're done
+        val localContext = Context(context)
 
-        for (call in instanceCalls) {
-            TypeInferenceUtil.infer(context, call)
-        }
+        for (node in block.body) {
+            when (node) {
+                is ExpressionNode -> {
+                    // TODO - Raise a warning about unused expression value
+                    TypeInferenceUtil.infer(localContext, node)
+                }
 
-        val returnStatements = block.search(ReturnStatementNode::class.java)
+                is AssignmentStatementNode -> AssignmentTypeResolver(node).resolve(environment, localContext, binding)
 
-        for (returnStatement in returnStatements) {
-            val varExpr = returnStatement.valueNode.expressionNode
-            val varType = TypeInferenceUtil.infer(context, varExpr)
+                is ReturnStatementNode -> {
+                    val varExpr = node.valueNode.expressionNode
+                    val varType = TypeInferenceUtil.infer(localContext, varExpr)
 
-            if (!NominalEquality(returnType, varType).satisfied()) {
-                throw Exception("Method '${binding.simpleName}' declares a return type of '${returnType.name}', found '${varType.name}'")
+                    if (!NominalEquality(returnType, varType).satisfied()) {
+                        throw Exception("Method '${binding.simpleName}' declares a return type of '${returnType.name}', found '${varType.name}'")
+                    }
+                }
             }
         }
 
         // All return paths have been evaluated at this point. No conflicts were found,
         // which means its safe to just return the expected return type
         return returnType
+    }
+}
+
+class AssignmentTypeResolver(private val assignmentStatementNode: AssignmentStatementNode) : TypeResolver {
+    override fun resolve(environment: Environment, context: Context, binding: Binding): Type {
+        // 1. Ensure we aren't trying to reassign a binding
+        val v = context.get(assignmentStatementNode.identifier.identifier)
+        if (v != null) {
+            // TODO
+            throw RuntimeException("FATAL - Attempting to reassign name '${assignmentStatementNode.identifier.identifier}'")
+        }
+
+        // 2. Infer the type of the right-hand side
+        val rhsType = TypeInferenceUtil.infer(context, assignmentStatementNode.value)
+
+        context.bind(assignmentStatementNode.identifier.identifier, rhsType)
+
+        return IntrinsicTypes.Unit.type
     }
 }
 

@@ -1,5 +1,7 @@
 package org.orbit.core
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.util.Invocation
 
 class Compiler(override val invocation: Invocation, private val phaseLinker: PhaseLinker<SourceProvider, *, *, *>) :
@@ -86,10 +88,9 @@ open class CompilationScheme(entries: List<CompilationSchemeEntry>) : MutableLis
 	}
 }
 
-class CompilerGenerator(private val invocation: Invocation, phases: Map<String, AnyPhase> = emptyMap()) {
+class CompilerGenerator(private val invocation: Invocation, phases: Map<String, AnyPhase> = emptyMap()) : KoinComponent {
 	private val phases = phases.toMutableMap()
-
-	val eventBus = CompilationEventBus()
+	private val eventBus: CompilationEventBus by inject()
 
 	operator fun set(key: String, value: ReifiedPhase<*, *>) {
 		phases[key] = value as AnyPhase

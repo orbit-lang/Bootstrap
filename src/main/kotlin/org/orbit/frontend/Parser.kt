@@ -80,7 +80,7 @@ class Parser(
 		object NoMoreTokens : OrbitException("There are no more tokens left to parse")
 		object NoParseRules : OrbitException("Parse rules were not provided")
 		data class UnsuccessfulParseAttempt(override val sourcePosition: SourcePosition) : ParseError("All rules failed to parse", sourcePosition)
-		data class UnexpectedToken(val token: Token, override val sourcePosition: SourcePosition = token.position) : ParseError("Unexpected token: ${token.type.identifier}", sourcePosition)
+		data class UnexpectedToken(val token: Token, override val sourcePosition: SourcePosition = token.position) : ParseError("Unexpected token: ${token.type.identifier} -- ${token.text}", sourcePosition)
 	}
 	
 	var tokens: MutableList<Token> = mutableListOf()
@@ -129,7 +129,7 @@ class Parser(
 		
 		return when (next.type) {
 			type -> { if (consume) consume() else next }
-			else -> throw invocation.make(Parser.Errors.UnexpectedToken(next))
+			else -> throw invocation.make(Errors.UnexpectedToken(next))
 		}
 	}
 
@@ -145,7 +145,7 @@ class Parser(
 			return next
 		}
 
-		throw invocation.make(Parser.Errors.UnexpectedToken(next))
+		throw invocation.make(Errors.UnexpectedToken(next))
 	}
 
 	fun rewind(consumed: List<Token>) {
@@ -187,7 +187,8 @@ class Parser(
 
 		tokens = backup
 
-		if (throwOnNull) throw invocation.make(Parser.Errors.UnexpectedToken(start))
+		if (throwOnNull)
+			throw invocation.make(Errors.UnexpectedToken(start))
 
 		return null
 	}
@@ -209,7 +210,8 @@ class Parser(
 			return expr
 		}
 
-		if (throwOnNull) throw invocation.make(Parser.Errors.UnexpectedToken(start))
+		if (throwOnNull)
+			throw invocation.make(Errors.UnexpectedToken(start))
 
 		// All rules failed. Token stack is already rewound to initial state
 		return null

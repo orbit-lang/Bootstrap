@@ -6,7 +6,6 @@ import org.orbit.graph.Annotations
 import org.orbit.graph.Scope
 import org.orbit.graph.getAnnotation
 import org.orbit.serial.Serial
-import java.lang.RuntimeException
 
 open class Path(val relativeNames: List<String>) : Serial {
 	constructor(path: String) : this(listOf(path))

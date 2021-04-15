@@ -15,6 +15,7 @@ class PropertyPairPathResolver(
 			.unwrap(this, input.typeIdentifierNode.firstToken.position)
 		val propertyTypePath = propertyTypeBinding.path
 
+		input.annotate(propertyTypePath, Annotations.Path)
 		input.typeIdentifierNode.annotate(propertyTypePath, Annotations.Path)
 
 		return PathResolver.Result.Success(propertyTypePath)

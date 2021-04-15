@@ -62,13 +62,23 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
             }
         }
 
-        val withinNode = context.attempt(WithinRule)
-        var with = context.attempt(WithRule)
-        var withNodes = mutableListOf<TypeIdentifierNode>()
+        next = context.peek()
 
-        while (with != null) {
-            withNodes.add(with)
-            with = context.attempt(WithRule)
+        var withinNode: TypeIdentifierNode? = null
+        if (next.type == TokenTypes.Within) {
+            withinNode = context.attempt(WithinRule)
+        }
+
+        next = context.peek()
+
+        val withNodes = mutableListOf<TypeIdentifierNode>()
+        if (next.type == TokenTypes.With) {
+            var with = context.attempt(WithRule)
+
+            while (with != null) {
+                withNodes.add(with)
+                with = context.attempt(WithRule)
+            }
         }
 
         context.expect(TokenTypes.LBrace)
@@ -79,16 +89,22 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
         next = context.peek()
 
         while (next.type != TokenTypes.RBrace) {
-            val entity = context.attempt(TypeDefRule)
-                ?: context.attempt(TraitDefRule)
+            when (next.type) {
+                TokenTypes.LParen -> {
+                    val methodDefNode = context.attempt(MethodDefRule, true)
+                        ?: throw Exception("Expected method signature following '(' at container level")
 
-            if (entity == null) {
-                val methodDefNode = context.attempt(MethodDefRule, true)
-                    ?: throw Exception("Expected method signature following '(' at container level")
+                    methodDefNodes.add(methodDefNode)
+                }
 
-                methodDefNodes.add(methodDefNode)
-            } else {
-                entityDefNodes.add(entity)
+                TokenTypes.Type, TokenTypes.Trait -> {
+                    val entity = context.attempt(TypeDefRule)
+                        ?: context.attempt(TraitDefRule)
+
+                    entityDefNodes.add(entity!!)
+                }
+
+                else -> throw RuntimeException("TODO")
             }
 
             next = context.peek()

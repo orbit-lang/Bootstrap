@@ -1,10 +1,9 @@
 package org.orbit.frontend.rules
 
-import org.orbit.core.nodes.*
+import org.orbit.core.nodes.ExpressionNode
+import org.orbit.core.nodes.RValueNode
 import org.orbit.frontend.Parser
-import org.orbit.frontend.ParseRule
 import org.orbit.frontend.TokenTypes
-import java.lang.Exception
 
 class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRule<RValueNode> {
 	private companion object {
@@ -19,7 +18,7 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRul
 
 	override fun parse(context: Parser) : RValueNode {
 		val start = context.peek()
-		val expr = context.attemptAny(*accepts, throwOnNull =  true)
+		val expr = context.attemptAny(*accepts, throwOnNull = true)
 			as? ExpressionNode ?: throw Exception("TODO")
 
 		if (!context.hasMore) return RValueNode(expr)

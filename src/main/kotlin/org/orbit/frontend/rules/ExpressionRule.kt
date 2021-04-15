@@ -7,7 +7,7 @@ import org.orbit.frontend.TokenTypes
 
 interface ValueRule<E: ExpressionNode> : ParseRule<E>
 
-class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<ExpressionNode> {
+class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<ExpressionNode> {
 	companion object {
 		val defaultValue = ExpressionRule(
 			InstanceMethodCallRule,

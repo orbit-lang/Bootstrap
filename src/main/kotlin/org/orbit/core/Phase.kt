@@ -1,15 +1,21 @@
 package org.orbit.core
 
-import javafx.beans.property.ListProperty
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.util.Invocation
 import org.orbit.util.OrbitError
-import java.util.*
-import kotlin.properties.Delegates
-import kotlin.reflect.KProperty
+
+interface CompilationEventBusAware {
+    val compilationEventBus: CompilationEventBus
+}
+
+object CompilationEventBusAwareImpl : CompilationEventBusAware, KoinComponent {
+    override val compilationEventBus: CompilationEventBus by inject()
+}
 
 interface Phase<I, O> {
     val invocation: Invocation

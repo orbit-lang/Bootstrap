@@ -19,7 +19,7 @@ object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
 	override fun parse(context: Parser) : TypeDefNode {
 		val start = context.expect(TokenTypes.Type)
 		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue, true)
-			?: throw context.invocation.make(TypeDefRule.Errors.MissingName(start.position))
+			?: throw context.invocation.make(Errors.MissingName(start.position))
 
 		var next = context.peek()
 		var propertyPairs = emptyList<PairNode>()

@@ -8,16 +8,16 @@ fun <N: Node> PathResolver<N>.resolveAll(nodes: List<N>, pass: PathResolver.Pass
 	nodes.forEach { execute(PathResolver.InputType(it, pass)) }
 }
 
+fun <N: Node> N.toPathResolverInput(pass: PathResolver.Pass = PathResolver.Pass.Initial) : PathResolver.InputType<N> {
+	return PathResolver.InputType(this, pass)
+}
+
 interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.Result> {
 	sealed class Pass {
 		object Initial : Pass()
 		data class Subsequent(val index: Int) : Pass()
 		object Last : Pass()
 	}
-
-//	enum class Pass {
-//		First, Second, Last
-//	}
 
 	class InputType<N: Node>(val node: N, val pass: Pass)
 
@@ -44,9 +44,9 @@ interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.
 	val environment: Environment
 	val graph: Graph
 
-	fun resolve(input: N, pass: Pass) : PathResolver.Result
+	fun resolve(input: N, pass: Pass) : Result
 
-	override fun execute(input: InputType<N>): PathResolver.Result {
+	override fun execute(input: InputType<N>): Result {
 		environment.openScope(input.node)
 		try {
 			environment.mark(input.node)

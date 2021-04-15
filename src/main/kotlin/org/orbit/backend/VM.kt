@@ -1,6 +1,5 @@
 package org.orbit.backend
 
-import java.lang.RuntimeException
 import java.util.*
 
 interface Numeric<N: Number> {

@@ -108,7 +108,7 @@ class ContainerResolver(
 		val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
 
 		// Run a first pass over all types & traits that resolves just their own paths
-		// (ignoring properties and conformances etc)
+		// (ignoring properties and trait conformance etc)
 		for (traitDef in traitDefs) {
 			traitResolver.execute(PathResolver.InputType(traitDef, PathResolver.Pass.Initial))
 		}
