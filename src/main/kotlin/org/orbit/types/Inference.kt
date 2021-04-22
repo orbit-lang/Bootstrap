@@ -97,6 +97,7 @@ class Context(builtIns: Set<Type> = IntrinsicTypes.allTypes) : Serial, Compilati
     }
 
     fun add(type: Type) {
+        types.removeIf { it::class.java == type::class.java && it.name == type.name }
         types.add(type)
         compilationEventBus.notify(Events.TypeCreated(type))
     }

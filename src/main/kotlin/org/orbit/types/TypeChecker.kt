@@ -19,27 +19,28 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
         val ast = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser).ast
         val typeDefNodes = ast.search(TypeDefNode::class.java)
 
-        input.scopes.forEach {
-            it.bindings.forEach { b->
-                when (b.kind) {
-                    is Binding.Kind.Entity -> {
-                        val typeDefNode = typeDefNodes.find { n -> n.getPath() == b.path }
-                            ?: throw RuntimeException("TODO")
-
-                        val resolver = TypeDefTypeResolver(typeDefNode)
-
-                        resolver.resolve(input, context, b)
-                    }
-                }
-            }
+        typeDefNodes.forEach {
+            context.add(Entity(it.getPath()))
         }
+
+        input.scopes
+            .flatMap { it.bindings }
+            .filter { it.kind is Binding.Kind.Entity }
+            .forEach {
+                val typeDefNode = typeDefNodes.find { n -> n.getPath() == it.path }
+                    ?: throw RuntimeException("TODO")
+
+                val resolver = TypeDefTypeResolver(typeDefNode)
+
+                resolver.resolve(input, context, it)
+            }
 
         val methodResolver = MethodTypeResolver()
         val methods = input.scopes.flatMap { it.bindings.filter { b -> b.kind == Binding.Kind.Method } }
 
         methods.forEach { methodResolver.resolve(input, context, it) }
 
-        invocation.storeResult(this::class.java.simpleName, input)
+        invocation.storeResult(this::class.java.simpleName, context)
 
         return context
     }
@@ -48,10 +49,14 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
 class TypeDefTypeResolver(private val typeDefNode: TypeDefNode) : TypeResolver {
     override fun resolve(environment: Environment, context: Context, binding: Binding): Type {
         val members = mutableListOf<Member>()
+        val behaviours = mutableListOf<Behaviour>()
         for (propertyPair in typeDefNode.propertyPairs) {
             val propertyType = context.getType(propertyPair.getPath())
 
             members.add(Member(propertyPair.identifierNode.identifier, propertyType))
+
+            val setterType = Function(listOf(propertyType), IntrinsicTypes.Unit.type)
+            val getterType = Function(emptyList(), propertyType)
         }
 
         val type = Entity(typeDefNode.getPath(), members)

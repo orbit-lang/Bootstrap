@@ -1,7 +1,9 @@
 package org.orbit.graph
 
+import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.*
+import org.orbit.types.IntrinsicTypes
 import org.orbit.util.Invocation
 
 class MethodDefPathResolver(
@@ -33,17 +35,26 @@ class BlockPathResolver(
 	override fun resolve(input: BlockNode, pass: PathResolver.Pass) : PathResolver.Result {
 		val expressionResolver = ExpressionPathResolver(invocation, environment, graph)
 
-		var result: PathResolver.Result = PathResolver.Result.Failure(input)
+		var result: PathResolver.Result = PathResolver.Result.Success(OrbitMangler.unmangle(IntrinsicTypes.Unit.type.name))
 		for (node in input.body) {
-			result = when (node) {
-				is ReturnStatementNode -> expressionResolver.execute(PathResolver.InputType(node.valueNode.expressionNode, pass))
-				else -> throw RuntimeException("TODO")
+			if (node is ReturnStatementNode) {
+				result = expressionResolver.execute(PathResolver.InputType(node.valueNode.expressionNode, pass))
 			}
 		}
 
 		return result
 	}
 }
+
+//class AssignmentPathResolver(
+//	override val invocation: Invocation,
+//	override val environment: Environment,
+//	override val graph: Graph
+//) : PathResolver<AssignmentStatementNode> {
+//	override fun resolve(input: AssignmentStatementNode, pass: PathResolver.Pass): PathResolver.Result {
+//
+//	}
+//}
 
 class ExpressionPathResolver(
 	override val invocation: Invocation,

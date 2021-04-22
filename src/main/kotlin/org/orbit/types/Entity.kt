@@ -8,6 +8,11 @@ data class Entity(
     override val members: List<Member> = emptyList(),
     override val behaviours: List<Behaviour> = emptyList()) : Type {
     constructor(path: Path, members: List<Member> = emptyList()) : this(path.toString(OrbitMangler), members)
+
+    override fun equals(other: Any?): Boolean = when (other) {
+        is Entity -> name == other.name
+        else -> false
+    }
 }
 
 enum class IntrinsicTypes(val type: Type) {

@@ -113,8 +113,13 @@ class ContainerResolver(
 			traitResolver.execute(PathResolver.InputType(traitDef, PathResolver.Pass.Initial))
 		}
 
+		// We need to do 2 passes over types to avoid order-of-definition problems
 		for (typeDef in typeDefs) {
 			typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Initial))
+		}
+
+		for (typeDef in typeDefs) {
+			typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Last))
 		}
 
 		val methodDefResolver = MethodDefPathResolver(invocation, environment, graph)

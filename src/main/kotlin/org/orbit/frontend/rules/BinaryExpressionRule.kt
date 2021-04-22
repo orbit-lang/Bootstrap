@@ -8,9 +8,12 @@ import org.orbit.frontend.TokenTypes
 object BinaryExpressionRule : ValueRule<BinaryExpressionNode> {
     override fun parse(context: Parser): BinaryExpressionNode {
         val start = context.peek()
-        val leftExpression = context.attempt(ExpressionRule.defaultValue, true) ?: throw Exception("TODO")
+        val leftExpression = context.attempt(ExpressionRule.defaultValue, true)
+            ?: throw Exception("TODO")
+
         val operator = context.expect(TokenTypes.Operator)
-        val rightExpressionRule = context.attempt(ExpressionRule.defaultValue, true) ?: throw Exception("TODO")
+        val rightExpressionRule = context.attempt(ExpressionRule.defaultValue, true)
+            ?: throw Exception("TODO")
 
         return BinaryExpressionNode(start, rightExpressionRule.lastToken, operator.text, leftExpression, rightExpressionRule)
     }
@@ -19,7 +22,8 @@ object BinaryExpressionRule : ValueRule<BinaryExpressionNode> {
 class PartialExpressionRule(private val leftExpression: ExpressionNode) : ValueRule<BinaryExpressionNode> {
     override fun parse(context: Parser): BinaryExpressionNode {
         val op = context.expect(TokenTypes.Operator)
-        val rightExpression = context.attempt(ExpressionRule.defaultValue) ?: throw Exception("TODO")
+        val rightExpression = context.attempt(ExpressionRule.defaultValue)
+            ?: throw Exception("TODO")
 
         return BinaryExpressionNode(op, rightExpression.lastToken, op.text, leftExpression, rightExpression)
     }

@@ -9,6 +9,7 @@ import org.orbit.core.nodes.ProgramNode
 import org.orbit.frontend.*
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.graph.CanonicalNameResolver
+import org.orbit.types.Context
 import org.orbit.types.TypeChecker
 import org.orbit.util.*
 import org.orbit.util.nodewriters.html.HtmlNodeWriterFactory
@@ -60,6 +61,8 @@ class Main {
 				}
 
 				compilerGenerator.run(CompilationScheme.Intrinsics)
+
+				val contextResult = invocation.getResult<Context>(CompilationSchemeEntry.typeChecker)
 
 				val parserResult = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser)
 				val html = (parserResult.ast as ProgramNode).write(HtmlNodeWriterFactory, 0)
