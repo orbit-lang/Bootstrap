@@ -1,5 +1,6 @@
 package org.orbit.graph
 
+import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.SourcePosition
@@ -7,12 +8,10 @@ import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.types.IntrinsicTypes
 import org.orbit.util.Invocation
 
-class MethodSignaturePathResolver(
-    override val invocation: Invocation,
-    override val environment: Environment,
-	override val graph: Graph
-) : PathResolver<MethodSignatureNode> {
-	override fun resolve(input: MethodSignatureNode, pass: PathResolver.Pass) : PathResolver.Result {
+class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
+	override val invocation: Invocation by inject()
+
+	override fun resolve(input: MethodSignatureNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		// A method's canonical path is `<ReceiverType>::<MethodName>[::ArgType1, ::ArgType2, ...]::<ReturnType>`
 		val receiver = input.receiverTypeNode.typeIdentifierNode.value
 		val receiverResult = environment.getBinding(receiver, Binding.Kind.Type)

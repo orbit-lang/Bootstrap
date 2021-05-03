@@ -7,11 +7,16 @@ import org.orbit.core.SourcePosition
 import org.orbit.core.Warning
 import org.orbit.frontend.*
 
-abstract class TypeParameterRule() : ParseRule<TypeParameterNode>
+abstract class TypeParameterRule : ParseRule<TypeParameterNode>
 
 private object BoundedTypeParameterRule : TypeParameterRule() {
-	override fun parse(context: Parser) : TypeParameterNode {
-		val nameNode = TypeIdentifierRule.Naked.execute(context)
+	override fun parse(context: Parser) : ParseRule.Result {
+		val nameNode = TypeIdentifierRule.Naked
+			.execute(context)
+			.asSuccessOrNull<TypeIdentifierNode>()
+			?.node
+			?: return ParseRule.Result.Failure.Abort
+
 		val next = context.peek()
 
 		if (next.type == TokenTypes.Colon) {
@@ -25,34 +30,51 @@ private object BoundedTypeParameterRule : TypeParameterRule() {
 
 				In this context, `C<D>` is an rval type, so we must parse it as a literal
 			 */
-			val boundNode = LiteralRule(TypeIdentifierRule.LValue).execute(context)
+			val boundNode = LiteralRule(TypeIdentifierRule.LValue)
+				.execute(context)
+				.asSuccessOrNull<RValueNode>()
+				?.node
+				?: return ParseRule.Result.Failure.Abort
 
-			return BoundedTypeParameterNode(nameNode.firstToken, boundNode.lastToken, nameNode, boundNode)
+			return +BoundedTypeParameterNode(nameNode.firstToken, boundNode.lastToken, nameNode, boundNode)
 		}
 
-		return BoundedTypeParameterNode(nameNode.firstToken, nameNode.lastToken, nameNode)
+		return +BoundedTypeParameterNode(nameNode.firstToken, nameNode.lastToken, nameNode)
 	}
 }
 
 private object DependentTypeParameterRule : TypeParameterRule() {
-	override fun parse(context: Parser) : TypeParameterNode {
-		val nameNode = TypeIdentifierRule.Naked.execute(context)
-		val typeNode = LiteralRule(TypeIdentifierRule.LValue).execute(context)
+	override fun parse(context: Parser) : ParseRule.Result {
+		val nameNode = TypeIdentifierRule.Naked
+			.execute(context)
+			.asSuccessOrNull<TypeIdentifierNode>()
+			?.node
+			?: return ParseRule.Result.Failure.Abort
 
-		return DependentTypeParameterNode(nameNode.firstToken, typeNode.lastToken, nameNode, typeNode)
+		val typeNode = LiteralRule(TypeIdentifierRule.LValue)
+			.execute(context)
+			.asSuccessOrNull<RValueNode>()
+			?.node
+			?: return ParseRule.Result.Failure.Abort
+
+		return +DependentTypeParameterNode(nameNode.firstToken, typeNode.lastToken, nameNode, typeNode)
 	}
 }
 
 private object ValueTypeParameterRule : TypeParameterRule() {
-	override fun parse(context: Parser): TypeParameterNode {
-		val valueNode = LiteralRule().execute(context)
+	override fun parse(context: Parser): ParseRule.Result {
+		val valueNode = LiteralRule()
+			.execute(context)
+			.asSuccessOrNull<RValueNode>()
+			?.node
+			?: return ParseRule.Result.Failure.Abort
 
-		return ValueTypeParameterNode(valueNode.firstToken, valueNode.lastToken, valueNode)
+		return +ValueTypeParameterNode(valueNode.firstToken, valueNode.lastToken, valueNode)
 	}
 }
 
 class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeParametersNode> {
-	override fun parse(context: Parser) : TypeParametersNode {
+	override fun parse(context: Parser) : ParseRule.Result {
 		var typeParameterNodes = mutableListOf<TypeParameterNode>()
 
 		val start = context.expect(TokenTypes.LAngle)
@@ -61,7 +83,7 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 		if (next.type == TokenTypes.RAngle) {
 			// Empty generic expression is meaningless
 			// TODO - Could `<>` mean same as `<*>` in Kotlin?
-			throw Exception("TODO")
+			TODO("@TypeParameterRule:64")
 		}
 
 		var end = next
@@ -73,7 +95,11 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 			// otherwise we end up with an ambiguity in the grammar
 			if (isRValueContext) {
 				// We're instantiating a generic type in an rval position, so only concrete Types/Values are allowed
-				val typeParameterNode = ValueTypeParameterRule.execute(context)
+				val typeParameterNode = ValueTypeParameterRule
+					.execute(context)
+					.asSuccessOrNull<TypeParameterNode>()
+					?.node
+					?: return ParseRule.Result.Failure.Abort
 
 				typeParameterNodes.add(typeParameterNode)
 
@@ -90,7 +116,7 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 				// Type parameters are in an lval position, meaning we're
 				// declaring something, so concrete Types/Values are not allowed
 				if (next.type != TokenTypes.TypeIdentifier) {
-					throw Exception("TODO")
+					TODO("@TypeParameterRule:93")
 				}
 
 				var result: Parser.Result? = null
@@ -105,7 +131,7 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 						result.ast as DependentTypeParameterNode
 					} else {
 						context.attempt(BoundedTypeParameterRule)
-							?: throw Exception("TODO")
+							?: TODO("@TypeParameterRule:108")
 					}
 				} catch (_: Exception) {
 					if (result != null) {
@@ -113,7 +139,7 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 					}
 
 					typeParameterNode = context.attempt(BoundedTypeParameterRule, true)
-						?: throw Exception("TODO")
+						?: TODO("@TypeParameterRule:116")
 				}
 
 				typeParameterNodes.add(typeParameterNode)
@@ -132,6 +158,6 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 			}
 		}
 		
-		return TypeParametersNode(start, end, typeParameterNodes)
+		return +TypeParametersNode(start, end, typeParameterNodes)
 	}
 }

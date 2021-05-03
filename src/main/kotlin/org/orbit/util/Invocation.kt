@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.types.file
 import org.orbit.core.*
+import org.orbit.core.nodes.Node
 
 open class OrbitException(override val message: String?) : Exception(message) {
 	companion object
@@ -145,6 +146,14 @@ class Invocation(val platform: Platform) {
 		|	
 		|	$footer
 		""".trimMargin()
+	}
+
+	inline fun<reified P: Phase<*, *>> make(message: String, node: Node) : Exception {
+		return make<P>(message, node.firstToken)
+	}
+
+	inline fun<reified P: Phase<*, *>> make(message: String, token: Token) : Exception {
+		return make<P>(message, token.position)
 	}
 
 	inline fun<reified P: Phase<*, *>> make(message: String, sourcePosition: SourcePosition) : Exception {

@@ -1,5 +1,7 @@
 package org.orbit.graph
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.core.Path
 import org.orbit.core.Phase
 import org.orbit.core.nodes.Node
@@ -12,7 +14,7 @@ fun <N: Node> N.toPathResolverInput(pass: PathResolver.Pass = PathResolver.Pass.
 	return PathResolver.InputType(this, pass)
 }
 
-interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.Result> {
+interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.Result>, KoinComponent {
 	sealed class Pass {
 		object Initial : Pass()
 		data class Subsequent(val index: Int) : Pass()
@@ -41,16 +43,18 @@ interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.
 		}
 	}
 
-	val environment: Environment
-	val graph: Graph
-
-	fun resolve(input: N, pass: Pass) : Result
+	fun resolve(input: N, pass: Pass, environment: Environment, graph: Graph) : Result
 
 	override fun execute(input: InputType<N>): Result {
-		environment.openScope(input.node)
+		val environment = inject<Environment>().value
+		val graph = inject<Graph>().value
+
+//		environment.openScope(input.node)
+
 		try {
 			environment.mark(input.node)
-			val result = resolve(input.node, input.pass)
+
+			val result = resolve(input.node, input.pass, environment, graph)
 
 			if (result.isFailure) {
 				result.withFailure<Node> {
@@ -63,7 +67,7 @@ interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.
 
 			return result
 		} finally {
-			environment.closeScope()
+//			environment.closeScope()
 		}
 	}
 }

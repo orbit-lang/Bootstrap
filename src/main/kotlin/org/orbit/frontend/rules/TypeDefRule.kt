@@ -16,7 +16,7 @@ object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
 			: ParseError("Expected property declarations following type definition", sourcePosition)
 	}
 
-	override fun parse(context: Parser) : TypeDefNode {
+	override fun parse(context: Parser) : ParseRule.Result {
 		val start = context.expect(TokenTypes.Type)
 		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue, true)
 			?: throw context.invocation.make(Errors.MissingName(start.position))
@@ -52,7 +52,7 @@ object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
 				// This is the ambiguous case described above.
 				// We can jump out here, safe in the knowledge that
 				// doing a lookahead parse did not affect the main token stack
-				return TypeDefNode(start, end, typeIdentifierNode)
+				return +TypeDefNode(start, end, typeIdentifierNode)
 			} catch (_: Exception) {
 				// This is not a real parse error; it just means this isn't the ambiguous case (see above).
 				// fallthrough
@@ -125,11 +125,11 @@ object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
 
 			// TODO - Swap MethodSignatureRule out for MethodDefRule
 			val bodyNode = context.attempt(BlockRule(TraitDefRule, TypeDefRule, MethodSignatureRule(false)), true)
-				?: throw Exception("TODO")
+				?: TODO("@TypeDefRule:128")
 
-			return TypeDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode)
+			return +TypeDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode)
 		}
 		
-		return TypeDefNode(start, end, typeIdentifierNode, propertyPairs, traitConformances)
+		return +TypeDefNode(start, end, typeIdentifierNode, propertyPairs, traitConformances)
 	}
 }

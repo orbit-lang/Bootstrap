@@ -1,5 +1,9 @@
 package org.orbit.graph
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.koin.core.context.loadKoinModules
+import org.koin.dsl.module
 import org.orbit.core.*
 import org.orbit.core.nodes.*
 import org.orbit.frontend.Parser
@@ -23,7 +27,7 @@ sealed class GraphErrors {
 	) : OrbitError<T>
 }
 
-class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhase<Parser.Result, Environment>() {
+class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhase<Parser.Result, Environment>(), KoinComponent {
 	private data class WithinNonTerminalContainer(
 		override val phaseClazz: Class<out CanonicalNameResolver> = CanonicalNameResolver::class.java,
 		override val sourcePosition: SourcePosition,
@@ -38,6 +42,8 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 	override val inputType = Parser.Result::class.java
 	override val outputType = Environment::class.java
 
+	private val pathResolverUtil: PathResolverUtil by inject()
+
 	private companion object : PriorityComparator<ContainerNode> {
 		override fun compare(a: ContainerNode, b: ContainerNode): ContainerNode = when (a.within) {
 			null -> a
@@ -48,6 +54,13 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 	override fun execute(input: Parser.Result) : Environment {
 		val environment = Environment(input.ast)
 		val programNode = input.ast as ProgramNode
+		val graph = Graph()
+
+		// Create a koin dependency on the fly for the environment & graph
+		loadKoinModules(module {
+			single { environment }
+			single { graph }
+		})
 
 		/*
 			What we're aiming to do here is fully resolve the names of all top-level
@@ -60,14 +73,12 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		 */
 
 		// 1. Find all top-level declarations and sort root-level container to top
-		val graph = Graph()
 		val containers = programNode.search(ContainerNode::class.java, CanonicalNameResolver)
-		val containerResolver = ContainerResolver(invocation, environment, graph)
 
 		// 2. Run an initial container pass to resolve just the individual container names
 		// NOTE - The only expected failures here are duplicate names
 		val initialPassResults = containers.map {
-			containerResolver.execute(PathResolver.InputType(it, PathResolver.Pass.Initial))
+			pathResolverUtil.resolve(it, PathResolver.Pass.Initial)
 		}
 
 		if (initialPassResults.containsInstances<PathResolver.Result.Failure>()) {
@@ -76,7 +87,7 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		}
 
 		containers.forEach {
-			containerResolver.execute(PathResolver.InputType(it, PathResolver.Pass.Subsequent(2)))
+			pathResolverUtil.resolve(it, PathResolver.Pass.Subsequent(2))
 		}
 
 		containers.forEach {
@@ -123,7 +134,7 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		}
 
 		containers.forEach {
-			containerResolver.execute(PathResolver.InputType(it, PathResolver.Pass.Last))
+			pathResolverUtil.resolve(it, PathResolver.Pass.Last)
 		}
 
 		invocation.storeResult(this::class.java.simpleName, environment)

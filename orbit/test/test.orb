@@ -1,15 +1,13 @@
 module Orb::Types::Intrinsics {
     type Unit
     type Int
-
-    type B(a A)
-    type A(b B)
 }
 
 module Foo with Orb::Types::Intrinsics {
-    type F(a A, b B)
+    type F
+    type Bar(f F)
 
-    (self F) bar () () {
-        a = A()
+    (self F) baz (i Int) (Bar) {
+        return Bar(F)
     }
 }

@@ -3,21 +3,20 @@ package org.orbit.frontend.rules
 import org.orbit.core.nodes.ExpressionNode
 import org.orbit.core.nodes.InstanceMethodCallNode
 import org.orbit.core.nodes.MethodCallNode
+import org.orbit.frontend.ParseRule
 import org.orbit.frontend.Parser
 import org.orbit.frontend.TokenTypes
+import org.orbit.frontend.unaryPlus
 
 interface MethodCallRule<M: MethodCallNode> : ValueRule<M>
 
 object InstanceMethodCallRule : MethodCallRule<InstanceMethodCallNode> {
-    override fun parse(context: Parser): InstanceMethodCallNode {
+    override fun parse(context: Parser): ParseRule.Result {
         val instanceIdentifier = context.attempt(IdentifierRule)
             ?: throw context.invocation.make<Parser>("Expected identifier", context.peek().position)
 
-        if (context.peek().type != TokenTypes.Dot) {
-            context.rewind(listOf(instanceIdentifier.firstToken))
-        }
-
-        context.expect(TokenTypes.Dot)
+        context.expectOrNull(TokenTypes.Dot)
+            ?: return ParseRule.Result.Failure.Rewind(listOf(instanceIdentifier.firstToken))
 
         val methodIdentifier = context.attempt(IdentifierRule)
             ?: throw context.invocation.make<Parser>("Expected method name", context.peek().position)
@@ -28,7 +27,7 @@ object InstanceMethodCallRule : MethodCallRule<InstanceMethodCallNode> {
 
         if (next.type == TokenTypes.RParen) {
             context.consume()
-            return InstanceMethodCallNode(instanceIdentifier.firstToken, next, methodIdentifier, instanceIdentifier, emptyList())
+            return +InstanceMethodCallNode(instanceIdentifier.firstToken, next, methodIdentifier, instanceIdentifier, emptyList())
         }
 
         val parameterNodes = mutableListOf<ExpressionNode>()
@@ -48,6 +47,6 @@ object InstanceMethodCallRule : MethodCallRule<InstanceMethodCallNode> {
 
         val last = context.expect(TokenTypes.RParen)
 
-        return InstanceMethodCallNode(instanceIdentifier.firstToken, last, methodIdentifier, instanceIdentifier, parameterNodes)
+        return +InstanceMethodCallNode(instanceIdentifier.firstToken, last, methodIdentifier, instanceIdentifier, parameterNodes)
     }
 }

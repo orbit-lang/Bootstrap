@@ -1,15 +1,12 @@
 package org.orbit.frontend.rules
 
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
 import org.orbit.core.nodes.*
 import org.orbit.frontend.rules.*
-import org.orbit.frontend.TokenTypes
-import org.orbit.frontend.ParseError
 import org.orbit.frontend.rules.PairRule
 import org.orbit.core.SourcePosition
 import org.orbit.core.Token
 import org.orbit.core.Warning
+import org.orbit.frontend.*
 
 class BlockRule(private vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNode> {
 	sealed class Errors {
@@ -17,7 +14,7 @@ class BlockRule(private vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNod
 			: ParseError("Unexpected token inside block: ${token.type}", sourcePosition)
 	}
 	
-	override fun parse(context: Parser) : BlockNode {
+	override fun parse(context: Parser) : ParseRule.Result {
 		val start = context.expect(TokenTypes.LBrace)
 		var next = context.peek()
 		var body = mutableListOf<Node>()
@@ -31,6 +28,6 @@ class BlockRule(private vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNod
 
 		val end = context.expect(TokenTypes.RBrace)
 		
-		return BlockNode(start, end, body)
+		return +BlockNode(start, end, body)
 	}
 }

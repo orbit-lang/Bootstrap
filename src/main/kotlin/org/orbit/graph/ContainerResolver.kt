@@ -1,30 +1,20 @@
 package org.orbit.graph
 
+import org.koin.core.component.inject
 import org.orbit.core.*
-import org.orbit.core.nodes.ContainerNode
-import org.orbit.core.nodes.Node
-import org.orbit.core.nodes.TraitDefNode
-import org.orbit.core.nodes.TypeDefNode
+import org.orbit.core.nodes.*
 import org.orbit.util.Fatal
 import org.orbit.util.Invocation
 
-class ContainerResolver(
-    override val invocation: Invocation,
-    override val environment: Environment,
-	override val graph: Graph
-) : PathResolver<ContainerNode> {
-	private data class RecursiveDependency(
-		override val sourcePosition: SourcePosition,
-		val path: Path,
-		override val phaseClazz: Class<out ContainerResolver> = ContainerResolver::class.java
-	) : Fatal<ContainerResolver> {
-		override val message: String
-			get() = "Container has a recursive 'within' clause: '${path.toString(OrbitMangler)}'"
-	}
+class ContainerResolver<C: ContainerNode> : PathResolver<C> {
+	override val invocation: Invocation by inject()
+	private val pathResolverUtil: PathResolverUtil by inject()
 
 	// First, we resolve the simple name path
 	private fun resolveFirstPass(input: ContainerNode) : PathResolver.Result {
+		val environment = inject<Environment>().value
 		val path = OrbitMangler.unmangle(input.identifier.value)
+
 		input.annotate(path, Annotations.Path)
 
 		environment.bind(Binding.Kind.Module, input.identifier.value, path)
@@ -33,67 +23,76 @@ class ContainerResolver(
 	}
 
 	private fun completeBinding(input: ContainerNode, simplePath: Path, fullyQualifiedPath: FullyQualifiedPath) {
+		val environment = inject<Environment>().value
+
 		input.annotate(fullyQualifiedPath, Annotations.Path, true)
 		environment.unbind(Binding.Kind.Module, input.identifier.value, simplePath)
 		environment.bind(Binding.Kind.Module, input.identifier.value, fullyQualifiedPath)
 	}
 
-	// Next, we resolve the containers "within" paths where the
-	private fun resolveSecondPass(input: ContainerNode, cycles: Int = 0, context: Path? = null) : PathResolver.Result {
-		val simplePath = input.getPath()
+	// Next, we resolve the containers "within" paths
+	private fun resolveSecondPass(input: C, cycles: Int = 0, context: Path? = null) : PathResolver.Result {
+		val environment = inject<Environment>().value
 
-		if (cycles > 5) {
-			// This is almost certainly a circular reference
-			var message = "Circular reference detected between containers '${simplePath.toString(OrbitMangler)}' and '${context?.toString(OrbitMangler)}'"
+		return environment.withNewScope(input) {
+			val simplePath = input.getPath()
 
-			throw invocation.make<ContainerResolver>(message, input.identifier.firstToken.position)
-		}
+			if (cycles > 5) {
+				// This is almost certainly a circular reference
+				val message =
+					"Circular reference detected between containers '${simplePath.toString(OrbitMangler)}' and '${
+						context?.toString(OrbitMangler)
+					}'"
 
-		val within = input.within
-
-		if (within == null) {
-			// If the container does not declare a parent, it is already fully resolved
-			val fullyQualifiedPath = FullyQualifiedPath(simplePath)
-
-			completeBinding(input, simplePath, fullyQualifiedPath)
-
-			return PathResolver.Result.Success(fullyQualifiedPath)
-		}
-
-		val parent = environment.searchAllScopes {
-			(it.simpleName == within.value || it.path.toString(OrbitMangler) == within.value)
-				&& it.kind == Binding.Kind.Module
-		}.unwrap(this, within.firstToken.position)
-
-		val parentNode = environment.ast.search(ContainerNode::class.java)
-			.find { it.getPathOrNull() == parent.path }!!
-
-		input.within?.annotate(parent.path, Annotations.Path)
-
-		return when (parent.path) {
-			is FullyQualifiedPath -> {
-				// TODO - This check shouldn't be necessary. Something is wrong with this algo
-				val fullyQualifiedPath = when (simplePath.containsSubPath(parent.path)) {
-					true -> FullyQualifiedPath(simplePath)
-					else -> FullyQualifiedPath(parent.path + simplePath)
-				}
-
-				completeBinding(input, simplePath, fullyQualifiedPath)
-				PathResolver.Result.Success(fullyQualifiedPath)
+				throw invocation.make<ContainerResolver<*>>(message, input.identifier.firstToken.position)
 			}
 
-			else -> {
-				val parentResult = resolveSecondPass(parentNode, cycles + 1, simplePath)
+			val within = input.within
 
-				if (parentResult !is PathResolver.Result.Success) {
-					TODO()
-				}
-
-				val fullyQualifiedPath = FullyQualifiedPath(parentResult.path + simplePath)
+			if (within == null) {
+				// If the container does not declare a parent, it is already fully resolved
+				val fullyQualifiedPath = FullyQualifiedPath(simplePath)
 
 				completeBinding(input, simplePath, fullyQualifiedPath)
 
-				PathResolver.Result.Success(fullyQualifiedPath)
+				return@withNewScope PathResolver.Result.Success(fullyQualifiedPath)
+			}
+
+			val parent = environment.searchAllScopes {
+				(it.simpleName == within.value || it.path.toString(OrbitMangler) == within.value)
+						&& it.kind == Binding.Kind.Module
+			}.unwrap(this, within.firstToken.position)
+
+			val parentNode = environment.ast.search(ContainerNode::class.java)
+				.find { it.getPathOrNull() == parent.path }!!
+
+			input.within?.annotate(parent.path, Annotations.Path)
+
+			return@withNewScope when (parent.path) {
+				is FullyQualifiedPath -> {
+					// TODO - This check shouldn't be necessary. Something is wrong with this algo
+					val fullyQualifiedPath = when (simplePath.containsSubPath(parent.path)) {
+						true -> FullyQualifiedPath(simplePath)
+						else -> FullyQualifiedPath(parent.path + simplePath)
+					}
+
+					completeBinding(input, simplePath, fullyQualifiedPath)
+					PathResolver.Result.Success(fullyQualifiedPath)
+				}
+
+				else -> {
+					val parentResult = resolveSecondPass(parentNode as C, cycles + 1, simplePath)
+
+					if (parentResult !is PathResolver.Result.Success) {
+						TODO("@ContainerResolver:91")
+					}
+
+					val fullyQualifiedPath = FullyQualifiedPath(parentResult.path + simplePath)
+
+					completeBinding(input, simplePath, fullyQualifiedPath)
+
+					PathResolver.Result.Success(fullyQualifiedPath)
+				}
 			}
 		}
 	}
@@ -101,8 +100,9 @@ class ContainerResolver(
 	private fun resolveLastPass(input: ContainerNode) : PathResolver.Result {
 		val containerPath = input.getPath()
 
-		val typeResolver = TypeDefPathResolver(invocation, environment, graph, containerPath)
-		val traitResolver = TraitDefPathResolver(invocation, environment, graph, containerPath)
+		// TODO - Would be nice to inject these but the parentPath property makes it tricky
+		val typeResolver = TypeDefPathResolver(containerPath)
+		val traitResolver = TraitDefPathResolver(containerPath)
 
 		val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
 		val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
@@ -122,16 +122,14 @@ class ContainerResolver(
 			typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Last))
 		}
 
-		val methodDefResolver = MethodDefPathResolver(invocation, environment, graph)
-
 		for (methodDef in input.methodDefs) {
-			methodDefResolver.execute(PathResolver.InputType(methodDef, PathResolver.Pass.Initial))
+			pathResolverUtil.resolve(methodDef, PathResolver.Pass.Initial)
 		}
 
 		return PathResolver.Result.Success(containerPath)
 	}
 
-	override fun resolve(input: ContainerNode, pass: PathResolver.Pass) : PathResolver.Result {
+	override fun resolve(input: C, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		return when (pass) {
 			is PathResolver.Pass.Initial -> resolveFirstPass(input)
 			is PathResolver.Pass.Subsequent -> resolveSecondPass(input)

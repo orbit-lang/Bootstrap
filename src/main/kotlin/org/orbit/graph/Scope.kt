@@ -143,7 +143,7 @@ class Scope(
 	fun get(simpleName: String, context: Binding.Kind?) : BindingSearchResult {
 		val imported = imports.map { environment.getScope(it) }
 			.flatMap { it.bindings }
-		val all = bindings + imported //environment.allBindings
+		val all = (bindings + imported).distinct()
 		val matches = all.filter {
 			(it.simpleName == simpleName || it.path.toString(OrbitMangler) == simpleName)
 				&& (context == null || it.kind == context)

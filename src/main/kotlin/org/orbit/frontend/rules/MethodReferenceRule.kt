@@ -2,18 +2,20 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.MethodReferenceNode
 import org.orbit.core.nodes.TypeIdentifierNode
+import org.orbit.frontend.ParseRule
 import org.orbit.frontend.Parser
 import org.orbit.frontend.TokenTypes
+import org.orbit.frontend.unaryPlus
 
 object MethodReferenceRule : ValueRule<MethodReferenceNode> {
-    override fun parse(context: Parser): MethodReferenceNode {
-        val start = context.expect(TokenTypes.TypeIdentifier)
+    override fun parse(context: Parser): ParseRule.Result {
+        val start = context.expectOrNull(TokenTypes.TypeIdentifier)
+            ?: return ParseRule.Result.Failure.Rewind()
 
         val typeIdentifier = TypeIdentifierNode(start, start, start.text)
 
-        if (context.peek().type != TokenTypes.Colon) {
-            context.rewind(listOf(typeIdentifier.firstToken))
-        }
+        context.expectOrNull(TokenTypes.Colon)
+            ?: return ParseRule.Result.Failure.Rewind(listOf(typeIdentifier.firstToken))
 
         context.expect(TokenTypes.Colon)
         context.expect(TokenTypes.Colon)
@@ -21,6 +23,6 @@ object MethodReferenceRule : ValueRule<MethodReferenceNode> {
         val identifier = context.attempt(IdentifierRule)
             ?: throw context.invocation.make<Parser>("Expected identifier", context.peek().position)
 
-        return MethodReferenceNode(start, identifier.lastToken, typeIdentifier, identifier)
+        return +MethodReferenceNode(start, identifier.lastToken, typeIdentifier, identifier)
     }
 }

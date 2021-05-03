@@ -8,6 +8,10 @@ import org.orbit.graph.getAnnotation
 import org.orbit.serial.Serial
 
 open class Path(val relativeNames: List<String>) : Serial {
+	companion object {
+		val empty = Path()
+	}
+
 	constructor(path: String) : this(listOf(path))
 	constructor(vararg paths: String) : this(paths.toList())
 

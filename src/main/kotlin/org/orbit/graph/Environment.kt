@@ -18,6 +18,15 @@ class Environment(
 	    scopes.add(currentScope)
 	}
 
+	fun <T> withNewScope(node: Node, block: (Scope) -> T) : T {
+		openScope(node)
+		try {
+			return block(currentScope)
+		} finally {
+			closeScope()
+		}
+	}
+
 	fun openScope(node: Node) {
 		val scopeId = node.getScopeIdentifierOrNull()
 
@@ -27,15 +36,13 @@ class Environment(
 			return
 		}
 
-		currentScope = Scope(this, currentScope)
+		currentScope = Scope(this, currentScope, imports = mutableSetOf(currentScope.identifier))
 		scopes.add(currentScope)
 	}
 
 	fun closeScope() {
 		currentScope = currentScope.parentScope ?: currentScope
 	}
-
-	//fun import()
 
 	fun mark(node: Node) {
 		node.annotate(currentScope.identifier, Annotations.Scope)

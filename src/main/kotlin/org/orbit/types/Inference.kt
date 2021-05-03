@@ -8,6 +8,7 @@ import org.orbit.core.nodes.*
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
 import org.orbit.util.Invocation
+import org.orbit.util.pluralise
 
 interface Expression {
     fun infer(context: Context) : Type
@@ -136,7 +137,9 @@ class Context(builtIns: Set<Type> = IntrinsicTypes.allTypes) : Serial, Compilati
     }
 }
 
-object TypeInferenceUtil {
+object TypeInferenceUtil : KoinComponent {
+    private val invocation: Invocation by inject()
+
     fun infer(context: Context, expression: Expression): Type
         = expression.infer(context)
 
@@ -144,6 +147,7 @@ object TypeInferenceUtil {
         is IdentifierNode -> infer(context, Variable(expressionNode.identifier))
 
         is TypeIdentifierNode -> {
+            // NOTE - HERE: Node has no path
             context.getType(expressionNode.getPath().toString(OrbitMangler))
         }
 
@@ -160,7 +164,7 @@ object TypeInferenceUtil {
         is InstanceMethodCallNode -> {
             val receiverType = infer(context, expressionNode.receiverNode)
             val functionType = infer(context, expressionNode.methodIdentifierNode) as? Function
-                ?: throw RuntimeException("Right-hand side of method call must resolve to a function type")
+                ?: throw invocation.make<TypeChecker>("Right-hand side of method call must resolve to a function type", expressionNode.firstToken.position)
 
             val parameterTypes = listOf(receiverType) + expressionNode.parameterNodes.map {
                 infer(context, it)
@@ -169,8 +173,7 @@ object TypeInferenceUtil {
             val argumentTypes = functionType.inputTypes
 
             if (parameterTypes.size != argumentTypes.size) {
-                // TODO - It would be nice to send these errors up to Invocation
-                throw RuntimeException("Method '${expressionNode.methodIdentifierNode.identifier}' declares ${argumentTypes.size} arguments (including receiver), found ${parameterTypes.size}")
+                throw invocation.make<TypeChecker>("Method '${expressionNode.methodIdentifierNode.identifier}' declares ${argumentTypes.size} arguments (including receiver), found ${parameterTypes.size}", expressionNode.firstToken.position)
             }
 
             for ((idx, pair) in argumentTypes.zip(parameterTypes).withIndex()) {
@@ -178,7 +181,7 @@ object TypeInferenceUtil {
                 // TODO - Named parameters
                 // NOTE - For now, parameters must match order of declared arguments 1-to-1
                 if (!NominalEquality(pair.first, pair.second).satisfied()) {
-                    throw RuntimeException("Method '${expressionNode.methodIdentifierNode.identifier}' declares a parameter of type '${pair.first.name}' at position $idx, found '${pair.second.name}'")
+                    throw invocation.make<TypeChecker>("Method '${expressionNode.methodIdentifierNode.identifier}' declares a parameter of type '${pair.first.name}' at position $idx, found '${pair.second.name}'", expressionNode.firstToken.position)
                 }
 
             }
@@ -186,7 +189,8 @@ object TypeInferenceUtil {
             functionType.outputType
         }
 
-        is ConstructorNode -> ConstructorInference.infer(context, expressionNode)
+        is ConstructorNode ->
+            ConstructorInference.infer(context, expressionNode)
 
         else ->
             throw RuntimeException("FATAL - Cannot determine type of expression '${expressionNode::class.java}'")
@@ -205,7 +209,7 @@ private object ConstructorInference : TypeInference<ConstructorNode>, KoinCompon
         val parameterTypes = receiverType.members
 
         if (node.parameterNodes.size != parameterTypes.size) {
-            throw invocation.make<TypeChecker>("Type '${receiverType.name}' expects ${parameterTypes.size} constructor parameters, found ${node.parameterNodes.size}", node.firstToken.position)
+            throw invocation.make<TypeChecker>("Type '${receiverType.name}' expects ${parameterTypes.size} constructor ${"parameter".pluralise(parameterTypes.size)}, found ${node.parameterNodes.size}", node.firstToken.position)
         }
 
         for ((idx, pair) in parameterTypes.zip(node.parameterNodes).withIndex()) {

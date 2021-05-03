@@ -2,32 +2,33 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.ConstructorNode
 import org.orbit.core.nodes.ExpressionNode
+import org.orbit.core.nodes.Node
+import org.orbit.frontend.ParseRule
 import org.orbit.frontend.Parser
 import org.orbit.frontend.TokenTypes
+import org.orbit.frontend.unaryPlus
 
 class ConstructorRule : ValueRule<ConstructorNode> {
-    override fun parse(context: Parser) : ConstructorNode {
+    override fun parse(context: Parser) : ParseRule.Result {
         val typeIdentifier = context.attempt(TypeIdentifierRule.RValue)
-            ?: throw context.invocation.make<Parser>("TODO", context.peek().position)
+            ?: return ParseRule.Result.Failure.Rewind()
 
-        if (context.peek().type != TokenTypes.LParen) {
-            context.rewind(listOf(typeIdentifier.firstToken))
-        }
-
-        context.expect(TokenTypes.LParen)
+        context.expectOrNull(TokenTypes.LParen)
+            ?: return ParseRule.Result.Failure.Rewind(listOf(typeIdentifier.firstToken))
 
         var next = context.peek()
 
         if (next.type == TokenTypes.RParen) {
             val last = context.consume()
 
-            return ConstructorNode(typeIdentifier.firstToken, last, typeIdentifier, emptyList())
+            return +ConstructorNode(typeIdentifier.firstToken, last, typeIdentifier, emptyList())
         }
 
         val parameterNodes = mutableListOf<ExpressionNode>()
         while (next.type != TokenTypes.RParen) {
-            val expressionNode = context.attempt(ExpressionRule.defaultValue)
-                ?: throw context.invocation.make<Parser>("TODO", context.peek().position)
+            val expressionNode = context.attemptAny(ExpressionRule.defaultValue)
+                as? ExpressionNode
+                ?: return ParseRule.Result.Failure.Abort
 
             parameterNodes.add(expressionNode)
 
@@ -41,6 +42,6 @@ class ConstructorRule : ValueRule<ConstructorNode> {
 
         val last = context.expect(TokenTypes.RParen)
 
-        return ConstructorNode(typeIdentifier.firstToken, last, typeIdentifier, parameterNodes)
+        return +ConstructorNode(typeIdentifier.firstToken, last, typeIdentifier, parameterNodes)
     }
 }

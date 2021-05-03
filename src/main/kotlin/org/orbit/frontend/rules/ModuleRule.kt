@@ -2,10 +2,7 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.Token
 import org.orbit.core.nodes.*
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
-import org.orbit.frontend.PrefixPhaseAnnotatedParseRule
-import org.orbit.frontend.TokenTypes
+import org.orbit.frontend.*
 
 data class PhaseAnnotationNode(
     override val firstToken: Token,
@@ -18,7 +15,7 @@ data class PhaseAnnotationNode(
 }
 
 object PhaseAnnotationRule : ParseRule<PhaseAnnotationNode> {
-    override fun parse(context: Parser): PhaseAnnotationNode {
+    override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.Annotation)
         val annotationIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
             // TODO - Rename ApiDefRule
@@ -26,12 +23,12 @@ object PhaseAnnotationRule : ParseRule<PhaseAnnotationNode> {
 
         // TODO - Parse annotation parameters
 
-        return PhaseAnnotationNode(start, annotationIdentifierNode.lastToken, annotationIdentifierNode)
+        return +PhaseAnnotationNode(start, annotationIdentifierNode.lastToken, annotationIdentifierNode)
     }
 }
 
 object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
-    override fun parse(context: Parser): ModuleNode {
+    override fun parse(context: Parser) : ParseRule.Result {
         val start = context.expect(TokenTypes.Module)
         val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
             ?: throw context.invocation.make(ApiDefRule.Errors.MissingName(start.position))
@@ -44,10 +41,12 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
 
             while (true) {
                 val expr = LiteralRule(TypeIdentifierRule.RValue).execute(context)
+                    .asSuccessOrNull<RValueNode>()
+                    ?: return ParseRule.Result.Failure.Abort
                     //TypeIdentifierRule.RValue.execute(context)
 
-                val impl = expr.expressionNode as? TypeIdentifierNode
-                    ?: throw Exception("TODO")
+                val impl = expr.node.expressionNode as? TypeIdentifierNode
+                    ?: TODO("@ModuleRule:50")
 
                 implements.add(impl)
 
@@ -104,7 +103,7 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                     entityDefNodes.add(entity!!)
                 }
 
-                else -> throw RuntimeException("TODO")
+                else -> TODO("@ModuleRule:107")
             }
 
             next = context.peek()
@@ -112,6 +111,6 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
 
         val end = context.expect(TokenTypes.RBrace)
 
-        return ModuleNode(start, end, emptyList(), typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes)
+        return +ModuleNode(start, end, emptyList(), typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes)
     }
 }

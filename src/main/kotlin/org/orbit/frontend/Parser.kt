@@ -8,10 +8,34 @@ import org.orbit.frontend.rules.ProgramRule
 import org.orbit.util.Invocation
 import org.orbit.util.OrbitException
 
-interface ParseRule<N: Node>{
-	fun parse(context: Parser): N
+fun <N: Node> N.toParseResultSuccess() : ParseRule.Result.Success<N> {
+	return ParseRule.Result.Success(this)
+}
 
-	fun execute(input: Parser): N {
+operator fun <N: Node> N.unaryPlus() : ParseRule.Result.Success<N> {
+	return this.toParseResultSuccess()
+}
+
+interface ParseRule<N: Node> {
+	interface Result {
+		data class Success<N: Node>(val node: N) : Result
+		sealed class Failure : Result {
+			object Abort : Result
+			data class Rewind(val tokens: List<Token> = emptyList()) : Result
+		}
+
+		fun <R: Result> unwrap() : R? {
+			return this as? R
+		}
+
+		fun <N: Node> asSuccessOrNull() : Success<N>? {
+			return unwrap()
+		}
+	}
+
+	fun parse(context: Parser) : Result
+
+	fun execute(input: Parser): Result {
 		return parse(input)
 	}
 }
@@ -33,22 +57,25 @@ interface AnnotatedParseRule<N: Node> : ParseRule<N> {
 }
 
 interface PrefixPhaseAnnotatedParseRule<N: Node> : AnnotatedParseRule<N> {
-	override fun execute(input: Parser): N {
+	override fun execute(input: Parser) : ParseRule.Result {
 		val phaseAnnotations = parsePhaseAnnotations(input)
 		val result = super.execute(input)
+			.unwrap<ParseRule.Result.Success<N>>()!!
 
-		phaseAnnotations.forEach { result.insertPhaseAnnotation(it) }
+		phaseAnnotations.forEach { result.node.insertPhaseAnnotation(it) }
 
 		return result
 	}
 }
 
 interface PostfixPhaseAnnotationParseRule<N: Node> : AnnotatedParseRule<N> {
-	override fun execute(input: Parser): N {
+	override fun execute(input: Parser): ParseRule.Result {
 		val result = super.execute(input)
+			.unwrap<ParseRule.Result.Success<N>>()!!
+
 		val phaseAnnotations = parsePhaseAnnotations(input)
 
-		phaseAnnotations.forEach { result.insertPhaseAnnotation(it) }
+		phaseAnnotations.forEach { result.node.insertPhaseAnnotation(it) }
 
 		return result
 	}
@@ -123,14 +150,21 @@ class Parser(
 		return marked
 	}
 
-	fun expect(type: TokenType, consume: Boolean = true) : Token {
+	fun expectOrNull(type: TokenType, consume: Boolean = true) : Token? {
 		if (!hasMore) throw Errors.NoMoreTokens
 		val next = peek()
-		
+
 		return when (next.type) {
 			type -> { if (consume) consume() else next }
-			else -> throw invocation.make(Errors.UnexpectedToken(next))
+			else -> null
 		}
+	}
+
+	fun expect(type: TokenType, consume: Boolean = true) : Token {
+		val next = peek()
+
+		return expectOrNull(type, consume)
+			?: throw invocation.make(Errors.UnexpectedToken(next))
 	}
 
 	fun expectAny(vararg types: TokenType, consumes: Boolean) : Token {
@@ -152,11 +186,24 @@ class Parser(
 		tokens.addAll(0, consumed)
 	}
 
+
+
 	fun <N: Node> attempt(rule: ParseRule<N>, rethrow: Boolean = false) : N? {
 		val backup = tokens
 
 		try {
-			return rule.execute(this)
+			val result = rule.execute(this)
+
+			return when (result) {
+				is ParseRule.Result.Success<*> -> result.node as? N
+
+				is ParseRule.Result.Failure.Rewind -> {
+					tokens = (result.tokens + backup).toMutableList()
+					null
+				}
+
+				else -> null
+			}
 		} catch (ex: Exception) {
 			// We don't care why this failed, only that it did
 			if (rethrow) throw ex
@@ -194,17 +241,11 @@ class Parser(
 	}
 	
 	fun attemptAny(vararg of: ParseRule<*>, throwOnNull: Boolean = false) : Node? {
-		val backup = tokens
 		val start = peek()
 		for (rule in of) {
+			println("ATTEMPTING $rule -- ${peek().text}")
 			val expr = attempt(rule)
-
-			if (expr == null) {
-				// Failed to parse this rule, return token stack to
-				// previous state and move on to next rule
-				tokens = backup
-				continue
-			}
+				?: continue
 
 			// Success! No need to try any remaining rules
 			return expr
@@ -223,7 +264,9 @@ class Parser(
 		tokens = input.tokens.toMutableList()
 
 		val ast = topLevelParseRule.execute(this)
-		val result = Result(ast)
+			.unwrap<ParseRule.Result.Success<*>>()!!
+
+		val result = Result(ast.node)
 
 		invocation.mergeResult("Parser", result) {
 			it == "Parser"

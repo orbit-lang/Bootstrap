@@ -5,6 +5,7 @@ import org.orbit.core.nodes.DefineNode
 import org.orbit.core.nodes.Node
 import org.orbit.frontend.ParseRule
 import org.orbit.frontend.Parser
+import org.orbit.frontend.unaryPlus
 
 data class MacroScopeNode(
     override val firstToken: Token,
@@ -15,10 +16,10 @@ data class MacroScopeNode(
 }
 
 class MacroScopeRule : ParseRule<MacroScopeNode> {
-    override fun parse(context: Parser): MacroScopeNode {
+    override fun parse(context: Parser): ParseRule.Result {
         val defineNodes = mutableListOf<DefineNode>()
         var next = context.peek()
 
-        return MacroScopeNode(next, next, emptyList())
+        return +MacroScopeNode(next, next, emptyList())
     }
 }

@@ -1,12 +1,9 @@
 package org.orbit.frontend.rules
 
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
 import org.orbit.core.nodes.*
 import org.orbit.core.Token
-import org.orbit.frontend.TokenTypes
-import org.orbit.frontend.ParseError
 import org.orbit.core.SourcePosition
+import org.orbit.frontend.*
 
 object ApiDefRule : ParseRule<ApiDefNode> {
 	sealed class Errors {
@@ -14,10 +11,10 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 			: ParseError("Api definition requires a name", sourcePosition)
 	}
 
-	override fun parse(context: Parser) : ApiDefNode {
+	override fun parse(context: Parser) : ParseRule.Result {
 		val start = context.expect(TokenTypes.Api)
 		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
-			?: throw context.invocation.make(ApiDefRule.Errors.MissingName(start.position))
+			?: throw context.invocation.make(Errors.MissingName(start.position))
 
 		val withinNode = context.attempt(WithinRule)
 		var with = context.attempt(WithRule)
@@ -53,7 +50,7 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		val end = context.expect(TokenTypes.RBrace)
 
 		// TODO - Parse
-		return ApiDefNode(start, end,
+		return +ApiDefNode(start, end,
 			typeIdentifierNode, emptyList(), methodDefNodes, withinNode, withNodes)
 	}
 }

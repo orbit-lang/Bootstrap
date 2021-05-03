@@ -1,11 +1,9 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.SourcePosition
-import org.orbit.core.nodes.*
-import org.orbit.frontend.ParseError
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
-import org.orbit.frontend.TokenTypes
+import org.orbit.core.nodes.TypeIdentifierNode
+import org.orbit.core.nodes.TypeParametersNode
+import org.orbit.frontend.*
 
 enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : ValueRule<TypeIdentifierNode> {
 	LValue(Context.LValue), RValue(Context.RValue), Naked(Context.Naked);
@@ -28,10 +26,10 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 		Naked
 	}
 
-	override fun parse(context: Parser) : TypeIdentifierNode {
+	override fun parse(context: Parser) : ParseRule.Result {
 		val start = context.expect(TokenTypes.TypeIdentifier)
 
-		if (!context.hasMore) return TypeIdentifierNode(start, start, start.text)
+		if (!context.hasMore) return +TypeIdentifierNode(start, start, start.text)
 
 		val next = context.peek()
 
@@ -44,11 +42,15 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 
 		if (ctxt == Context.RValue || next.type != TokenTypes.LAngle) {
 			// If `Type` is in an rval context, it mustn't consume trailing type parameters
-			return TypeIdentifierNode(start, start, start.text)
+			return +TypeIdentifierNode(start, start, start.text)
 		}
 
-		val typeParametersNode = TypeParametersRule(false).execute(context)
+		val typeParametersNode = TypeParametersRule(false)
+			.execute(context)
+			.asSuccessOrNull<TypeParametersNode>()
+			?.node
+			?: return ParseRule.Result.Failure.Abort
 
-		return TypeIdentifierNode(start, typeParametersNode.lastToken, start.text, typeParametersNode)
+		return +TypeIdentifierNode(start, typeParametersNode.lastToken, start.text, typeParametersNode)
 	}
 }

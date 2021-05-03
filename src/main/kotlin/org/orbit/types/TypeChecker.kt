@@ -1,5 +1,7 @@
 package org.orbit.types
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.core.*
 import org.orbit.core.nodes.*
 import org.orbit.frontend.Parser
@@ -28,7 +30,7 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
             .filter { it.kind is Binding.Kind.Entity }
             .forEach {
                 val typeDefNode = typeDefNodes.find { n -> n.getPath() == it.path }
-                    ?: throw RuntimeException("TODO")
+                    ?: TODO("@TypeChecker:31")
 
                 val resolver = TypeDefTypeResolver(typeDefNode)
 

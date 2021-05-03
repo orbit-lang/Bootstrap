@@ -1,5 +1,6 @@
 package org.orbit.graph
 
+import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.LValueTypeParameter
@@ -7,19 +8,18 @@ import org.orbit.core.nodes.TraitDefNode
 import org.orbit.util.Invocation
 
 class TraitDefPathResolver(
-    override val invocation: Invocation,
-    override val environment: Environment,
-	override val graph: Graph,
     private val parentPath: Path
 ) : PathResolver<TraitDefNode> {
-	override fun resolve(input: TraitDefNode, pass: PathResolver.Pass) : PathResolver.Result {
+	override val invocation: Invocation by inject()
+	private val pathResolverUtil: PathResolverUtil by inject()
+
+	override fun resolve(input: TraitDefNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		val path = parentPath + Path(input.typeIdentifierNode.value)
 
 		input.annotate(path, Annotations.Path)
 		environment.bind(Binding.Kind.Trait, input.typeIdentifierNode.value, path)
 
 		// TODO - Trait conformances
-
 		val parentGraphID = graph.find(parentPath.toString(OrbitMangler))
 		val graphID = graph.insert(input.typeIdentifierNode.value)
 
@@ -38,13 +38,8 @@ class TraitDefPathResolver(
 			}
 		}
 
-		val propertyResolver = PropertyPairPathResolver(invocation, environment, graph)
-
-		propertyResolver.resolveAll(input.propertyPairs, pass)
-
-		val signatureResolver = MethodSignaturePathResolver(invocation, environment, graph)
-
-		signatureResolver.resolveAll(input.signatures, pass)
+		pathResolverUtil.resolveAll(input.propertyPairs, pass)
+		pathResolverUtil.resolveAll(input.signatures, pass)
 
 		environment.closeScope()
 

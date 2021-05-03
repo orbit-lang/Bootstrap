@@ -5,11 +5,10 @@ import org.orbit.core.nodes.ExpressionNode
 import org.orbit.frontend.ParseRule
 import org.orbit.frontend.Parser
 import org.orbit.frontend.TokenTypes
-import org.orbit.serial.Serial
-import org.orbit.serial.Serialiser
+import org.orbit.frontend.unaryPlus
 
 object AssignmentRule : ParseRule<AssignmentStatementNode> {
-    override fun parse(context: Parser): AssignmentStatementNode {
+    override fun parse(context: Parser): ParseRule.Result {
         val start = context.peek()
         val identifier = context.attempt(IdentifierRule, true)!!
 
@@ -24,8 +23,8 @@ object AssignmentRule : ParseRule<AssignmentStatementNode> {
 
         val value = context.attemptAny(*ExpressionRule.defaultValue.valueRules, throwOnNull = true)
             as? ExpressionNode
-            ?: throw context.invocation.make<Parser>("TODO", context.peek().position)
+            ?: throw context.invocation.make<Parser>("@AssignmentRule:27", context.peek().position)
 
-        return AssignmentStatementNode(start, value.lastToken, identifier, value)
+        return +AssignmentStatementNode(start, value.lastToken, identifier, value)
     }
 }

@@ -1,14 +1,13 @@
 package org.orbit.core
 
-import org.koin.core.KoinApplication
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
-import org.orbit.core.nodes.ProgramNode
+import org.orbit.core.nodes.*
 import org.orbit.frontend.*
 import org.orbit.frontend.rules.ProgramRule
-import org.orbit.graph.CanonicalNameResolver
+import org.orbit.graph.*
 import org.orbit.types.Context
 import org.orbit.types.TypeChecker
 import org.orbit.util.*
@@ -22,6 +21,23 @@ private val mainModule = module {
 	single { CompilerGenerator(get()) }
 	single { CompilationEventBus() }
 	single { Printer(get<Invocation>().platform.getPrintableFactory()) }
+	single {
+		val util = PathResolverUtil()
+
+		util.registerPathResolver(ContainerResolver(), ModuleNode::class.java)
+		util.registerPathResolver(AssignmentPathResolver(), AssignmentStatementNode::class.java)
+		util.registerPathResolver(MethodDefPathResolver(), MethodDefNode::class.java)
+		util.registerPathResolver(MethodSignaturePathResolver(), MethodSignatureNode::class.java)
+		util.registerPathResolver(BlockPathResolver(), BlockNode::class.java)
+		util.registerPathResolver(PropertyPairPathResolver(), PairNode::class.java)
+		util.registerPathResolver(ConstructorPathResolver(), ConstructorNode::class.java)
+		util.registerPathResolver(InstanceMethodCallPathResolver(), InstanceMethodCallNode::class.java)
+		util.registerPathResolver(TypeIdentifierPathResolver(), TypeIdentifierNode::class.java)
+		util.registerPathResolver(ExpressionPathResolver(), ExpressionNode::class.java)
+		util.registerPathResolver(RValuePathResolver(), RValueNode::class.java)
+
+		util
+	}
 }
 
 class Main {

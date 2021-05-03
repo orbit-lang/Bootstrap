@@ -1,5 +1,6 @@
 package org.orbit.graph
 
+import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.getPath
@@ -7,12 +8,12 @@ import org.orbit.core.nodes.TypeDefNode
 import org.orbit.util.Invocation
 
 class TypeDefPathResolver(
-    override val invocation: Invocation,
-    override val environment: Environment,
-	override val graph: Graph,
-    private val parentPath: Path
+	private val parentPath: Path
 ) : PathResolver<TypeDefNode> {
-	override fun resolve(input: TypeDefNode, pass: PathResolver.Pass) : PathResolver.Result {
+	override val invocation: Invocation by inject()
+	private val pathResolverUtil: PathResolverUtil by inject()
+
+	override fun resolve(input: TypeDefNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		val path = if (pass == PathResolver.Pass.Initial) {
 			val path = parentPath + Path(input.typeIdentifierNode.value)
 
@@ -27,9 +28,8 @@ class TypeDefPathResolver(
 			path
 		} else {
 			val path = input.getPath()
-			val propertyResolver = PropertyPairPathResolver(invocation, environment, graph)
 
-			propertyResolver.resolveAll(input.propertyPairs, pass)
+			pathResolverUtil.resolveAll(input.propertyPairs, pass)
 
 			path
 		}

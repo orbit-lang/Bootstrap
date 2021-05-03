@@ -16,7 +16,7 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 		)
 	}
 
-	override fun parse(context: Parser) : ExpressionNode {
+	override fun parse(context: Parser) : ParseRule.Result {
 		val start = context.peek()
 		var isGrouped = false
 
@@ -27,7 +27,7 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 		}
 	
 		val expr = context.attemptAny(*valueRules) as? ExpressionNode
-			?: throw Exception("TODO")
+			?: TODO("@ExpressionRule:30")
 
 		val next = context.peek()
 
@@ -43,6 +43,6 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 
 		if (isGrouped) context.expect(TokenTypes.RParen)
 
-		return expr
+		return ParseRule.Result.Success(expr)
 	}
 }
