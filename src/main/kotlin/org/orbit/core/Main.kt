@@ -1,9 +1,21 @@
 package org.orbit.core
 
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import org.koin.core.component.inject
 import org.koin.core.context.startKoin
+import org.koin.core.definition.BeanDefinition
+import org.koin.core.definition.Definition
+import org.koin.core.module.Module
+import org.koin.core.parameter.ParametersDefinition
+import org.koin.core.qualifier.Qualifier
+import org.koin.core.qualifier.StringQualifier
 import org.koin.dsl.module
+import org.koin.mp.KoinPlatformTools
+import org.orbit.backend.codegen.CodeUnit
+import org.orbit.backend.codegen.CodeWriter
+import org.orbit.backend.codegen.ProgramUnitFactory
+import org.orbit.backend.codegen.swift.units.ProgramUnit
 import org.orbit.core.nodes.*
 import org.orbit.frontend.*
 import org.orbit.frontend.rules.ProgramRule
@@ -15,6 +27,42 @@ import org.orbit.util.nodewriters.html.HtmlNodeWriterFactory
 import org.orbit.util.nodewriters.write
 import java.io.FileReader
 import java.io.FileWriter
+
+interface Qualified {
+	fun toQualifier() : Qualifier
+}
+
+interface QualifiedEnum : Qualified {
+	val name: String
+	override fun toQualifier(): Qualifier = StringQualifier(name)
+}
+
+enum class CodeGeneratorQualifier : QualifiedEnum {
+	Swift;
+}
+
+inline fun <reified T> Module.single(
+	qualified: Qualified,
+	noinline definition: Definition<T>
+): BeanDefinition<T> {
+	return single(qualified.toQualifier(), createdAtStart = false, false, definition)
+}
+
+inline fun <reified T : Any> KoinComponent.injectQualified(
+	qualified: Qualified,
+	mode: LazyThreadSafetyMode = KoinPlatformTools.defaultLazyMode(),
+	noinline parameters: ParametersDefinition? = null
+): Lazy<T> =
+	lazy(mode) { get<T>(qualified.toQualifier(), parameters) }
+
+inline fun <reified T> KoinComponent.injectResult(
+	entry: CompilationSchemeEntry,
+	mode: LazyThreadSafetyMode = KoinPlatformTools.defaultLazyMode()
+) : Lazy<T> = lazy(mode) {
+	val invocation = getKoin().get<Invocation>()
+
+	return@lazy invocation.getResult(entry)
+}
 
 private val mainModule = module {
 	single { Invocation(Unix) }
@@ -35,8 +83,32 @@ private val mainModule = module {
 		util.registerPathResolver(TypeIdentifierPathResolver(), TypeIdentifierNode::class.java)
 		util.registerPathResolver(ExpressionPathResolver(), ExpressionNode::class.java)
 		util.registerPathResolver(RValuePathResolver(), RValueNode::class.java)
+		util.registerPathResolver(SymbolLiteralPathResolver, SymbolLiteralNode::class.java)
+		util.registerPathResolver(IntLiteralPathResolver, IntLiteralNode::class.java)
+		util.registerPathResolver(BinaryExpressionResolver(), BinaryExpressionNode::class.java)
+		util.registerPathResolver(IdentifierExpressionPathResolver(), IdentifierNode::class.java)
 
 		util
+	}
+
+	single<ProgramUnitFactory>(CodeGeneratorQualifier.Swift) {
+		object : ProgramUnitFactory {
+			override fun getProgramUnit(input: ProgramNode): CodeUnit<ProgramNode> {
+				return ProgramUnit(input)
+			}
+		}
+	}
+
+	single<Mangler>(CodeGeneratorQualifier.Swift) {
+		object : Mangler {
+			override fun mangle(path: Path): String {
+				return path.relativeNames.joinToString("_")
+			}
+
+			override fun unmangle(name: String): Path {
+				return Path(name.split("_"))
+			}
+		}
 	}
 }
 
@@ -56,7 +128,7 @@ class Main {
 
 				// TODO - Platform should be derived from System.getProperty("os.name") or similar
 				// TODO - Support non *nix platforms
-				val sourceReader = FileSourceProvider(orbit.source)
+				val sourceReader = MultiFileSourceProvider(orbit.source)
 				val dummyPhase = DummyPhase(invocation, sourceReader)
 
 				invocation.storeResult("__source__", sourceReader)
@@ -73,7 +145,7 @@ class Main {
 					val printer = Printer(invocation.platform.getPrintableFactory())
 					val eventName = printer.apply(it.identifier, PrintableKey.Bold, PrintableKey.Underlined)
 
-					println("Compiler event: $eventName")
+					//println("Compiler event: $eventName")
 				}
 
 				compilerGenerator.run(CompilationScheme.Intrinsics)
@@ -92,6 +164,8 @@ class Main {
 
 				fileWriter.write("<html><head>$css</head><body>${html}</body></html>")
 				fileWriter.close()
+
+				println(CodeWriter.execute(parserResult.ast))
 
 //				val frontend = Frontend(invocation)
 //	            val semantics = Semantics(invocation)

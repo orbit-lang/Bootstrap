@@ -11,7 +11,7 @@ class Contract(private val clauses: List<Clause> = emptyList()) : Clause {
         _clauses.add(clause)
     }
 
-    override fun satisfied(): Boolean {
-        return clauses.all { it.satisfied() }
+    override fun isSatisfied(): Boolean {
+        return clauses.all(Clause::isSatisfied)
     }
 }

@@ -1,11 +1,12 @@
 package org.orbit.types
 
-class Function(val inputTypes: List<Type>, val outputType: Type) : Type {
-    override val name: String = "(${inputTypes.joinToString(",") { it.name }}) -> ${outputType.name}"
-    override val behaviours: List<Behaviour> = emptyList()
-    override val members: List<Member> = emptyList()
+class Function(val inputTypes: List<TypeProtocol>, val outputType: TypeProtocol) : TypeProtocol {
+    override val equalitySemantics: Equality<out TypeProtocol> = SignatureEquality
 
-    private fun curry(type: Type) : Type = when (type) {
+    override val name: String = "(${inputTypes.joinToString(",") { it.name }}) -> ${outputType.name}"
+    val behaviours: List<Behaviour> = emptyList()
+
+    private fun curry(type: TypeProtocol) : TypeProtocol = when (type) {
         is Function -> type.curry()
         else -> type
     }

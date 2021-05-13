@@ -2,6 +2,7 @@ package org.orbit.util
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.types.file
 import org.orbit.core.*
 import org.orbit.core.nodes.Node
@@ -12,7 +13,9 @@ open class OrbitException(override val message: String?) : Exception(message) {
 
 class Orbit : CliktCommand() {
 	// TODO - This command will need to accept multiple files
-	val source by argument(help = "Orbit source file to compile").file()
+	val source by argument(help = "Orbit source file to compile")
+		.file()
+		.multiple(true)
 
 	override fun run() {}
 }

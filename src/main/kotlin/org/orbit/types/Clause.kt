@@ -1,47 +1,55 @@
 package org.orbit.types
 
-interface Clause {
-    fun satisfied() : Boolean
+interface Equality<T: TypeProtocol> {
+    fun isSatisfied(context: Context, source: T, target: T) : Boolean
 }
 
-interface Equality : Clause {
-    val source: Type
-    val target: Type
-}
+typealias AnyEquality = Equality<TypeProtocol>
 
-data class NominalEquality(override val source: Type, override val target: Type) : Equality {
-    override fun satisfied(): Boolean {
+object NominalEquality : Equality<Entity> {
+    override fun isSatisfied(context: Context, source: Entity, target: Entity): Boolean {
         return source.name == target.name
     }
 }
 
-data class StructuralEquality(override val source: Type, override val target: Type) : Equality {
-    override fun satisfied(): Boolean {
-        val memberships = source.members.map { Membership(target, it) }
-        val behaviours = source.behaviours.map { Implements(target, it) }
-        val contract = Contract(memberships + behaviours)
+object StructuralEquality : Equality<Entity> {
+    // TODO - Enable equality checking on properties, signatures, or both
+    override fun isSatisfied(context: Context, source: Entity, target: Entity): Boolean {
+        val propertyContracts = source.drawPropertyContracts()
+        val propertyContractsSatisfied = target.executeContracts(context, propertyContracts)
 
-        return contract.satisfied()
+        return propertyContractsSatisfied
     }
 }
 
-data class Membership(private val type: Type, private val member: Member) : Clause {
-    override fun satisfied(): Boolean {
-        val sourceMember = type.members.find {
-            StructuralEquality(member.type, it.type).satisfied()
-                && it.name == member.name
-        } ?: return false
-
-        return StructuralEquality(sourceMember.type, type)
-            .satisfied()
+object SignatureEquality : Equality<SignatureProtocol<TypeProtocol>> {
+    override fun isSatisfied(context: Context, source: SignatureProtocol<TypeProtocol>, target: SignatureProtocol<TypeProtocol>) : Boolean {
+        return (source.receiver.equalitySemantics as Equality<SignatureProtocol<TypeProtocol>>).isSatisfied(context, source, target)
     }
 }
 
-data class Implements(private val type: Type, private val behaviour: Behaviour) : Clause {
-    override fun satisfied(): Boolean {
-        return true
+interface Clause {
+    fun isSatisfied() : Boolean
+}
+
+interface TypeContract {
+    fun isSatisfiedBy(context: Context, type: TypeProtocol) : Boolean
+}
+
+inline fun <reified T: TypeProtocol, reified U: TypeEqualityUtil<T>> Collection<T>.containsOne(context: Context, element: T, typeEqualityUtil: U, using: Equality<out TypeProtocol>) : Boolean {
+    return filter { typeEqualityUtil.equal(context, using as Equality<TypeProtocol>, element, it) }.size == 1
+}
+
+data class PropertyContract(val mandatoryProperty: Property) : TypeContract {
+    override fun isSatisfiedBy(context: Context, type: TypeProtocol): Boolean {
+        if (type !is Entity) return false
+
+        return type.properties.containsOne(context, mandatoryProperty,
+            Property.Companion, mandatoryProperty.type.equalitySemantics)
     }
 }
+
+//data class SignatureContract(val mandatorySignature: )
 
 
 

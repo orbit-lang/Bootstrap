@@ -243,7 +243,6 @@ class Parser(
 	fun attemptAny(vararg of: ParseRule<*>, throwOnNull: Boolean = false) : Node? {
 		val start = peek()
 		for (rule in of) {
-			println("ATTEMPTING $rule -- ${peek().text}")
 			val expr = attempt(rule)
 				?: continue
 

@@ -1,13 +1,7 @@
-module Orb::Types::Intrinsics {
-    type Unit
-    type Int
-}
+module Foo {
+    type Number(i Int, s Symbol)
 
-module Foo with Orb::Types::Intrinsics {
-    type F
-    type Bar(f F)
-
-    (self F) baz (i Int) (Bar) {
-        return Bar(F)
+    (self Number) plus (j Int) (Number) {
+        return Number(j, :a)
     }
 }

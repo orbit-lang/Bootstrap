@@ -1,0 +1,5 @@
+module Orb::Types::Intrinsics {
+    type Unit
+    type Int
+    type Symbol
+}

@@ -56,7 +56,7 @@ internal class ClauseTests {
     fun testEntityStructuralEqualitySingleMemberTrue() {
         // Proposition: A{x: X} == B{x: X}
         // where A & B & X are distinct entities AND A & B have identical contracts.
-        val member = Member("x", Entity("X"))
+        val member = Property("x", Entity("X"))
         val entity1 = Entity("A", listOf(member))
         val entity2 = Entity("B", listOf(member))
         val sut = StructuralEquality(entity1, entity2)
@@ -67,8 +67,8 @@ internal class ClauseTests {
     @Test
     fun testEntityStructuralEqualitySingleMemberFalse() {
         // Proposition: A(x: X) != B(y: Y) contractually.
-        val member1 = Member("x", Entity("X"))
-        val member2 = Member("y", Entity("X"))
+        val member1 = Property("x", Entity("X"))
+        val member2 = Property("y", Entity("X"))
         val entity1 = Entity("A", listOf(member1))
         val entity2 = Entity("B", listOf(member2))
         val sut = StructuralEquality(entity1, entity2)
@@ -165,7 +165,7 @@ internal class ClauseTests {
          * NOTE - x cannot be downcast to y as its contract does not specify a member "a" of type x.
          */
         val x = Entity("x")
-        val y = Entity("y", listOf(Member("a", x)))
+        val y = Entity("y", listOf(Property("a", x)))
         // x -> x
         val lambda = Lambda(x, x)
         // x(y)
@@ -183,7 +183,7 @@ internal class ClauseTests {
          * does not declare a member "a" of type "Any" in its contract.
          * Therefore, y cannot be upcast to x in this context.
          */
-        val x = Entity("x", listOf(Member("a", Entity("Any"))))
+        val x = Entity("x", listOf(Property("a", Entity("Any"))))
         val y = Entity("y")
         // x -> x
         val lambda = Lambda(x, x)

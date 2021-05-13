@@ -99,7 +99,11 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 
 	abstract fun getChildren() : List<Node>
 
-	fun <N: Node> search(nodeType: Class<N>, priorityComparator: PriorityComparator<N> ? = null) : List<N> {
+	inline fun <reified N: Node> search(priorityComparator: PriorityComparator<N>? = null) : List<N> {
+		return search(N::class.java)
+	}
+
+	fun <N: Node> search(nodeType: Class<N>, priorityComparator: PriorityComparator<N>? = null) : List<N> {
 		val matches = getChildren().filterIsInstance(nodeType)
 
 		return matches + getChildren().flatMap { it.search(nodeType) }

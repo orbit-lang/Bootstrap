@@ -1,10 +1,15 @@
 package org.orbit.graph
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.*
+import org.orbit.types.Entity
 import org.orbit.types.IntrinsicTypes
 import org.orbit.util.Invocation
 import org.orbit.util.partial
@@ -109,6 +114,37 @@ class RValuePathResolver : PathResolver<RValueNode> {
 	}
 }
 
+abstract class LiteralPathResolver<N: LiteralNode<*>>(private val path: Path) : PathResolver<N> {
+	override val invocation: Invocation by inject()
+
+	override fun resolve(
+		input: N,
+		pass: PathResolver.Pass,
+		environment: Environment,
+		graph: Graph
+	): PathResolver.Result {
+		input.annotate(path, Annotations.Path)
+
+		return PathResolver.Result.Success(path)
+	}
+}
+
+object IntLiteralPathResolver : LiteralPathResolver<IntLiteralNode>(IntrinsicTypes.Int.path)
+object SymbolLiteralPathResolver : LiteralPathResolver<SymbolLiteralNode>(IntrinsicTypes.Symbol.path)
+
+class IdentifierExpressionPathResolver : PathResolver<IdentifierNode> {
+	override val invocation: Invocation by inject()
+
+	override fun resolve(
+		input: IdentifierNode,
+		pass: PathResolver.Pass,
+		environment: Environment,
+		graph: Graph
+	): PathResolver.Result {
+		return PathResolver.Result.Success(Path.empty)
+	}
+}
+
 class TypeIdentifierPathResolver : PathResolver<TypeIdentifierNode> {
 	override val invocation: Invocation by inject()
 
@@ -150,6 +186,32 @@ class ConstructorPathResolver : PathResolver<ConstructorNode> {
 
 			else -> TODO("@MethodDefPathResolver:95")
 		}
+	}
+}
+
+class BinaryExpressionResolver : PathResolver<BinaryExpressionNode> {
+	override val invocation: Invocation by inject()
+	private val pathResolverUtil: PathResolverUtil by inject()
+
+	override fun resolve(
+		input: BinaryExpressionNode,
+		pass: PathResolver.Pass,
+		environment: Environment,
+		graph: Graph
+	): PathResolver.Result {
+		runBlocking {
+			launch {
+				pathResolverUtil.resolve(input.left, pass)
+			}
+
+			launch {
+				pathResolverUtil.resolve(input.right, pass)
+			}
+		}
+
+		// There is no path associated with runtime values
+		// TODO - If this is an expression on types, there may be a path result here
+		return PathResolver.Result.Success(Path.empty)
 	}
 }
 

@@ -6,6 +6,7 @@ import org.orbit.graph.Annotations
 import org.orbit.graph.Scope
 import org.orbit.graph.getAnnotation
 import org.orbit.serial.Serial
+import org.orbit.util.partial
 
 open class Path(val relativeNames: List<String>) : Serial {
 	companion object {
@@ -22,6 +23,10 @@ open class Path(val relativeNames: List<String>) : Serial {
 		val b = other.relativeNames.toList()
 		// NOTE - Really?!
 		return Path(a + b)
+	}
+
+	operator fun plus(other: String) : Path {
+		return this + Path(other)
 	}
 
 	open operator fun minus(other: Path) : Path {
@@ -95,5 +100,11 @@ object OrbitMangler : Mangler {
 
 	override fun unmangle(name: String) : Path {
 		return Path(name.split("::"))
+	}
+}
+
+operator fun Mangler.plus(other: Mangler) : (String) -> String {
+	return {
+		other.mangle(unmangle(it))
 	}
 }
