@@ -21,6 +21,7 @@ data class CompilationSchemeEntry(val uniqueIdentifier: String, val resultIdenti
 		val observers = CompilationSchemeEntry("Observers", "__source__")
 		val canonicalNameResolver = CompilationSchemeEntry("CanonicalNameResolver", "Parser")
 		val typeChecker = CompilationSchemeEntry("TypeChecker", "CanonicalNameResolver")
+		val mainResolver = CompilationSchemeEntry("MainResolver", "Parser")
 	}
 
 	override fun equals(other: Any?): Boolean = when (other) {
@@ -50,7 +51,8 @@ open class CompilationScheme(entries: List<CompilationSchemeEntry>) : MutableLis
 		CompilationSchemeEntry.parser,
 		CompilationSchemeEntry.canonicalNameResolver,
 		CompilationSchemeEntry.observers,
-		CompilationSchemeEntry.typeChecker
+		CompilationSchemeEntry.typeChecker,
+		CompilationSchemeEntry.mainResolver
 	))
 
 	override fun next(): CompilationSchemeEntry {

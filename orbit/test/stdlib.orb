@@ -3,3 +3,7 @@ module Orb::Types::Intrinsics {
     type Int
     type Symbol
 }
+
+module Orb::Core::Main {
+    type Main(argc Int)
+}

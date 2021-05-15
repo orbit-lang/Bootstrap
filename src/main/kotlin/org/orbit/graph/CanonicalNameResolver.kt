@@ -78,7 +78,7 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		// 2. Run an initial container pass to resolve just the individual container names
 		// NOTE - The only expected failures here are duplicate names
 		val initialPassResults = containers.map {
-			pathResolverUtil.resolve(it, PathResolver.Pass.Initial)
+			pathResolverUtil.resolve(it, PathResolver.Pass.Initial, environment, graph)
 		}
 
 		if (initialPassResults.containsInstances<PathResolver.Result.Failure>()) {
@@ -87,7 +87,7 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		}
 
 		containers.forEach {
-			pathResolverUtil.resolve(it, PathResolver.Pass.Subsequent(2))
+			pathResolverUtil.resolve(it, PathResolver.Pass.Subsequent(2), environment, graph)
 		}
 
 		containers.forEach {
@@ -134,7 +134,7 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		}
 
 		containers.forEach {
-			pathResolverUtil.resolve(it, PathResolver.Pass.Last)
+			pathResolverUtil.resolve(it, PathResolver.Pass.Last, environment, graph)
 		}
 
 		invocation.storeResult(this::class.java.simpleName, environment)

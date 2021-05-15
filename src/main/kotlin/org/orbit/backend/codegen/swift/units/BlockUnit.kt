@@ -4,6 +4,7 @@ import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.Mangler
 import org.orbit.core.nodes.AssignmentStatementNode
 import org.orbit.core.nodes.BlockNode
+import org.orbit.core.nodes.PrintNode
 import org.orbit.core.nodes.ReturnStatementNode
 import org.orbit.util.partial
 
@@ -11,6 +12,14 @@ class ReturnStatementUnit(override val node: ReturnStatementNode, override val d
     override fun generate(mangler: Mangler): String = """
         |return ${RValueUnit(node.valueNode, depth).generate(mangler)}
     """.trimMargin().prependIndent(indent())
+}
+
+class PrintStatementUnit(override val node: PrintNode, override val depth: Int) : CodeUnit<PrintNode> {
+    override fun generate(mangler: Mangler): String {
+        val value = ExpressionUnit(node.expressionNode, depth).generate(mangler)
+
+        return "print($value)".prependIndent(indent())
+    }
 }
 
 class AssignmentStatementUnit(override val node: AssignmentStatementNode, override val depth: Int) : CodeUnit<AssignmentStatementNode> {
@@ -31,6 +40,8 @@ class BlockUnit(override val node: BlockNode, override val depth: Int) : CodeUni
 
                 is AssignmentStatementNode ->
                     AssignmentStatementUnit(it, depth)
+
+                is PrintNode -> PrintStatementUnit(it, depth)
 
                 else ->
                     TODO("Generate code for statement in block: $it")

@@ -21,7 +21,7 @@ class ConstructorRule : ValueRule<ConstructorNode> {
         if (next.type == TokenTypes.RParen) {
             val last = context.consume()
 
-            return +ConstructorNode(typeIdentifier.firstToken, last, typeIdentifier, emptyList())
+            return parseTrailing(context, ConstructorNode(typeIdentifier.firstToken, last, typeIdentifier, emptyList()))
         }
 
         val parameterNodes = mutableListOf<ExpressionNode>()
@@ -42,6 +42,6 @@ class ConstructorRule : ValueRule<ConstructorNode> {
 
         val last = context.expect(TokenTypes.RParen)
 
-        return +ConstructorNode(typeIdentifier.firstToken, last, typeIdentifier, parameterNodes)
+        return parseTrailing(context, ConstructorNode(typeIdentifier.firstToken, last, typeIdentifier, parameterNodes))
     }
 }

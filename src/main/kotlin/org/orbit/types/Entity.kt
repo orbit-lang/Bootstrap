@@ -1,5 +1,6 @@
 package org.orbit.types
 
+import org.orbit.core.Mangler
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.util.toPath
@@ -70,8 +71,8 @@ interface IntrinsicOperators {
 class IntOperators {
     companion object {
         fun all() : Set<TypeProtocol> {
-            return (IntOperators.Prefix.values().map(IntrinsicOperators::getType)
-                + IntOperators.Infix.values().map(IntrinsicOperators::getType)).toSet()
+            return (Prefix.values().map(IntrinsicOperators::getType)
+                + Infix.values().map(IntrinsicOperators::getType)).toSet()
         }
     }
 
@@ -92,7 +93,9 @@ class IntOperators {
 
     enum class Infix(val leftType: TypeProtocol, val rightType: TypeProtocol, override val returnType: TypeProtocol, val symbol: String) : IntrinsicOperators {
         Addition(IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, "+"),
-        Subtraction(IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, "-");
+        Subtraction(IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, "-"),
+        Multiplication(IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, "*");
+        // TODO - Division, Exponentiation, Modulo etc
 
         override val position: OperatorPosition = OperatorPosition.Infix
 
@@ -106,10 +109,11 @@ class IntOperators {
     }
 }
 
-enum class IntrinsicTypes(val type: TypeProtocol) {
+enum class IntrinsicTypes(val type: ValuePositionType) {
     Unit(Type("Orb::Types::Intrinsics::Unit")),
     Int(Type("Orb::Types::Intrinsics::Int")),
-    Symbol(Type("Orb::Types::Intrinsics::Symbol"));
+    Symbol(Type("Orb::Types::Intrinsics::Symbol")),
+    Main(Type("Orb::Core::Main::Main", listOf(Property("argc", IntrinsicTypes.Int.type))));
 
     companion object {
         val allTypes: Set<TypeProtocol>

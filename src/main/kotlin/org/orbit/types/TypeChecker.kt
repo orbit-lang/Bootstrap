@@ -1,5 +1,7 @@
 package org.orbit.types
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.core.*
 import org.orbit.core.nodes.*
 import org.orbit.frontend.Parser
@@ -46,20 +48,32 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
     }
 }
 
-class TypeDefTypeResolver(private val typeDefNode: TypeDefNode) : TypeResolver {
+class TypeDefTypeResolver(private val typeDefNode: TypeDefNode) : TypeResolver, KoinComponent {
+    private val invocation: Invocation by inject()
+
     override fun resolve(environment: Environment, context: Context, binding: Binding): TypeProtocol {
+        var type = Type(typeDefNode.getPath(), emptyList())
+
         val members = mutableListOf<Property>()
-        val behaviours = mutableListOf<Behaviour>()
         for (propertyPair in typeDefNode.propertyPairs) {
             val propertyType = context.getType(propertyPair.getPath())
 
-            members.add(Property(propertyPair.identifierNode.identifier, propertyType))
+            if (propertyType == type) {
+                throw invocation.make<TypeChecker>("Types must not declare properties of their own type: Found property (${propertyPair.identifierNode.identifier} ${propertyType.name}) in type ${type.name}", propertyPair.typeIdentifierNode)
+            }
 
-//            val setterType = Function(, listOf(propertyType), IntrinsicTypes.Unit.type)
-//            val getterType = Function(emptyList(), propertyType)
+            if (propertyType is Entity) {
+                val cyclicProperties = propertyType.properties.filter { it.type == type }
+
+                if (cyclicProperties.isNotEmpty()) {
+                    throw invocation.make<TypeChecker>("Detected cyclic definition between type '${type.name}' and its property (${propertyPair.identifierNode.identifier} ${propertyType.name})", propertyPair.typeIdentifierNode)
+                }
+            }
+
+            members.add(Property(propertyPair.identifierNode.identifier, propertyType))
         }
 
-        val type = Type(typeDefNode.getPath(), members)
+        type = Type(typeDefNode.getPath(), members)
 
         context.add(type)
 
@@ -83,14 +97,16 @@ class MethodTypeResolver : TypeResolver {
 
             val signature = methodNodes[0].signature
             val receiver = signature.receiverTypeNode
-            val argTypes = mutableListOf<TypeProtocol>()
+            val argTypes = mutableListOf<Parameter>()
 
+            var isInstanceMethod = false
             if (receiver.identifierNode.identifier != "Self") {
+                isInstanceMethod = true
                 // TODO - Handle Type methods (no instance receiver)
                 val t = context.getType(receiver.getPath())
 
                 context.bind(receiver.identifierNode.identifier, t)
-                argTypes.add(t)
+                argTypes.add(Parameter(receiver.identifierNode.identifier, t))
             }
 
             signature.parameterNodes.forEach {
@@ -99,20 +115,22 @@ class MethodTypeResolver : TypeResolver {
                 context.bind(it.identifierNode.identifier, t)
                 parameterBindings.add(it.identifierNode.identifier)
 
-                argTypes.add(t)
+                argTypes.add(Parameter(it.identifierNode.identifier, t))
             }
 
-            if (argTypes.isEmpty()) {
-                argTypes.add(IntrinsicTypes.Unit.type)
-            }
-
-            val returnType = if (signature.returnTypeNode == null) {
+            val returnType: ValuePositionType = if (signature.returnTypeNode == null) {
                 IntrinsicTypes.Unit.type
             } else {
-                context.getType(signature.returnTypeNode.getPath())
+                context.getType(signature.returnTypeNode.getPath()) as ValuePositionType
             }
 
-            val funcType = Function(signature.identifierNode.identifier, argTypes, returnType)
+            val receiverType = context.getType(receiver.getPath()) as ValuePositionType
+            val funcType = if (isInstanceMethod) {
+                InstanceSignature(signature.identifierNode.identifier, Parameter(receiver.identifierNode.identifier, receiverType), argTypes, returnType)
+            } else {
+                TypeSignature(signature.identifierNode.identifier, receiverType, argTypes, returnType)
+            }
+
             val body = methodNodes[0].body
 
             if (body.isEmpty) {
@@ -151,6 +169,8 @@ class MethodBodyTypeResolver(private val block: BlockNode, private val returnTyp
                 }
 
                 is AssignmentStatementNode -> AssignmentTypeResolver(node).resolve(environment, localContext, binding)
+
+                is PrintNode -> TypeInferenceUtil.infer(localContext, node.expressionNode)
 
                 is ReturnStatementNode -> {
                     val varExpr = node.valueNode.expressionNode

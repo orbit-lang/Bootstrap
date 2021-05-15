@@ -26,8 +26,18 @@ class ExpressionUnit(override val node: ExpressionNode, override val depth: Int)
             CallUnit(node, depth).generate(mangler)
         is BinaryExpressionNode ->
             BinaryExpressionUnit(node, depth).generate(mangler)
+        is UnaryExpressionNode ->
+            UnaryExpressionUnit(node, depth).generate(mangler)
 
         else -> TODO("@ExpressionUnit:16")
+    }
+}
+
+class UnaryExpressionUnit(override val node: UnaryExpressionNode, override val depth: Int) : CodeUnit<UnaryExpressionNode> {
+    override fun generate(mangler: Mangler): String {
+        val operand = ExpressionUnit(node.operand, depth).generate(mangler)
+
+        return "(${node.operator}($operand))"
     }
 }
 
@@ -36,7 +46,7 @@ class BinaryExpressionUnit(override val node: BinaryExpressionNode, override val
         val left = ExpressionUnit(node.left, depth).generate(mangler)
         val right = ExpressionUnit(node.right, depth).generate(mangler)
 
-        return "$left ${node.operator} $right"
+        return "(($left) ${node.operator} ($right))"
     }
 }
 

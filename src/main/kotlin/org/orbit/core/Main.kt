@@ -12,6 +12,7 @@ import org.koin.core.qualifier.Qualifier
 import org.koin.core.qualifier.StringQualifier
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
+import org.orbit.backend.MainResolver
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.backend.codegen.CodeWriter
 import org.orbit.backend.codegen.ProgramUnitFactory
@@ -27,6 +28,8 @@ import org.orbit.util.nodewriters.html.HtmlNodeWriterFactory
 import org.orbit.util.nodewriters.write
 import java.io.FileReader
 import java.io.FileWriter
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
 interface Qualified {
 	fun toQualifier() : Qualifier
@@ -86,7 +89,9 @@ private val mainModule = module {
 		util.registerPathResolver(SymbolLiteralPathResolver, SymbolLiteralNode::class.java)
 		util.registerPathResolver(IntLiteralPathResolver, IntLiteralNode::class.java)
 		util.registerPathResolver(BinaryExpressionResolver(), BinaryExpressionNode::class.java)
+		util.registerPathResolver(UnaryExpressionResolver(), UnaryExpressionNode::class.java)
 		util.registerPathResolver(IdentifierExpressionPathResolver(), IdentifierNode::class.java)
+		util.registerPathResolver(PrintPathResolver(), PrintNode::class.java)
 
 		util
 	}
@@ -118,54 +123,59 @@ class Main {
 		private val compilerGenerator: CompilerGenerator by inject()
 		private val compilationEventBus: CompilationEventBus by inject()
 
-        @JvmStatic fun main(args: Array<String>) {
-        	try {
-				startKoin { modules(mainModule) }
+        @ExperimentalTime
+		@JvmStatic fun main(args: Array<String>) {
+			println("Compilation completed in " + measureTime {
+				try {
+					startKoin { modules(mainModule) }
 
-	            val orbit = Orbit()
+					val orbit = Orbit()
 
-	            orbit.main(args)
+					orbit.main(args)
 
-				// TODO - Platform should be derived from System.getProperty("os.name") or similar
-				// TODO - Support non *nix platforms
-				val sourceReader = MultiFileSourceProvider(orbit.source)
-				val dummyPhase = DummyPhase(invocation, sourceReader)
+					// TODO - Platform should be derived from System.getProperty("os.name") or similar
+					// TODO - Support non *nix platforms
+					val sourceReader = MultiFileSourceProvider(orbit.source)
+					val dummyPhase = DummyPhase(invocation, sourceReader)
 
-				invocation.storeResult("__source__", sourceReader)
+					invocation.storeResult("__source__", sourceReader)
 
-				compilerGenerator["__source__"] = dummyPhase
-				compilerGenerator[CompilationSchemeEntry.commentParser] = CommentParser(invocation)
-				compilerGenerator[CompilationSchemeEntry.lexer] = Lexer(invocation)
-				compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
-				compilerGenerator[CompilationSchemeEntry.observers] = ObserverPhase(invocation)
-				compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
-				compilerGenerator[CompilationSchemeEntry.typeChecker] = TypeChecker(invocation)
+					compilerGenerator["__source__"] = dummyPhase
+					compilerGenerator[CompilationSchemeEntry.commentParser] = CommentParser(invocation)
+					compilerGenerator[CompilationSchemeEntry.lexer] = Lexer(invocation)
+					compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
+					compilerGenerator[CompilationSchemeEntry.observers] = ObserverPhase(invocation)
+					compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
+					compilerGenerator[CompilationSchemeEntry.typeChecker] = TypeChecker(invocation)
+					compilerGenerator[CompilationSchemeEntry.mainResolver] = MainResolver
 
-				compilationEventBus.events.registerObserver {
-					val printer = Printer(invocation.platform.getPrintableFactory())
-					val eventName = printer.apply(it.identifier, PrintableKey.Bold, PrintableKey.Underlined)
+					compilationEventBus.events.registerObserver {
+						val printer = Printer(invocation.platform.getPrintableFactory())
+						val eventName = printer.apply(it.identifier, PrintableKey.Bold, PrintableKey.Underlined)
 
-					//println("Compiler event: $eventName")
-				}
+						//println("Compiler event: $eventName")
+					}
 
-				compilerGenerator.run(CompilationScheme.Intrinsics)
+					compilerGenerator.run(CompilationScheme.Intrinsics)
 
-				val contextResult = invocation.getResult<Context>(CompilationSchemeEntry.typeChecker)
+					val contextResult = invocation.getResult<Context>(CompilationSchemeEntry.typeChecker)
 
-				val parserResult = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser)
-				val html = (parserResult.ast as ProgramNode).write(HtmlNodeWriterFactory, 0)
+					val parserResult = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser)
+					val html = (parserResult.ast as ProgramNode).write(HtmlNodeWriterFactory, 0)
 
-				val fileReader = FileReader("output.css")
-				val css = fileReader.readText()
+					val fileReader = FileReader("output.css")
+					val css = fileReader.readText()
 
-				fileReader.close()
+					fileReader.close()
 
-				val fileWriter = FileWriter("output.html")
+					val fileWriter = FileWriter("output.html")
 
-				fileWriter.write("<html><head>$css</head><body>${html}</body></html>")
-				fileWriter.close()
+					fileWriter.write("<html><head>$css</head><body>${html}</body></html>")
+					fileWriter.close()
 
-				println(CodeWriter.execute(parserResult.ast))
+					println(CodeWriter.execute(parserResult.ast))
+
+					println(invocation.dumpWarnings())
 
 //				val frontend = Frontend(invocation)
 //	            val semantics = Semantics(invocation)
@@ -217,10 +227,11 @@ class Main {
 //
 //				vm.run()
 //				println(vm.dump())
-			} catch (ex: Exception) {
-				println(ex.message)
+				} catch (ex: Exception) {
+					println(ex.message)
 //				throw ex
-			}
+				}
+			})
         }
     }
 }

@@ -1,8 +1,10 @@
-module Foo {
-    type Number(i Int, s Symbol)
+@Main module Foo {
+    (self Int) add (other Int) (Int) {
+        return self + other
+    }
 
-    (self Number) add () (Int) {
-        return self.i + 1
+    (self Main) main () () {
+        print self.argc
     }
 }
 

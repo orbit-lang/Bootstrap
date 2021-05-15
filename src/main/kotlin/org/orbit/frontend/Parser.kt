@@ -124,8 +124,8 @@ class Parser(
 	var hasMore: Boolean = false
 		get() = tokens.isNotEmpty()
 	
-	fun peek() : Token {
-		return tokens.getOrNull(0)
+	fun peek(lookahead: Int = 0) : Token {
+		return tokens.getOrNull(lookahead)
 			?: throw Errors.NoMoreTokens
 	}
 

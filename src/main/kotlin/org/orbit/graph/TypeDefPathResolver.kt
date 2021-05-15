@@ -29,7 +29,7 @@ class TypeDefPathResolver(
 		} else {
 			val path = input.getPath()
 
-			pathResolverUtil.resolveAll(input.propertyPairs, pass)
+			pathResolverUtil.resolveAll(input.propertyPairs, pass, environment, graph)
 
 			path
 		}

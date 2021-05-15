@@ -92,8 +92,16 @@ class Invocation(val platform: Platform) {
 		return getResults<O>(key).firstOrNull()
 	}
 
-	fun reportWarning(warning: Warning) {
+	fun warn(warning: Warning) {
 		warnings.add(warning)
+	}
+
+	fun warn(message: String, position: SourcePosition) {
+		warn(Warning(message, position))
+	}
+
+	fun warn(message: String, token: Token) {
+		warn(message, token.position)
 	}
 
 	fun reportError(generator: (Printer) -> OrbitError<*>) {

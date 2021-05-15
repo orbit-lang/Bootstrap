@@ -10,6 +10,7 @@ interface ValueRule<E: ExpressionNode> : ParseRule<E>
 class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<ExpressionNode> {
 	companion object {
 		val defaultValue = ExpressionRule(
+			UnaryExpressionRule,
 			ConstructorRule(),
 			LiteralRule()
 		)
@@ -29,6 +30,11 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 			?: TODO("@ExpressionRule:30")
 
 		val next = context.peek()
+
+		if (isGrouped && next.type == TokenTypes.RParen) {
+			context.consume()
+			return parseTrailing(context, expr)
+		}
 
 		if (next.type == TokenTypes.Operator) {
 			try {

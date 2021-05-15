@@ -1,11 +1,13 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.Token
+import org.orbit.graph.PathResolver
 
 abstract class TopLevelDeclarationNode(
 	override val firstToken: Token,
-	override val lastToken: Token
-) : Node(firstToken, lastToken)
+	override val lastToken: Token,
+	override val annotationPass: PathResolver.Pass
+) : AnnotatedNode(firstToken, lastToken, annotationPass)
 
 abstract class ContainerNode(
 	override val firstToken: Token,
@@ -15,7 +17,7 @@ abstract class ContainerNode(
 	open val with: List<TypeIdentifierNode>,
 	open val entityDefs: List<EntityDefNode>,
 	open val methodDefs: List<MethodDefNode>
-) : TopLevelDeclarationNode(firstToken, lastToken)
+) : TopLevelDeclarationNode(firstToken, lastToken, PathResolver.Pass.Last)
 
 data class ApiDefNode(
 	override val firstToken: Token,

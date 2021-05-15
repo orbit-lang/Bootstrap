@@ -1,5 +1,6 @@
 package org.orbit.frontend.rules
 
+import org.orbit.core.nodes.PrintNode
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.core.nodes.TopLevelDeclarationNode
 import org.orbit.frontend.ParseRule

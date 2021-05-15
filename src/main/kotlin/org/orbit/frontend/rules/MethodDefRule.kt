@@ -11,7 +11,7 @@ object MethodDefRule : ParseRule<MethodDefNode> {
 			?: TODO("@MethodDefRule:18")
 
 		// TODO - Parse actual block statements
-		val blockRule = BlockRule(ReturnRule, AssignmentRule, CallRule)
+		val blockRule = BlockRule(PrintRule, ReturnRule, AssignmentRule, CallRule)
 		val body = context.attempt(blockRule, true)
 			?: TODO("@MethodDefRule:23")
 

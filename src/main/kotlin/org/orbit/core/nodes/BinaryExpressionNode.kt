@@ -25,3 +25,14 @@ data class BinaryExpressionNode(
 		json.put("RIGHT", r)
 	}
 }
+
+data class UnaryExpressionNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
+	val operator: String,
+	val operand: ExpressionNode
+) : ExpressionNode(firstToken, lastToken), Serial {
+	override fun getChildren(): List<Node> {
+		return listOf(operand)
+	}
+}

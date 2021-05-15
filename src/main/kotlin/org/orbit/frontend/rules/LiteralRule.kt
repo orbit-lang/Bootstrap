@@ -33,9 +33,9 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRul
 				?.node
 				?: return ParseRule.Result.Failure.Abort
 
-			return +RValueNode(start, typeParametersNode.lastToken, expr, typeParametersNode)
+			return parseTrailing(context, RValueNode(start, typeParametersNode.lastToken, expr, typeParametersNode))
 		}
 
-		return +RValueNode(expr)
+		return parseTrailing(context, RValueNode(expr))
 	}
 }

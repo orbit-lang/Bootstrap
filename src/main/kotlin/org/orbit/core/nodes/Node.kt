@@ -3,6 +3,7 @@ package org.orbit.core.nodes
 import org.json.JSONObject
 import org.orbit.core.Token
 import org.orbit.frontend.rules.PhaseAnnotationNode
+import org.orbit.graph.PathResolver
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
 import org.orbit.util.HtmlWriter
@@ -131,3 +132,5 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 		json.put("node.children", children)
 	}
 }
+
+abstract class AnnotatedNode(firstToken: Token, lastToken: Token, open val annotationPass: PathResolver.Pass) : Node(firstToken, lastToken)

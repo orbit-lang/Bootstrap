@@ -38,8 +38,8 @@ class TraitDefPathResolver(
 			}
 		}
 
-		pathResolverUtil.resolveAll(input.propertyPairs, pass)
-		pathResolverUtil.resolveAll(input.signatures, pass)
+		pathResolverUtil.resolveAll(input.propertyPairs, pass, environment, graph)
+		pathResolverUtil.resolveAll(input.signatures, pass, environment, graph)
 
 		environment.closeScope()
 

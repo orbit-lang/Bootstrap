@@ -1,9 +1,9 @@
 package org.orbit.backend.codegen.swift.units
 
+import org.koin.core.component.KoinComponent
+import org.orbit.backend.Main
 import org.orbit.backend.codegen.CodeUnit
-import org.orbit.core.Mangler
-import org.orbit.core.OrbitMangler
-import org.orbit.core.Path
+import org.orbit.core.*
 import org.orbit.core.nodes.ModuleNode
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.types.IntrinsicTypes
@@ -35,6 +35,9 @@ private object ProgramUtilsUnit {
             |/* Intrinsic Types */
             |${generateTypeAlias(mangler, SwiftAccessModifier.Internal, IntrinsicTypes.Unit)}
             |${generateTypeAlias(mangler, SwiftAccessModifier.Internal, IntrinsicTypes.Int)}
+            |struct ${mangler.mangle(OrbitMangler.unmangle(IntrinsicTypes.Main.type.name))} {
+            |   let argc: Int
+            |}
             |struct ${mangler.mangle(OrbitMangler.unmangle(IntrinsicTypes.Symbol.type.name))} {
             |   static let emptySymbol = Self(value: "")
             |   let value: String
@@ -43,12 +46,27 @@ private object ProgramUtilsUnit {
     }
 }
 
-class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) : CodeUnit<ProgramNode> {
+class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) : CodeUnit<ProgramNode>, KoinComponent {
+    private val main: Main by injectResult(CompilationSchemeEntry.mainResolver)
+
     override fun generate(mangler: Mangler): String {
-        return "${ProgramUtilsUnit.generate(mangler)}\n\n" + node.declarations
+        val modules = "${ProgramUtilsUnit.generate(mangler)}\n\n" + node.declarations
             .filterIsInstance<ModuleNode>()
             .map(partial(::ModuleUnit, depth))
             .map(partial(ModuleUnit::generate, mangler))
             .joinToString(newline(2))
+
+        val mainCall = when (main.mainSignature) {
+            null -> ""
+            else -> {
+                val sig = main.mainSignature!!
+                val rec = (OrbitMangler + mangler)(sig.receiver.type.name)
+                val ret = (OrbitMangler + mangler)(sig.returnType.name)
+
+                "${rec}_main_${rec}_$ret(self: ${rec}(argc: 0))"
+            }
+        }
+
+        return "$modules\n\n$mainCall"
     }
 }

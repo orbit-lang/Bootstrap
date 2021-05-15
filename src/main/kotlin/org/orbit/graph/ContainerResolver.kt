@@ -97,7 +97,7 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 		}
 	}
 
-	private fun resolveLastPass(input: ContainerNode) : PathResolver.Result {
+	private fun resolveLastPass(input: ContainerNode, environment: Environment, graph: Graph) : PathResolver.Result {
 		val containerPath = input.getPath()
 
 		// TODO - Would be nice to inject these but the parentPath property makes it tricky
@@ -123,7 +123,7 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 		}
 
 		for (methodDef in input.methodDefs) {
-			pathResolverUtil.resolve(methodDef, PathResolver.Pass.Initial)
+			pathResolverUtil.resolve(methodDef, PathResolver.Pass.Initial, environment, graph)
 		}
 
 		return PathResolver.Result.Success(containerPath)
@@ -133,7 +133,7 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 		return when (pass) {
 			is PathResolver.Pass.Initial -> resolveFirstPass(input)
 			is PathResolver.Pass.Subsequent -> resolveSecondPass(input)
-			is PathResolver.Pass.Last -> resolveLastPass(input)
+			is PathResolver.Pass.Last -> resolveLastPass(input, environment, graph)
 		}
 	}
 }

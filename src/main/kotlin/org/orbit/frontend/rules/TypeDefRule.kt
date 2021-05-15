@@ -29,6 +29,14 @@ object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
 		var end = typeIdentifierNode.lastToken
 
 		if (next.type == TokenTypes.LParen) {
+			if (context.peek(1).type == TokenTypes.RParen) {
+				// No parameters defined, eat the parens and return
+				context.consume()
+				context.consume()
+
+				return +TypeDefNode(start, end, typeIdentifierNode)
+			}
+
 			// NOTE - We have an ambiguous grammar here.
 			/*
 				EXAMPLE:
@@ -41,7 +49,7 @@ object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
 				be forced to add empty parens, e.g. type T()
 			*/
 
-			// We use a separate parser here to keep our avoid popping from our own token stack,
+			// We use a separate parser here to avoid popping from our own token stack,
 			// which would otherwise be quite difficult to rewind if the following case parses
 
 			val lookaheadParser = Parser(context.invocation, MethodSignatureRule(false))

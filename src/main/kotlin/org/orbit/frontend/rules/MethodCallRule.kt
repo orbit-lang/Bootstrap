@@ -6,6 +6,22 @@ import org.orbit.frontend.Parser
 import org.orbit.frontend.TokenTypes
 import org.orbit.frontend.unaryPlus
 
+fun <N: Node> ParseRule<N>.parseTrailing(context: Parser, result: ExpressionNode) : ParseRule.Result {
+    val next = context.peek()
+
+    if (next.type == TokenTypes.Dot) {
+        val partialCallRule = PartialCallRule(result)
+
+        return partialCallRule.execute(context)
+    } else if (next.type == TokenTypes.Operator) {
+        val partialExpressionRule = PartialExpressionRule(result)
+
+        return partialExpressionRule.execute(context)
+    }
+
+    return +result
+}
+
 object CallRule : ValueRule<CallNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val receiverExpression = context.attempt(ExpressionRule.defaultValue)
@@ -21,7 +37,7 @@ object CallRule : ValueRule<CallNode> {
 
         if (next.type != TokenTypes.LParen) {
             // This looks like a parameter-less call, which is property access
-            return +CallNode(receiverExpression.firstToken, methodIdentifier.lastToken, receiverExpression, methodIdentifier, emptyList(), true)
+            return parseTrailing(context, CallNode(receiverExpression.firstToken, methodIdentifier.lastToken, receiverExpression, methodIdentifier, emptyList(), true))
         }
 
         // We're now parsing a method call
@@ -52,7 +68,7 @@ object CallRule : ValueRule<CallNode> {
 
         val last = context.expect(TokenTypes.RParen)
 
-        return +CallNode(receiverExpression.firstToken, last, receiverExpression, methodIdentifier, parameterNodes)
+        return parseTrailing(context, CallNode(receiverExpression.firstToken, last, receiverExpression, methodIdentifier, parameterNodes))
     }
 }
 
@@ -79,7 +95,7 @@ class PartialCallRule(private val receiverExpression: ExpressionNode) : ValueRul
 
         if (next.type == TokenTypes.RParen) {
             context.consume()
-            return +CallNode(receiverExpression.firstToken, methodIdentifier.lastToken, receiverExpression, methodIdentifier, emptyList())
+            return parseTrailing(context, CallNode(receiverExpression.firstToken, methodIdentifier.lastToken, receiverExpression, methodIdentifier, emptyList()))
         }
 
         val parameterNodes = mutableListOf<ExpressionNode>()
@@ -99,7 +115,7 @@ class PartialCallRule(private val receiverExpression: ExpressionNode) : ValueRul
 
         val last = context.expect(TokenTypes.RParen)
 
-        return +CallNode(receiverExpression.firstToken, last, receiverExpression, methodIdentifier, parameterNodes)
+        return parseTrailing(context, CallNode(receiverExpression.firstToken, last, receiverExpression, methodIdentifier, parameterNodes))
     }
 }
 

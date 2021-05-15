@@ -33,6 +33,12 @@ fun <A, B, C, D> partial(fn: (A, B, C) -> D, b: B, c: C) : (A) -> D {
     }
 }
 
+fun <A, B, C, D, E> partial(fn: (A, B, C, D) -> E, b: B, c: C, d: D) : (A) -> E {
+    return {
+        fn(it, b, c, d)
+    }
+}
+
 fun <A, B, C, D> partialAlt(fn: (A, B, C) -> D, a: A, b: B) : (C) -> D {
     return {
         fn(a, b, it)
