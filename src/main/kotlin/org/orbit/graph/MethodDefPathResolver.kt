@@ -73,11 +73,11 @@ class AssignmentPathResolver : PathResolver<AssignmentStatementNode> {
 	}
 }
 
-class InstanceMethodCallPathResolver : PathResolver<InstanceMethodCallNode> {
+class CallPathResolver : PathResolver<CallNode> {
 	override val invocation: Invocation by inject()
 
 	override fun resolve(
-		input: InstanceMethodCallNode,
+		input: CallNode,
 		pass: PathResolver.Pass,
 		environment: Environment,
 		graph: Graph
@@ -93,7 +93,7 @@ class ExpressionPathResolver : PathResolver<ExpressionNode> {
 	override fun resolve(input: ExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		return when (input) {
 			is ConstructorNode -> pathResolverUtil.resolve(input, pass)
-			is InstanceMethodCallNode -> TODO("HERE")
+			is CallNode -> TODO("HERE")
 			is TypeIdentifierNode -> pathResolverUtil.resolve(input, pass)
 			else -> PathResolver.Result.Success(Path.empty)
 		}

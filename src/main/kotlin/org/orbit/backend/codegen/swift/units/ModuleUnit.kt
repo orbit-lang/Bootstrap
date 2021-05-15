@@ -1,11 +1,11 @@
 package org.orbit.backend.codegen.swift.units
 
 import org.orbit.backend.codegen.CodeUnit
-import org.orbit.core.Mangler
-import org.orbit.core.OrbitMangler
-import org.orbit.core.getPath
+import org.orbit.core.*
+import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.ModuleNode
 import org.orbit.core.nodes.TypeDefNode
+import org.orbit.frontend.Parser
 import org.orbit.util.partial
 
 class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeUnit<ModuleNode> {
@@ -25,9 +25,15 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
             .map(partial(TypeDefUnit::generate, mangler))
             .joinToString(newline())
 
+        val methodDefs = node.methodDefs
+            .map(partial(::MethodDefUnit, depth))
+            .map(partial(MethodDefUnit::generate, mangler))
+            .joinToString(newline())
+
         return """
             |$header
             |$typeDefs
+            |$methodDefs
         """.trimMargin()
     }
 }

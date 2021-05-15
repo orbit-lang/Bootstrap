@@ -79,7 +79,7 @@ private val mainModule = module {
 		util.registerPathResolver(BlockPathResolver(), BlockNode::class.java)
 		util.registerPathResolver(PropertyPairPathResolver(), PairNode::class.java)
 		util.registerPathResolver(ConstructorPathResolver(), ConstructorNode::class.java)
-		util.registerPathResolver(InstanceMethodCallPathResolver(), InstanceMethodCallNode::class.java)
+		util.registerPathResolver(CallPathResolver(), CallNode::class.java)
 		util.registerPathResolver(TypeIdentifierPathResolver(), TypeIdentifierNode::class.java)
 		util.registerPathResolver(ExpressionPathResolver(), ExpressionNode::class.java)
 		util.registerPathResolver(RValuePathResolver(), RValueNode::class.java)

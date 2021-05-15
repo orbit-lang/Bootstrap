@@ -1,7 +1,8 @@
 module Foo {
     type Number(i Int, s Symbol)
 
-    (self Number) plus (j Int) (Number) {
-        return Number(j, :a)
+    (self Number) add () (Int) {
+        return self.i + 1
     }
 }
+

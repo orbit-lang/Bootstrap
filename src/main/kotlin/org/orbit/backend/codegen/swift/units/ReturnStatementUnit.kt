@@ -22,8 +22,32 @@ class ExpressionUnit(override val node: ExpressionNode, override val depth: Int)
             ConstructorUnit(node, depth).generate(mangler)
         is IdentifierNode ->
             IdentifierUnit(node, depth).generate(mangler)
+        is CallNode ->
+            CallUnit(node, depth).generate(mangler)
+        is BinaryExpressionNode ->
+            BinaryExpressionUnit(node, depth).generate(mangler)
 
         else -> TODO("@ExpressionUnit:16")
+    }
+}
+
+class BinaryExpressionUnit(override val node: BinaryExpressionNode, override val depth: Int) : CodeUnit<BinaryExpressionNode> {
+    override fun generate(mangler: Mangler): String {
+        val left = ExpressionUnit(node.left, depth).generate(mangler)
+        val right = ExpressionUnit(node.right, depth).generate(mangler)
+
+        return "$left ${node.operator} $right"
+    }
+}
+
+class CallUnit(override val node: CallNode, override val depth: Int) : CodeUnit<CallNode> {
+    override fun generate(mangler: Mangler): String {
+        if (node.isPropertyAccess) {
+            val receiver = ExpressionUnit(node.receiverExpression, depth).generate(mangler)
+            return "$receiver.${node.messageIdentifier.identifier}"
+        }
+
+        return ""
     }
 }
 
@@ -58,16 +82,10 @@ class ConstructorUnit(override val node: ConstructorNode, override val depth: In
 
         return """ 
             |$targetTypeName($properties)
-        """.trimMargin().prependIndent(indent())
+        """.trimMargin()
     }
 }
 
 class RValueUnit(override val node: RValueNode, override val depth: Int) : CodeUnit<RValueNode> {
     override fun generate(mangler: Mangler): String = ExpressionUnit(node.expressionNode, depth).generate(mangler)
-}
-
-class ReturnStatementUnit(override val node: ReturnStatementNode, override val depth: Int) : CodeUnit<ReturnStatementNode> {
-    override fun generate(mangler: Mangler): String = """
-        |return ${RValueUnit(node.valueNode, depth).generate(mangler)}
-    """.trimMargin().prependIndent(indent())
 }

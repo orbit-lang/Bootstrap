@@ -10,6 +10,7 @@ import org.orbit.serial.Serialiser
 import org.orbit.util.Invocation
 import org.orbit.util.partialAlt
 import org.orbit.util.pluralise
+import kotlin.math.exp
 
 interface Expression {
     fun infer(context: Context, typeAnnotation: TypeProtocol? = null) : TypeProtocol
@@ -29,34 +30,37 @@ data class Binary(val op: String, val left: TypeProtocol, val right: TypeProtoco
         val opFuncName = "${left.name}$op${right.name}"
 
         var matches = context.types
-            .filterIsInstance<Function>()
-            .filter { it.inputTypes == listOf(left, right) }
+            .filterIsInstance<InfixOperator>()
+            .filter { it.leftType == left && it.rightType == right }
 
         if (matches.isEmpty()) {
             // TODO - Source position should be retained as Type metadata
-            throw invocation.make<TypeChecker>("", SourcePosition.unknown)
+            throw invocation.make<TypeChecker>("Cannot find binary operator matching signature '${left.name} $op ${right.name}'", SourcePosition.unknown)
         }
 
         if (matches.size > 1) {
             // We have multiple signatures matching on function parameter types.
             // We need to refine the search by using the type annotation as the expected return type
-            if (typeAnnotation == null) {
-                val types = matches.flatMap { it.inputTypes.map(TypeProtocol::name) }.joinToString(", ")
-                throw invocation.make<TypeChecker>("Multiple candidates found operator with operand types $types", SourcePosition.unknown)
-            } else {
-                // TODO - We need to account for variance here?
-                val sourceEqualitySemantics = typeAnnotation.equalitySemantics as Equality<TypeProtocol>
-                val fn = partialAlt(sourceEqualitySemantics::isSatisfied, context, typeAnnotation)
 
-                matches = matches.filter(fn)
+            // TODO - We need to account for variance here?
+            matches = matches.filter { it.symbol == op }
 
-                if (matches.size == 1) {
-                    // We have a winner!
-                    // NOTE - We can't just return typeAnnotation here because that would effectively
-                    // erase the concrete operator return type if it is ±variant on typeAnnotation.
-                    // e.g. typeAnnotation is Number and 1 + 1 returns Int (which conforms to Number)
-                    return matches.first().outputType
+            if (matches.size == 1) {
+                // We have a winner!
+                // NOTE - We can't just return typeAnnotation here because that would effectively
+                // erase the concrete operator return type if it is ±variant on typeAnnotation.
+                // e.g. typeAnnotation is Number and 1 + 1 returns Int (which conforms to Number)
+                val resultType = matches.first().resultType
+
+                if (typeAnnotation != null) {
+                    val equalitySemantics = typeAnnotation.equalitySemantics as AnyEquality
+
+                    if (!equalitySemantics.isSatisfied(context, typeAnnotation, resultType)) {
+                        throw invocation.make<TypeChecker>("Type '${resultType.name} is not equal to type '${typeAnnotation.name}' using equality semantics '${equalitySemantics}", SourcePosition.unknown)
+                    }
                 }
+
+                return resultType
             }
         }
 
@@ -197,32 +201,59 @@ object TypeInferenceUtil : KoinComponent {
         is RValueNode -> infer(context, expressionNode.expressionNode)
         is IntLiteralNode -> IntrinsicTypes.Int.type
         is SymbolLiteralNode -> IntrinsicTypes.Symbol.type
-        is InstanceMethodCallNode -> {
-            val receiverType = infer(context, expressionNode.receiverNode)
-            val functionType = infer(context, expressionNode.methodIdentifierNode) as? Function
-                ?: throw invocation.make<TypeChecker>("Right-hand side of method call must resolve to a function type", expressionNode.firstToken.position)
+        is CallNode -> {
+            val receiverType = infer(context, expressionNode.receiverExpression)
+                as? Entity
+                ?: throw invocation.make<TypeChecker>("Only entity types may appear on the left-hand side of a call expression", expressionNode.receiverExpression)
 
-            val parameterTypes = listOf(receiverType) + expressionNode.parameterNodes.map {
-                infer(context, it)
-            }
+            if (expressionNode.isPropertyAccess) {
+                val matches = receiverType.properties.filter { it.name == expressionNode.messageIdentifier.identifier }
 
-            val argumentTypes = functionType.inputTypes
-
-            if (parameterTypes.size != argumentTypes.size) {
-                throw invocation.make<TypeChecker>("Method '${expressionNode.methodIdentifierNode.identifier}' declares ${argumentTypes.size} arguments (including receiver), found ${parameterTypes.size}", expressionNode.firstToken.position)
-            }
-
-            for ((idx, pair) in argumentTypes.zip(parameterTypes).withIndex()) {
-                // TODO - Named parameters
-                // NOTE - For now, parameters must match order of declared arguments 1-to-1
-                val equalitySemantics = pair.first.equalitySemantics as AnyEquality
-                if (!equalitySemantics.isSatisfied(context, pair.first, pair.second)) {
-                    throw invocation.make<TypeChecker>("Method '${expressionNode.methodIdentifierNode.identifier}' declares a parameter of type '${pair.first.name}' at position $idx, found '${pair.second.name}'", expressionNode.firstToken.position)
+                if (matches.isEmpty()) {
+                    throw invocation.make<TypeChecker>("Type '${receiverType.name} has no property named '${expressionNode.messageIdentifier.identifier}", expressionNode.messageIdentifier)
+                } else if (matches.size > 1) {
+                    throw invocation.make<TypeChecker>("Type '${receiverType.name} has multiple properties named '${expressionNode.messageIdentifier.identifier}", expressionNode.messageIdentifier)
                 }
 
-            }
+                matches.first().type
+            } else {
+                val receiverType = infer(context, expressionNode.receiverExpression)
 
-            functionType.outputType
+                receiverType
+//                val functionType = infer(context, expressionNode.messageIdentifier) as? Function
+//                    ?: throw invocation.make<TypeChecker>(
+//                        "Right-hand side of method call must resolve to a function type",
+//                        expressionNode.firstToken.position
+//                    )
+//
+//                val parameterTypes = listOf(receiverType) + expressionNode.parameterNodes.map {
+//                    infer(context, it)
+//                }
+//
+//                val argumentTypes = functionType.inputTypes
+//
+//                if (parameterTypes.size != argumentTypes.size) {
+//                    throw invocation.make<TypeChecker>(
+//                        "Method '${expressionNode.messageIdentifier.identifier}' declares ${argumentTypes.size} arguments (including receiver), found ${parameterTypes.size}",
+//                        expressionNode.firstToken.position
+//                    )
+//                }
+//
+//                for ((idx, pair) in argumentTypes.zip(parameterTypes).withIndex()) {
+//                    // TODO - Named parameters
+//                    // NOTE - For now, parameters must match order of declared arguments 1-to-1
+//                    val equalitySemantics = pair.first.equalitySemantics as AnyEquality
+//                    if (!equalitySemantics.isSatisfied(context, pair.first, pair.second)) {
+//                        throw invocation.make<TypeChecker>(
+//                            "Method '${expressionNode.messageIdentifier.identifier}' declares a parameter of type '${pair.first.name}' at position $idx, found '${pair.second.name}'",
+//                            expressionNode.firstToken.position
+//                        )
+//                    }
+//
+//                }
+//
+//                functionType.outputType
+            }
         }
 
         is ConstructorNode ->

@@ -63,7 +63,7 @@ interface IntrinsicOperators {
     val position: OperatorPosition
     val returnType: TypeProtocol
 
-    fun getType() : TypeProtocol
+    fun getType() : Operator
     fun getPath() : Path
 }
 
@@ -81,8 +81,8 @@ class IntOperators {
 
         override val position: OperatorPosition = OperatorPosition.Prefix
 
-        override fun getType(): TypeProtocol {
-            return Lambda(IntrinsicTypes.Int.type, returnType)
+        override fun getType(): Operator {
+            return PrefixOperator(symbol, IntrinsicTypes.Int.type, returnType)
         }
 
         override fun getPath(): Path {
@@ -96,8 +96,8 @@ class IntOperators {
 
         override val position: OperatorPosition = OperatorPosition.Infix
 
-        override fun getType(): TypeProtocol {
-            return Function(listOf(leftType, rightType), returnType)
+        override fun getType(): Operator {
+            return InfixOperator(symbol, leftType, rightType, returnType)
         }
 
         override fun getPath(): Path {

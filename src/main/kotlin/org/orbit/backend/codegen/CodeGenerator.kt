@@ -2,17 +2,21 @@ package org.orbit.backend.codegen
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.*
+import org.orbit.core.CodeGeneratorQualifier
+import org.orbit.core.Mangler
+import org.orbit.core.Phase
+import org.orbit.core.injectQualified
 import org.orbit.core.nodes.Node
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.util.Invocation
+import java.lang.Integer.max
 
 interface CodeUnit<N: Node> {
     val node: N
     val depth: Int
 
     fun generate(mangler: Mangler) : String
-    fun indent(count: Int = depth) : String = "\t".repeat(count)
+    fun indent(count: Int = depth) : String = "\t".repeat(max(0, count))
     fun newline(count: Int = 1) : String = "${"\n".repeat(count)}${indent()}"
 }
 

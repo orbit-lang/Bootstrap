@@ -10,7 +10,6 @@ interface ValueRule<E: ExpressionNode> : ParseRule<E>
 class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<ExpressionNode> {
 	companion object {
 		val defaultValue = ExpressionRule(
-			InstanceMethodCallRule,
 			ConstructorRule(),
 			LiteralRule()
 		)
@@ -36,6 +35,14 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 				val partialExpressionRule = PartialExpressionRule(expr)
 
 				return partialExpressionRule.execute(context)
+			} finally {
+				if (isGrouped) context.expect(TokenTypes.RParen)
+			}
+		} else if (next.type == TokenTypes.Dot) {
+			try {
+				val callRule = PartialCallRule(expr)
+
+				return callRule.execute(context)
 			} finally {
 				if (isGrouped) context.expect(TokenTypes.RParen)
 			}

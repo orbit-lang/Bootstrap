@@ -16,8 +16,14 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
         val returnType = node.returnTypeNode?.getPathOrNull()?.toString(mangler) ?: IntrinsicTypes.Unit.path.toString(mangler)
 
         val header = "/* ($receiverName $receiverType) ${node.identifierNode.identifier} () ($returnType) */"
-        val paramTypes = node.parameterNodes.map { it.getPath().toString(mangler) }
-        val parameters = node.parameterNodes.joinToString(", ") {
+        val parameterNodes = if (receiverName == "Self") {
+            node.parameterNodes
+        } else {
+            listOf(node.receiverTypeNode) + node.parameterNodes
+        }
+
+        val paramTypes = parameterNodes.map { it.getPath().toString(mangler) }
+        val parameters = parameterNodes.joinToString(", ") {
             "${it.identifierNode.identifier}: ${it.getPath().toString(mangler)}"
         }
 

@@ -44,21 +44,11 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Cod
             .map(partial(PropertyDefUnit::generate, mangler))
             .joinToString(newline())
 
-        val ast = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser).ast
-        val methodNodes = ast.search<MethodDefNode>()
-            .filter { it.signature.receiverTypeNode.getPath().toString(mangler) == typePath.toString(mangler) }
-
-        val funcs = methodNodes
-            .map(partial(::MethodDefUnit, depth + 1))
-            .map(partial(MethodDefUnit::generate, mangler))
-            .joinToString(newline())
-
         return """
             |$header
             |$typeDef {
             |$propertyDefs
             |}
-            |$funcs
         """.trimMargin().prependIndent(indent())
     }
 }

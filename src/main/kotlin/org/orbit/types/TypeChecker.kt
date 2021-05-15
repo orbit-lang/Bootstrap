@@ -55,8 +55,8 @@ class TypeDefTypeResolver(private val typeDefNode: TypeDefNode) : TypeResolver {
 
             members.add(Property(propertyPair.identifierNode.identifier, propertyType))
 
-            val setterType = Function(listOf(propertyType), IntrinsicTypes.Unit.type)
-            val getterType = Function(emptyList(), propertyType)
+//            val setterType = Function(, listOf(propertyType), IntrinsicTypes.Unit.type)
+//            val getterType = Function(emptyList(), propertyType)
         }
 
         val type = Type(typeDefNode.getPath(), members)
@@ -112,7 +112,7 @@ class MethodTypeResolver : TypeResolver {
                 context.getType(signature.returnTypeNode.getPath())
             }
 
-            val funcType = Function(argTypes, returnType)
+            val funcType = Function(signature.identifierNode.identifier, argTypes, returnType)
             val body = methodNodes[0].body
 
             if (body.isEmpty) {
@@ -188,10 +188,10 @@ class AssignmentTypeResolver(private val assignmentStatementNode: AssignmentStat
     }
 }
 
-class InstanceMethodCallTypeResolver(private val callNode: InstanceMethodCallNode, private val expectedType: TypeProtocol? = null) : TypeResolver {
+class CallTypeResolver(private val callNode: CallNode, private val expectedType: TypeProtocol? = null) : TypeResolver {
     override fun resolve(environment: Environment, context: Context, binding: Binding): TypeProtocol {
-        val receiverType = TypeInferenceUtil.infer(context, callNode.receiverNode)
-        val functionType = TypeInferenceUtil.infer(context, callNode.methodIdentifierNode) as? Function
+        val receiverType = TypeInferenceUtil.infer(context, callNode.receiverExpression)
+        val functionType = TypeInferenceUtil.infer(context, callNode.messageIdentifier) as? Function
             ?: throw RuntimeException("Right-hand side of method call must resolve to a function type")
 
         // TODO - Infer parameter types from callNode
@@ -203,7 +203,7 @@ class InstanceMethodCallTypeResolver(private val callNode: InstanceMethodCallNod
 
         if (parameterTypes.size != argumentTypes.size) {
             // TODO - It would be nice to send these errors up to Invocation
-            throw RuntimeException("Method '${callNode.methodIdentifierNode.identifier}' declares ${argumentTypes.size} arguments (including receiver), found ${parameterTypes.size}")
+            throw RuntimeException("Method '${callNode.messageIdentifier.identifier}' declares ${argumentTypes.size} arguments (including receiver), found ${parameterTypes.size}")
         }
 
         for ((idx, pair) in argumentTypes.zip(parameterTypes).withIndex()) {
@@ -211,7 +211,7 @@ class InstanceMethodCallTypeResolver(private val callNode: InstanceMethodCallNod
             // NOTE - For now, parameters must match order of declared arguments 1-to-1
             val equalitySemantics = pair.first.equalitySemantics as AnyEquality
             if (!equalitySemantics.isSatisfied(context, pair.first, pair.second)) {
-                throw RuntimeException("Method '${callNode.methodIdentifierNode.identifier}' declares a parameter of type '${pair.first.name}' at position $idx, found '${pair.second.name}'")
+                throw RuntimeException("Method '${callNode.messageIdentifier.identifier}' declares a parameter of type '${pair.first.name}' at position $idx, found '${pair.second.name}'")
             }
 
         }

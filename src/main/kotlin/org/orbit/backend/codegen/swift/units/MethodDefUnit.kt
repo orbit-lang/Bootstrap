@@ -9,7 +9,7 @@ import org.orbit.types.IntrinsicTypes
 class MethodDefUnit(override val node: MethodDefNode, override val depth: Int) : CodeUnit<MethodDefNode> {
     override fun generate(mangler: Mangler) : String {
         val signatureUnit = MethodSignatureUnit(node.signature, depth)
-        val bodyUnit = BlockUnit(node.body, depth)
+        val bodyUnit = BlockUnit(node.body, depth + 1)
 
         return """
             |${signatureUnit.generate(mangler)}
