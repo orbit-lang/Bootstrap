@@ -1,6 +1,12 @@
 @Main module Foo {
     (self Orb::Core::Main::Main) main () () {
-        print :Hello
+        print Main
+    }
+}
+
+@Main module Bar {
+    (self Orb::Core::Main::Main) main () () {
+        print Main
     }
 }
 

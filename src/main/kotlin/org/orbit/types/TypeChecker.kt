@@ -92,6 +92,7 @@ class MethodTypeResolver : TypeResolver {
                 }
 
             if (methodNodes.size > 1 || methodNodes.isEmpty()) {
+                // TODO - Methods are not currently namespaced to their enclosing Container
                 throw TODO("MethodTypeResolver:47")
             }
 

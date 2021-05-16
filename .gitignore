@@ -17,3 +17,6 @@ gradle-app.setting
 # IDE
 .idea/
 *.iml
+
+# Miscellaneous
+output.html
