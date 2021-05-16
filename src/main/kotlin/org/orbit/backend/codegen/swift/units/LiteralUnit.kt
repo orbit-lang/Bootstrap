@@ -9,7 +9,7 @@ import org.orbit.core.nodes.LiteralNode
 import org.orbit.core.nodes.SymbolLiteralNode
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.core.plus
-import org.orbit.types.IntrinsicTypes
+import org.orbit.types.components.IntrinsicTypes
 import java.math.BigInteger
 
 interface LiteralUnit<T> : CodeUnit<LiteralNode<T>>

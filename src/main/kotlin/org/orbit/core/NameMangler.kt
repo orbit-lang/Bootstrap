@@ -6,8 +6,10 @@ import org.orbit.graph.Annotations
 import org.orbit.graph.Scope
 import org.orbit.graph.getAnnotation
 import org.orbit.serial.Serial
-import org.orbit.types.*
-import org.orbit.util.partial
+import org.orbit.types.components.InstanceSignature
+import org.orbit.types.components.Parameter
+import org.orbit.types.components.TypeProtocol
+import org.orbit.types.components.TypeSignature
 
 open class Path(val relativeNames: List<String>) : Serial {
 	companion object {

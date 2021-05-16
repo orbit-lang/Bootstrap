@@ -1,4 +1,4 @@
-package org.orbit.types
+package org.orbit.types.components
 
 class Contract(private val clauses: List<Clause> = emptyList()) : Clause {
     private val _clauses = mutableListOf<Clause>()

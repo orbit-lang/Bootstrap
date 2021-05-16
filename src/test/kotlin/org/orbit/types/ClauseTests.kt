@@ -2,6 +2,9 @@ package org.orbit.types
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.orbit.types.components.Entity
+import org.orbit.types.components.Lambda
+import org.orbit.types.components.Property
 
 internal class ClauseTests {
     @Test

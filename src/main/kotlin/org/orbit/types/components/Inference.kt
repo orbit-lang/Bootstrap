@@ -1,4 +1,4 @@
-package org.orbit.types
+package org.orbit.types.components
 
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
@@ -9,6 +9,7 @@ import org.orbit.graph.Annotations
 import org.orbit.graph.annotate
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
+import org.orbit.types.phase.TypeChecker
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 import org.orbit.util.partialAlt
@@ -257,12 +258,14 @@ object TypeInferenceUtil : KoinComponent {
                 matches.first().type
             } else {
                 val receiverType = infer(context, expressionNode.receiverExpression)
-                val parameterTypes = expressionNode.parameterNodes.map(partialAlt(::infer, context))
+                val parameterTypes = expressionNode.parameterNodes.map(partialAlt(TypeInferenceUtil::infer, context))
 
                 val matches = mutableListOf<SignatureProtocol<*>>()
                 for (binding in context.bindings.values) {
                     if (binding is InstanceSignature) {
-                        val phantomSignature = InstanceSignature(expressionNode.messageIdentifier.identifier, Parameter("", receiverType), listOf(Parameter("", receiverType)) + parameterTypes.map(
+                        val phantomSignature = InstanceSignature(expressionNode.messageIdentifier.identifier, Parameter("", receiverType), listOf(
+                            Parameter("", receiverType)
+                        ) + parameterTypes.map(
                             partialAlt(::Parameter, "")
                         ), IntrinsicTypes.Unit.type)
 

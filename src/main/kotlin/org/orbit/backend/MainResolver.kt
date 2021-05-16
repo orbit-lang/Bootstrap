@@ -4,10 +4,10 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.*
 import org.orbit.frontend.Parser
-import org.orbit.types.Context
-import org.orbit.types.InstanceSignature
-import org.orbit.types.IntrinsicTypes
-import org.orbit.types.Parameter
+import org.orbit.types.components.Context
+import org.orbit.types.components.InstanceSignature
+import org.orbit.types.components.IntrinsicTypes
+import org.orbit.types.components.Parameter
 import org.orbit.util.Invocation
 
 data class Main(val mainSignature: InstanceSignature?) {

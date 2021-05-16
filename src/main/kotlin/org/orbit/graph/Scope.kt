@@ -1,16 +1,10 @@
 package org.orbit.graph
 
 import org.json.JSONObject
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import org.orbit.core.*
 import org.orbit.core.nodes.Node
 import org.orbit.serial.Serial
-import org.orbit.types.Context
-import org.orbit.types.Entity
 import org.orbit.util.*
-import org.orbit.util.PrinterAwareImpl.bold
-import org.orbit.util.PrinterAwareImpl.success
 import java.util.*
 
 data class ScopeIdentifier(private val uuid: UUID) : Serial {

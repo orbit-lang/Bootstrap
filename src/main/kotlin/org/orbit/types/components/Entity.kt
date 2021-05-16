@@ -1,9 +1,8 @@
-package org.orbit.types
+package org.orbit.types.components
 
 import org.orbit.core.Mangler
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.core.plus
 import org.orbit.util.toPath
 
 abstract class Entity(
@@ -102,7 +101,8 @@ class IntOperators {
         }
     }
 
-    enum class Infix(val leftType: TypeProtocol, val rightType: TypeProtocol, override val returnType: TypeProtocol, val symbol: String) : IntrinsicOperators {
+    enum class Infix(val leftType: TypeProtocol, val rightType: TypeProtocol, override val returnType: TypeProtocol, val symbol: String) :
+        IntrinsicOperators {
         Addition(IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, "+"),
         Subtraction(IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, "-"),
         Multiplication(IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, IntrinsicTypes.Int.type, "*");
@@ -124,7 +124,7 @@ enum class IntrinsicTypes(val type: ValuePositionType) {
     Unit(Type("Orb::Types::Intrinsics::Unit")),
     Int(Type("Orb::Types::Intrinsics::Int")),
     Symbol(Type("Orb::Types::Intrinsics::Symbol")),
-    Main(Type("Orb::Core::Main::Main", listOf(Property("argc", IntrinsicTypes.Int.type))));
+    Main(Type("Orb::Core::Main::Main", listOf(Property("argc", Int.type))));
 
     companion object {
         val allTypes: Set<TypeProtocol>

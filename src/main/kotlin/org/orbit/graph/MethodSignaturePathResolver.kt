@@ -5,7 +5,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.SourcePosition
 import org.orbit.core.nodes.MethodSignatureNode
-import org.orbit.types.IntrinsicTypes
+import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.Invocation
 
 class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {

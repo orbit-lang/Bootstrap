@@ -21,7 +21,8 @@ import org.orbit.core.nodes.*
 import org.orbit.frontend.*
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.graph.*
-import org.orbit.types.*
+import org.orbit.types.components.*
+import org.orbit.types.phase.TypeChecker
 import org.orbit.util.*
 import org.orbit.util.nodewriters.html.HtmlNodeWriterFactory
 import org.orbit.util.nodewriters.write

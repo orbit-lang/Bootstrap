@@ -1,8 +1,7 @@
-package org.orbit.types
+package org.orbit.types.components
 
 import org.json.JSONObject
 import org.orbit.serial.Serialiser
-import org.orbit.util.partial
 import org.orbit.util.partialAlt
 
 interface TypeEqualityUtil<T: TypeProtocol> {

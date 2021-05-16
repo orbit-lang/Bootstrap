@@ -4,11 +4,9 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
-import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.TypeDefNode
-import org.orbit.frontend.Parser
-import org.orbit.types.IntrinsicTypes
+import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 

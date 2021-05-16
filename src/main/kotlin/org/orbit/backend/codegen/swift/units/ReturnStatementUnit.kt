@@ -8,7 +8,10 @@ import org.orbit.core.*
 import org.orbit.core.nodes.*
 import org.orbit.graph.Annotations
 import org.orbit.graph.getAnnotation
-import org.orbit.types.*
+import org.orbit.types.components.Context
+import org.orbit.types.components.Entity
+import org.orbit.types.components.Property
+import org.orbit.types.components.SignatureProtocol
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 

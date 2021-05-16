@@ -1,4 +1,4 @@
-package org.orbit.types
+package org.orbit.types.components
 
 //class Application(val lambda: Lambda, val parameter: Type) : Type {
 //    override val name: String = "${lambda.name}(${parameter.name})"

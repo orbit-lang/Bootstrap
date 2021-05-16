@@ -7,10 +7,8 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.*
-import org.orbit.frontend.PrefixPhaseAnnotatedParseRule
 import org.orbit.frontend.rules.PhaseAnnotationNode
-import org.orbit.types.Entity
-import org.orbit.types.IntrinsicTypes
+import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 

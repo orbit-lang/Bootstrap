@@ -1,4 +1,4 @@
-package org.orbit.types
+package org.orbit.types.components
 
 interface Equality<T: TypeProtocol> {
     fun isSatisfied(context: Context, source: T, target: T) : Boolean
@@ -45,7 +45,7 @@ data class PropertyContract(val mandatoryProperty: Property) : TypeContract {
         if (type !is Entity) return false
 
         return type.properties.containsOne(context, mandatoryProperty,
-            Property.Companion, mandatoryProperty.type.equalitySemantics)
+            Property, mandatoryProperty.type.equalitySemantics)
     }
 }
 

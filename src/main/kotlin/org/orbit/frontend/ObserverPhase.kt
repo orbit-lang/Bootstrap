@@ -4,10 +4,8 @@ import org.orbit.core.*
 import org.orbit.core.nodes.ObserverNode
 import org.orbit.graph.Binding
 import org.orbit.graph.Environment
-import org.orbit.graph.MethodDefPathResolver
 import org.orbit.graph.Scope
-import org.orbit.types.MethodTypeResolver
-import org.orbit.types.TypeChecker
+import org.orbit.types.phase.TypeChecker
 import org.orbit.util.Invocation
 
 operator fun IntRange.minus(offset: Int) : IntRange {

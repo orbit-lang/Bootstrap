@@ -4,9 +4,3 @@
     }
 }
 
-@Main module Bar {
-    (self Orb::Core::Main::Main) main () () {
-        print Main
-    }
-}
-
