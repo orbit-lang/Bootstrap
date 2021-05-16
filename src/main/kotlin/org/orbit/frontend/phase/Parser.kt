@@ -1,85 +1,12 @@
-package org.orbit.frontend
+package org.orbit.frontend.phase
 
 import org.orbit.core.*
 import org.orbit.core.nodes.Node
-import org.orbit.frontend.rules.PhaseAnnotationNode
-import org.orbit.frontend.rules.PhaseAnnotationRule
+import org.orbit.frontend.components.ParseError
+import org.orbit.frontend.rules.ParseRule
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.util.Invocation
 import org.orbit.util.OrbitException
-
-fun <N: Node> N.toParseResultSuccess() : ParseRule.Result.Success<N> {
-	return ParseRule.Result.Success(this)
-}
-
-operator fun <N: Node> N.unaryPlus() : ParseRule.Result.Success<N> {
-	return this.toParseResultSuccess()
-}
-
-interface ParseRule<N: Node> {
-	interface Result {
-		data class Success<N: Node>(val node: N) : Result
-		sealed class Failure : Result {
-			object Abort : Result
-			data class Rewind(val tokens: List<Token> = emptyList()) : Result
-		}
-
-		fun <R: Result> unwrap() : R? {
-			return this as? R
-		}
-
-		fun <N: Node> asSuccessOrNull() : Success<N>? {
-			return unwrap()
-		}
-	}
-
-	fun parse(context: Parser) : Result
-
-	fun execute(input: Parser): Result {
-		return parse(input)
-	}
-}
-
-interface AnnotatedParseRule<N: Node> : ParseRule<N> {
-	fun parsePhaseAnnotations(context: Parser) : List<PhaseAnnotationNode> {
-		val result = mutableListOf<PhaseAnnotationNode>()
-		var next = context.peek()
-		while (next.type == TokenTypes.Annotation) {
-			val phaseAnnotationNode = context.attempt(PhaseAnnotationRule)
-				?: throw context.invocation.make<Parser>("Malformed annotation", next.position)
-
-			result.add(phaseAnnotationNode)
-			next = context.peek()
-		}
-
-		return result
-	}
-}
-
-interface PrefixPhaseAnnotatedParseRule<N: Node> : AnnotatedParseRule<N> {
-	override fun execute(input: Parser) : ParseRule.Result {
-		val phaseAnnotations = parsePhaseAnnotations(input)
-		val result = super.execute(input)
-			.unwrap<ParseRule.Result.Success<N>>()!!
-
-		phaseAnnotations.forEach { result.node.insertPhaseAnnotation(it) }
-
-		return result
-	}
-}
-
-interface PostfixPhaseAnnotationParseRule<N: Node> : AnnotatedParseRule<N> {
-	override fun execute(input: Parser): ParseRule.Result {
-		val result = super.execute(input)
-			.unwrap<ParseRule.Result.Success<N>>()!!
-
-		val phaseAnnotations = parsePhaseAnnotations(input)
-
-		phaseAnnotations.forEach { result.node.insertPhaseAnnotation(it) }
-
-		return result
-	}
-}
 
 class Parser(
 	override val invocation: Invocation,

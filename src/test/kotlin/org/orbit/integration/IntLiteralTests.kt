@@ -6,7 +6,7 @@ import org.junit.jupiter.api.assertThrows
 import org.orbit.core.TokenType
 import org.orbit.core.TokenTypeProvider
 import org.orbit.core.nodes.IntLiteralNode
-import org.orbit.frontend.TokenTypes
+import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.rules.IntLiteralRule
 import org.orbit.util.*
 import java.math.BigInteger

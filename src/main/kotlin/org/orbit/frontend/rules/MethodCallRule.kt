@@ -1,26 +1,10 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.*
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
-import org.orbit.frontend.TokenTypes
-import org.orbit.frontend.unaryPlus
-
-fun <N: Node> ParseRule<N>.parseTrailing(context: Parser, result: ExpressionNode) : ParseRule.Result {
-    val next = context.peek()
-
-    if (next.type == TokenTypes.Dot) {
-        val partialCallRule = PartialCallRule(result)
-
-        return partialCallRule.execute(context)
-    } else if (next.type == TokenTypes.Operator) {
-        val partialExpressionRule = PartialExpressionRule(result)
-
-        return partialExpressionRule.execute(context)
-    }
-
-    return +result
-}
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.extensions.parseTrailing
+import org.orbit.frontend.extensions.unaryPlus
 
 object CallRule : ValueRule<CallNode> {
     override fun parse(context: Parser): ParseRule.Result {

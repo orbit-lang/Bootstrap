@@ -3,7 +3,10 @@ package org.orbit.frontend.rules
 import org.orbit.core.SourcePosition
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.core.nodes.TypeParametersNode
-import org.orbit.frontend.*
+import org.orbit.frontend.components.ParseError
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.extensions.unaryPlus
 
 enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : ValueRule<TypeIdentifierNode> {
 	LValue(Context.LValue), RValue(Context.RValue), Naked(Context.Naked);

@@ -2,10 +2,9 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.AssignmentStatementNode
 import org.orbit.core.nodes.ExpressionNode
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
-import org.orbit.frontend.TokenTypes
-import org.orbit.frontend.unaryPlus
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.extensions.unaryPlus
+import org.orbit.frontend.phase.Parser
 
 object AssignmentRule : ParseRule<AssignmentStatementNode> {
     override fun parse(context: Parser): ParseRule.Result {

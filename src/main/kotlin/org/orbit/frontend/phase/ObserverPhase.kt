@@ -1,20 +1,14 @@
-package org.orbit.frontend
+package org.orbit.frontend.phase
 
 import org.orbit.core.*
 import org.orbit.core.nodes.ObserverNode
+import org.orbit.frontend.StringSourceProvider
+import org.orbit.frontend.extensions.*
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Scope
 import org.orbit.types.phase.TypeChecker
 import org.orbit.util.Invocation
-
-operator fun IntRange.minus(offset: Int) : IntRange {
-    return IntRange(start - offset, endInclusive - offset)
-}
-
-fun IntRange.distance() : Int {
-    return (endInclusive - start) + 1
-}
 
 class ObserverPhase(override val invocation: Invocation) : ReifiedPhase<SourceProvider, SourceProvider> {
     override val inputType: Class<SourceProvider> = SourceProvider::class.java

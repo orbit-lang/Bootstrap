@@ -2,7 +2,9 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.Token
 import org.orbit.core.nodes.*
-import org.orbit.frontend.*
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.extensions.unaryPlus
 
 data class PhaseAnnotationNode(
     override val firstToken: Token,

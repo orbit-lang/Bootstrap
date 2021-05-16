@@ -1,10 +1,9 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.SymbolLiteralNode
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
-import org.orbit.frontend.TokenTypes
-import org.orbit.frontend.unaryPlus
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.extensions.unaryPlus
 
 object SymbolRule : ValueRule<SymbolLiteralNode> {
 	override fun parse(context: Parser) : ParseRule.Result {

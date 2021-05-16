@@ -19,6 +19,10 @@ import org.orbit.backend.codegen.ProgramUnitFactory
 import org.orbit.backend.codegen.swift.units.ProgramUnit
 import org.orbit.core.nodes.*
 import org.orbit.frontend.*
+import org.orbit.frontend.phase.CommentParser
+import org.orbit.frontend.phase.Lexer
+import org.orbit.frontend.phase.ObserverPhase
+import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.PathResolverUtil

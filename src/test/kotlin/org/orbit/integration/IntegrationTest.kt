@@ -3,9 +3,9 @@ package org.orbit.integration
 import org.orbit.core.PhaseLinker
 import org.orbit.core.SourceProvider
 import org.orbit.core.TokenTypeProvider
-import org.orbit.frontend.Lexer
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
+import org.orbit.frontend.phase.Lexer
+import org.orbit.frontend.rules.ParseRule
+import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
 
 interface IntegrationTest {

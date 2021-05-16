@@ -1,18 +1,10 @@
-package org.orbit.frontend
+package org.orbit.frontend.phase
 
 import org.orbit.core.*
+import org.orbit.frontend.components.TokenTypes
 import org.orbit.util.Fatal
 import org.orbit.util.Invocation
-
-fun Char.isWhitespace() : Boolean = when (this) {
-	'\n', '\r', ' ', '\t' -> true
-	else -> false
-}
-
-fun Char.isNewline() : Boolean = when (this) {
-	'\n', '\r' -> true
-	else -> false
-}
+import org.orbit.frontend.extensions.*
 
 class Lexer(
 	override val invocation: Invocation,

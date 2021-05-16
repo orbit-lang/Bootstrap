@@ -3,8 +3,9 @@ package org.orbit.frontend
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.fail
 import org.orbit.core.*
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.phase.Lexer
 import org.orbit.util.*
 
 class LexerTests {
@@ -111,7 +112,8 @@ class LexerTests {
 			api A {
 				type T : U
 			}
-		""".trimIndent(), TokenTypes)
+		""".trimIndent(), TokenTypes
+        )
 
 		assertEquals(8, result.size)
 

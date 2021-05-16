@@ -1,11 +1,9 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.*
-import org.orbit.frontend.rules.*
-import org.orbit.frontend.rules.PairRule
-import org.orbit.core.SourcePosition
-import org.orbit.core.Warning
-import org.orbit.frontend.*
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.extensions.unaryPlus
 
 abstract class TypeParameterRule : ParseRule<TypeParameterNode>
 

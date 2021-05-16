@@ -6,7 +6,7 @@ import org.junit.jupiter.api.assertThrows
 import org.orbit.core.TokenType
 import org.orbit.core.TokenTypeProvider
 import org.orbit.core.nodes.*
-import org.orbit.frontend.TokenTypes
+import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.rules.LiteralRule
 import org.orbit.util.OrbitException
 import org.orbit.util.assertIs

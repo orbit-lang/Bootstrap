@@ -8,7 +8,7 @@ import org.orbit.core.*
 import org.orbit.core.nodes.ContainerNode
 import org.orbit.core.nodes.Node
 import org.orbit.core.nodes.ProgramNode
-import org.orbit.frontend.Parser
+import org.orbit.frontend.phase.Parser
 import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.graph.components.Annotations

@@ -1,9 +1,9 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.*
-import org.orbit.frontend.Parser
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.TokenTypes
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.extensions.parseTrailing
 
 interface ValueRule<E: ExpressionNode> : ParseRule<E>
 

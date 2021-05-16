@@ -2,10 +2,8 @@ package org.orbit.backend.codegen.swift.units
 
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
-import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.ModuleNode
 import org.orbit.core.nodes.TypeDefNode
-import org.orbit.frontend.Parser
 import org.orbit.util.partial
 
 class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeUnit<ModuleNode> {

@@ -3,7 +3,7 @@ package org.orbit.backend
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.*
-import org.orbit.frontend.Parser
+import org.orbit.frontend.phase.Parser
 import org.orbit.types.components.Context
 import org.orbit.types.components.InstanceSignature
 import org.orbit.types.components.IntrinsicTypes

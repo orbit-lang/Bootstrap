@@ -3,7 +3,10 @@ package org.orbit.frontend.rules
 import org.orbit.core.nodes.ExpressionNode
 import org.orbit.core.nodes.RValueNode
 import org.orbit.core.nodes.TypeParametersNode
-import org.orbit.frontend.*
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.extensions.parseTrailing
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.extensions.unaryPlus
 
 class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRule<RValueNode> {
 	private companion object {

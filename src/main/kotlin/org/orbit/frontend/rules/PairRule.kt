@@ -2,10 +2,9 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.SourcePosition
 import org.orbit.core.nodes.PairNode
-import org.orbit.frontend.ParseError
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
-import org.orbit.frontend.unaryPlus
+import org.orbit.frontend.components.ParseError
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.extensions.unaryPlus
 
 object PairRule : ParseRule<PairNode> {
 	sealed class Errors {

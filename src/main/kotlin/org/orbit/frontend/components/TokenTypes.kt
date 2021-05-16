@@ -1,4 +1,4 @@
-package org.orbit.frontend
+package org.orbit.frontend.components
 
 import org.orbit.core.TokenType
 import org.orbit.core.TokenTypeProvider

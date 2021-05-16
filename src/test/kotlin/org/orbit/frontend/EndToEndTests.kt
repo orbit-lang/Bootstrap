@@ -3,6 +3,9 @@ package org.orbit.frontend
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.orbit.core.*
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.phase.Lexer
+import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.*
 import java.io.File
 import org.orbit.util.*

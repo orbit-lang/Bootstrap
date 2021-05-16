@@ -6,10 +6,10 @@ import org.orbit.analysis.semantics.RedundantReturnAnalyser
 import org.orbit.analysis.semantics.UnreachableReturnAnalyser
 import org.orbit.analysis.types.IntLiteralAnalyser
 import org.orbit.core.nodes.ProgramNode
-import org.orbit.frontend.CommentParser
-import org.orbit.frontend.Lexer
-import org.orbit.frontend.Parser
-import org.orbit.frontend.TokenTypes
+import org.orbit.frontend.phase.CommentParser
+import org.orbit.frontend.phase.Lexer
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.graph.components.Environment

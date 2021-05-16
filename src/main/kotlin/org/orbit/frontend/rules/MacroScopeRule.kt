@@ -3,9 +3,8 @@ package org.orbit.frontend.rules
 import org.orbit.core.Token
 import org.orbit.core.nodes.DefineNode
 import org.orbit.core.nodes.Node
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
-import org.orbit.frontend.unaryPlus
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.extensions.unaryPlus
 
 data class MacroScopeNode(
     override val firstToken: Token,

@@ -1,21 +1,11 @@
-package org.orbit.frontend
+package org.orbit.frontend.phase
 
-import org.orbit.core.Phase
 import org.orbit.core.ReifiedPhase
 import org.orbit.core.SourceProvider
+import org.orbit.frontend.StringSourceProvider
+import org.orbit.frontend.components.Comment
+import org.orbit.frontend.extensions.isNewline
 import org.orbit.util.Invocation
-
-data class Comment(val type: Comment.Type, val text: String) {
-	enum class Type {
-		SingleLine, MultiLine
-	}
-}
-
-class StringSourceProvider(private val source: String) : SourceProvider {
-	override fun getSource() : String {
-		return source
-	}
-}
 
 class CommentParser(override val invocation: Invocation) :
 	ReifiedPhase<SourceProvider, CommentParser.Result> {

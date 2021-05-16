@@ -4,10 +4,9 @@ import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.core.nodes.TypeIdentifierNode
-import org.orbit.frontend.ParseRule
-import org.orbit.frontend.Parser
-import org.orbit.frontend.TokenTypes
-import org.orbit.frontend.unaryPlus
+import org.orbit.frontend.phase.Parser
+import org.orbit.frontend.components.TokenTypes
+import org.orbit.frontend.extensions.unaryPlus
 
 object TraitDefRule : ParseRule<TraitDefNode> {
 	override fun parse(context: Parser) : ParseRule.Result {

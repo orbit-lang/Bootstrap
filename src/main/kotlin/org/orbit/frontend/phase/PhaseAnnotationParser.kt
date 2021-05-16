@@ -1,4 +1,4 @@
-package org.orbit.frontend
+package org.orbit.frontend.phase
 
 import org.orbit.core.*
 import org.orbit.graph.components.Environment

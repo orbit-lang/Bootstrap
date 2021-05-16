@@ -1,8 +1,10 @@
-package org.orbit.frontend
+package org.orbit.frontend.phase
 
 import org.orbit.core.ReifiedPhase
 import org.orbit.core.SourceProvider
 import org.orbit.core.nodes.DefineNode
+import org.orbit.frontend.StringSourceProvider
+import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.rules.DefineRule
 import org.orbit.util.Invocation
 
