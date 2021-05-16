@@ -1,5 +1,6 @@
 package org.orbit.frontend.rules
 
+import com.github.ajalt.clikt.parsers.OptionParser
 import org.orbit.core.nodes.AssignmentStatementNode
 import org.orbit.core.nodes.ExpressionNode
 import org.orbit.frontend.components.TokenTypes
@@ -14,8 +15,7 @@ object AssignmentRule : ParseRule<AssignmentStatementNode> {
         val next = context.peek()
 
         if (next.type != TokenTypes.Assignment) {
-            // TODO - Something is wrong with automatic rewinding here
-            context.rewind(listOf(start))
+            return ParseRule.Result.Failure.Rewind(listOf(start))
         }
 
         context.expect(TokenTypes.Assignment)

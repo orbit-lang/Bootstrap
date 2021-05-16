@@ -52,7 +52,6 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 
 		val end = context.expect(TokenTypes.RBrace)
 
-		// TODO - Parse
 		return +ApiDefNode(start, end,
 			typeIdentifierNode, emptyList(), methodDefNodes, withinNode, withNodes)
 	}

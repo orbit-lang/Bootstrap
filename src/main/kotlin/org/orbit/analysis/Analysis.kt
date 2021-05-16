@@ -18,7 +18,6 @@ data class Analysis(private val analyser: String, val level: Level, val message:
 	enum class Level(private val str: String, private val printableKey: PrintableKey) {
 		Warning("Warning", PrintableKey.Warning), Error("Error", PrintableKey.Error);
 
-		// TODO - Abstract over platform-specific terminal printing
 		override fun toString() : String = str
 		fun toString(printer: Printer) : String
 			= printer.apply(str, printableKey)
