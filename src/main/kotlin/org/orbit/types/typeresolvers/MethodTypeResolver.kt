@@ -4,8 +4,8 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.getPathOrNull
 import org.orbit.core.nodes.MethodDefNode
-import org.orbit.graph.Binding
-import org.orbit.graph.Environment
+import org.orbit.graph.components.Binding
+import org.orbit.graph.components.Environment
 import org.orbit.types.components.*
 
 class MethodTypeResolver : TypeResolver {

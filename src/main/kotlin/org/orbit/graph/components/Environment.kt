@@ -1,7 +1,10 @@
-package org.orbit.graph
+package org.orbit.graph.components
 
 import org.orbit.core.Path
 import org.orbit.core.nodes.Node
+import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getScopeIdentifier
+import org.orbit.graph.extensions.getScopeIdentifierOrNull
 
 class Environment(
     val ast: Node,

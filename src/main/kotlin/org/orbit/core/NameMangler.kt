@@ -2,9 +2,9 @@ package org.orbit.core
 
 import org.json.JSONObject
 import org.orbit.core.nodes.Node
-import org.orbit.graph.Annotations
-import org.orbit.graph.Scope
-import org.orbit.graph.getAnnotation
+import org.orbit.graph.components.Annotations
+import org.orbit.graph.components.Scope
+import org.orbit.graph.extensions.getAnnotation
 import org.orbit.serial.Serial
 import org.orbit.types.components.InstanceSignature
 import org.orbit.types.components.Parameter

@@ -4,8 +4,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.getPath
 import org.orbit.core.nodes.TypeDefNode
-import org.orbit.graph.Binding
-import org.orbit.graph.Environment
+import org.orbit.graph.components.Binding
+import org.orbit.graph.components.Environment
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeChecker
 import org.orbit.util.Invocation

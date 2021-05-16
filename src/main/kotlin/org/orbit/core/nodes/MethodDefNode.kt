@@ -2,7 +2,7 @@ package org.orbit.core.nodes
 
 import org.json.JSONObject
 import org.orbit.core.Token
-import org.orbit.graph.PathResolver
+import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.serial.Serialiser
 
 data class MethodDefNode(

@@ -11,8 +11,8 @@ import org.orbit.frontend.Lexer
 import org.orbit.frontend.Parser
 import org.orbit.frontend.TokenTypes
 import org.orbit.frontend.rules.ProgramRule
-import org.orbit.graph.CanonicalNameResolver
-import org.orbit.graph.Environment
+import org.orbit.graph.phase.CanonicalNameResolver
+import org.orbit.graph.components.Environment
 import org.orbit.util.Invocation
 
 abstract class PhaseChainBuilder<I: Any, D: DeferredPhase<I, *, *, *>> : AdaptablePhase<I, D>()

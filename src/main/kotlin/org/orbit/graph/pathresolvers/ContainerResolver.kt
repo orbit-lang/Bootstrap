@@ -1,9 +1,16 @@
-package org.orbit.graph
+package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
 import org.orbit.core.*
-import org.orbit.core.nodes.*
-import org.orbit.util.Fatal
+import org.orbit.core.nodes.ContainerNode
+import org.orbit.core.nodes.TraitDefNode
+import org.orbit.core.nodes.TypeDefNode
+import org.orbit.graph.components.Annotations
+import org.orbit.graph.components.Binding
+import org.orbit.graph.components.Environment
+import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.annotate
+import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
 class ContainerResolver<C: ContainerNode> : PathResolver<C> {

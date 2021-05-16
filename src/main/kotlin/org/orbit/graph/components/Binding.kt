@@ -1,9 +1,9 @@
-package org.orbit.graph
+package org.orbit.graph.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 
-data class Binding(val kind: Binding.Kind, val simpleName: String, val path: Path) {
+data class Binding(val kind: Kind, val simpleName: String, val path: Path) {
 	interface Kind {
 		interface Container : Kind
 		interface Entity : Kind

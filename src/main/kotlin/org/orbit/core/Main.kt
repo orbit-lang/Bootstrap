@@ -20,7 +20,9 @@ import org.orbit.backend.codegen.swift.units.ProgramUnit
 import org.orbit.core.nodes.*
 import org.orbit.frontend.*
 import org.orbit.frontend.rules.ProgramRule
-import org.orbit.graph.*
+import org.orbit.graph.pathresolvers.*
+import org.orbit.graph.pathresolvers.util.PathResolverUtil
+import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeChecker
 import org.orbit.util.*

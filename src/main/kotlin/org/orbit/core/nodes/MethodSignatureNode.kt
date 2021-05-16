@@ -1,8 +1,8 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.Token
-import org.orbit.graph.Annotations
-import org.orbit.graph.annotate
+import org.orbit.graph.components.Annotations
+import org.orbit.graph.extensions.annotate
 import org.orbit.serial.Serial
 
 data class MethodSignatureNode(

@@ -1,12 +1,22 @@
-package org.orbit.graph
+package org.orbit.graph.phase
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.module
 import org.orbit.core.*
-import org.orbit.core.nodes.*
+import org.orbit.core.nodes.ContainerNode
+import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.ProgramNode
 import org.orbit.frontend.Parser
+import org.orbit.graph.pathresolvers.PathResolver
+import org.orbit.graph.pathresolvers.util.PathResolverUtil
+import org.orbit.graph.components.Annotations
+import org.orbit.graph.components.Environment
+import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphID
+import org.orbit.graph.extensions.getScopeIdentifier
 import org.orbit.util.*
 
 sealed class GraphErrors {

@@ -6,8 +6,8 @@ import org.orbit.core.getPath
 import org.orbit.core.getResult
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.frontend.Parser
-import org.orbit.graph.Binding
-import org.orbit.graph.Environment
+import org.orbit.graph.components.Binding
+import org.orbit.graph.components.Environment
 import org.orbit.types.components.Context
 import org.orbit.types.components.Type
 import org.orbit.types.typeresolvers.MethodTypeResolver

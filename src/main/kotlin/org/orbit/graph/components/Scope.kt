@@ -1,29 +1,17 @@
-package org.orbit.graph
+package org.orbit.graph.components
 
 import org.json.JSONObject
 import org.orbit.core.*
-import org.orbit.core.nodes.Node
+import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.serial.Serial
-import org.orbit.util.*
-import java.util.*
-
-data class ScopeIdentifier(private val uuid: UUID) : Serial {
-	companion object {
-		fun next() : ScopeIdentifier {
-			return ScopeIdentifier(UUID.randomUUID())
-		}
-	}
-
-	override fun describe(json: JSONObject) {
-		json.put("scope.identifier", uuid.toString())
-	}
-}
+import org.orbit.util.Fatal
+import org.orbit.util.Monoid
 
 class Scope(
 	private val environment: Environment,
-    val parentScope: Scope? = null,
-    val identifier: ScopeIdentifier = ScopeIdentifier.next(),
-    val bindings: MutableList<Binding> = mutableListOf(),
+	val parentScope: Scope? = null,
+	val identifier: ScopeIdentifier = ScopeIdentifier.next(),
+	val bindings: MutableList<Binding> = mutableListOf(),
 	private val imports: MutableSet<ScopeIdentifier> = mutableSetOf()
 ) : Serial, CompilationEventBusAware by CompilationEventBusAwareImpl {
 	sealed class Events(override val identifier: String) : CompilationEvent {
@@ -198,12 +186,4 @@ class Scope(
 	}
 
 	override fun describe(json: JSONObject) {}
-}
-
-fun Node.getScopeIdentifier() : ScopeIdentifier {
-	return getAnnotation<ScopeIdentifier>(Annotations.Scope)!!.value
-}
-
-fun Node.getScopeIdentifierOrNull() : ScopeIdentifier? {
-	return getAnnotation<ScopeIdentifier>(Annotations.Scope)?.value
 }

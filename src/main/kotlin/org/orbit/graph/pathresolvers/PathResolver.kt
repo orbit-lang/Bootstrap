@@ -1,18 +1,13 @@
-package org.orbit.graph
+package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.Path
 import org.orbit.core.Phase
 import org.orbit.core.nodes.Node
-
-fun <N: Node> PathResolver<N>.resolveAll(nodes: List<N>, pass: PathResolver.Pass) {
-	nodes.forEach { execute(PathResolver.InputType(it, pass)) }
-}
-
-fun <N: Node> N.toPathResolverInput(pass: PathResolver.Pass = PathResolver.Pass.Initial) : PathResolver.InputType<N> {
-	return PathResolver.InputType(this, pass)
-}
+import org.orbit.graph.components.Environment
+import org.orbit.graph.components.Graph
+import org.orbit.graph.phase.GraphErrors
 
 interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.Result>, KoinComponent {
 	sealed class Pass {
@@ -30,7 +25,7 @@ interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.
 		val isSuccess: Boolean get() = this is Success
 		val isFailure: Boolean get() = this is Failure
 
-		fun asSuccess() : Result.Success {
+		fun asSuccess() : Success {
 			return this as Success
 		}
 

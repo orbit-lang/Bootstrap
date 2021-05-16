@@ -1,8 +1,8 @@
 package org.orbit.types.typeresolvers
 
 import org.orbit.core.nodes.*
-import org.orbit.graph.Binding
-import org.orbit.graph.Environment
+import org.orbit.graph.components.Binding
+import org.orbit.graph.components.Environment
 import org.orbit.types.components.AnyEquality
 import org.orbit.types.components.Context
 import org.orbit.types.components.TypeInferenceUtil

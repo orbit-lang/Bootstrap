@@ -5,8 +5,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.*
 import org.orbit.core.nodes.*
-import org.orbit.graph.Annotations
-import org.orbit.graph.annotate
+import org.orbit.graph.components.Annotations
+import org.orbit.graph.extensions.annotate
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
 import org.orbit.types.phase.TypeChecker

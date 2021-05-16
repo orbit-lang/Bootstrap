@@ -1,7 +1,7 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.Token
-import org.orbit.graph.PathResolver
+import org.orbit.graph.pathresolvers.PathResolver
 
 abstract class TopLevelDeclarationNode(
 	override val firstToken: Token,

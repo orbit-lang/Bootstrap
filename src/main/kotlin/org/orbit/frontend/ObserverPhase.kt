@@ -2,9 +2,9 @@ package org.orbit.frontend
 
 import org.orbit.core.*
 import org.orbit.core.nodes.ObserverNode
-import org.orbit.graph.Binding
-import org.orbit.graph.Environment
-import org.orbit.graph.Scope
+import org.orbit.graph.components.Binding
+import org.orbit.graph.components.Environment
+import org.orbit.graph.components.Scope
 import org.orbit.types.phase.TypeChecker
 import org.orbit.util.Invocation
 

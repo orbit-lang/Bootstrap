@@ -4,10 +4,13 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.backend.codegen.CodeWriter
-import org.orbit.core.*
+import org.orbit.core.CompilationSchemeEntry
+import org.orbit.core.Mangler
+import org.orbit.core.getPath
+import org.orbit.core.injectResult
 import org.orbit.core.nodes.*
-import org.orbit.graph.Annotations
-import org.orbit.graph.getAnnotation
+import org.orbit.graph.components.Annotations
+import org.orbit.graph.extensions.getAnnotation
 import org.orbit.types.components.Context
 import org.orbit.types.components.Entity
 import org.orbit.types.components.Property

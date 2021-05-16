@@ -1,7 +1,7 @@
 package org.orbit.frontend
 
 import org.orbit.core.*
-import org.orbit.graph.Environment
+import org.orbit.graph.components.Environment
 import org.orbit.util.Invocation
 
 /**

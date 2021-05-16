@@ -1,10 +1,13 @@
-package org.orbit.graph
+package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.getPath
 import org.orbit.core.nodes.TypeDefNode
+import org.orbit.graph.components.*
+import org.orbit.graph.extensions.annotate
+import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
 class TypeDefPathResolver(
