@@ -15,6 +15,7 @@ sealed class GraphEntity {
     open class Vertex(val name: String, val id: ID = ID.random()) : GraphEntity() {
         data class ID(val uuid: UUID) : Serial {
             companion object {
+                val Self = random()
                 fun random() : ID = ID(UUID.randomUUID())
             }
 

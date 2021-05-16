@@ -91,6 +91,10 @@ fun Node.getPath() : Path {
 	return getAnnotation<Path>(Annotations.Path)!!.value
 }
 
+fun Node.getType() : TypeProtocol {
+	return getAnnotation<TypeProtocol>(Annotations.Type)!!.value
+}
+
 interface Mangler {
 	fun mangle(path: Path) : String
 	fun unmangle(name: String) : Path

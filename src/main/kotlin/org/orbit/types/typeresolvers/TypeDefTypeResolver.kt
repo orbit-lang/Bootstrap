@@ -18,7 +18,28 @@ class TraitDefTypeResolver(override val node: TraitDefNode, override val binding
     constructor(pair: Pair<TraitDefNode, Binding>) : this(pair.first, pair.second)
 
     override fun resolve(environment: Environment, context: Context): Trait {
-        return Trait(Path.empty)
+        var trait = Trait(node.getPath(), emptyList())
+
+        val members = mutableListOf<Property>()
+        for (propertyPair in node.propertyPairs) {
+            val propertyType = context.getType(propertyPair.getPath())
+
+            if (propertyType == trait) {
+                throw invocation.make<TypeChecker>("Traits must not declare properties of their own type: Found property (${propertyPair.identifierNode.identifier} ${propertyType.name}) in trait ${trait.name}", propertyPair.typeIdentifierNode)
+            }
+
+            if (propertyType is Entity) {
+                val cyclicProperties = propertyType.properties.filter { it.type == trait }
+
+                if (cyclicProperties.isNotEmpty()) {
+                    throw invocation.make<TypeChecker>("Detected cyclic definition between trait '${trait.name}' and its property (${propertyPair.identifierNode.identifier} ${propertyType.name})", propertyPair.typeIdentifierNode)
+                }
+            }
+
+            members.add(Property(propertyPair.identifierNode.identifier, propertyType))
+        }
+
+        return trait
     }
 }
 

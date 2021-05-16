@@ -18,11 +18,9 @@ import org.orbit.types.components.Context
 import org.orbit.types.components.Trait
 import org.orbit.types.components.Type
 import org.orbit.types.components.TypeProtocol
-import org.orbit.types.typeresolvers.MethodTypeResolver
-import org.orbit.types.typeresolvers.TraitDefTypeResolver
-import org.orbit.types.typeresolvers.TypeDefTypeResolver
-import org.orbit.types.typeresolvers.TypeResolver
+import org.orbit.types.typeresolvers.*
 import org.orbit.util.Invocation
+import org.orbit.util.dispose
 import org.orbit.util.partial
 
 fun <K: Binding.Kind> Scope.getBindingsByKind(kind: K) : List<Binding> {
@@ -80,12 +78,21 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
             .map(partial(TraitDefTypeResolver::resolve, input, context))
             .forEach(context::add)
 
-        input.scopes
+        val m = input.scopes
             .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Method))
-            .filterNodes(methodDefNodes) { n, b -> n.signature.getPathOrNull() == b.path }
-            .map(::MethodTypeResolver)
-            .map(partial(MethodTypeResolver::resolve, input, context))
-            .forEach { context.bind(it.toString(OrbitMangler), it) }
+            .filterNodes(methodDefNodes) { n, b ->
+                n.signature.getPathOrNull() == b.path
+            }
+
+        m.map { Pair(it.first.signature, it.second) }
+            .map(::MethodSignatureTypeResolver)
+            .map(partial(MethodSignatureTypeResolver::resolve, input, context))
+            .forEach {
+                context.bind(it.toString(OrbitMangler), it)
+            }
+
+        m.map(::MethodTypeResolver)
+            .forEach(dispose(partial(MethodTypeResolver::resolve, input, context)))
 
         invocation.storeResult(this::class.java.simpleName, context)
 

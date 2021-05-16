@@ -55,7 +55,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 			.slice(IntRange(path.relativeNames.indexOf(name), path.relativeNames.size - 1))
 			.joinToString("::")
 
-		val receiverID = graph.find(receiverBinding.path.toString(OrbitMangler))
+		val receiverID = graph.find(receiverBinding)
 		val vertexID = graph.insert(methodName)
 
 		graph.link(receiverID, vertexID)

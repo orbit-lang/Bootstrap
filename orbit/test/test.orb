@@ -1,8 +1,14 @@
 @Main module Foo {
-    trait T
+    trait T {
+        (self Self) foo () ()
+    }
+
+    (Int) bar () (Int) {
+        return 1
+    }
 
     (self Orb::Core::Main::Main) main () () {
-        print 2 + 2
+        print Int.bar()
     }
 }
 

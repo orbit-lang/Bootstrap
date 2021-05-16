@@ -16,7 +16,7 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 			?: TODO("@TraitDefRule:18")
 
 		var next = context.peek()
-		var propertyPairs = emptyList<PairNode>()
+		val propertyPairs = mutableListOf<PairNode>()
 
 		var end = typeIdentifierNode.lastToken
 
@@ -38,7 +38,7 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 				val propertyPair = context.attempt(PairRule)
 					?: TODO("@TraitDefRule:41")
 
-				propertyPairs += propertyPair
+				propertyPairs.add(propertyPair)
 
 				next = context.peek()
 

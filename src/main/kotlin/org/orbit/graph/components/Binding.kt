@@ -16,6 +16,10 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) {
 		object Method : Kind
 	}
 
+	companion object {
+		val Self = Binding(Binding.Kind.Self, "Self", Path.empty)
+	}
+
 	override fun equals(other: Any?) : Boolean = when (other) {
 		// Bindings can share a simple name, but must resolve to unique canonical names
 		is Binding -> other.kind == kind && other.simpleName == simpleName && other.path == path

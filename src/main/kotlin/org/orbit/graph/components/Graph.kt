@@ -1,5 +1,6 @@
 package org.orbit.graph.components
 
+import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.Node
 
 class Graph {
@@ -29,6 +30,8 @@ class Graph {
     }
 
     fun findVertex(id: GraphEntity.Vertex.ID, preferShortest: Boolean = false) : GraphEntity.Vertex {
+        if (id == GraphEntity.Vertex.ID.Self) return GraphEntity.Vertex("Self", id)
+
         return when (val vertex = vertices.find { it.id == id }) {
             null -> throw Exception("Dependency not found: '$id'")
             is GraphEntity.Alias ->
@@ -36,6 +39,11 @@ class Graph {
                 else vertices.find { it.id == id && it.name != vertex.name }!!
             else -> vertex
         }
+    }
+
+    fun find(binding: Binding) : GraphEntity.Vertex.ID = when (binding) {
+        Binding.Self -> GraphEntity.Vertex.ID.Self
+        else -> find(binding.path.toString(OrbitMangler))
     }
 
     fun find(name: String) : GraphEntity.Vertex.ID {

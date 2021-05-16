@@ -138,12 +138,17 @@ private val mainModule = module {
 			override fun mangle(signature: TypeSignature): String {
 				val mang = (OrbitMangler + this)
 				val receiver = mang(signature.receiver.name)
-				val params = signature.parameters.map(Parameter::type)
-					.map(TypeProtocol::name).joinToString("_", transform = mang)
-
 				val ret = mang(signature.returnType.name)
 
-				return "${receiver}_${signature.name}_${params}_$ret"
+
+				val params = when (signature.parameters.isEmpty()) {
+					true -> ""
+					else -> "_" + signature.parameters.map(Parameter::type)
+						.map(TypeProtocol::name).joinToString("_", transform = mang)
+				}
+
+
+				return "${receiver}_${signature.name}${params}_$ret"
 			}
 		}
 	}

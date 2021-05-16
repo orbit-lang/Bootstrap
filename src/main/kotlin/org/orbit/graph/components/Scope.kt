@@ -127,6 +127,10 @@ class Scope(
 	}
 
 	fun get(simpleName: String, context: Binding.Kind?) : BindingSearchResult {
+		if (simpleName == "Self") {
+			return BindingSearchResult.Success(Binding.Self)
+		}
+
 		val imported = imports.map { environment.getScope(it) }
 			.flatMap { it.bindings }
 		val all = (bindings + imported).distinct()

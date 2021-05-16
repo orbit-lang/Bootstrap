@@ -45,6 +45,12 @@ fun <A, B, C, D> partialAlt(fn: (A, B, C) -> D, a: A, b: B) : (C) -> D {
     }
 }
 
+fun <A, B> dispose(fn: (A) -> B) : (A) -> Unit {
+    return {
+        fn(it)
+    }
+}
+
 typealias Fn<A, B, C> = (A, B) -> C
 
 operator fun <A, B, C> Fn<A, B, C>.plus(param: B) : (A) -> C {

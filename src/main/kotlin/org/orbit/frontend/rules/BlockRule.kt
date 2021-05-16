@@ -17,7 +17,7 @@ class BlockRule(private vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNod
 	override fun parse(context: Parser) : ParseRule.Result {
 		val start = context.expect(TokenTypes.LBrace)
 		var next = context.peek()
-		var body = mutableListOf<Node>()
+		val body = mutableListOf<Node>()
 		
 		while (next.type != TokenTypes.RBrace) {
 			body.add(context.attemptAny(*bodyRules, throwOnNull = true)
