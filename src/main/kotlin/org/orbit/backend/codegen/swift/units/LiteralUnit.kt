@@ -3,9 +3,11 @@ package org.orbit.backend.codegen.swift.units
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.Mangler
 import org.orbit.core.OrbitMangler
+import org.orbit.core.getPath
 import org.orbit.core.nodes.IntLiteralNode
 import org.orbit.core.nodes.LiteralNode
 import org.orbit.core.nodes.SymbolLiteralNode
+import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.core.plus
 import org.orbit.types.IntrinsicTypes
 import java.math.BigInteger
@@ -26,10 +28,17 @@ class SymbolLiteralUnit(override val node: LiteralNode<Pair<Int, String>>, overr
     }
 }
 
+class TypeLiteralUnit(override val node: LiteralNode<String>, override val depth: Int) : LiteralUnit<String> {
+    override fun generate(mangler: Mangler): String {
+        return "${node.getPath().toString(mangler)}.self"
+    }
+}
+
 object LiteralUnitUtil {
     fun <T> generateLiteralUnit(node: LiteralNode<T>, depth: Int) : LiteralUnit<T> = when (node) {
         is IntLiteralNode -> IntLiteralUnit(node as LiteralNode<Pair<Int, BigInteger>>, depth) as LiteralUnit<T>
         is SymbolLiteralNode -> SymbolLiteralUnit(node, depth) as LiteralUnit<T>
+        is TypeIdentifierNode -> TypeLiteralUnit(node, depth) as LiteralUnit<T>
         else -> TODO("@LiteralUnitUtil:19")
     }
 }

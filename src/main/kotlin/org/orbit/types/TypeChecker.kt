@@ -145,8 +145,7 @@ class MethodTypeResolver : TypeResolver {
                 methodBodyTypeResolver.resolve(environment, context, binding)
             }
 
-            context.bind(signature.identifierNode.identifier, funcType)
-            //context.add(funcType)
+            context.bind(funcType.toString(OrbitMangler), funcType)
 
             return funcType
         } finally {

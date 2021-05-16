@@ -30,6 +30,10 @@ interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.
 		val isSuccess: Boolean get() = this is Success
 		val isFailure: Boolean get() = this is Failure
 
+		fun asSuccess() : Result.Success {
+			return this as Success
+		}
+
 		fun withSuccess(fn: (Path) -> Unit) {
 			(this as? Success)?.let {
 				fn(path)

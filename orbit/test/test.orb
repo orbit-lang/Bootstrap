@@ -3,8 +3,9 @@
         return self + other
     }
 
-    (self Main) main () () {
-        print self.argc
+    (self Orb::Core::Main::Main) main () () {
+        print Main
+        print 4.add(2)
     }
 }
 

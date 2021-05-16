@@ -6,6 +6,7 @@ import org.orbit.graph.Annotations
 import org.orbit.graph.Scope
 import org.orbit.graph.getAnnotation
 import org.orbit.serial.Serial
+import org.orbit.types.*
 import org.orbit.util.partial
 
 open class Path(val relativeNames: List<String>) : Serial {
@@ -91,6 +92,8 @@ fun Node.getPath() : Path {
 interface Mangler {
 	fun mangle(path: Path) : String
 	fun unmangle(name: String) : Path
+	fun mangle(signature: InstanceSignature) : String
+	fun mangle(signature: TypeSignature) : String
 }
 
 object OrbitMangler : Mangler {
@@ -100,6 +103,28 @@ object OrbitMangler : Mangler {
 
 	override fun unmangle(name: String) : Path {
 		return Path(name.split("::"))
+	}
+
+	override fun mangle(signature: InstanceSignature): String {
+		val mang = (OrbitMangler + OrbitMangler)
+		val receiver = mang(signature.receiver.type.name)
+		val params = signature.parameters.map(Parameter::type)
+			.map(TypeProtocol::name).joinToString(", ", transform = mang)
+
+		val ret = mang(signature.returnType.name)
+
+		return "($receiver) ${signature.name} ($params) ($ret)"
+	}
+
+	override fun mangle(signature: TypeSignature): String {
+		val mang = (OrbitMangler + OrbitMangler)
+		val receiver = mang(signature.receiver.name)
+		val params = signature.parameters.map(Parameter::type)
+			.map(TypeProtocol::name).joinToString(", ", transform = mang)
+
+		val ret = mang(signature.returnType.name)
+
+		return "($receiver) ${signature.name} ($params) ($ret)"
 	}
 }
 

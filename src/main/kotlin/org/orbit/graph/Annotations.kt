@@ -10,7 +10,8 @@ private const val KEY = "Orbit::Compiler::Graph::Annotations"
 enum class Annotations(val key: String) {
     Path("$KEY::Path"),
     Scope("$KEY::Scope"),
-    GraphID("$KEY::GraphID")
+    GraphID("$KEY::GraphID"),
+    Type("$KEY::Type")
 }
 
 inline fun <reified T: Serial> Node.annotate(value: T, key: Annotations, mergeOnConflict: Boolean = false) {

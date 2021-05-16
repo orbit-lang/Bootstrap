@@ -98,7 +98,13 @@ class CallPathResolver : PathResolver<CallNode> {
 		environment: Environment,
 		graph: Graph
 	): PathResolver.Result {
-		return pathResolverUtil.resolve(input.receiverExpression, pass, environment, graph)
+		val receiver = pathResolverUtil.resolve(input.receiverExpression, pass, environment, graph)
+
+		input.parameterNodes.forEach {
+			pathResolverUtil.resolve(it, pass, environment, graph)
+		}
+
+		return receiver
 	}
 }
 

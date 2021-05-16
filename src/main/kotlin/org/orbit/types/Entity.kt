@@ -3,6 +3,7 @@ package org.orbit.types
 import org.orbit.core.Mangler
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.plus
 import org.orbit.util.toPath
 
 abstract class Entity(
@@ -37,6 +38,8 @@ interface SignatureProtocol<T: TypeProtocol> : ValuePositionType {
     val receiver: T
     val parameters: List<Parameter>
     val returnType: ValuePositionType
+
+    fun toString(mangler: Mangler) : String
 }
 
 data class InstanceSignature(
@@ -45,6 +48,10 @@ data class InstanceSignature(
     override val parameters: List<Parameter>, override val returnType: ValuePositionType
 ) : SignatureProtocol<Parameter> {
     override val equalitySemantics: Equality<out TypeProtocol> = SignatureEquality
+
+    override fun toString(mangler: Mangler): String {
+        return mangler.mangle(this)
+    }
 }
 
 data class TypeSignature(
@@ -54,6 +61,10 @@ data class TypeSignature(
     override val returnType: ValuePositionType
 ) : SignatureProtocol<ValuePositionType> {
     override val equalitySemantics: Equality<out TypeProtocol> = SignatureEquality
+
+    override fun toString(mangler: Mangler): String {
+        return mangler.mangle(this)
+    }
 }
 
 enum class OperatorPosition {

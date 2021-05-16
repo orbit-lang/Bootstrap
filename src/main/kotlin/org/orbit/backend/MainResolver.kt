@@ -7,6 +7,7 @@ import org.orbit.frontend.Parser
 import org.orbit.types.Context
 import org.orbit.types.InstanceSignature
 import org.orbit.types.IntrinsicTypes
+import org.orbit.types.Parameter
 import org.orbit.util.Invocation
 
 data class Main(val mainSignature: InstanceSignature?) {
@@ -24,11 +25,13 @@ object MainResolver : ReifiedPhase<Parser.Result, Main>, KoinComponent {
 
     override fun execute(input: Parser.Result) : Main {
         val mainType = IntrinsicTypes.Main
-        val mainFunc = context.get("main")
+        val mainSignature = InstanceSignature("main", Parameter("", mainType.type), listOf(Parameter("", mainType.type)), IntrinsicTypes.Unit.type)
+        val mainFunc = context.get(mainSignature.toString(OrbitMangler))
             as? InstanceSignature
 
         var result: Main = Main.empty
 
+        // TODO - If a module is marked as main but not matching method is found, this should be an error
         if (mainFunc != null && mainFunc.receiver.type == mainType.type && mainFunc.returnType == IntrinsicTypes.Unit.type) {
             result = Main(mainFunc)
         }

@@ -5,12 +5,14 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.*
 import org.orbit.core.nodes.*
+import org.orbit.graph.Annotations
+import org.orbit.graph.annotate
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
 import org.orbit.util.Invocation
+import org.orbit.util.partial
 import org.orbit.util.partialAlt
 import org.orbit.util.pluralise
-import kotlin.math.exp
 
 interface Expression {
     fun infer(context: Context, typeAnnotation: TypeProtocol? = null) : TypeProtocol
@@ -255,41 +257,64 @@ object TypeInferenceUtil : KoinComponent {
                 matches.first().type
             } else {
                 val receiverType = infer(context, expressionNode.receiverExpression)
+                val parameterTypes = expressionNode.parameterNodes.map(partialAlt(::infer, context))
+
+                val matches = mutableListOf<SignatureProtocol<*>>()
+                for (binding in context.bindings.values) {
+                    if (binding is InstanceSignature) {
+                        val phantomSignature = InstanceSignature(expressionNode.messageIdentifier.identifier, Parameter("", receiverType), listOf(Parameter("", receiverType)) + parameterTypes.map(
+                            partialAlt(::Parameter, "")
+                        ), IntrinsicTypes.Unit.type)
+
+                        val receiverSemantics = binding.receiver.type.equalitySemantics as AnyEquality
+
+                        if (receiverSemantics.isSatisfied(context, binding.receiver.type, receiverType)) {
+                            val all = binding.parameters
+                                .map(Parameter::type)
+                                .zip(parameterTypes)
+                                .all {
+                                    val semantics = it.first.equalitySemantics as AnyEquality
+                                    semantics.isSatisfied(context, it.first, it.second)
+                                }
+
+                            if (all) {
+                                matches.add(binding)
+                            }
+                        }
+                    } else if (binding is TypeSignature) {
+                        val receiverSemantics = binding.receiver.equalitySemantics as AnyEquality
+
+                        if (receiverSemantics.isSatisfied(context, binding.receiver, receiverType)) {
+                            val all = binding.parameters
+                                .map(Parameter::type)
+                                .zip(parameterTypes)
+                                .all {
+                                    val semantics = it.first.equalitySemantics as AnyEquality
+                                    semantics.isSatisfied(context, it.first, it.second)
+                                }
+
+                            if (all) {
+                                matches.add(binding)
+                            }
+                        }
+                    }
+                }
+
+                if (matches.isEmpty()) {
+                    throw invocation.make<TypeChecker>("Receiver type '${receiverType.name}' does not respond to message '${expressionNode.messageIdentifier.identifier}'", expressionNode.messageIdentifier)
+                } else if (matches.size > 1) {
+                    // TODO - Introduce some syntactic construct to manually allow differentiation in cases
+                    //  where 2 or more methods exist with the same name, same receiver & same parameters, but differ in the return type
+                    val candidates = matches.joinToString("\n\t\t",
+                        transform = partial(SignatureProtocol<*>::toString, OrbitMangler)
+                    )
+
+                    throw invocation.make<TypeChecker>("Ambiguous method call '${expressionNode.messageIdentifier.identifier}' on receiver type '${receiverType.name}'. Found multiple candidates: \n\t\t${candidates}", expressionNode.messageIdentifier)
+                }
+
+                expressionNode.annotate(matches.first(), Annotations.Type)
 
                 receiverType
-//                val functionType = infer(context, expressionNode.messageIdentifier) as? Function
-//                    ?: throw invocation.make<TypeChecker>(
-//                        "Right-hand side of method call must resolve to a function type",
-//                        expressionNode.firstToken.position
-//                    )
-//
-//                val parameterTypes = listOf(receiverType) + expressionNode.parameterNodes.map {
-//                    infer(context, it)
-//                }
-//
-//                val argumentTypes = functionType.inputTypes
-//
-//                if (parameterTypes.size != argumentTypes.size) {
-//                    throw invocation.make<TypeChecker>(
-//                        "Method '${expressionNode.messageIdentifier.identifier}' declares ${argumentTypes.size} arguments (including receiver), found ${parameterTypes.size}",
-//                        expressionNode.firstToken.position
-//                    )
-//                }
-//
-//                for ((idx, pair) in argumentTypes.zip(parameterTypes).withIndex()) {
-//                    // TODO - Named parameters
-//                    // NOTE - For now, parameters must match order of declared arguments 1-to-1
-//                    val equalitySemantics = pair.first.equalitySemantics as AnyEquality
-//                    if (!equalitySemantics.isSatisfied(context, pair.first, pair.second)) {
-//                        throw invocation.make<TypeChecker>(
-//                            "Method '${expressionNode.messageIdentifier.identifier}' declares a parameter of type '${pair.first.name}' at position $idx, found '${pair.second.name}'",
-//                            expressionNode.firstToken.position
-//                        )
-//                    }
-//
-//                }
-//
-//                functionType.outputType
             }
         }
 

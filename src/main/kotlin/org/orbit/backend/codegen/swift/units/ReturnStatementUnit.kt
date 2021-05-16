@@ -6,9 +6,9 @@ import org.orbit.backend.codegen.CodeUnit
 import org.orbit.backend.codegen.CodeWriter
 import org.orbit.core.*
 import org.orbit.core.nodes.*
-import org.orbit.types.Context
-import org.orbit.types.Entity
-import org.orbit.types.Property
+import org.orbit.graph.Annotations
+import org.orbit.graph.getAnnotation
+import org.orbit.types.*
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 
@@ -57,7 +57,17 @@ class CallUnit(override val node: CallNode, override val depth: Int) : CodeUnit<
             return "$receiver.${node.messageIdentifier.identifier}"
         }
 
-        return ""
+        val signature = node.getAnnotation<SignatureProtocol<*>>(Annotations.Type)?.value
+            ?: TODO("@CallUnit:64")
+
+        val sig = signature.toString(mangler)
+        val params = (listOf(node.receiverExpression) + node.parameterNodes).zip(signature.parameters).joinToString(", ") {
+            val expr = ExpressionUnit(it.first, depth).generate(mangler)
+
+            "${it.second.name}: $expr"
+        }
+
+        return "$sig($params)"
     }
 }
 
@@ -68,7 +78,7 @@ class IdentifierUnit(override val node: IdentifierNode, override val depth: Int)
 }
 
 class ConstructorUnit(override val node: ConstructorNode, override val depth: Int) : CodeUnit<ConstructorNode>, KoinComponent {
-    private val context: Context by injectResult<Context>(CompilationSchemeEntry.typeChecker)
+    private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
     private val invocation: Invocation by inject()
 
     override fun generate(mangler: Mangler): String {
