@@ -8,19 +8,19 @@ import org.orbit.types.components.IntrinsicTypes
 import org.orbit.types.components.TypeInferenceUtil
 import org.orbit.types.components.TypeProtocol
 
-class AssignmentTypeResolver(private val assignmentStatementNode: AssignmentStatementNode) : TypeResolver {
-    override fun resolve(environment: Environment, context: Context, binding: Binding): TypeProtocol {
+class AssignmentTypeResolver(override val node: AssignmentStatementNode, override val binding: Binding) : TypeResolver<AssignmentStatementNode, TypeProtocol> {
+    override fun resolve(environment: Environment, context: Context): TypeProtocol {
         // 1. Ensure we aren't trying to reassign a binding
-        val v = context.get(assignmentStatementNode.identifier.identifier)
+        val v = context.get(node.identifier.identifier)
         if (v != null) {
             // TODO
-            throw RuntimeException("FATAL - Attempting to reassign name '${assignmentStatementNode.identifier.identifier}'")
+            throw RuntimeException("FATAL - Attempting to reassign name '${node.identifier.identifier}'")
         }
 
         // 2. Infer the type of the right-hand side
-        val rhsType = TypeInferenceUtil.infer(context, assignmentStatementNode.value)
+        val rhsType = TypeInferenceUtil.infer(context, node.value)
 
-        context.bind(assignmentStatementNode.identifier.identifier, rhsType)
+        context.bind(node.identifier.identifier, rhsType)
 
         return IntrinsicTypes.Unit.type
     }

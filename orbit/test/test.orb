@@ -1,6 +1,10 @@
 @Main module Foo {
+    trait T
+
     (self Orb::Core::Main::Main) main () () {
-        print Main
+        print 2 + 2
     }
 }
+
+
 

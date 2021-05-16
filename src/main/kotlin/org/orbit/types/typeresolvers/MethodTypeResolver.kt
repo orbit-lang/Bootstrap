@@ -1,29 +1,19 @@
 package org.orbit.types.typeresolvers
 
-import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
-import org.orbit.core.getPathOrNull
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.types.components.*
 
-class MethodTypeResolver : TypeResolver {
-    override fun resolve(environment: Environment, context: Context, binding: Binding) : TypeProtocol {
+class MethodTypeResolver(override val node: MethodDefNode, override val binding: Binding) : TypeResolver<MethodDefNode, SignatureProtocol<out TypeProtocol>> {
+    constructor(pair: Pair<MethodDefNode, Binding>) : this(pair.first, pair.second)
+
+    override fun resolve(environment: Environment, context: Context) : SignatureProtocol<out TypeProtocol> {
         val parameterBindings = mutableListOf<String>()
 
         try {
-            val methodNodes = environment.ast.search(MethodDefNode::class.java)
-                .filter {
-                    it.signature.getPathOrNull() == binding.path
-                }
-
-            if (methodNodes.size > 1 || methodNodes.isEmpty()) {
-                // TODO - Methods are not currently namespaced to their enclosing Container
-                throw TODO("MethodTypeResolver:47")
-            }
-
-            val signature = methodNodes[0].signature
+            val signature = node.signature
             val receiver = signature.receiverTypeNode
             val argTypes = mutableListOf<Parameter>()
 
@@ -64,7 +54,7 @@ class MethodTypeResolver : TypeResolver {
                 TypeSignature(signature.identifierNode.identifier, receiverType, argTypes, returnType)
             }
 
-            val body = methodNodes[0].body
+            val body = node.body
 
             if (body.isEmpty) {
                 // Return type is implied to be Unit, check signature agrees
@@ -73,12 +63,12 @@ class MethodTypeResolver : TypeResolver {
                     throw Exception("Method '${signature.identifierNode.identifier}' declares a return type of '${returnType.name}', found 'Unit'")
                 }
             } else {
-                val methodBodyTypeResolver = MethodBodyTypeResolver(body, returnType)
+                val methodBodyTypeResolver = MethodBodyTypeResolver(body, binding, returnType)
 
-                methodBodyTypeResolver.resolve(environment, context, binding)
+                methodBodyTypeResolver.resolve(environment, context)
             }
 
-            context.bind(funcType.toString(OrbitMangler), funcType)
+//            context.bind(funcType.toString(OrbitMangler), funcType)
 
             return funcType
         } finally {

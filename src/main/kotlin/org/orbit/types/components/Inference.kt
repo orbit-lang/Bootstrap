@@ -181,6 +181,8 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         compilationEventBus.notify(Events.TypeCreated(type))
     }
 
+    fun addAll(types: List<TypeProtocol>) = types.forEach(::add)
+
     fun get(name: String) : TypeProtocol? = bindings[name]
 
     fun getType(name: String) : TypeProtocol {

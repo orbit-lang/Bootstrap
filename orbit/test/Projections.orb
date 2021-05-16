@@ -5,7 +5,7 @@ api ObservableInterface<P: Phase>(context CompilerGenerator) {
     }
 }
 
-projection Lexer : ObservableInterface<Lexer> {
+type projection Lexer : ObservableInterface<Lexer> {
     (self Lexer) registerTokenType (identifier Symbol, pattern Symbol) () {
         TokenTypes::register(TokenType(identifier, pattern))
     }
