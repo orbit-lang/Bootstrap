@@ -1,4 +1,4 @@
-package org.orbit.core
+package org.orbit.core.components
 
 data class SourcePosition(
 	val line: Int,

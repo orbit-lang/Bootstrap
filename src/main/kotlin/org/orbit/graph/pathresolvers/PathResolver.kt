@@ -3,7 +3,7 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.Path
-import org.orbit.core.Phase
+import org.orbit.core.phase.Phase
 import org.orbit.core.nodes.Node
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph

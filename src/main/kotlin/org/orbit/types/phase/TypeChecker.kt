@@ -1,7 +1,7 @@
 package org.orbit.types.phase
 
-import org.orbit.core.AdaptablePhase
-import org.orbit.core.CompilationSchemeEntry
+import org.orbit.core.phase.AdaptablePhase
+import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.getPath
 import org.orbit.core.getResult
 import org.orbit.core.nodes.TypeDefNode

@@ -1,7 +1,7 @@
 package org.orbit.frontend.components
 
-import org.orbit.core.TokenType
-import org.orbit.core.TokenTypeProvider
+import org.orbit.core.components.TokenType
+import org.orbit.core.components.TokenTypeProvider
 
 object TokenTypes : TokenTypeProvider {
     // Symbols

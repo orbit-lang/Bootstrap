@@ -2,7 +2,7 @@ package org.orbit.frontend
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.orbit.core.*
+import org.orbit.core.phase.PhaseLinker
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.phase.Lexer
 import org.orbit.frontend.phase.Parser

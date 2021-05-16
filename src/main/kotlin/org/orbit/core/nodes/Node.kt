@@ -1,7 +1,7 @@
 package org.orbit.core.nodes
 
 import org.json.JSONObject
-import org.orbit.core.Token
+import org.orbit.core.components.Token
 import org.orbit.frontend.rules.PhaseAnnotationNode
 import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.serial.Serial

@@ -1,7 +1,9 @@
 package org.orbit.frontend.phase
 
 import org.orbit.core.*
+import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.ObserverNode
+import org.orbit.core.phase.ReifiedPhase
 import org.orbit.frontend.StringSourceProvider
 import org.orbit.frontend.extensions.*
 import org.orbit.graph.components.Binding

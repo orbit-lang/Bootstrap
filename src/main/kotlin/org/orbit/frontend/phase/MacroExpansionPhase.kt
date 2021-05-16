@@ -1,6 +1,6 @@
 package org.orbit.frontend.phase
 
-import org.orbit.core.ReifiedPhase
+import org.orbit.core.phase.ReifiedPhase
 import org.orbit.core.SourceProvider
 import org.orbit.core.nodes.DefineNode
 import org.orbit.frontend.StringSourceProvider

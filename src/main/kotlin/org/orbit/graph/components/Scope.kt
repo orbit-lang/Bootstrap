@@ -2,6 +2,10 @@ package org.orbit.graph.components
 
 import org.json.JSONObject
 import org.orbit.core.*
+import org.orbit.core.components.SourcePosition
+import org.orbit.core.components.CompilationEvent
+import org.orbit.core.components.CompilationEventBusAware
+import org.orbit.core.components.CompilationEventBusAwareImpl
 import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.serial.Serial
 import org.orbit.util.Fatal

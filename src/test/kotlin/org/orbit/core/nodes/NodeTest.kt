@@ -4,9 +4,9 @@ import org.json.JSONObject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.orbit.core.SourcePosition
-import org.orbit.core.Token
-import org.orbit.core.TokenType
+import org.orbit.core.components.SourcePosition
+import org.orbit.core.components.Token
+import org.orbit.core.components.TokenType
 import org.orbit.serial.Serial
 
 private data class SerialWrapper<T>(val value: T) : Serial {

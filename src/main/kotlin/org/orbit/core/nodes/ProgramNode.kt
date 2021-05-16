@@ -1,11 +1,11 @@
 package org.orbit.core.nodes
 
-import org.orbit.core.Token
+import org.orbit.core.components.Token
 
 data class ProgramNode(
-	override val firstToken: Token,
-	override val lastToken: Token,
-	val declarations: List<TopLevelDeclarationNode>
+    override val firstToken: Token,
+    override val lastToken: Token,
+    val declarations: List<TopLevelDeclarationNode>
 ) : Node(firstToken, lastToken) {
 	override fun getChildren() : List<Node> = declarations
 

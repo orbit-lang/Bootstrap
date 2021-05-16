@@ -1,8 +1,10 @@
-package org.orbit.backend
+package org.orbit.backend.phase
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.*
+import org.orbit.core.components.CompilationSchemeEntry
+import org.orbit.core.phase.ReifiedPhase
 import org.orbit.frontend.phase.Parser
 import org.orbit.types.components.Context
 import org.orbit.types.components.InstanceSignature

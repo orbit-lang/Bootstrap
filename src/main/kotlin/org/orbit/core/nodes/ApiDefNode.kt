@@ -1,6 +1,6 @@
 package org.orbit.core.nodes
 
-import org.orbit.core.Token
+import org.orbit.core.components.Token
 import org.orbit.graph.pathresolvers.PathResolver
 
 abstract class TopLevelDeclarationNode(

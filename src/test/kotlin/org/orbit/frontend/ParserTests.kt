@@ -3,7 +3,8 @@ package org.orbit.frontend
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
-import org.orbit.core.*
+import org.orbit.core.components.SourcePosition
+import org.orbit.core.components.Token
 import org.orbit.core.nodes.*
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.frontend.phase.Parser

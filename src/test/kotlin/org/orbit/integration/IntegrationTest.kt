@@ -1,8 +1,8 @@
 package org.orbit.integration
 
-import org.orbit.core.PhaseLinker
+import org.orbit.core.phase.PhaseLinker
 import org.orbit.core.SourceProvider
-import org.orbit.core.TokenTypeProvider
+import org.orbit.core.components.TokenTypeProvider
 import org.orbit.frontend.phase.Lexer
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.frontend.phase.Parser

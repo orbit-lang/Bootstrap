@@ -3,8 +3,8 @@ package org.orbit.integration
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.orbit.core.TokenType
-import org.orbit.core.TokenTypeProvider
+import org.orbit.core.components.TokenType
+import org.orbit.core.components.TokenTypeProvider
 import org.orbit.core.nodes.IntLiteralNode
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.rules.IntLiteralRule

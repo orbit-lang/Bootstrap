@@ -1,6 +1,6 @@
 package org.orbit.frontend.phase
 
-import org.orbit.core.*
+import org.orbit.core.phase.ReifiedPhase
 import org.orbit.graph.components.Environment
 import org.orbit.util.Invocation
 

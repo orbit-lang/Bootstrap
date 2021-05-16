@@ -1,6 +1,6 @@
 package org.orbit.frontend.rules
 
-import org.orbit.core.Token
+import org.orbit.core.components.Token
 import org.orbit.core.nodes.*
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.phase.Parser

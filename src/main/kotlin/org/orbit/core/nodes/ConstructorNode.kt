@@ -1,6 +1,6 @@
 package org.orbit.core.nodes
 
-import org.orbit.core.Token
+import org.orbit.core.components.Token
 
 data class ConstructorNode(
     override val firstToken: Token,

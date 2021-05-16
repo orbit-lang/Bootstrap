@@ -1,7 +1,8 @@
 package org.orbit.frontend
 
 import org.orbit.core.*
-import org.orbit.core.nodes.*
+import org.orbit.core.components.TokenType
+import org.orbit.core.components.TokenTypeProvider
 
 internal class MockSourceProvider(
 	private val source: String

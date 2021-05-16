@@ -1,7 +1,12 @@
 package org.orbit.frontend.phase
 
 import org.orbit.core.*
+import org.orbit.core.components.SourcePosition
+import org.orbit.core.components.Token
+import org.orbit.core.components.TokenType
 import org.orbit.core.nodes.Node
+import org.orbit.core.phase.AdaptablePhase
+import org.orbit.core.phase.PhaseAdapter
 import org.orbit.frontend.components.ParseError
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.frontend.rules.ProgramRule

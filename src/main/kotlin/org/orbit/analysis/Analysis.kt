@@ -1,7 +1,10 @@
 package org.orbit.analysis
 
 import org.orbit.core.*
+import org.orbit.core.components.Token
 import org.orbit.core.nodes.*
+import org.orbit.core.phase.AdaptablePhase
+import org.orbit.core.phase.PhaseAdapter
 import org.orbit.graph.components.Environment
 import org.orbit.util.*
 

@@ -2,10 +2,10 @@ package org.orbit.core.phases
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.orbit.core.AdaptablePhase
-import org.orbit.core.PhaseAdapter
-import org.orbit.core.PhaseLinker
-import org.orbit.core.ReifiedPhase
+import org.orbit.core.phase.AdaptablePhase
+import org.orbit.core.phase.PhaseAdapter
+import org.orbit.core.phase.PhaseLinker
+import org.orbit.core.phase.ReifiedPhase
 import org.orbit.util.Invocation
 import org.orbit.util.Unix
 import kotlin.test.assertEquals

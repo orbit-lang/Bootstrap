@@ -6,6 +6,9 @@ import org.orbit.analysis.semantics.RedundantReturnAnalyser
 import org.orbit.analysis.semantics.UnreachableReturnAnalyser
 import org.orbit.analysis.types.IntLiteralAnalyser
 import org.orbit.core.nodes.ProgramNode
+import org.orbit.core.phase.AdaptablePhase
+import org.orbit.core.phase.ImmediateParallelPhase
+import org.orbit.core.phase.PhaseLinker
 import org.orbit.frontend.phase.CommentParser
 import org.orbit.frontend.phase.Lexer
 import org.orbit.frontend.phase.Parser

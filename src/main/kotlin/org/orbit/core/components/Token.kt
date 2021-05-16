@@ -1,9 +1,9 @@
-package org.orbit.core
+package org.orbit.core.components
 
 data class Token(
-	val type: TokenType,
-	val text: String,
-	val position: SourcePosition
+    val type: TokenType,
+    val text: String,
+    val position: SourcePosition
 ) {
 	override fun equals(other: Any?): Boolean = when (other) {
 		is Token -> {

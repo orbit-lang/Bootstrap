@@ -3,7 +3,7 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.core.SourcePosition
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.graph.components.*
 import org.orbit.graph.extensions.annotate

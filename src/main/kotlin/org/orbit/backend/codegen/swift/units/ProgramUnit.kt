@@ -1,9 +1,10 @@
 package org.orbit.backend.codegen.swift.units
 
 import org.koin.core.component.KoinComponent
-import org.orbit.backend.Main
+import org.orbit.backend.phase.Main
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
+import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.ModuleNode
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.types.components.IntrinsicTypes

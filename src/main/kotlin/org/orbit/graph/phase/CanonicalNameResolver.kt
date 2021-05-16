@@ -5,9 +5,12 @@ import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.module
 import org.orbit.core.*
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.ContainerNode
 import org.orbit.core.nodes.Node
 import org.orbit.core.nodes.ProgramNode
+import org.orbit.core.phase.AdaptablePhase
+import org.orbit.core.phase.Phase
 import org.orbit.frontend.phase.Parser
 import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil

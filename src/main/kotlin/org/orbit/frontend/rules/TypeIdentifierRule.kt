@@ -1,6 +1,6 @@
 package org.orbit.frontend.rules
 
-import org.orbit.core.SourcePosition
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.core.nodes.TypeParametersNode
 import org.orbit.frontend.components.ParseError

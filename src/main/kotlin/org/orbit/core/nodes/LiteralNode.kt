@@ -1,16 +1,16 @@
 package org.orbit.core.nodes
 
 import org.json.JSONObject
-import org.orbit.core.Token
+import org.orbit.core.components.Token
 import org.orbit.serial.Serial
 import java.math.BigInteger
 
 // NOTE: Literals might work better as annotations controlled
 // and owned by a phase, rather than baked in like this
 abstract class LiteralNode<T>(
-	override val firstToken: Token,
-	override val lastToken: Token,
-	open val value: T
+    override val firstToken: Token,
+    override val lastToken: Token,
+    open val value: T
 ) : ExpressionNode(firstToken, lastToken), Serial {
 	override fun getChildren() : List<Node> {
 		return emptyList()
@@ -22,9 +22,9 @@ abstract class LiteralNode<T>(
 }
 
 data class IntLiteralNode(
-	override val firstToken: Token,
-	override val lastToken: Token,
-	override val value: Pair<Int, BigInteger>
+    override val firstToken: Token,
+    override val lastToken: Token,
+    override val value: Pair<Int, BigInteger>
 ) : LiteralNode<Pair<Int, BigInteger>>(firstToken, lastToken, value) {
 	constructor(f: Token, l: Token, width: Int, value: BigInteger)
 		: this(f, l, Pair(width, value))
@@ -37,21 +37,21 @@ data class IntLiteralNode(
 }
 
 data class RealLiteralNode(
-	override val firstToken: Token,
-	override val lastToken: Token,
-	override val value: Double
+    override val firstToken: Token,
+    override val lastToken: Token,
+    override val value: Double
 ) : LiteralNode<Double>(firstToken, lastToken, value)
 
 data class BoolLiteralNode(
-	override val firstToken: Token,
-	override val lastToken: Token,
-	override val value: Boolean
+    override val firstToken: Token,
+    override val lastToken: Token,
+    override val value: Boolean
 ) : LiteralNode<Boolean>(firstToken, lastToken, value)
 
 data class SymbolLiteralNode(
-	override val firstToken: Token,
-	override val lastToken: Token,
-	override val value: Pair<Int, String>
+    override val firstToken: Token,
+    override val lastToken: Token,
+    override val value: Pair<Int, String>
 ) : LiteralNode<Pair<Int, String>>(firstToken, lastToken, value) {
 	constructor(f: Token, l: Token, length: Int, value: String)
 		: this(f, l, Pair(length, value))

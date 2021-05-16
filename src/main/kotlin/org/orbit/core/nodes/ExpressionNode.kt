@@ -1,7 +1,6 @@
 package org.orbit.core.nodes
 
-import org.orbit.core.Token
-import org.orbit.frontend.rules.LiteralRule
+import org.orbit.core.components.Token
 
 /**
 	This is really a "phantom" type, that allows us
@@ -11,15 +10,15 @@ import org.orbit.frontend.rules.LiteralRule
 	behaviour of their own (at least at parse-time).
 */
 abstract class ExpressionNode(
-	override val firstToken: Token,
-	override val lastToken: Token
+    override val firstToken: Token,
+    override val lastToken: Token
 ) : Node(firstToken, lastToken)
 
 data class RValueNode(
-	override val firstToken: Token,
-	override val lastToken: Token,
-	val expressionNode: ExpressionNode,
-	val typeParametersNode: TypeParametersNode = TypeParametersNode(lastToken, lastToken)
+    override val firstToken: Token,
+    override val lastToken: Token,
+    val expressionNode: ExpressionNode,
+    val typeParametersNode: TypeParametersNode = TypeParametersNode(lastToken, lastToken)
 ) : ExpressionNode(firstToken, lastToken) {
 	constructor(expressionNode: ExpressionNode)
 		: this(expressionNode.firstToken, expressionNode.lastToken, expressionNode)

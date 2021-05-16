@@ -4,8 +4,13 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.types.file
-import org.orbit.core.*
+import org.orbit.core.components.SourcePosition
+import org.orbit.core.components.Token
+import org.orbit.core.components.Warning
 import org.orbit.core.nodes.Node
+import org.orbit.core.phase.Phase
+import org.orbit.core.phase.ReifiedPhase
+import org.orbit.core.phase.safeCast
 
 open class OrbitException(override val message: String?) : Exception(message) {
 	companion object
@@ -24,7 +29,8 @@ class Invocation(val platform: Platform) {
 	data class OrbitErrorImpl<P: Phase<*, *>>(
 		override val phaseClazz: Class<P>,
 		override val message: String,
-		override val sourcePosition: SourcePosition) : OrbitError<P>
+		override val sourcePosition: SourcePosition
+	) : OrbitError<P>
 
 	private val warnings: MutableList<Warning> = mutableListOf()
 	private val errors: MutableList<OrbitError<*>> = mutableListOf()

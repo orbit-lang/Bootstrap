@@ -1,7 +1,7 @@
 package org.orbit.util
 
-import org.orbit.core.Phase
-import org.orbit.core.SourcePosition
+import org.orbit.core.phase.Phase
+import org.orbit.core.components.SourcePosition
 
 interface OrbitError<out P: Phase<*, *>> {
 	val phaseClazz: Class<out P>

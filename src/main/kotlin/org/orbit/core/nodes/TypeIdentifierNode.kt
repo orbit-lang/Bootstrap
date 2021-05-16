@@ -1,12 +1,12 @@
 package org.orbit.core.nodes
 
-import org.orbit.core.Token
+import org.orbit.core.components.Token
 
 data class TypeIdentifierNode(
-	override val firstToken: Token,
-	override val lastToken: Token,
-	override val value: String,
-	val typeParametersNode: TypeParametersNode = TypeParametersNode(firstToken, lastToken)
+    override val firstToken: Token,
+    override val lastToken: Token,
+    override val value: String,
+    val typeParametersNode: TypeParametersNode = TypeParametersNode(firstToken, lastToken)
 ) : LiteralNode<String>(firstToken, lastToken, value) {
 	companion object {
 		fun unit(token: Token) : TypeIdentifierNode

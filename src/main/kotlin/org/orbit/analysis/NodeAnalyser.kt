@@ -1,8 +1,7 @@
 package org.orbit.analysis
 
 import org.orbit.core.nodes.*
-import org.orbit.core.Phase
-import org.orbit.core.Token
+import org.orbit.core.phase.Phase
 import org.orbit.util.Invocation
 
 abstract class NodeAnalyser<N: Node>(

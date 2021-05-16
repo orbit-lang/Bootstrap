@@ -3,8 +3,8 @@ package org.orbit.backend.codegen.swift.units
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeUnit
-import org.orbit.backend.codegen.CodeWriter
-import org.orbit.core.CompilationSchemeEntry
+import org.orbit.backend.phase.CodeWriter
+import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.Mangler
 import org.orbit.core.getPath
 import org.orbit.core.injectResult

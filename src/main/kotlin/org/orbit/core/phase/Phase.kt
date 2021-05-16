@@ -1,21 +1,13 @@
-package org.orbit.core
+package org.orbit.core.phase
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.orbit.core.components.CompilationEvent
+import org.orbit.core.components.SourcePosition
 import org.orbit.util.Invocation
 import org.orbit.util.OrbitError
-
-interface CompilationEventBusAware {
-    val compilationEventBus: CompilationEventBus
-}
-
-object CompilationEventBusAwareImpl : CompilationEventBusAware, KoinComponent {
-    override val compilationEventBus: CompilationEventBus by inject()
-}
 
 interface Phase<I, O> {
     val invocation: Invocation
@@ -43,7 +35,7 @@ abstract class AdaptablePhase<I: Any, O: Any> : ReifiedPhase<I, O> {
             private val injectorClazz: Class<*>,
             private val consumerClazz: Class<*>,
             override val sourcePosition: SourcePosition = SourcePosition.unknown
-        ) : AdaptablePhase.Error(phaseClazz,
+        ) : Error(phaseClazz,
             "Phase adapter not found: Injector type '${injectorClazz.simpleName}' cannot be converted to consumer type '${consumerClazz.simpleName}'")
     }
 
@@ -81,8 +73,11 @@ abstract class AdaptablePhase<I: Any, O: Any> : ReifiedPhase<I, O> {
 
         return adapter?.bridge(obj)
             ?: throw invocation.make(
-                Error.AdapterNotFound(this::class.java,
-                    T::class.java, InputType::class.java))
+                Error.AdapterNotFound(
+                    this::class.java,
+                    T::class.java, InputType::class.java
+                )
+            )
     }
 }
 
@@ -125,7 +120,7 @@ class PhaseLinker<I1: Any, I2: Any, O1: Any, O2: Any>(
             private val injectorClazz: Class<out Phase<*, *>>,
             private val consumerClazz: Class<out Phase<*, *>>,
             override val sourcePosition: SourcePosition = SourcePosition.unknown
-        ) : PhaseLinker.Error(phaseClazz,
+        ) : Error(phaseClazz,
             "Phase link broken: Consumer phase '${consumerClazz.simpleName}' rejects output from injector phase '${injectorClazz.simpleName}'")
     }
 
@@ -142,13 +137,19 @@ class PhaseLinker<I1: Any, I2: Any, O1: Any, O2: Any>(
             // PhaseA.OutputType != PhaseB.InputType
             // 1. See if phaseB is an AdaptablePhase
             val phaseB = phaseB as? AdaptablePhase ?:
-                throw invocation.make(Error.BrokenPhaseLink(
-                    this::class.java, phaseA::class.java, phaseB::class.java))
+                throw invocation.make(
+                    Error.BrokenPhaseLink(
+                        this::class.java, phaseA::class.java, phaseB::class.java
+                    )
+                )
 
             // 2. See if PhaseB has a relevant PhaseAdapter
             val adapter = phaseB.getAdapter(resultClazz) ?:
-                throw invocation.make(Error.BrokenPhaseLink(
-                    this::class.java, phaseA::class.java, phaseB::class.java))
+                throw invocation.make(
+                    Error.BrokenPhaseLink(
+                        this::class.java, phaseA::class.java, phaseB::class.java
+                    )
+                )
 
             input = adapter.bridge(result)
         }
@@ -281,7 +282,9 @@ class ParallelPhase<T: Any, I: Any, O: Any>(
                     val adapter = it.getAdapter(inputPhase.outputType)
                         ?: throw invocation.make(
                             PhaseLinker.Error.BrokenPhaseLink(
-                                this@ParallelPhase::class.java, inputPhase::class.java, it::class.java))
+                                this@ParallelPhase::class.java, inputPhase::class.java, it::class.java
+                            )
+                        )
 
                     val bridgedInput = adapter.bridge(input)
                     val result = it.execute(bridgedInput)
@@ -326,18 +329,6 @@ class Observable<T>(initialValue: T? = null) {
     fun post(value: T) {
         _value = value
         observers.forEach { it.observe(value) }
-    }
-}
-
-interface CompilationEvent {
-    val identifier: String
-}
-
-class CompilationEventBus {
-    val events = Observable<CompilationEvent>()
-
-    fun notify(event: CompilationEvent) {
-        events.post(event)
     }
 }
 

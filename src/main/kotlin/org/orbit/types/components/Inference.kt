@@ -4,7 +4,11 @@ import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.*
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.*
+import org.orbit.core.components.CompilationEvent
+import org.orbit.core.components.CompilationEventBusAware
+import org.orbit.core.components.CompilationEventBusAwareImpl
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.annotate
 import org.orbit.serial.Serial
