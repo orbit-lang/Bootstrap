@@ -1,11 +1,6 @@
 @Main module Foo {
-    (self Int) add (other Int) (Int) {
-        return self + other
-    }
-
     (self Orb::Core::Main::Main) main () () {
-        print Main
-        print 4.add(2)
+        print :Hello
     }
 }
 

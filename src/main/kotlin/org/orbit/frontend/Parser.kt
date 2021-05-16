@@ -239,7 +239,11 @@ class Parser(
 
 		return null
 	}
-	
+
+	fun attemptAny(of: List<ParseRule<*>>, throwOnNull: Boolean = false) : Node? {
+		return attemptAny(*of.toTypedArray())
+	}
+
 	fun attemptAny(vararg of: ParseRule<*>, throwOnNull: Boolean = false) : Node? {
 		val start = peek()
 		for (rule in of) {

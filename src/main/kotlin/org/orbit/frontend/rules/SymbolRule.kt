@@ -9,10 +9,10 @@ import org.orbit.frontend.unaryPlus
 object SymbolRule : ValueRule<SymbolLiteralNode> {
 	override fun parse(context: Parser) : ParseRule.Result {
 		val start = context.expect(TokenTypes.Colon)
-		val value = context.attempt(IdentifierRule, true)!!
+		val value = context.expectAny(TokenTypes.Identifier, TokenTypes.TypeIdentifier, consumes = true)
 
 		// `Symbol(length Int, str String)`
 		return +SymbolLiteralNode(start, start,
-			value.identifier.length, value.identifier)
+			value.text.length, value.text)
 	}
 }
