@@ -165,6 +165,10 @@ class Main {
 			println("Compilation completed in " + measureTime {
 				try {
 					startKoin { modules(mainModule) }
+//
+//					val repl = Repl()
+//
+//					repl.run()
 
 					val orbit = Orbit()
 

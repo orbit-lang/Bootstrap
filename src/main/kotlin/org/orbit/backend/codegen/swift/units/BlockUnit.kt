@@ -2,16 +2,25 @@ package org.orbit.backend.codegen.swift.units
 
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.Mangler
-import org.orbit.core.nodes.AssignmentStatementNode
-import org.orbit.core.nodes.BlockNode
-import org.orbit.core.nodes.PrintNode
-import org.orbit.core.nodes.ReturnStatementNode
+import org.orbit.core.nodes.*
 import org.orbit.util.partial
 
-class ReturnStatementUnit(override val node: ReturnStatementNode, override val depth: Int) : CodeUnit<ReturnStatementNode> {
-    override fun generate(mangler: Mangler): String = """
-        |return ${RValueUnit(node.valueNode, depth).generate(mangler)}
-    """.trimMargin().prependIndent(indent())
+class ReturnStatementUnit(override val node: ReturnStatementNode, override val depth: Int, private val resultIsDeferred: Boolean) : CodeUnit<ReturnStatementNode> {
+    override fun generate(mangler: Mangler): String {
+        val retVal = RValueUnit(node.valueNode, depth).generate(mangler)
+
+        return if (resultIsDeferred) {
+            """
+            |let __ret_val = $retVal
+            |__on_defer(__ret_val)
+            |return $retVal
+            """.trimMargin()
+        } else {
+            """
+            |return $retVal
+            """.trimMargin()
+        }.prependIndent(indent())
+    }
 }
 
 class PrintStatementUnit(override val node: PrintNode, override val depth: Int) : CodeUnit<PrintNode> {
@@ -31,17 +40,36 @@ class AssignmentStatementUnit(override val node: AssignmentStatementNode, overri
     }
 }
 
-class BlockUnit(override val node: BlockNode, override val depth: Int) : CodeUnit<BlockNode> {
+class DeferUnit(override val node: DeferNode, override val depth: Int) : CodeUnit<DeferNode> {
+    override fun generate(mangler: Mangler): String {
+        val block = BlockUnit(node.blockNode, depth, true)
+            .generate(mangler)
+        val retId = when (node.returnValueIdentifier) {
+            null -> ""
+            else -> "${node.returnValueIdentifier!!.identifier} in"
+        }
+
+        return """
+            |let __on_defer = { $retId
+            |$block
+            |}
+        """.trimMargin().prependIndent()
+    }
+}
+
+class BlockUnit(override val node: BlockNode, override val depth: Int, private val stripBraces: Boolean = false) : CodeUnit<BlockNode> {
     override fun generate(mangler: Mangler): String {
         val units: List<CodeUnit<*>> = node.body.mapNotNull {
             when (it) {
                 is ReturnStatementNode ->
-                    ReturnStatementUnit(it, depth)
+                    ReturnStatementUnit(it, depth, true)
 
                 is AssignmentStatementNode ->
                     AssignmentStatementUnit(it, depth)
 
                 is PrintNode -> PrintStatementUnit(it, depth)
+
+                is DeferNode -> DeferUnit(it, depth)
 
                 else ->
                     TODO("Generate code for statement in block: $it")
@@ -49,11 +77,13 @@ class BlockUnit(override val node: BlockNode, override val depth: Int) : CodeUni
         }
 
         val body = units.joinToString("\n|", transform = partial(CodeUnit<*>::generate, mangler))
-
-        return """
+        return when (stripBraces) {
+            true -> body
+            else -> """
             |{
             |$body
             |}
-        """.trimMargin()
+            """.trimMargin()
+        }
     }
 }

@@ -11,8 +11,7 @@ object MethodDefRule : ParseRule<MethodDefNode> {
 		val signature = context.attempt(MethodSignatureRule(false), true)
 			?: TODO("@MethodDefRule:18")
 
-		val blockRule = BlockRule(PrintRule, ReturnRule, AssignmentRule, CallRule)
-		val body = context.attempt(blockRule, true)
+		val body = context.attempt(BlockRule.default, true)
 			?: TODO("@MethodDefRule:23")
 
 		return +MethodDefNode(start, body.lastToken, signature, body)

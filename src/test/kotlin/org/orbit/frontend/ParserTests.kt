@@ -6,21 +6,22 @@ import org.junit.jupiter.api.assertThrows
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.*
+import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.*
 
 private class MockParseRule(private val value: Int) : ParseRule<MockNode> {
-	override fun parse(context: Parser) : MockNode {
-		return MockNode()
+	override fun parse(context: Parser) : ParseRule.Result {
+		return +MockNode()
 	}
 }
 
 private class MockIntParseRule : ParseRule<MockNode> {
-	override fun parse(context: Parser) : MockNode {
+	override fun parse(context: Parser) : ParseRule.Result {
 		//val token = context.expect(MockTokenTypeProvider.Int)
 
-		return MockNode()
+		return +MockNode()
 	}
 }
 

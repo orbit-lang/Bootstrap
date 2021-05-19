@@ -11,8 +11,8 @@ internal class MockSourceProvider(
 }
 
 internal object MockTokenTypeProvider : TokenTypeProvider {
-	object Int : TokenType("Int", "\\d+", true, false)
-	object Whitespace : TokenType("Whitespace", "[\\s\\n\\r]+", true, false)
+	object Int : TokenType("Int", "\\d+", true, false, Family.Id)
+	object Whitespace : TokenType("Whitespace", "[\\s\\n\\r]+", true, false, Family.White)
 
 	override fun getTokenTypes(): List<TokenType> {
 		return listOf(Int, Whitespace)

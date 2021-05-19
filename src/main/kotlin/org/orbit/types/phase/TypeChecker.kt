@@ -59,7 +59,7 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
         }
 
         // NOTE - After several failed attempts, it looks like Kotlin's type system
-        //  might be too limited to allow us to encapsulate this duplicated logic
+        //  might be too limited to allow us to encapsulate the following, duplicated logic
         //  Specifically, it would be nice to pass non-default constructors around.
         //  I would like to be able to do this in Orbit.
         // Extra credit to anyone who can crack it in Kotlin (its not important, just cool)!

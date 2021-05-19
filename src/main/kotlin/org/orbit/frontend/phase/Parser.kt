@@ -8,6 +8,7 @@ import org.orbit.core.nodes.Node
 import org.orbit.core.phase.AdaptablePhase
 import org.orbit.core.phase.PhaseAdapter
 import org.orbit.frontend.components.ParseError
+import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.util.Invocation
@@ -15,7 +16,8 @@ import org.orbit.util.OrbitException
 
 class Parser(
 	override val invocation: Invocation,
-	private val topLevelParseRule: ParseRule<*> = ProgramRule
+	private val topLevelParseRule: ParseRule<*> = ProgramRule,
+	private val isRepl: Boolean = false,
 ) : AdaptablePhase<Parser.InputType, Parser.Result>() {
 	data class InputType(val tokens: List<Token>) : Any()
 	data class Result(val ast: Node)
@@ -57,11 +59,14 @@ class Parser(
 		get() = tokens.isNotEmpty()
 	
 	fun peek(lookahead: Int = 0) : Token {
+		if (isRepl && tokens.isEmpty()) return Token(TokenTypes.EOS, "", SourcePosition.unknown)
+
 		return tokens.getOrNull(lookahead)
 			?: throw Errors.NoMoreTokens
 	}
 
 	fun consume() : Token {
+		if (!hasMore && isRepl) return Token(TokenTypes.EOS, "", SourcePosition.unknown)
 		if (!hasMore) throw Errors.NoMoreTokens
 		
 		return tokens.removeAt(0).apply {
@@ -83,6 +88,7 @@ class Parser(
 	}
 
 	fun expectOrNull(type: TokenType, consume: Boolean = true) : Token? {
+		if (!hasMore && isRepl) return null
 		if (!hasMore) throw Errors.NoMoreTokens
 		val next = peek()
 
@@ -117,8 +123,6 @@ class Parser(
 	fun rewind(consumed: List<Token>) {
 		tokens.addAll(0, consumed)
 	}
-
-
 
 	fun <N: Node> attempt(rule: ParseRule<N>, rethrow: Boolean = false) : N? {
 		val backup = tokens

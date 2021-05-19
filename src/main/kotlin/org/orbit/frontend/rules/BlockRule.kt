@@ -13,6 +13,10 @@ class BlockRule(private vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNod
 		class UnexpectedBlockStatement(private val token: Token, override val sourcePosition: SourcePosition = token.position)
 			: ParseError("Unexpected token inside block: ${token.type}", sourcePosition)
 	}
+
+	companion object {
+		val default = BlockRule(DeferRule, PrintRule, ReturnRule, AssignmentRule, CallRule)
+	}
 	
 	override fun parse(context: Parser) : ParseRule.Result {
 		val start = context.expect(TokenTypes.LBrace)

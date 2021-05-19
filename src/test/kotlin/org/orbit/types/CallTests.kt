@@ -9,7 +9,7 @@ internal class CallTests {
     @Test
     fun testSimpleTrue() {
         // Proposition: ((x) -> x)(x) infers type x
-        val x = Entity("x")
+        val x = Type("x")
         val context = Context(x)
 
         context.bind("a", x)
@@ -24,9 +24,9 @@ internal class CallTests {
     @Test
     fun testSimpleFalse() {
         // Proposition: ((x) -> x)(y) fails where x != y contractually
-        val a = Entity("a")
-        val x = Entity("x", listOf(Property("a", a)))
-        val y = Entity("y")
+        val a = Type("a")
+        val x = Type("x", listOf(Property("a", a)))
+        val y = Type("y")
         val context = Context(x, y)
         // x(a) != y b/c y has no "a" member
         context.bind("b", y)
@@ -43,7 +43,7 @@ internal class CallTests {
     @Test
     fun testNestedTrue() {
         // Proposition: ((x) -> ((x) -> x))(x) infers (x) -> x
-        val x = Entity("x")
+        val x = Type("x")
         val context = Context(x)
 
         context.bind("a", x)
@@ -59,9 +59,9 @@ internal class CallTests {
     @Test
     fun testNestedFalse() {
         // Proposition: ((x) -> ((x) -> x))(y) fails b/c y != the expected type x
-        val a = Entity("a")
-        val x = Entity("x", listOf(Property("a", a)))
-        val y = Entity("y")
+        val a = Type("a")
+        val x = Type("x", listOf(Property("a", a)))
+        val y = Type("y")
         val context = Context(x)
 
         context.bind("a", y)

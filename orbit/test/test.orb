@@ -3,12 +3,12 @@
         (self Self) foo () ()
     }
 
-    (Int) bar () (Int) {
-        return 1
+    (self Int) bar (t T) () {
+        return t
     }
 
-    (self Orb::Core::Main::Main) main () () {
-        print Int.bar()
+    (self Main) main () () {
+        print 1.bar()
     }
 }
 

@@ -33,8 +33,6 @@ class TraitDefPathResolver(
 
 		environment.openScope(input)
 
-		environment.bind(Binding.Kind.Self, "Self", path)
-
 		input.typeIdentifierNode.typeParametersNode.typeParameters.forEach {
 			if (it is LValueTypeParameter) {
 				environment.bind(Binding.Kind.Ephemeral, it.name.value, path + Path(it.name.value))

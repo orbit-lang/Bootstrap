@@ -2,10 +2,7 @@ package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
-import org.orbit.core.nodes.AssignmentStatementNode
-import org.orbit.core.nodes.BlockNode
-import org.orbit.core.nodes.PrintNode
-import org.orbit.core.nodes.ReturnStatementNode
+import org.orbit.core.nodes.*
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
@@ -31,6 +28,9 @@ class BlockPathResolver : PathResolver<BlockNode> {
 						pathResolverUtil.resolve(node.valueNode.expressionNode, pass, environment, graph)
 
 					is AssignmentStatementNode -> pathResolverUtil.resolve(node, pass, environment, graph)
+
+					is DeferNode -> result =
+						pathResolverUtil.resolve(node.blockNode, pass, environment, graph)
 
 					else -> throw invocation.make<CanonicalNameResolver>("Unsupported statement in block", node)
 				}

@@ -20,7 +20,7 @@ sealed class MockAnnotationTag {
 	object B : NodeAnnotationTag<SerialWrapper<String>>
 }
 
-private object MockTokenType : TokenType("mock", "", true, false)
+private object MockTokenType : TokenType("mock", "", true, false, TokenType.Family.Id)
 
 class MockNode : Node(
 	Token(MockTokenType, "mock", SourcePosition(0, 0)),

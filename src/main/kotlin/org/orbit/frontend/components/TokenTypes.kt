@@ -33,6 +33,8 @@ object TokenTypes : TokenTypeProvider {
 	object Return : TokenType("Return", "return", true, false, Family.Keyword)
     object Module : TokenType("Module", "module", true, false, Family.Keyword)
     object Define : TokenType("Define", "define", true, false, Family.Keyword)
+    object Defer : TokenType("Defer", "defer", true, false, Family.Keyword)
+    object Print : TokenType("Print", "print", true, false, Family.Keyword)
     // NOTE - This is kind of dirty, but if we want arbitrary keywords, we need a way to make the lexer
     // avoid recognising them in regular identifiers, e.g. a variable named "observeSomething"
     object Observe : TokenType("Observer", "observe ", true, false, Family.Keyword)
@@ -43,12 +45,13 @@ object TokenTypes : TokenTypeProvider {
     object Identifier : TokenType("Identifier", "[a-z_]+[a-zA-Z0-9_]*", true, false, Family.Id)
     object TypeIdentifier : TokenType("TypeIdentifier", "([A-Z]+[a-zA-Z0-9_]*)(::[A-Z]+[a-zA-Z0-9_]*)*", true, false, Family.Id)
 	object Symbol : TokenType("Symbol", "\\:[a-zA-Z_]+[a-zA-Z0-9_]*", false, false, Family.Id)
-	
+	object EOS : TokenType("", "", true, false, Family.White)
+
     override fun getTokenTypes() : List<TokenType> {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Int, Real, Api, Module, Define, Observe, TypeIdentifier,
+            Int, Real, Api, Module, Define, Defer, Observe, Print, TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
             Type, Trait, Within, With, Return,

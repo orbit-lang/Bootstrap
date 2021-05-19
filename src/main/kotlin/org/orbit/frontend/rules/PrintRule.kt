@@ -7,11 +7,7 @@ import org.orbit.frontend.extensions.unaryPlus
 
 object PrintRule : ParseRule<PrintNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect(TokenTypes.Identifier)
-
-        if (start.text != "print") {
-            return ParseRule.Result.Failure.Rewind(listOf(start))
-        }
+        val start = context.expect(TokenTypes.Print)
 
         val expression = context.attempt(ExpressionRule.defaultValue)
             ?: throw context.invocation.make<Parser>("", context.peek())
