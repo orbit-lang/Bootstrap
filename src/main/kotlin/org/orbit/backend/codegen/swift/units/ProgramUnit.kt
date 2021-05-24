@@ -32,18 +32,19 @@ fun generateTypeAlias(mangler: Mangler, access: SwiftAccessModifier = SwiftAcces
 
 private object ProgramUtilsUnit {
     fun generate(mangler: Mangler) : String {
-        return """
-            |/* Intrinsic Types */
-            |${generateTypeAlias(mangler, SwiftAccessModifier.Internal, IntrinsicTypes.Unit)}
-            |${generateTypeAlias(mangler, SwiftAccessModifier.Internal, IntrinsicTypes.Int)}
-            |struct ${mangler.mangle(OrbitMangler.unmangle(IntrinsicTypes.Main.type.name))} {
-            |   let argc: Int
-            |}
-            |struct ${mangler.mangle(OrbitMangler.unmangle(IntrinsicTypes.Symbol.type.name))} {
-            |   static let emptySymbol = Self(value: "")
-            |   let value: String
-            |}
-        """.trimMargin()
+        return "import OrbCore"
+//        return """
+//            |/* Intrinsic Types */
+//            |${generateTypeAlias(mangler, SwiftAccessModifier.Internal, IntrinsicTypes.Unit)}
+//            |${generateTypeAlias(mangler, SwiftAccessModifier.Internal, IntrinsicTypes.Int)}
+//            |struct ${mangler.mangle(OrbitMangler.unmangle(IntrinsicTypes.Main.type.name))} {
+//            |   let argc: Int
+//            |}
+//            |struct ${mangler.mangle(OrbitMangler.unmangle(IntrinsicTypes.Symbol.type.name))} {
+//            |   static let emptySymbol = Self(value: "")
+//            |   let value: String
+//            |}
+//        """.trimMargin()
     }
 }
 
@@ -64,7 +65,7 @@ class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) :
                 val rec = (OrbitMangler + mangler)(sig.receiver.type.name)
                 val ret = (OrbitMangler + mangler)(sig.returnType.name)
 
-                "${rec}_main_${rec}_$ret(self: ${rec}(argc: 0))"
+                "${rec}_main_${rec}_$ret(self: ${rec}(argc: 0, argv: []))"
             }
         }
 
