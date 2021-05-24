@@ -62,7 +62,7 @@ class BlockUnit(override val node: BlockNode, override val depth: Int, private v
         val units: List<CodeUnit<*>> = node.body.mapNotNull {
             when (it) {
                 is ReturnStatementNode ->
-                    ReturnStatementUnit(it, depth, true)
+                    ReturnStatementUnit(it, depth, node.search(DeferNode::class.java).isNotEmpty())
 
                 is AssignmentStatementNode ->
                     AssignmentStatementUnit(it, depth)

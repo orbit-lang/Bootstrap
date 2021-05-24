@@ -1,14 +1,6 @@
 @Main module Foo {
-    trait T {
-        (self Self) foo () ()
-    }
-
-    (self Int) bar (t T) () {
-        return t
-    }
-
     (self Main) main () () {
-        print 1.bar()
+        defer { print a }
     }
 }
 

@@ -14,6 +14,7 @@ import org.orbit.types.components.TypeSignature
 open class Path(val relativeNames: List<String>) : Serial {
 	companion object {
 		val empty = Path()
+		val self = Path("Self")
 	}
 
 	constructor(path: String) : this(listOf(path))

@@ -10,6 +10,9 @@ data class CallNode(
     val parameterNodes: List<ExpressionNode>,
     val isPropertyAccess: Boolean = false
 ) : ExpressionNode(firstToken, lastToken) {
+    val isInstanceCall: Boolean
+        get() = receiverExpression !is TypeIdentifierNode
+
     override fun getChildren(): List<Node> {
         return listOf(receiverExpression, messageIdentifier) + parameterNodes
     }

@@ -125,6 +125,10 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 			typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Initial))
 		}
 
+		for (traitDef in traitDefs) {
+			traitResolver.execute(PathResolver.InputType(traitDef, PathResolver.Pass.Last))
+		}
+
 		for (typeDef in typeDefs) {
 			typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Last))
 		}

@@ -91,6 +91,21 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
                 context.bind(it.toString(OrbitMangler), it)
             }
 
+        input.scopes
+            .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Trait))
+            .filterNodes(traitDefNodes)
+            .map(::TraitSignaturesTypeResolver)
+            .map(partial(TraitSignaturesTypeResolver::resolve, input, context))
+            .forEach(context::add)
+
+        // Now that Type, Trait & Method definitions are type resolved, we need to enforce explicit Trait Conformance
+        input.scopes
+            .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Type))
+            .filterNodes(typeDefNodes)
+            .map(::TraitConformanceTypeResolver)
+            .map(partial(TraitConformanceTypeResolver::resolve, input, context))
+            .forEach(context::add)
+
         m.map(::MethodTypeResolver)
             .forEach(dispose(partial(MethodTypeResolver::resolve, input, context)))
 

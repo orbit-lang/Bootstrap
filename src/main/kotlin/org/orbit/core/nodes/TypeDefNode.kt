@@ -4,7 +4,7 @@ import org.orbit.core.components.Token
 
 abstract class EntityDefNode(firstToken: Token, lastToken: Token) : Node(firstToken, lastToken)
 
-data class TypeDefNode(
+class TypeDefNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val typeIdentifierNode: TypeIdentifierNode,
@@ -12,6 +12,20 @@ data class TypeDefNode(
     val traitConformances: List<TypeIdentifierNode> = emptyList(),
     val body: BlockNode = BlockNode(lastToken, lastToken, emptyList())
 ) : EntityDefNode(firstToken, lastToken) {
+    // When Trait conformance is resolved, types are extended with the adopted Trait's properties.
+    // NOTE - The order matters: synthesised properties always appear first!
+    private val _synthesisedPropertyPairs = mutableListOf<PairNode>()
+
+    fun getAllPropertyPairs() : List<PairNode> {
+        return (_synthesisedPropertyPairs + propertyPairs).distinct()
+    }
+
+    fun extendProperties(propertyPair: PairNode) {
+        if (!_synthesisedPropertyPairs.contains(propertyPair) && !propertyPairs.contains(propertyPair)) {
+            _synthesisedPropertyPairs.add(propertyPair)
+        }
+    }
+
 	override fun getChildren() : List<Node>
-		= listOf(typeIdentifierNode, body) + propertyPairs + traitConformances
+		= listOf(typeIdentifierNode, body) + getAllPropertyPairs() + traitConformances
 }

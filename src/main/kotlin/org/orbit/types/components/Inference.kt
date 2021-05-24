@@ -3,6 +3,7 @@ package org.orbit.types.components
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.getPath
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.Annotations
@@ -59,8 +60,11 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
     override fun infer(context: Context, node: CallNode, typeAnnotation: TypeProtocol?): TypeProtocol {
         val receiverType = TypeInferenceUtil.infer(context, node.receiverExpression)
                 as? Entity
+            // TODO - Allow for signatures, potentially other types too
             ?: throw invocation.make<TypeChecker>("Only entity types may appear on the left-hand side of a call expression", node.receiverExpression)
 
+        // TODO - There is way too much happening here.
+        //  This should be simpler, or at least split up a bit
         if (node.isPropertyAccess) {
             val matches = receiverType.properties.filter { it.name == node.messageIdentifier.identifier }
 
@@ -72,7 +76,12 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
 
             return matches.first().type
         } else {
-            val parameterTypes = node.parameterNodes.map(partialAlt(TypeInferenceUtil::infer, context))
+            val receiverParameter = when (node.isInstanceCall) {
+                true -> listOf(receiverType)
+                else -> emptyList()
+            }
+
+            val parameterTypes = receiverParameter + node.parameterNodes.map(partialAlt(TypeInferenceUtil::infer, context))
 
             val matches = mutableListOf<SignatureProtocol<*>>()
             for (binding in context.bindings.values) {
@@ -112,8 +121,9 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
             }
 
             if (matches.isEmpty()) {
+                val params = if (parameterTypes.isEmpty()) "" else "(" + parameterTypes.joinToString(", ") { it.name } + ")"
                 throw invocation.make<TypeChecker>(
-                    "Receiver type '${receiverType.name}' does not respond to message '${node.messageIdentifier.identifier}'",
+                    "Receiver type '${receiverType.name}' does not respond to message '${node.messageIdentifier.identifier}' with parameter types $params",
                     node.messageIdentifier
                 )
             } else if (matches.size > 1) {
@@ -130,7 +140,21 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
                 )
             }
 
-            node.annotate(matches.first(), Annotations.Type)
+            val signature = matches.first()
+            val expectedParameterCount = signature.parameters.size
+
+            if (expectedParameterCount != parameterTypes.size) {
+                throw invocation.make<TypeChecker>("Method '${signature.name}' expects $expectedParameterCount ${"parameter".pluralise(expectedParameterCount)}, found ${parameterTypes.size}", node)
+            }
+
+            signature.parameters.zip(parameterTypes)
+                .forEachIndexed { idx, item ->
+                    if (!(item.first.equalitySemantics as AnyEquality).isSatisfied(context, item.first.type, item.second)) {
+                        throw invocation.make<TypeChecker>("Method '${signature.name}' expects parameter of type ${item.first.type.name} at index $idx, found ${item.second.name}", node)
+                    }
+                }
+
+            node.annotate(signature, Annotations.Type)
 
             return receiverType
         }

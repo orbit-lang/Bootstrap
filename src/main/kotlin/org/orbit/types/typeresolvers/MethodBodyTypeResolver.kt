@@ -10,23 +10,20 @@ import org.orbit.types.components.TypeProtocol
 
 class MethodBodyTypeResolver(override val node: BlockNode, override val binding: Binding, private val returnType: TypeProtocol) : TypeResolver<BlockNode, TypeProtocol> {
     override fun resolve(environment: Environment, context: Context) : TypeProtocol {
-        // Derive a new scope from the parent scope so we can throw away local bindings when we're done
-        val localContext = Context(context)
-
         for (node in node.body) {
             when (node) {
                 is ExpressionNode -> {
                     // TODO - Raise a warning about unused expression value
-                    TypeInferenceUtil.infer(localContext, node)
+                    TypeInferenceUtil.infer(context, node)
                 }
 
-                is AssignmentStatementNode -> AssignmentTypeResolver(node, binding).resolve(environment, localContext)
+                is AssignmentStatementNode -> AssignmentTypeResolver(node, binding).resolve(environment, context)
 
-                is PrintNode -> TypeInferenceUtil.infer(localContext, node.expressionNode)
+                is PrintNode -> TypeInferenceUtil.infer(context, node.expressionNode)
 
                 is ReturnStatementNode -> {
                     val varExpr = node.valueNode.expressionNode
-                    val varType = TypeInferenceUtil.infer(localContext, varExpr, returnType)
+                    val varType = TypeInferenceUtil.infer(context, varExpr, returnType)
                     val equalitySemantics = varType.equalitySemantics as AnyEquality
 
                     if (!equalitySemantics.isSatisfied(context, returnType, varType)) {

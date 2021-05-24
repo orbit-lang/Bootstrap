@@ -13,6 +13,12 @@ data class TypeIdentifierNode(
 			= TypeIdentifierNode(token, token, "Unit")
 	}
 
+	override fun equals(other: Any?): Boolean = when (other) {
+		// TODO - Revisit equality when we get to implementing generics
+		is TypeIdentifierNode -> value == other.value
+		else -> false
+	}
+
 	override fun getChildren() : List<Node> {
 		return typeParametersNode.typeParameters
 	}

@@ -21,12 +21,12 @@ abstract class Entity(
 
 data class Type(override val name: String, override val properties: List<Property> = emptyList(), override val equalitySemantics: Equality<Entity> = NominalEquality) : Entity(name, properties, equalitySemantics) {
     constructor(path: Path, properties: List<Property> = emptyList(), equalitySemantics: Equality<Entity> = NominalEquality)
-            : this(path.toString(OrbitMangler), properties, equalitySemantics)
+        : this(path.toString(OrbitMangler), properties, equalitySemantics)
 }
 
-data class Trait(override val name: String, override val properties: List<Property> = emptyList(), override val equalitySemantics: Equality<Entity> = StructuralEquality) : Entity(name, properties,equalitySemantics) {
-    constructor(path: Path, properties: List<Property> = emptyList(), equalitySemantics: Equality<Entity> = StructuralEquality)
-            : this(path.toString(OrbitMangler), properties, equalitySemantics)
+data class Trait(override val name: String, override val properties: List<Property> = emptyList(), val signatures: List<SignatureProtocol<*>>, override val equalitySemantics: Equality<Entity> = StructuralEquality) : Entity(name, properties,equalitySemantics) {
+    constructor(path: Path, properties: List<Property> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Entity> = StructuralEquality)
+        : this(path.toString(OrbitMangler), properties, signatures, equalitySemantics)
 }
 
 data class Parameter(override val name: String, val type: TypeProtocol) : TypeProtocol {

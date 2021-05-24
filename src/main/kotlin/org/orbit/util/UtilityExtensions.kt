@@ -52,9 +52,14 @@ fun <A, B> dispose(fn: (A) -> B) : (A) -> Unit {
 }
 
 typealias Fn<A, B, C> = (A, B) -> C
+typealias Fn3<A, B, C, D> = (A, B, C) -> D
 
 operator fun <A, B, C> Fn<A, B, C>.plus(param: B) : (A) -> C {
     return partial(this, param)
+}
+
+operator fun <A, B, C> ((A) -> B).plus(c: C) : (A) -> C {
+    return this + c
 }
 
 fun String.pluralise(count: Int) : String = when (count) {

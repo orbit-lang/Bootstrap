@@ -50,6 +50,10 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
     fun get(name: String) : TypeProtocol? = bindings[name]
 
+    fun refresh(type: TypeProtocol) : TypeProtocol {
+        return types.find { it.name == type.name }!!
+    }
+
     fun getType(name: String) : TypeProtocol {
         return getTypeOrNull(name)!!
     }
