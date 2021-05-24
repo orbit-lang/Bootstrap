@@ -1,6 +1,12 @@
 @Main module Foo {
+    (self Int) foo () (Int) {
+        defer(i) { print i }
+
+        return 2
+    }
+
     (self Main) main () () {
-        defer { print a }
+        defer { print 1 }
     }
 }
 

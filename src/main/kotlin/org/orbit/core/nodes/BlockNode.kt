@@ -10,6 +10,9 @@ data class BlockNode(
 	val isEmpty: Boolean get() = body.isEmpty()
 
 	val containsDefer: Boolean get() = body.containsInstances<DeferNode>()
+	// TODO - Nested blocks may themselves return, which may not count towards this result
+	//  Revisit once control-flow, lambdas etc are a thing
+	val containsReturn: Boolean get() = body.containsInstances<ReturnStatementNode>()
 
 	override fun getChildren() : List<Node> {
 		return body

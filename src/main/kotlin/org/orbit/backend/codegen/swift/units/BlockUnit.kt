@@ -13,7 +13,7 @@ class ReturnStatementUnit(override val node: ReturnStatementNode, override val d
             """
             |let __ret_val = $retVal
             |__on_defer(__ret_val)
-            |return $retVal
+            |return __ret_val
             """.trimMargin()
         } else {
             """
@@ -40,7 +40,7 @@ class AssignmentStatementUnit(override val node: AssignmentStatementNode, overri
     }
 }
 
-class DeferUnit(override val node: DeferNode, override val depth: Int) : CodeUnit<DeferNode> {
+class DeferStatementUnit(override val node: DeferNode, override val depth: Int) : CodeUnit<DeferNode> {
     override fun generate(mangler: Mangler): String {
         val block = BlockUnit(node.blockNode, depth, true)
             .generate(mangler)
@@ -57,6 +57,18 @@ class DeferUnit(override val node: DeferNode, override val depth: Int) : CodeUni
     }
 }
 
+class DeferCallUnit(override val node: BlockNode, override val depth: Int) : CodeUnit<BlockNode> {
+    override fun generate(mangler: Mangler): String {
+        if (node.containsReturn) return ""
+
+        return if (node.containsReturn) {
+            "__on_defer(__ret_val)"
+        } else {
+            "__on_defer()"
+        }.prependIndent(indent())
+    }
+}
+
 class BlockUnit(override val node: BlockNode, override val depth: Int, private val stripBraces: Boolean = false) : CodeUnit<BlockNode> {
     override fun generate(mangler: Mangler): String {
         val units: List<CodeUnit<*>> = node.body.mapNotNull {
@@ -69,12 +81,16 @@ class BlockUnit(override val node: BlockNode, override val depth: Int, private v
 
                 is PrintNode -> PrintStatementUnit(it, depth)
 
-                is DeferNode -> DeferUnit(it, depth)
+                is DeferNode -> DeferStatementUnit(it, depth)
 
                 else ->
                     TODO("Generate code for statement in block: $it")
             }
         }
+
+        // Blocks that defer without returning (i.e implied Unit return type) need to call their defer block here
+        val shouldOutputDeferCall = node.containsDefer && !node.containsReturn
+        val deferCall = DeferCallUnit(node, depth).generate(mangler)
 
         val body = units.joinToString("\n|", transform = partial(CodeUnit<*>::generate, mangler))
         return when (stripBraces) {
@@ -82,6 +98,7 @@ class BlockUnit(override val node: BlockNode, override val depth: Int, private v
             else -> """
             |{
             |$body
+            |$deferCall
             |}
             """.trimMargin()
         }
