@@ -1,11 +1,5 @@
 package org.orbit.util
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.arguments.multiple
-import com.github.ajalt.clikt.parameters.arguments.optional
-import com.github.ajalt.clikt.parameters.types.file
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.components.Warning
@@ -16,14 +10,6 @@ import org.orbit.core.phase.safeCast
 
 open class OrbitException(override val message: String?) : Exception(message) {
 	companion object
-}
-
-class Orbit : CliktCommand() {
-	val source by argument(help = "Orbit source file to compile")
-		.file()
-		.multiple(true)
-
-	override fun run() {}
 }
 
 class Invocation(val platform: Platform) {
