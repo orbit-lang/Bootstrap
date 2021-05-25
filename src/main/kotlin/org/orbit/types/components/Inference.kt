@@ -69,9 +69,9 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
             val matches = receiverType.properties.filter { it.name == node.messageIdentifier.identifier }
 
             if (matches.isEmpty()) {
-                throw invocation.make<TypeChecker>("Type '${receiverType.name} has no property named '${node.messageIdentifier.identifier}", node.messageIdentifier)
+                throw invocation.make<TypeChecker>("Type '${receiverType.name}' has no property named '${node.messageIdentifier.identifier}'", node.messageIdentifier)
             } else if (matches.size > 1) {
-                throw invocation.make<TypeChecker>("Type '${receiverType.name} has multiple properties named '${node.messageIdentifier.identifier}", node.messageIdentifier)
+                throw invocation.make<TypeChecker>("Type '${receiverType.name}' has multiple properties named '${node.messageIdentifier.identifier}'", node.messageIdentifier)
             }
 
             return matches.first().type
