@@ -5,13 +5,22 @@ import org.orbit.core.*
 import org.orbit.core.nodes.ModuleNode
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.core.nodes.TypeDefNode
+import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.partial
 
 class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeUnit<ModuleNode> {
     override fun generate(mangler: Mangler): String {
         val moduleName = node.getPath().toString(OrbitMangler)
 
-        if (moduleName == "Orb::Types::Intrinsics") {
+        // TODO - This is just a temporary hack to allow us to omit arbitrary definitions from code generation
+        //  (because they are defined in the OrbCore Swift module)
+        val stubAnnotation = node.phaseAnnotationNodes.find {
+            val path = it.getPathOrNull() ?: return@find false
+
+            path == IntrinsicTypes.BootstrapCoreStub.path
+        }
+
+        if (stubAnnotation != null) {
             return ""
         }
 

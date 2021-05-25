@@ -1,9 +1,8 @@
-module Orb::Types::Intrinsics {
-    type Unit
-    type Int
-    type Symbol
+module Bootstrap::Core {
+    type Stub
 }
 
-module Orb::Core::Main {
-    type Main(argc Int)
+@Bootstrap::Core::Stub
+module Foo {
+    type Bar
 }

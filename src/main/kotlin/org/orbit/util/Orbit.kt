@@ -158,19 +158,19 @@ class Build : CliktCommand(), KoinComponent {
 				compilerGenerator.run(CompilationScheme)
 
 				val parserResult = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser)
-				val html = (parserResult.ast as ProgramNode).write(HtmlNodeWriterFactory, 0)
+//				val html = (parserResult.ast as ProgramNode).write(HtmlNodeWriterFactory, 0)
+//
+//				val fileReader = FileReader("output.css")
+//				val css = fileReader.readText()
+//
+//				fileReader.close()
+//
+//				val fileWriter = FileWriter("output.html")
+//
+//				fileWriter.write("<html><head>$css</head><body>${html}</body></html>")
+//				fileWriter.close()
 
-				val fileReader = FileReader("output.css")
-				val css = fileReader.readText()
-
-				fileReader.close()
-
-				val fileWriter = FileWriter("output.html")
-
-				fileWriter.write("<html><head>$css</head><body>${html}</body></html>")
-				fileWriter.close()
-
-				println(CodeWriter.execute(parserResult.ast))
+				println(CodeWriter.execute(parserResult.ast as ProgramNode))
 
 				println(invocation.dumpWarnings())
 			} catch (ex: Exception) {

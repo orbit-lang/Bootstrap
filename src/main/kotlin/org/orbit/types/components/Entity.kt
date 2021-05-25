@@ -124,7 +124,8 @@ enum class IntrinsicTypes(val type: ValuePositionType) {
     Unit(Type("Orb::Types::Intrinsics::Unit")),
     Int(Type("Orb::Types::Intrinsics::Int")),
     Symbol(Type("Orb::Types::Intrinsics::Symbol")),
-    Main(Type("Orb::Core::Main::Main", listOf(Property("argc", Int.type))));
+    Main(Type("Orb::Core::Main::Main", listOf(Property("argc", Int.type)))),
+    BootstrapCoreStub(Type("Bootstrap::Core::Stub"));
 
     companion object {
         val allTypes: Set<TypeProtocol>

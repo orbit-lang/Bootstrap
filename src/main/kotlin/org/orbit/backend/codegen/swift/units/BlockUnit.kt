@@ -59,6 +59,7 @@ class DeferStatementUnit(override val node: DeferNode, override val depth: Int) 
 
 class DeferCallUnit(override val node: BlockNode, override val depth: Int) : CodeUnit<BlockNode> {
     override fun generate(mangler: Mangler): String {
+        if (!node.containsDefer) return ""
         if (node.containsReturn) return ""
 
         return if (node.containsReturn) {

@@ -58,10 +58,10 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Cod
         val typePath = node.getPath()
         //val typeType = context.getType(typePath) as Entity
 
-        if (IntrinsicTypes.isIntrinsicType(typePath)) {
-            // Intrinsics are auto-defined as typealiases
-            return ""
-        }
+//        if (IntrinsicTypes.isIntrinsicType(typePath)) {
+//            // Intrinsics are auto-defined as typealiases
+//            return ""
+//        }
 
         // TODO - Lookup value semantics for this type (i.e. class or struct)
         val header = "/* type ${typePath.toString(OrbitMangler)} */"

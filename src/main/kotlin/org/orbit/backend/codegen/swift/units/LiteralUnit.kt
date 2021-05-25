@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package org.orbit.backend.codegen.swift.units
 
 import org.orbit.backend.codegen.CodeUnit
@@ -24,7 +26,7 @@ class IntLiteralUnit(override val node: LiteralNode<Pair<Int, BigInteger>>, over
 class SymbolLiteralUnit(override val node: LiteralNode<Pair<Int, String>>, override val depth: Int) : LiteralUnit<Pair<Int, String>> {
     override fun generate(mangler: Mangler): String {
         val symbolType = (OrbitMangler + mangler)(IntrinsicTypes.Symbol.type.name)
-        return "${symbolType}(value: \"${node.value.second}\")"
+        return "${symbolType}(value: \"${node.value.second}\", len: ${node.value.second.length})"
     }
 }
 
