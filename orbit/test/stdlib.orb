@@ -2,7 +2,11 @@ module Bootstrap::Core {
     type Stub
 }
 
-@Bootstrap::Core::Stub
-module Foo {
-    type Bar
+module Orb::Types::Intrinsics {
+    type Int
+    type Unit
+}
+
+module Main with Orb::Types::Intrinsics {
+    type Main(argc Int)
 }

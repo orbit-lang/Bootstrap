@@ -10,6 +10,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.remove
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
@@ -18,29 +19,27 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	// First, we resolve the simple name path
-	private fun resolveFirstPass(input: ContainerNode) : PathResolver.Result {
-		val environment = inject<Environment>().value
+	private fun resolveFirstPass(input: ContainerNode, environment: Environment) : PathResolver.Result {
 		val path = OrbitMangler.unmangle(input.identifier.value)
 
-		input.annotate(path, Annotations.Path)
+		environment.withNewScope {
+			input.annotate(it.identifier, Annotations.Scope, true)
+			input.annotate(path, Annotations.Path)
 
-		environment.bind(Binding.Kind.Module, input.identifier.value, path)
+			environment.bind(Binding.Kind.Module, input.identifier.value, path)
+		}
 
 		return PathResolver.Result.Success(path)
 	}
 
-	private fun completeBinding(input: ContainerNode, simplePath: Path, fullyQualifiedPath: FullyQualifiedPath) {
-		val environment = inject<Environment>().value
-
+	private fun completeBinding(input: ContainerNode, environment: Environment, simplePath: Path, fullyQualifiedPath: FullyQualifiedPath) {
 		input.annotate(fullyQualifiedPath, Annotations.Path, true)
 		environment.unbind(Binding.Kind.Module, input.identifier.value, simplePath)
 		environment.bind(Binding.Kind.Module, input.identifier.value, fullyQualifiedPath)
 	}
 
 	// Next, we resolve the containers "within" paths
-	private fun resolveSecondPass(input: C, cycles: Int = 0, context: Path? = null) : PathResolver.Result {
-		val environment = inject<Environment>().value
-
+	private fun resolveSecondPass(input: C, environment: Environment, cycles: Int = 0, context: Path? = null) : PathResolver.Result {
 		return environment.withNewScope(input) {
 			val simplePath = input.getPath()
 
@@ -60,7 +59,7 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 				// If the container does not declare a parent, it is already fully resolved
 				val fullyQualifiedPath = FullyQualifiedPath(simplePath)
 
-				completeBinding(input, simplePath, fullyQualifiedPath)
+				completeBinding(input, environment, simplePath, fullyQualifiedPath)
 
 				return@withNewScope PathResolver.Result.Success(fullyQualifiedPath)
 			}
@@ -83,12 +82,12 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 						else -> FullyQualifiedPath(parent.path + simplePath)
 					}
 
-					completeBinding(input, simplePath, fullyQualifiedPath)
+					completeBinding(input, environment, simplePath, fullyQualifiedPath)
 					PathResolver.Result.Success(fullyQualifiedPath)
 				}
 
 				else -> {
-					val parentResult = resolveSecondPass(parentNode as C, cycles + 1, simplePath)
+					val parentResult = resolveSecondPass(parentNode as C, environment, cycles + 1, simplePath)
 
 					if (parentResult !is PathResolver.Result.Success) {
 						TODO("@ContainerResolver:91")
@@ -96,7 +95,7 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 
 					val fullyQualifiedPath = FullyQualifiedPath(parentResult.path + simplePath)
 
-					completeBinding(input, simplePath, fullyQualifiedPath)
+					completeBinding(input, environment, simplePath, fullyQualifiedPath)
 
 					PathResolver.Result.Success(fullyQualifiedPath)
 				}
@@ -107,34 +106,36 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 	private fun resolveLastPass(input: ContainerNode, environment: Environment, graph: Graph) : PathResolver.Result {
 		val containerPath = input.getPath()
 
-		// TODO - Would be nice to inject these but the parentPath property makes it tricky
-		val typeResolver = TypeDefPathResolver(containerPath)
-		val traitResolver = TraitDefPathResolver(containerPath)
+		environment.withNewScope(input) {
+			// TODO - Would be nice to inject these but the parentPath property makes it tricky
+			val typeResolver = TypeDefPathResolver(containerPath)
+			val traitResolver = TraitDefPathResolver(containerPath)
 
-		val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
-		val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
+			val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
+			val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
 
-		// Run a first pass over all types & traits that resolves just their own paths
-		// (ignoring properties and trait conformance etc)
-		for (traitDef in traitDefs) {
-			traitResolver.execute(PathResolver.InputType(traitDef, PathResolver.Pass.Initial))
-		}
+			// Run a first pass over all types & traits that resolves just their own paths
+			// (ignoring properties and trait conformance etc)
+			for (traitDef in traitDefs) {
+				traitResolver.execute(PathResolver.InputType(traitDef, PathResolver.Pass.Initial))
+			}
 
-		// We need to do 2 passes over types to avoid order-of-definition problems
-		for (typeDef in typeDefs) {
-			typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Initial))
-		}
+			// We need to do 2 passes over types to avoid order-of-definition problems
+			for (typeDef in typeDefs) {
+				typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Initial))
+			}
 
-		for (traitDef in traitDefs) {
-			traitResolver.execute(PathResolver.InputType(traitDef, PathResolver.Pass.Last))
-		}
+			for (traitDef in traitDefs) {
+				traitResolver.execute(PathResolver.InputType(traitDef, PathResolver.Pass.Last))
+			}
 
-		for (typeDef in typeDefs) {
-			typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Last))
-		}
+			for (typeDef in typeDefs) {
+				typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Last))
+			}
 
-		for (methodDef in input.methodDefs) {
-			pathResolverUtil.resolve(methodDef, PathResolver.Pass.Initial, environment, graph)
+			for (methodDef in input.methodDefs) {
+				pathResolverUtil.resolve(methodDef, PathResolver.Pass.Initial, environment, graph)
+			}
 		}
 
 		return PathResolver.Result.Success(containerPath)
@@ -142,8 +143,8 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 
 	override fun resolve(input: C, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		return when (pass) {
-			is PathResolver.Pass.Initial -> resolveFirstPass(input)
-			is PathResolver.Pass.Subsequent -> resolveSecondPass(input)
+			is PathResolver.Pass.Initial -> resolveFirstPass(input, environment)
+			is PathResolver.Pass.Subsequent -> resolveSecondPass(input, environment)
 			is PathResolver.Pass.Last -> resolveLastPass(input, environment, graph)
 		}
 	}

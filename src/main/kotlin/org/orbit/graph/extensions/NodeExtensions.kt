@@ -28,6 +28,13 @@ inline fun <reified T: Serial> Node.annotate(value: T, key: Annotations, mergeOn
     annotateByKey(value, key.key, mergeOnConflict)
 }
 
+fun Node.isAnnotated(key: Annotations) : Boolean = annotations.any {
+    when (it.tag) {
+        is KeyedNodeAnnotationTag<*> -> it.tag.key == key.key
+        else -> false
+    }
+}
+
 fun Node.remove(annotation: Annotations) {
     annotations.removeIf {
         when (it.tag) {

@@ -33,10 +33,6 @@ import org.orbit.types.components.Parameter
 import org.orbit.types.components.TypeProtocol
 import org.orbit.types.components.TypeSignature
 import org.orbit.types.phase.TypeChecker
-import org.orbit.util.nodewriters.html.HtmlNodeWriterFactory
-import org.orbit.util.nodewriters.write
-import java.io.FileReader
-import java.io.FileWriter
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
@@ -137,6 +133,7 @@ class Build : CliktCommand(), KoinComponent {
 				val sourceReader = MultiFileSourceProvider(sources)
 				val dummyPhase = DummyPhase(invocation, sourceReader)
 
+				// The first phase (CommentParser) needs an input, so we "cheat" here by inserting initial conditions
 				invocation.storeResult("__source__", sourceReader)
 
 				compilerGenerator["__source__"] = dummyPhase

@@ -5,6 +5,7 @@ import org.orbit.core.nodes.Node
 import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getScopeIdentifier
 import org.orbit.graph.extensions.getScopeIdentifierOrNull
+import org.orbit.graph.extensions.isAnnotated
 
 class Environment(
     val ast: Node,
@@ -21,34 +22,44 @@ class Environment(
 	    scopes.add(currentScope)
 	}
 
-	fun <T> withNewScope(node: Node, block: (Scope) -> T) : T {
+	fun <T> withNewScope(node: Node? = null, block: (Scope) -> T) : T {
 		openScope(node)
 		try {
 			return block(currentScope)
 		} finally {
-			closeScope()
+			closeScope(node)
 		}
 	}
 
-	fun openScope(node: Node) {
-		val scopeId = node.getScopeIdentifierOrNull()
+	fun openScope(node: Node?) {
+		val scopeId = node?.getScopeIdentifierOrNull()
 
 		if (scopeId != null) {
 			val scope = getScope(scopeId)
 			currentScope = scope
+			mark(node)
 			return
 		}
 
-		currentScope = Scope(this, currentScope, imports = mutableSetOf(currentScope.identifier))
+		val imports = mutableSetOf(currentScope.identifier)
+
+		imports.addAll(currentScope.getImportedScopes())
+
+		currentScope = Scope(this, currentScope, imports = imports)
 		scopes.add(currentScope)
 	}
 
-	fun closeScope() {
+	fun closeScope(node: Node? = null) {
 		currentScope = currentScope.parentScope ?: currentScope
+//		if (node != null) {
+//			mark(node)
+//		}
 	}
 
 	fun mark(node: Node) {
-		node.annotate(currentScope.identifier, Annotations.Scope)
+		//if (!node.isAnnotated(Annotations.Scope)) {
+			node.annotate(currentScope.identifier, Annotations.Scope, true)
+		//}
 
 		// Walk down the tree, annotating every node with the current Scope id
 		node.getChildren().forEach {

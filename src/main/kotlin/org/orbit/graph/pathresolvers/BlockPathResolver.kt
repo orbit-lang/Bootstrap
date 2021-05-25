@@ -15,7 +15,8 @@ class BlockPathResolver : PathResolver<BlockNode> {
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: BlockNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
-		return environment.withNewScope(input) {
+		return environment.withNewScope {
+
 			// TODO - Non-linear routes through a block, e.g. conditionals, controls etc
 			var result: PathResolver.Result =
                 PathResolver.Result.Success(OrbitMangler.unmangle(IntrinsicTypes.Unit.type.name))

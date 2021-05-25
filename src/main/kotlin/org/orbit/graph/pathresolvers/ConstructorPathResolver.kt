@@ -27,7 +27,10 @@ class ConstructorPathResolver : PathResolver<ConstructorNode> {
                 PathResolver.Result.Success(binding.result.path)
 			}
 
-			else -> TODO("@MethodDefPathResolver:95")
+			else -> {
+				binding.unwrap(this, input.firstToken.position)
+				PathResolver.Result.Failure(input)
+			}
 		}
 	}
 }

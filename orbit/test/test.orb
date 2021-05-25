@@ -1,12 +1,11 @@
-@Main module Foo {
-    (self Int) foo () (Int) {
-        defer(i) { print i }
+@Bootstrap::Core::Stub
+module Bar with Bootstrap::Core {
+    type Baz
+}
 
-        return 2
-    }
-
+module Foo with Main with Orb::Types::Intrinsics with Bar {
     (self Main) main () () {
-        defer { print 1 }
+        b = Baz()
     }
 }
 

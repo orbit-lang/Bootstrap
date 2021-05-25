@@ -5,8 +5,10 @@ import org.koin.core.component.inject
 import org.orbit.core.Path
 import org.orbit.core.phase.Phase
 import org.orbit.core.nodes.Node
+import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.isAnnotated
 import org.orbit.graph.phase.GraphErrors
 
 interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.Result>, KoinComponent {
@@ -51,7 +53,9 @@ interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.
 //		environment.openScope(input.node)
 
 		try {
-			environment.mark(input.node)
+			if (!input.node.isAnnotated(Annotations.Scope)) {
+				environment.mark(input.node)
+			}
 
 			val result = resolve(input.node, input.pass, environment, graph)
 
