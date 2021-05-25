@@ -1,8 +1,10 @@
 package org.orbit.util
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.arguments.optional
 import com.github.ajalt.clikt.parameters.types.file
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
@@ -17,7 +19,6 @@ open class OrbitException(override val message: String?) : Exception(message) {
 }
 
 class Orbit : CliktCommand() {
-	// TODO - This command will need to accept multiple files
 	val source by argument(help = "Orbit source file to compile")
 		.file()
 		.multiple(true)
@@ -142,8 +143,12 @@ class Invocation(val platform: Platform) {
 		""".trimMargin()
 	}
 
-	fun<P: Phase<*, *>> make(error: OrbitError<P>) : OrbitException {
+	fun <P: Phase<*, *>> make(error: OrbitError<P>) : OrbitException {
 		return OrbitException(makeString(error))
+	}
+
+	fun make(error: String) : OrbitException {
+		return OrbitException(error)
 	}
 
 	inline fun<reified P: Phase<*, *>> makeString(message: String, sourcePosition: SourcePosition) : String {

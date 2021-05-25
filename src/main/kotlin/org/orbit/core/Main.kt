@@ -1,5 +1,6 @@
 package org.orbit.core
 
+import com.github.ajalt.clikt.core.subcommands
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
@@ -176,7 +177,10 @@ class Main {
 
 					// TODO - Platform should be derived from System.getProperty("os.name") or similar
 					// TODO - Support non *nix platforms
-					val sourceReader = MultiFileSourceProvider(orbit.source)
+					val sources = orbit.source
+						//?: throw invocation.make("")
+
+					val sourceReader = MultiFileSourceProvider(sources)
 					val dummyPhase = DummyPhase(invocation, sourceReader)
 
 					invocation.storeResult("__source__", sourceReader)
