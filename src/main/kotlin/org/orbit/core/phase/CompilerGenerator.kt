@@ -29,11 +29,11 @@ class CompilerGenerator(private val invocation: Invocation, phases: Map<String, 
 			eventBus.notify(PhaseLifecycle.Event(PhaseLifecycle.Init, entry.uniqueIdentifier))
 
 			var input = invocation.phaseResults[entry.resultIdentifier]
-				?: throw RuntimeException("FATAL")
+				?: throw RuntimeException("FATAL:32")
 
 			input = phase.inputType.safeCast(input)
 				?: (phase as? AdaptablePhase)?.getAdapterSafe(resultPhase.outputType)?.bridge(input)
-				?: throw RuntimeException("FATAL")
+				?: throw RuntimeException("FATAL:36 -- ${input::class.java.simpleName}")
 
 			eventBus.notify(PhaseLifecycle.Event(PhaseLifecycle.Before, entry.uniqueIdentifier))
 

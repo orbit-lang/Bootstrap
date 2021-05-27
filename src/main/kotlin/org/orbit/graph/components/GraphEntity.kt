@@ -2,18 +2,15 @@ package org.orbit.graph.components
 
 import org.json.JSONObject
 import org.orbit.serial.Serial
+import java.io.Serializable
 import java.util.*
 
-sealed class GraphEntity {
-    enum class Direction {
-        LTR, RTL
-    }
-
+sealed class GraphEntity : Serializable {
     class Alias(name: String, id: ID) : Vertex(name, id)
 
     // A single point in the dependency graph
     open class Vertex(val name: String, val id: ID = ID.random()) : GraphEntity() {
-        data class ID(val uuid: UUID) : Serial {
+        data class ID(val uuid: UUID) : Serial, Serializable {
             companion object {
                 val Self = random()
                 fun random() : ID = ID(UUID.randomUUID())

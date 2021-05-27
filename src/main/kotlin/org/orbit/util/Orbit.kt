@@ -3,6 +3,10 @@ package org.orbit.util
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.multiple
+import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -25,16 +29,52 @@ import org.orbit.frontend.phase.Lexer
 import org.orbit.frontend.phase.ObserverPhase
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ProgramRule
+import org.orbit.graph.components.Environment
+import org.orbit.graph.components.Graph
+import org.orbit.graph.components.Scope
 import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.graph.phase.CanonicalNameResolver
-import org.orbit.types.components.InstanceSignature
-import org.orbit.types.components.Parameter
-import org.orbit.types.components.TypeProtocol
-import org.orbit.types.components.TypeSignature
+import org.orbit.types.components.*
 import org.orbit.types.phase.TypeChecker
+import java.io.*
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
+
+data class OrbitLibrary(val scopes: List<Scope>, val context: Context, val graph: Graph) : Serializable {
+	companion object : FilenameFilter {
+		fun fromInvocation(invocation: Invocation) : OrbitLibrary {
+			val names = invocation.getResult<CanonicalNameResolver.Result>(CompilationSchemeEntry.canonicalNameResolver)
+			val context = invocation.getResult<Context>(CompilationSchemeEntry.typeChecker)
+
+			return OrbitLibrary(names.environment.scopes, context, names.graph)
+		}
+
+		fun fromPath(path: File) : OrbitLibrary {
+			val fis = FileInputStream(path)
+			val ois = ObjectInputStream(fis)
+
+			return ois.use { ois ->
+				ois.readObject() as OrbitLibrary
+			}
+		}
+
+		override fun accept(dir: File?, name: String?): Boolean {
+			return name?.endsWith(".orbl") ?: false
+		}
+	}
+
+	fun write(path: File) {
+		val fos = FileOutputStream(path)
+		val oos = ObjectOutputStream(fos)
+
+		oos.writeObject(this)
+
+		oos.close()
+	}
+}
+
+
 
 private val mainModule = module {
 	single { Invocation(Unix) }
@@ -118,15 +158,63 @@ class Build : CliktCommand(), KoinComponent {
 	private val compilerGenerator: CompilerGenerator by inject()
 	private val compilationEventBus: CompilationEventBus by inject()
 
-	val sources by argument(help = "Orbit source file to compile")
+	private val sources by argument(help = "Orbit source file to compile")
 		.file()
 		.multiple(true)
+
+	private val output by option("-o", "--output", help = "Custom name for library product (default value = MyLibrary). Must start with a capital letter.")
+		.default("MyLibrary")
+
+	private val outputPath by option("-p", "--output-path", help = "Path where library product will be written to. Defaults to current directory.")
+		.file()
+		.default(File("."))
+
+	private val libraryPaths by option("-l", "--library", help = "Path(s) to directories containing Orbit library products")
+		.file()
+		.multiple()
+
+	private val verbose by option("-v", "--verbose", help = "Print out detailed compiler events")
+		.flag(default = false)
 
 	@ExperimentalTime
 	override fun run() {
 		println("Compilation completed in " + measureTime {
 			try {
 				startKoin { modules(mainModule) }
+
+				if (!outputPath.isDirectory) {
+					throw invocation.make("Specified output path '${outputPath.absolutePath}' is not a directory")
+				}
+
+				// Creates an Orbit Library Directory
+				val completeLibraryOutputDirectoryPath = outputPath.toPath()
+					.resolve(output)
+
+				val completeLibraryOutputDirectory = completeLibraryOutputDirectoryPath.toFile()
+
+				if (!completeLibraryOutputDirectory.exists()) {
+					completeLibraryOutputDirectory.mkdirs()
+				}
+
+				val orbitLibraryPath = completeLibraryOutputDirectoryPath.resolve("$output.orbl")
+				val swiftLibraryPath = completeLibraryOutputDirectoryPath.resolve("$output.swift")
+
+				val importedLibs = mutableListOf<OrbitLibrary>()
+
+				for (lpath in libraryPaths) {
+					if (lpath.isDirectory) {
+						val paths = lpath.listFiles(OrbitLibrary)
+							?: continue
+
+						paths.forEach { println("Importing Orbit library '${it}'...")}
+						paths.map(OrbitLibrary.Companion::fromPath)
+							.forEach(importedLibs::add)
+					} else {
+						throw invocation.make("Library path provided via --library-path option must be a directory")
+					}
+				}
+
+				invocation.storeResult("__imports__", importedLibs)
 
 				// TODO - Platform should be derived from System.getProperty("os.name") or similar
 				// TODO - Support non *nix platforms
@@ -149,12 +237,39 @@ class Build : CliktCommand(), KoinComponent {
 					val printer = Printer(invocation.platform.getPrintableFactory())
 					val eventName = printer.apply(it.identifier, PrintableKey.Bold, PrintableKey.Underlined)
 
-					//println("Compiler event: $eventName")
+					if (verbose) {
+						println("Compiler event: $eventName")
+					}
 				}
 
 				compilerGenerator.run(CompilationScheme)
 
 				val parserResult = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser)
+
+				val orbitLibraryFile = orbitLibraryPath.toFile()
+
+				if (!orbitLibraryFile.exists()) {
+					orbitLibraryFile.createNewFile()
+				}
+
+				val libraryExports = OrbitLibrary.fromInvocation(invocation)
+
+				libraryExports.write(orbitLibraryFile)
+
+				val swiftLibraryFile = swiftLibraryPath.toFile()
+
+				if (!swiftLibraryFile.exists()) {
+					swiftLibraryFile.createNewFile()
+				}
+
+				val swiftCode = CodeWriter.execute(parserResult.ast as ProgramNode)
+
+				val fw = FileWriter(swiftLibraryFile)
+
+				fw.write(swiftCode)
+
+				fw.close()
+
 //				val html = (parserResult.ast as ProgramNode).write(HtmlNodeWriterFactory, 0)
 //
 //				val fileReader = FileReader("output.css")
@@ -166,8 +281,6 @@ class Build : CliktCommand(), KoinComponent {
 //
 //				fileWriter.write("<html><head>$css</head><body>${html}</body></html>")
 //				fileWriter.close()
-
-				println(CodeWriter.execute(parserResult.ast as ProgramNode))
 
 				println(invocation.dumpWarnings())
 			} catch (ex: Exception) {

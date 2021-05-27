@@ -10,8 +10,9 @@ import org.orbit.types.components.InstanceSignature
 import org.orbit.types.components.Parameter
 import org.orbit.types.components.TypeProtocol
 import org.orbit.types.components.TypeSignature
+import java.io.Serializable
 
-open class Path(val relativeNames: List<String>) : Serial {
+open class Path(val relativeNames: List<String>) : Serial, Serializable {
 	companion object {
 		val empty = Path()
 		val self = Path("Self")

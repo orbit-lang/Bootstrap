@@ -45,16 +45,16 @@ class ObserverPhase(override val invocation: Invocation) : ReifiedPhase<SourcePr
             is Scope.BindingSearchResult.Success -> match
         }
 
-        val enclosingScope = result.result.path.enclosingScope
-            ?: throw invocation.make<ObserverPhase>("Missing scope", observerNode.firstToken.position)
-
-        val necessaryScopes = getScopeDependencies(environment, enclosingScope)
-        val necessaryEnvironment = Environment(ast.ast, necessaryScopes.toMutableList())
-
-        val typeChecker = TypeChecker(invocation)
-        val context = typeChecker.execute(necessaryEnvironment)
-
-        println(context)
+//        val enclosingScope = result.result.path.enclosingScope
+//            ?: throw invocation.make<ObserverPhase>("Missing scope", observerNode.firstToken.position)
+//
+//        val necessaryScopes = getScopeDependencies(environment, enclosingScope)
+//        val necessaryEnvironment = Environment(ast.ast, necessaryScopes.toMutableList())
+//
+//        val typeChecker = TypeChecker(invocation)
+//        val context = typeChecker.execute(necessaryEnvironment)
+//
+//        println(context)
     }
 
     private fun getScopeDependencies(environment: Environment, scope: Scope) : Set<Scope> {

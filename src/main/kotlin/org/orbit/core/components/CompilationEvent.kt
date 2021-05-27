@@ -1,5 +1,7 @@
 package org.orbit.core.components
 
-interface CompilationEvent {
+import java.io.Serializable
+
+interface CompilationEvent : Serializable {
     val identifier: String
 }

@@ -12,11 +12,9 @@ import org.orbit.core.nodes.ProgramNode
 import org.orbit.core.phase.AdaptablePhase
 import org.orbit.core.phase.Phase
 import org.orbit.frontend.phase.Parser
+import org.orbit.graph.components.*
 import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.components.Environment
-import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.extensions.getScopeIdentifier
@@ -40,7 +38,7 @@ sealed class GraphErrors {
 	) : OrbitError<T>
 }
 
-class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhase<Parser.Result, Environment>(), KoinComponent {
+class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhase<Parser.Result, CanonicalNameResolver.Result>(), KoinComponent {
 	private data class WithinNonTerminalContainer(
 		override val phaseClazz: Class<out CanonicalNameResolver> = CanonicalNameResolver::class.java,
 		override val sourcePosition: SourcePosition,
@@ -52,8 +50,10 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 				"because $parentContainerName is a module, and modules are terminal containers."
 	}
 
+	data class Result(val environment: Environment, val graph: Graph)
+
 	override val inputType = Parser.Result::class.java
-	override val outputType = Environment::class.java
+	override val outputType = Result::class.java
 
 	private val pathResolverUtil: PathResolverUtil by inject()
 
@@ -64,10 +64,15 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		}
 	}
 
-	override fun execute(input: Parser.Result) : Environment {
+	override fun execute(input: Parser.Result) : Result {
 		val environment = Environment(input.ast)
 		val programNode = input.ast as ProgramNode
 		val graph = Graph()
+
+		val importedLibs = invocation.getResult<List<OrbitLibrary>>("__imports__")
+
+		environment.import(importedLibs.flatMap(OrbitLibrary::scopes))
+		graph.importAll(importedLibs.map(OrbitLibrary::graph))
 
 		// Create a koin dependency on the fly for the environment & graph
 		loadKoinModules(module {
@@ -96,7 +101,7 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 
 		if (initialPassResults.containsInstances<PathResolver.Result.Failure>()) {
 			// TODO - Better error reporting
-			throw invocation.make<CanonicalNameResolver>("FATAL", SourcePosition(0, 0))
+			throw invocation.make<CanonicalNameResolver>("FATAL CanonicalNameResolver:106", SourcePosition(0, 0))
 		}
 
 		containers.forEach {
@@ -119,11 +124,26 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 				val graphID = graph.find(it.value)
 				val vertex = graph.findVertex(graphID)
 
-				val importedContainer = containers.find { node ->
+				containers.find { node ->
 					node.getGraphID() == vertex.id
-				} ?: throw Exception("Imported container not found: ${it.value}")
+				}?.getScopeIdentifier()?.let { id ->
+					return@map id
+				}
 
-				importedContainer.getScopeIdentifier()
+				val scopes = importedLibs.flatMap(OrbitLibrary::scopes)
+
+				for (scope in scopes) {
+					val bindings = scope.bindings
+					val matches = bindings
+						.filter { it.kind is Binding.Kind.Container }
+						.filter { it.path.toString(OrbitMangler) == vertex.name}
+
+					if(matches.size == 1) {
+						return@map scope.identifier
+					}
+				}
+
+				throw Exception("Imported container not found: ${it.value}")
 			}
 
 			// 4. Ensure within api gets imported into child container scope
@@ -150,8 +170,10 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 			pathResolverUtil.resolve(it, PathResolver.Pass.Last, environment, graph)
 		}
 
-		invocation.storeResult(this::class.java.simpleName, environment)
+		val result = Result(environment, graph)
 
-		return environment
+		invocation.storeResult(this::class.java.simpleName, result)
+
+		return result
 	}
 }

@@ -2,9 +2,10 @@ package org.orbit.graph.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import java.io.Serializable
 
-data class Binding(val kind: Kind, val simpleName: String, val path: Path) {
-	interface Kind {
+data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Serializable {
+	interface Kind : Serializable {
 		interface Container : Kind
 		interface Entity : Kind
 		object Api : Container
@@ -14,15 +15,6 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) {
 		object Self : Entity
 		object Ephemeral : Entity
 		object Method : Kind
-		data class Union(val left: Kind, val right: Kind) : Kind {
-			companion object {
-				val AnyEntity = Union(Type, Trait)
-			}
-
-			override fun equals(other: Any?): Boolean {
-				return left == other || right == other
-			}
-		}
 	}
 
 	companion object {

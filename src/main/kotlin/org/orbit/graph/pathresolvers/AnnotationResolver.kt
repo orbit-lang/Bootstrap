@@ -21,7 +21,7 @@ class AnnotationResolver<N: Node>(private val annotationNode: PhaseAnnotationNod
 	) : PathResolver.Result = environment.withNewScope(input) {
 		// Phase annotations map back to real types
 		val typeIdentifier = annotationNode.annotationIdentifierNode.value
-		val binding = environment.getBinding(typeIdentifier, Binding.Kind.Type)
+		val binding = environment.getBinding(typeIdentifier)
 			.unwrap(this, input.firstToken.position)
 
 		// TODO - Annotation parameters

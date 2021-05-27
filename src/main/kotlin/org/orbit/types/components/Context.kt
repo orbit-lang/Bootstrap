@@ -8,8 +8,9 @@ import org.orbit.core.components.CompilationEventBusAware
 import org.orbit.core.components.CompilationEventBusAwareImpl
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
+import java.io.Serializable
 
-class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperators.all()) : Serial, CompilationEventBusAware by CompilationEventBusAwareImpl {
+class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperators.all()) : Serial, Serializable, CompilationEventBusAware by CompilationEventBusAwareImpl {
     sealed class Events(override val identifier: String) : CompilationEvent {
         class TypeCreated(type: TypeProtocol) : Events("(Context) Type Added: ${type.name}")
         class BindingCreated(name: String, type: TypeProtocol) : Events("(Context) Binding Created: $name -> ${type.name}")

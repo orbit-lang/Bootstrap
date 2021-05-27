@@ -1,11 +1,20 @@
 package org.orbit.graph.components
 
 import org.orbit.core.OrbitMangler
-import org.orbit.core.nodes.Node
+import java.io.Serializable
 
-class Graph {
+class Graph : Serializable {
     private val vertices = mutableSetOf<GraphEntity.Vertex>()
     private val edges = mutableSetOf<GraphEntity.Edge>()
+
+    fun import(other: Graph) {
+        vertices.addAll(other.vertices)
+        edges.addAll(other.edges)
+    }
+
+    fun importAll(others: List<Graph>) {
+        others.forEach(::import)
+    }
 
     fun insert(name: String) : GraphEntity.Vertex.ID {
         val vertex = GraphEntity.Vertex(name)

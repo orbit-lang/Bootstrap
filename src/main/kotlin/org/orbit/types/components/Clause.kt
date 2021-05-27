@@ -6,8 +6,9 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.types.phase.TypeChecker
 import org.orbit.util.Invocation
 import org.orbit.util.partial
+import java.io.Serializable
 
-interface Equality<T: TypeProtocol> {
+interface Equality<T: TypeProtocol> : Serializable {
     fun isSatisfied(context: Context, source: T, target: T) : Boolean
 }
 

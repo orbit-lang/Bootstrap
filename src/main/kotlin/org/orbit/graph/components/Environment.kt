@@ -22,6 +22,10 @@ class Environment(
 	    scopes.add(currentScope)
 	}
 
+	fun import(scopes: List<Scope>) {
+		this.scopes.addAll(scopes)
+	}
+
 	fun <T> withNewScope(node: Node? = null, block: (Scope) -> T) : T {
 		openScope(node)
 		try {
@@ -51,15 +55,10 @@ class Environment(
 
 	fun closeScope(node: Node? = null) {
 		currentScope = currentScope.parentScope ?: currentScope
-//		if (node != null) {
-//			mark(node)
-//		}
 	}
 
 	fun mark(node: Node) {
-		//if (!node.isAnnotated(Annotations.Scope)) {
-			node.annotate(currentScope.identifier, Annotations.Scope, true)
-		//}
+		node.annotate(currentScope.identifier, Annotations.Scope, true)
 
 		// Walk down the tree, annotating every node with the current Scope id
 		node.getChildren().forEach {

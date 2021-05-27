@@ -14,6 +14,7 @@ import org.orbit.frontend.phase.Parser
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Scope
+import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.types.components.Context
 import org.orbit.types.components.Trait
 import org.orbit.types.components.Type
@@ -39,12 +40,12 @@ fun <N: Node> List<Binding>.filterNodes(nodes: List<N>, filter: ((N, Binding) ->
     }
 }
 
-class TypeChecker(override val invocation: Invocation, private val context: Context = Context()) : AdaptablePhase<Environment, Context>() {
-    override val inputType: Class<Environment> = Environment::class.java
+class TypeChecker(override val invocation: Invocation, private val context: Context = Context()) : AdaptablePhase<CanonicalNameResolver.Result, Context>() {
+    override val inputType: Class<CanonicalNameResolver.Result> = CanonicalNameResolver.Result::class.java
     override val outputType: Class<Context> = Context::class.java
 
     @Suppress("CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
-    override fun execute(input: Environment): Context {
+    override fun execute(input: CanonicalNameResolver.Result): Context {
         val ast = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser).ast
         val typeDefNodes = ast.search(TypeDefNode::class.java)
         val traitDefNodes = ast.search(TraitDefNode::class.java)
@@ -64,21 +65,21 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
         //  I would like to be able to do this in Orbit.
         // Extra credit to anyone who can crack it in Kotlin (its not important, just cool)!
 
-        input.scopes
+        input.environment.scopes
             .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Type))
             .filterNodes(typeDefNodes)
             .map(::TypeDefTypeResolver)
-            .map(partial(TypeDefTypeResolver::resolve, input, context))
+            .map(partial(TypeDefTypeResolver::resolve, input.environment, context))
             .forEach(context::add)
 
-        input.scopes
+        input.environment.scopes
             .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Trait))
             .filterNodes(traitDefNodes)
             .map(::TraitDefTypeResolver)
-            .map(partial(TraitDefTypeResolver::resolve, input, context))
+            .map(partial(TraitDefTypeResolver::resolve, input.environment, context))
             .forEach(context::add)
 
-        val m = input.scopes
+        val m = input.environment.scopes
             .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Method))
             .filterNodes(methodDefNodes) { n, b ->
                 n.signature.getPathOrNull() == b.path
@@ -86,28 +87,28 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
 
         m.map { Pair(it.first.signature, it.second) }
             .map(::MethodSignatureTypeResolver)
-            .map(partial(MethodSignatureTypeResolver::resolve, input, context))
+            .map(partial(MethodSignatureTypeResolver::resolve, input.environment, context))
             .forEach {
                 context.bind(it.toString(OrbitMangler), it)
             }
 
-        input.scopes
+        input.environment.scopes
             .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Trait))
             .filterNodes(traitDefNodes)
             .map(::TraitSignaturesTypeResolver)
-            .map(partial(TraitSignaturesTypeResolver::resolve, input, context))
+            .map(partial(TraitSignaturesTypeResolver::resolve, input.environment, context))
             .forEach(context::add)
 
         // Now that Type, Trait & Method definitions are type resolved, we need to enforce explicit Trait Conformance
-        input.scopes
+        input.environment.scopes
             .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Type))
             .filterNodes(typeDefNodes)
             .map(::TraitConformanceTypeResolver)
-            .map(partial(TraitConformanceTypeResolver::resolve, input, context))
+            .map(partial(TraitConformanceTypeResolver::resolve, input.environment, context))
             .forEach(context::add)
 
         m.map(::MethodTypeResolver)
-            .forEach(dispose(partial(MethodTypeResolver::resolve, input, context)))
+            .forEach(dispose(partial(MethodTypeResolver::resolve, input.environment, context)))
 
         invocation.storeResult(this::class.java.simpleName, context)
 

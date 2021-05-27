@@ -8,6 +8,7 @@ import org.orbit.core.components.CompilationEvent
 import org.orbit.core.components.SourcePosition
 import org.orbit.util.Invocation
 import org.orbit.util.OrbitError
+import java.io.Serializable
 
 interface Phase<I, O> {
     val invocation: Invocation
@@ -313,7 +314,7 @@ fun interface Observer<T> {
     fun observe(value: T)
 }
 
-class Observable<T>(initialValue: T? = null) {
+class Observable<T: Serializable>(initialValue: T? = null) {
     private var _value: T? = initialValue
     private val observers = mutableSetOf<Observer<T>>()
 

@@ -16,7 +16,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 	override fun resolve(input: MethodSignatureNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		// A method's canonical path is `<ReceiverType>::<MethodName>[::ArgType1, ::ArgType2, ...]::<ReturnType>`
 		val receiver = input.receiverTypeNode.typeIdentifierNode.value
-		val receiverResult = environment.getBinding(receiver, Binding.Kind.Type)
+		val receiverResult = environment.getBinding(receiver)
 		val receiverBinding = receiverResult
 			.unwrap(this, input.receiverTypeNode.typeIdentifierNode.firstToken.position)
 

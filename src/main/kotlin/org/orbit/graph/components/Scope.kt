@@ -10,14 +10,15 @@ import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.serial.Serial
 import org.orbit.util.Fatal
 import org.orbit.util.Monoid
+import java.io.Serializable
 
 class Scope(
-	private val environment: Environment,
+	@Transient private val environment: Environment,
 	val parentScope: Scope? = null,
 	val identifier: ScopeIdentifier = ScopeIdentifier.next(),
 	val bindings: MutableList<Binding> = mutableListOf(),
 	private val imports: MutableSet<ScopeIdentifier> = mutableSetOf()
-) : Serial, CompilationEventBusAware by CompilationEventBusAwareImpl {
+) : Serial, Serializable, CompilationEventBusAware by CompilationEventBusAwareImpl {
 	sealed class Events(override val identifier: String) : CompilationEvent {
 		class BindingCreated(binding: Binding) : Events("Scope Binding Created: $binding")
 	}

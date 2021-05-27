@@ -2,12 +2,13 @@ package org.orbit.types.components
 
 import org.json.JSONObject
 import org.orbit.serial.Serial
+import java.io.Serializable
 
-interface TypeProtocol : Serial {
+interface TypeProtocol : Serial, Serializable {
     val name: String
     val equalitySemantics: Equality<out TypeProtocol>
 
-    fun isSatisfied(context: Context, type: TypeProtocol, ) : Boolean {
+    fun isSatisfied(context: Context, type: TypeProtocol) : Boolean {
         return (equalitySemantics as AnyEquality).isSatisfied(context, this, type)
     }
 
