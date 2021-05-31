@@ -21,6 +21,14 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 		var end = typeIdentifierNode.lastToken
 
 		if (next.type == TokenTypes.LParen) {
+
+			if (context.peek(1).type == TokenTypes.RParen) {
+				context.consume()
+				context.consume()
+
+				return +TraitDefNode(start, end, typeIdentifierNode)
+			}
+
 			// NOTE - Same ambiguity as TypeDef
 			val lookaheadParser = Parser(context.invocation, MethodSignatureRule(false))
 

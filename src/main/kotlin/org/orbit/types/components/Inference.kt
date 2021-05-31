@@ -169,7 +169,7 @@ private object ConstructorInference : TypeInference<ConstructorNode>, KoinCompon
 
         if (receiverType !is Type) {
             throw invocation.make<TypeChecker>(
-                "Only types may be initialised via a constructor call. Found $receiverType",
+                "Only concrete types may be initialised via a constructor call. Found ${receiverType::class.java.simpleName} '${receiverType.name}'",
                 node.typeIdentifierNode
             )
         }

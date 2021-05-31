@@ -10,6 +10,7 @@ import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.serial.Serial
 import org.orbit.util.Fatal
 import org.orbit.util.Monoid
+import org.orbit.util.partial
 import java.io.Serializable
 
 class Scope(
@@ -135,9 +136,14 @@ class Scope(
 		val imported = imports.map { environment.getScope(it) }
 			.flatMap { it.bindings }
 		val all = (bindings + imported).distinct()
-		val matches = all.filter {
-			(it.simpleName == simpleName || it.path.toString(OrbitMangler) == simpleName)
-				&& (context == null || it.kind == context)
+		val partialMatches = all.filter {
+			it.simpleName == simpleName
+				|| it.path.toString(OrbitMangler) == simpleName
+		}
+
+		val matches = partialMatches.filter {
+			// For Kind.Union to work, the comparison order matters here!
+			context == null || context == it.kind
 		}
 
 		return when (matches.size) {

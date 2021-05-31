@@ -35,7 +35,7 @@ class TraitDefPathResolver(
 			graph.link(parentGraphID, graphID)
 			graph.alias(path.toString(OrbitMangler), graphID)
 
-			environment.openScope(input)
+			//environment.openScope(input)
 
 			input.typeIdentifierNode.typeParametersNode.typeParameters.forEach {
 				if (it is LValueTypeParameter) {
@@ -43,7 +43,7 @@ class TraitDefPathResolver(
 				}
 			}
 
-			environment.closeScope()
+			//environment.closeScope()
 			path
 		} else {
 			val path = input.getPath()
