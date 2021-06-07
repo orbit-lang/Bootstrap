@@ -52,7 +52,7 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
         }
 
         val receiverType = when (val receiverPath = receiver.getPath()) {
-            Path.self -> enclosingTrait ?: throw invocation.make<TypeChecker>("Using 'Self' type outside of a Trait definitions is not supported", node)
+            Path.self -> enclosingTrait ?: throw invocation.make<TypeChecker>("Using 'Self' type outside of a Trait definition is not supported", node)
             else -> context.getType(receiverPath)
         } as ValuePositionType
 

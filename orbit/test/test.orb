@@ -1,5 +1,8 @@
 module Foo with Orb::Core::Main with Orb::Types::Intrinsics {
-    trait Any
+    trait Any {
+        (self Self) foo () ()
+    }
+
     type Foo : Any
 
     (self Any) foo () () {
@@ -9,6 +12,6 @@ module Foo with Orb::Core::Main with Orb::Types::Intrinsics {
     (self Main) main () () {
         f = Foo()
 
-        _ = f.foo()
+        print f.foo()
     }
 }

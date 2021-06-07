@@ -85,6 +85,8 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
 
             val matches = mutableListOf<SignatureProtocol<*>>()
             for (binding in context.bindings.values) {
+                if (binding.name != node.messageIdentifier.identifier) continue
+
                 if (binding is InstanceSignature) {
                     val receiverSemantics = binding.receiver.type.equalitySemantics as AnyEquality
 
