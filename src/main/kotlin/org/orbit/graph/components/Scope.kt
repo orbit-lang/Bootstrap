@@ -143,7 +143,7 @@ class Scope(
 
 		val matches = partialMatches.filter {
 			// For Kind.Union to work, the comparison order matters here!
-			context == null || context == it.kind
+			context == null || context.same(it.kind)
 		}
 
 		return when (matches.size) {
@@ -195,6 +195,10 @@ class Scope(
 				return@fold acc + next
 			}
 	}
+
+//	fun getChildren(graph: Graph) {
+//		val rootVertex = graph.findVertex()
+//	}
 
 	override fun toString(): String {
 		return "SCOPE($identifier) <- PARENT(${parentScope?.identifier})\n" + bindings.joinToString("\n") { "\t" + it.toString() }

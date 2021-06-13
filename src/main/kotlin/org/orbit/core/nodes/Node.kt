@@ -85,7 +85,14 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 		return when (results.size) {
 			0 -> null
 			1 -> results[0]
-			else -> throw Exception("Multiple annotations found for tag: $tag")
+			else -> {
+				if (results.all { it == results[0] }) {
+					// If all the same, we've just accidentally annotated more than once with the same value
+					return results[0]
+				}
+
+				throw Exception("Multiple annotations found for tag: $tag")
+			}
 		}
 	}
 

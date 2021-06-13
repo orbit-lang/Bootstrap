@@ -12,6 +12,7 @@ import org.orbit.frontend.rules.ExpressionRule
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.phase.CanonicalNameResolver
+import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.TypeInferenceUtil
 import org.orbit.types.phase.TypeChecker
 import java.lang.Exception
@@ -36,7 +37,7 @@ class Repl {
             val parseResult = parser.execute(Parser.InputType(lexerResult.tokens))
 //            val env = nameResolver.execute(parseResult)
             val env = Environment(parseResult.ast)
-            val context = typeChecker.execute(CanonicalNameResolver.Result(env, Graph()))
+            val context = typeChecker.execute(NameResolverResult(env, Graph()))
 
             return TypeInferenceUtil.infer(context, parseResult.ast as ExpressionNode)
         } catch (e: Exception) {

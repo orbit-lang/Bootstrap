@@ -1,10 +1,7 @@
 package org.orbit.types.phase
 
-import org.orbit.core.OrbitMangler
+import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
-import org.orbit.core.getPath
-import org.orbit.core.getPathOrNull
-import org.orbit.core.getResult
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.Node
 import org.orbit.core.nodes.TraitDefNode
@@ -15,10 +12,8 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Scope
 import org.orbit.graph.phase.CanonicalNameResolver
-import org.orbit.types.components.Context
-import org.orbit.types.components.Trait
-import org.orbit.types.components.Type
-import org.orbit.types.components.TypeProtocol
+import org.orbit.graph.phase.NameResolverResult
+import org.orbit.types.components.*
 import org.orbit.types.typeresolvers.*
 import org.orbit.util.Invocation
 import org.orbit.util.dispose
@@ -40,12 +35,12 @@ fun <N: Node> List<Binding>.filterNodes(nodes: List<N>, filter: ((N, Binding) ->
     }
 }
 
-class TypeChecker(override val invocation: Invocation, private val context: Context = Context()) : AdaptablePhase<CanonicalNameResolver.Result, Context>() {
-    override val inputType: Class<CanonicalNameResolver.Result> = CanonicalNameResolver.Result::class.java
+class TypeChecker(override val invocation: Invocation, private val context: Context = Context()) : AdaptablePhase<NameResolverResult, Context>() {
+    override val inputType: Class<NameResolverResult> = NameResolverResult::class.java
     override val outputType: Class<Context> = Context::class.java
 
     @Suppress("CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
-    override fun execute(input: CanonicalNameResolver.Result): Context {
+    override fun execute(input: NameResolverResult): Context {
         val ast = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser).ast
         val typeDefNodes = ast.search(TypeDefNode::class.java)
         val traitDefNodes = ast.search(TraitDefNode::class.java)
@@ -106,6 +101,55 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
             .map(::TraitConformanceTypeResolver)
             .map(partial(TraitConformanceTypeResolver::resolve, input.environment, context))
             .forEach(context::add)
+
+        val allTypes = input.environment.scopes
+            .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Type))
+            .filterNodes(typeDefNodes)
+            .map { it.first.getType()}
+
+        val allTraits = input.environment.scopes
+            .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Trait))
+            .filterNodes(traitDefNodes)
+            .mapNotNull { it.first.getType() as? Trait }
+
+        val traitMethods = input.environment.scopes
+            .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Method))
+            .filterNodes(methodDefNodes)
+            .filter {
+                val signature = it.first.signature.getType() as? SignatureProtocol<*>
+                    ?: return@filter false
+
+                when (signature) {
+                    is InstanceSignature -> signature.receiver.type in allTraits
+                    else -> signature.receiver in allTraits
+                }
+            }
+
+        // We need to generate specialised copies of any method declared with a Trait receiver
+        for (method in traitMethods) {
+            val signature = method.first.signature.getType() as? SignatureProtocol<*>
+                ?: continue
+
+            when (signature) {
+                is InstanceSignature -> {
+                    val receiverType = signature.receiver.type
+
+                    val conformingTypes = allTypes.filter {
+                        (receiverType.equalitySemantics as AnyEquality).isSatisfied(context, receiverType, it)
+                    }
+
+                    for (ct in conformingTypes) {
+                        val specialisedSignature = InstanceSignature(signature.name, Parameter(signature.receiver.name, ct), listOf(Parameter("self", ct)) + signature.parameters.subList(1, signature.parameters.size), signature.returnType)
+
+                        context.bind(specialisedSignature.toString(OrbitMangler), specialisedSignature)
+                    }
+                }
+
+                else -> {
+
+                }
+            }
+        }
 
         m.map(::MethodTypeResolver)
             .forEach(dispose(partial(MethodTypeResolver::resolve, input.environment, context)))

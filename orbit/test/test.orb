@@ -1,17 +1,18 @@
-module Foo with Orb::Core::Main with Orb::Types::Intrinsics {
-    trait Any {
-        (self Self) foo () ()
+module A {
+    type TypeA
+}
+
+module B with A with Orb::Types::Intrinsics {
+    type TypeC
+    type B(a TypeA, c TypeC)
+
+    (self TypeC) foo () () {
+
     }
+}
 
-    type Foo : Any
-
-    (self Any) foo () () {
-        print self
-    }
-
+@Main module Main with Orb::Core::Main with Orb::Types::Intrinsics {
     (self Main) main () () {
-        f = Foo()
-
-        print f.foo()
+        print 123
     }
 }

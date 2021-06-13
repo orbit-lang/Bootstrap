@@ -50,6 +50,13 @@ class Graph : Serializable {
         }
     }
 
+    fun findConnectedVertices(vertexId: GraphEntity.Vertex.ID) : List<GraphEntity.Vertex.ID> {
+        val rs = edges.filter { it.left == vertexId }
+            .map { it.right }
+
+        return rs + rs.flatMap(::findConnectedVertices)
+    }
+
     fun find(binding: Binding) : GraphEntity.Vertex.ID = when (binding) {
         Binding.Self -> GraphEntity.Vertex.ID.Self
         else -> find(binding.path.toString(OrbitMangler))

@@ -16,14 +16,17 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 		object Ephemeral : Entity
 		object Method : Kind
 
+		fun same(other: Kind) : Boolean {
+			return this::class.java == other::class.java
+		}
+
 		data class Union(val left: Kind, val right: Kind) : Kind {
 			companion object {
 				val AnyEntity = Union(Kind.Type, Kind.Trait)
 			}
 
-			override fun equals(other: Any?): Boolean = when (other) {
-				is Kind -> left === other || right === other
-				else -> false
+			override fun same(other: Kind): Boolean {
+				return left.same(other) || right.same(other)
 			}
 		}
 	}

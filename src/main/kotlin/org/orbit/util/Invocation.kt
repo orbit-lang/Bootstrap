@@ -45,20 +45,6 @@ class Invocation(val platform: Platform) {
 		return errors.joinToString("\n") { makeString(it) }
 	}
 
-	inline fun <reified I: Any, reified O: Any> getResult(phase: ReifiedPhase<I, O>) : O {
-		return phaseResults[phase] as O
-	}
-
-	fun <O: Any> getResult(phase: ReifiedPhase<*, O>, clazz: Class<O>) : O {
-		val result = phaseResults[phase] ?: throw RuntimeException("FATAL - Invocation.kt+57")
-
-		return clazz.safeCast(result) ?: throw RuntimeException("FATAL - Invocation.kt+59")
-	}
-
-	inline fun <reified I: Any, reified O: Any> getResultOrNull(phase: ReifiedPhase<I, O>) : O? {
-		return phaseResults[phase] as? O
-	}
-
 	inline fun <reified O: Any> getResults(key: String) : List<O> {
 		return phaseResults.filter { it.key == key }
 			.map {

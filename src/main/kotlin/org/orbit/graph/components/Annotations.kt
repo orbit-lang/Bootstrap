@@ -11,5 +11,6 @@ enum class Annotations(val key: String) {
     Path("$KEY::Path"),
     Scope("$KEY::Scope"),
     GraphID("$KEY::GraphID"),
-    Type("$KEY::Type")
+    Type("$KEY::Type"),
+    Resolved("$KEY::Resolved")
 }

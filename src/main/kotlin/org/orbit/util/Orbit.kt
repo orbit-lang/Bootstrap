@@ -8,8 +8,10 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
+import com.github.ajalt.clikt.parameters.types.int
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import org.orbit.backend.codegen.CodeUnit
@@ -32,9 +34,11 @@ import org.orbit.frontend.rules.ProgramRule
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.components.Scope
+import org.orbit.graph.components.ScopeIdentifier
 import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.graph.phase.CanonicalNameResolver
+import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeChecker
 import java.io.*
@@ -44,7 +48,7 @@ import kotlin.time.measureTime
 data class OrbitLibrary(val scopes: List<Scope>, val context: Context, val graph: Graph) : Serializable {
 	companion object : FilenameFilter {
 		fun fromInvocation(invocation: Invocation) : OrbitLibrary {
-			val names = invocation.getResult<CanonicalNameResolver.Result>(CompilationSchemeEntry.canonicalNameResolver)
+			val names = invocation.getResult<NameResolverResult>(CompilationSchemeEntry.canonicalNameResolver)
 			val context = invocation.getResult<Context>(CompilationSchemeEntry.typeChecker)
 
 			return OrbitLibrary(names.environment.scopes, context, names.graph)
@@ -74,7 +78,34 @@ data class OrbitLibrary(val scopes: List<Scope>, val context: Context, val graph
 	}
 }
 
+class ImportManager(private val libraries: List<OrbitLibrary>) {
+	val allScopes = libraries.flatMap { it.scopes }
+	val allGraphs = libraries.map { it.graph }
+	val allBindings = libraries
+		.flatMap { it.scopes }
+		.flatMap { it.bindings }
 
+	fun findSymbol(symbol: String) : Scope.BindingSearchResult {
+		val matches = allBindings.filter { it.simpleName == symbol || it.path.toString(OrbitMangler) == symbol }
+
+		return when (matches.count()) {
+			0 -> Scope.BindingSearchResult.None(symbol)
+			1 -> Scope.BindingSearchResult.Success(matches[0])
+			else -> Scope.BindingSearchResult.Multiple(matches)
+		}
+	}
+
+	fun findEnclosingScope(symbol: String) : ScopeIdentifier? {
+		for (scope in allScopes) {
+			val binding = scope.bindings.find { it.simpleName == symbol || it.path.toString(OrbitMangler) == symbol }
+				?: continue
+
+			return scope.identifier
+		}
+
+		return null
+	}
+}
 
 private val mainModule = module {
 	single { Invocation(Unix) }
@@ -179,33 +210,53 @@ class Symbols : CliktCommand(), KoinComponent {
 }
 
 class Build : CliktCommand(), KoinComponent {
+	companion object {
+		const val COMMAND_OPTION_LONG_MAX_CYCLES = "--max-cycles"
+		const val COMMAND_OPTION_LONG_OUTPUT = "--output"
+		const val COMMAND_OPTION_LONG_OUTPUT_PATH = "--output-path"
+		const val COMMAND_OPTION_LONG_LIBRARY = "--library"
+		const val COMMAND_OPTION_LONG_VERBOSE = "--verbose"
+	}
+
 	private val invocation: Invocation by inject()
 	private val compilerGenerator: CompilerGenerator by inject()
 	private val compilationEventBus: CompilationEventBus by inject()
+
+	data class BuildConfig(val maxDepth: Int)
 
 	private val sources by argument(help = "Orbit source file to compile")
 		.file()
 		.multiple(true)
 
-	private val output by option("-o", "--output", help = "Custom name for library product (default value = MyLibrary). Must start with a capital letter.")
+	private val output by option("-o", COMMAND_OPTION_LONG_OUTPUT, help = "Custom name for library product (default value = MyLibrary). Must start with a capital letter.")
 		.default("MyLibrary")
 
-	private val outputPath by option("-p", "--output-path", help = "Path where library product will be written to. Defaults to current directory.")
+	private val outputPath by option("-p", COMMAND_OPTION_LONG_OUTPUT_PATH, help = "Path where library product will be written to. Defaults to current directory.")
 		.file()
 		.default(File("."))
 
-	private val libraryPaths by option("-l", "--library", help = "Path(s) to directories containing Orbit library products")
+	private val libraryPaths by option("-l", COMMAND_OPTION_LONG_LIBRARY, help = "Path(s) to directories containing Orbit library products")
 		.file()
 		.multiple()
 
-	private val verbose by option("-v", "--verbose", help = "Print out detailed compiler events")
+	private val verbose by option("-v", COMMAND_OPTION_LONG_VERBOSE, help = "Print out detailed compiler events")
 		.flag(default = false)
+
+	private val maxDepth by option("-x", COMMAND_OPTION_LONG_MAX_CYCLES, help = "Set the maximum allowed recursive cycles when resolving dependency graph")
+		.int()
+		.default(10)
 
 	@ExperimentalTime
 	override fun run() {
 		println("Compilation completed in " + measureTime {
 			try {
-				startKoin { modules(mainModule) }
+				startKoin {
+					modules(mainModule)
+				}
+
+				loadKoinModules(module {
+					single { BuildConfig(maxDepth) }
+				})
 
 				if (!outputPath.isDirectory) {
 					throw invocation.make("Specified output path '${outputPath.absolutePath}' is not a directory")
@@ -239,7 +290,9 @@ class Build : CliktCommand(), KoinComponent {
 					}
 				}
 
-				invocation.storeResult("__imports__", importedLibs)
+				loadKoinModules(module {
+					single { ImportManager(importedLibs) }
+				})
 
 				// TODO - Platform should be derived from System.getProperty("os.name") or similar
 				// TODO - Support non *nix platforms
