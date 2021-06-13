@@ -31,7 +31,7 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		context.expect(TokenTypes.LBrace)
 		
 		val entityDefNodes = mutableListOf<EntityDefNode>()
-		var methodDefNodes = mutableListOf<MethodDefNode>()
+		val methodDefNodes = mutableListOf<MethodDefNode>()
 		var next: Token = context.peek()
 
 		while (next.type != TokenTypes.RBrace) {

@@ -154,7 +154,10 @@ class TraitConformanceTypeResolver(override val node: TypeDefNode, override val 
                     .filter { it.name == signature.name }
                     .filter {
                         when (it) {
-                            is InstanceSignature -> it.receiver.type == partialType
+                            is InstanceSignature -> {
+                                val t = context.refresh(it.receiver.type)
+                                t == partialType
+                            }
                             else -> it.receiver == partialType
                         }
                     }

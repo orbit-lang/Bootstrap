@@ -1,18 +1,11 @@
-module A {
-    type TypeA
-}
-
-module B with A with Orb::Types::Intrinsics {
-    type TypeC
-    type B(a TypeA, c TypeC)
-
-    (self TypeC) foo () () {
-
-    }
+api Comparator {
+    required trait ComparableType
+    required trait ResultType
 }
 
 @Main module Main with Orb::Core::Main with Orb::Types::Intrinsics {
     (self Main) main () () {
-        print 123
+        b = BB(Z())
+        print
     }
 }

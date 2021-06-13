@@ -7,6 +7,7 @@ import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.components.Scope
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.util.Invocation
 
 class TypeIdentifierPathResolver : PathResolver<TypeIdentifierNode> {
@@ -26,7 +27,7 @@ class TypeIdentifierPathResolver : PathResolver<TypeIdentifierNode> {
                 PathResolver.Result.Success(binding.result.path)
 			}
 
-			else -> PathResolver.Result.Failure(input)
+			else -> throw invocation.make<CanonicalNameResolver>("Unknown binding '${input.value}'", input.firstToken)
 		}
 	}
 }

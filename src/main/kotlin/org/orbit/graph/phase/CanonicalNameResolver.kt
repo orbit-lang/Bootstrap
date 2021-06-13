@@ -24,6 +24,13 @@ import org.orbit.graph.extensions.getScopeIdentifier
 import org.orbit.serial.Serial
 import org.orbit.util.*
 import java.util.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeSource
+import kotlin.time.measureTime
 
 sealed class GraphErrors {
 	data class MissingDependency(
@@ -57,6 +64,25 @@ fun Node.isResolved() : Boolean {
 	return getAnnotation<SerialBool>(Annotations.Resolved)?.value?.flag ?: false
 }
 
+fun <K, V> mapOf(list: List<Pair<K, V>>) : Map<K, V> {
+	return mapOf(*list.toTypedArray())
+}
+
+@ExperimentalContracts
+@ExperimentalTime
+inline fun <T> measureTimeWithResult(fn: () -> T) : Pair<Duration, T> {
+	contract {
+		callsInPlace(fn, InvocationKind.EXACTLY_ONCE)
+	}
+
+	var result: T? = null
+	val time = TimeSource.Monotonic.measureTime {
+		result = fn()
+	}
+
+	return Pair(time, result!!)
+}
+
 class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<NameResolverInput, NameResolverResult>(), KoinComponent {
 	override val inputType: Class<NameResolverInput> = NameResolverInput::class.java
 	override val outputType: Class<NameResolverResult> = NameResolverResult::class.java
@@ -65,6 +91,8 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 	private val buildConfig: Build.BuildConfig by inject()
 	private val importManager: ImportManager by inject()
 
+	@ExperimentalTime
+	@ExperimentalContracts
 	override fun execute(input: NameResolverInput): NameResolverResult {
 		loadKoinModules(module {
 			single { input.environment }
@@ -74,89 +102,99 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 		input.environment.import(importManager.allScopes)
 		input.graph.importAll(importManager.allGraphs)
 
-		val allContainers = (input.parserResult.ast as ProgramNode)
-			.search(ContainerNode::class.java)
+		val result = measureTimeWithResult {
+			val allContainers = (input.parserResult.ast as ProgramNode)
+				.search(ContainerNode::class.java)
 
-		val containerStack = Stack<ContainerNode>()
+			val containerIndex = mapOf(*allContainers.map {
+				Pair(it.identifier.value, it)
+			})
 
-		allContainers.forEach(containerStack::push)
+			val containerStack = Stack<ContainerNode>()
 
-		var cycles = 0
-		outer@ while (containerStack.isNotEmpty()) {
-			val nextContainer = containerStack.pop()
+			allContainers.forEach(containerStack::push)
 
-			if (cycles > buildConfig.maxDepth) throw invocation.make("Potential cyclic dependency found in container '${nextContainer.identifier.value}'. If you actually have a dependency graph with > 10 levels of indirection, please add `${Build.COMMAND_OPTION_LONG_MAX_CYCLES} <NUMBER_OF_CYCLES>` to your `orb build ...` command.")
+			var cycles = 0
+			outer@ while (containerStack.isNotEmpty()) {
+				val nextContainer = containerStack.pop()
 
-			cycles++
+				if (cycles > buildConfig.maxDepth) throw invocation.make("Potential cyclic dependency found in container '${nextContainer.identifier.value}'. If you actually have a dependency graph with > ${Build.COMMAND_OPTION_DEFAULT_MAX_CYCLES} levels of indirection, please add `${Build.COMMAND_OPTION_LONG_MAX_CYCLES} <NUMBER_OF_CYCLES>` to your `orb build ...` command.")
 
-			if (nextContainer.isResolved()) continue
+				cycles++
 
-			if (nextContainer.within != null) {
-				val withinContainer = allContainers.find { it.identifier.value == nextContainer.identifier.value }
-					?: TODO("HERE")
+				if (nextContainer.isResolved()) continue
 
-				// We have a dependency on the withinContainer, so it must be resolved first
-				if (!withinContainer.isResolved()) {
-					containerStack.push(nextContainer)
-					containerStack.push(withinContainer)
+				if (nextContainer.within != null) {
+					val withinContainer = containerIndex[nextContainer.identifier.value]
+						?: throw invocation.make<CanonicalNameResolver>("Unknown container '${nextContainer.within!!.value}'. Containers currently in scope:\n\t${containerIndex.keys.joinToString("\n\t") { it }}", nextContainer.within!!.firstToken)
 
-					continue@outer
-				}
-			}
-
-			if (nextContainer.with.isNotEmpty()) {
-				for (withNode in nextContainer.with) {
-					val importLookupResult = importManager.findSymbol(withNode.value)
-
-					if (importLookupResult is Scope.BindingSearchResult.Success) {
-						// This library is imported and therefore already resolved
-						continue
-					}
-
-					val withContainer = allContainers.find { it.identifier.value == withNode.value }
-						?: throw invocation.make<CanonicalNameResolver>("Unknown module '${withNode.value}'", withNode.firstToken)
-
-					if (!withContainer.isResolved()) {
+					// We have a dependency on the withinContainer, so it must be resolved first
+					if (!withinContainer.isResolved()) {
 						containerStack.push(nextContainer)
-						containerStack.remove(withContainer)
-						containerStack.push(withContainer)
+						containerStack.push(withinContainer)
 
 						continue@outer
 					}
 				}
-			}
 
-			nextContainer.annotate(SerialBool(true), Annotations.Resolved)
+				if (nextContainer.with.isNotEmpty()) {
+					for (withNode in nextContainer.with) {
+						val importLookupResult = importManager.findSymbol(withNode.value)
 
-			pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Initial, input.environment, input.graph)
+						if (importLookupResult is Scope.BindingSearchResult.Success) {
+							// This library is imported and therefore already resolved
+							continue
+						}
 
-			val importedScopes = nextContainer.with
-				.map {
-					val result = allContainers.find { c -> c.identifier.value == it.value }
+						val withContainer = allContainers.find { it.identifier.value == withNode.value }
+							?: throw invocation.make<CanonicalNameResolver>("Unknown container '${withNode.value}'. Containers currently in scope:\n\t${containerIndex.keys.joinToString("\n\t")}", withNode.firstToken)
 
-					if (result != null) {
-						return@map result.getScopeIdentifier()
+						if (!withContainer.isResolved()) {
+							containerStack.push(nextContainer)
+							containerStack.remove(withContainer)
+							containerStack.push(withContainer)
+
+							continue@outer
+						}
 					}
-
-					importManager.findEnclosingScope(it.value)
-						?: throw invocation.make<CanonicalNameResolver>("Unknown module '${it.value}'", it.firstToken)
 				}
 
-			val thisScope = input.environment.getScope(nextContainer.getScopeIdentifier())
+				nextContainer.annotate(SerialBool(true), Annotations.Resolved)
 
-			thisScope.importAll(importedScopes)
+				pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Initial, input.environment, input.graph)
 
-			pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Subsequent(2), input.environment, input.graph)
+				val importedScopes = nextContainer.with
+					.map {
+						val result = containerIndex[it.value]
 
-			val path = nextContainer.getPathOrNull() ?: TODO("HERE")
-			val id = input.graph.insert(path.toString(OrbitMangler))
+						if (result != null) {
+							return@map result.getScopeIdentifier()
+						}
 
-			nextContainer.annotate(id, Annotations.GraphID)
+						importManager.findEnclosingScope(it.value)
+							?: throw invocation.make<CanonicalNameResolver>("Unknown container '${it.value}'. Containers currently in scope:\n\t${containerIndex.keys.joinToString("\n\t")}", it.firstToken)
+					}
 
-			pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Last, input.environment, input.graph)
+				val thisScope = input.environment.getScope(nextContainer.getScopeIdentifier())
+
+				thisScope.importAll(importedScopes)
+
+				pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Subsequent(2), input.environment, input.graph)
+
+				val path = nextContainer.getPathOrNull() ?: TODO("HERE")
+				val id = input.graph.insert(path.toString(OrbitMangler))
+
+				nextContainer.annotate(id, Annotations.GraphID)
+
+				pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Last, input.environment, input.graph)
+			}
+
+			return@measureTimeWithResult NameResolverResult(input.environment, input.graph)
 		}
 
-		return NameResolverResult(input.environment, input.graph)
+		println("Completed name resolution in ${result.first}")
+
+		return result.second
 	}
 }
 
@@ -171,6 +209,8 @@ class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhas
 		}
 	}
 
+	@ExperimentalContracts
+	@ExperimentalTime
 	override fun execute(input: Parser.Result) : NameResolverResult {
 		val environment = Environment(input.ast)
 		val graph = Graph()

@@ -16,7 +16,7 @@ object ProgramRule : ParseRule<ProgramNode> {
 			val decl: TopLevelDeclarationNode = when (next.type) {
 				// TODO - Create a ParserUtil to avoid direct instantiations of ParseRules
 				// TODO - For now, there's no reason to allow method defs at the top-level
-//				TokenTypes.Api -> ApiDefRule.execute(context)
+				TokenTypes.Api -> ApiDefRule.execute(context).asSuccessOrNull<TopLevelDeclarationNode>()!!.node
 				TokenTypes.Annotation, TokenTypes.Module -> ModuleRule.execute(context).asSuccessOrNull<TopLevelDeclarationNode>()!!.node
 				else -> throw context.invocation.make<Parser>("Unexpected decl at program-level: ${next.type}", next.position)
 			}

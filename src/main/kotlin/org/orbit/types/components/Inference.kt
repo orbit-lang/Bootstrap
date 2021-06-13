@@ -90,9 +90,7 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
                 if (binding is InstanceSignature) {
                     val receiverSemantics = binding.receiver.type.equalitySemantics as AnyEquality
 
-                    println("COMPARING RECEIVERS: ${binding.receiver.type.name} -- ${receiverType.name}")
                     if (receiverSemantics.isSatisfied(context, binding.receiver.type, receiverType)) {
-                        println("MATCH!!!")
                         val all = binding.parameters
                             .map(Parameter::type)
                             .zip(parameterTypes)

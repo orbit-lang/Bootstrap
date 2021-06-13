@@ -216,6 +216,8 @@ class Build : CliktCommand(), KoinComponent {
 		const val COMMAND_OPTION_LONG_OUTPUT_PATH = "--output-path"
 		const val COMMAND_OPTION_LONG_LIBRARY = "--library"
 		const val COMMAND_OPTION_LONG_VERBOSE = "--verbose"
+
+		const val COMMAND_OPTION_DEFAULT_MAX_CYCLES = 25
 	}
 
 	private val invocation: Invocation by inject()
@@ -244,7 +246,7 @@ class Build : CliktCommand(), KoinComponent {
 
 	private val maxDepth by option("-x", COMMAND_OPTION_LONG_MAX_CYCLES, help = "Set the maximum allowed recursive cycles when resolving dependency graph")
 		.int()
-		.default(10)
+		.default(COMMAND_OPTION_DEFAULT_MAX_CYCLES)
 
 	@ExperimentalTime
 	override fun run() {
