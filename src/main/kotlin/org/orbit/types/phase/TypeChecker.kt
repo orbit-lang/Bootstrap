@@ -2,10 +2,7 @@ package org.orbit.types.phase
 
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
-import org.orbit.core.nodes.MethodDefNode
-import org.orbit.core.nodes.Node
-import org.orbit.core.nodes.TraitDefNode
-import org.orbit.core.nodes.TypeDefNode
+import org.orbit.core.nodes.*
 import org.orbit.core.phase.AdaptablePhase
 import org.orbit.frontend.phase.Parser
 import org.orbit.graph.components.Binding
@@ -42,12 +39,16 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
     @Suppress("CANDIDATE_CHOSEN_USING_OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION")
     override fun execute(input: NameResolverResult): Context {
         val ast = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser).ast
+
+        val moduleNodes = ast.search(ModuleNode::class.java)
+        val apiNodes = ast.search(ApiDefNode::class.java)
         val typeDefNodes = ast.search(TypeDefNode::class.java)
         val traitDefNodes = ast.search(TraitDefNode::class.java)
+        val typeAliasNodes = ast.search(TypeAliasNode::class.java)
         val methodDefNodes = ast.search(MethodDefNode::class.java)
 
         typeDefNodes.forEach {
-            context.add(Type(it.getPath()))
+            context.add(Type(it.getPath(), isRequired = it.isRequired))
         }
 
         traitDefNodes.forEach {
@@ -61,6 +62,20 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
         // Extra credit to anyone who can crack it in Kotlin (its not important, just cool)!
 
         input.environment.scopes
+            .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Module))
+            .filterNodes(moduleNodes)
+            .map(::ModuleTypeResolver)
+            .map(partial(ModuleTypeResolver::resolve, input.environment, context))
+            .forEach(context::add)
+
+        input.environment.scopes
+            .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Api))
+            .filterNodes(apiNodes)
+            .map(::ApiTypeResolver)
+            .map(partial(ApiTypeResolver::resolve, input.environment, context))
+            .forEach(context::add)
+
+        input.environment.scopes
             .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Type))
             .filterNodes(typeDefNodes)
             .map(::TypeDefTypeResolver)
@@ -72,6 +87,13 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
             .filterNodes(traitDefNodes)
             .map(::TraitDefTypeResolver)
             .map(partial(TraitDefTypeResolver::resolve, input.environment, context))
+            .forEach(context::add)
+
+        input.environment.scopes
+            .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.TypeAlias))
+            .filterNodes(typeAliasNodes)
+            .map(::TypeAliasTypeResolver)
+            .map(partial(TypeAliasTypeResolver::resolve, input.environment, context))
             .forEach(context::add)
 
         val m = input.environment.scopes
@@ -101,6 +123,14 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
             .map(::TraitConformanceTypeResolver)
             .map(partial(TraitConformanceTypeResolver::resolve, input.environment, context))
             .forEach(context::add)
+
+        // Ensure all modules that declare Api conformance(s) fulfill their contracts
+        // TODO - This should probably be an separate phase
+        input.environment.scopes
+            .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Module))
+            .filterNodes(moduleNodes)
+            .map(::ApiConformanceTypeResolver)
+            .forEach(dispose(partial(ApiConformanceTypeResolver::resolve, input.environment, context)))
 
         val allTypes = input.environment.scopes
             .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.Type))

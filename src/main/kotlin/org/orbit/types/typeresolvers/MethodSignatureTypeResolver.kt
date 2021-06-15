@@ -15,7 +15,7 @@ import org.orbit.util.Invocation
 
 class MethodSignatureTypeResolver(override val node: MethodSignatureNode, override val binding: Binding, private val enclosingTrait: Trait? = null) : TypeResolver<MethodSignatureNode, SignatureProtocol<out TypeProtocol>>,
     KoinComponent {
-    private val invocation: Invocation by inject()
+    override val invocation: Invocation by inject()
 
     constructor(pair: Pair<MethodSignatureNode, Binding>) : this(pair.first, pair.second)
 
@@ -30,14 +30,14 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
             // TODO - Handle Type methods (no instance receiver)
             val receiverType = when (val receiverPath = receiver.getPath()) {
                 Path.self -> enclosingTrait ?: throw invocation.make<TypeChecker>("Using 'Self' type outside of a Trait definitions is not supported", node)
-                else -> context.getType(receiverPath)
+                else -> context.getTypeByPath(receiverPath)
             }
 
             argTypes.add(Parameter(receiver.identifierNode.identifier, receiverType))
         }
 
         node.parameterNodes.forEach {
-            val t = context.getType(it.getPath())
+            val t = context.getTypeByPath(it.getPath())
 
             //context.bind(it.identifierNode.identifier, t)
             parameterBindings.add(it.identifierNode.identifier)
@@ -48,12 +48,12 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
         val returnType: ValuePositionType = if (node.returnTypeNode == null) {
             IntrinsicTypes.Unit.type
         } else {
-            context.getType(node.returnTypeNode.getPath()) as ValuePositionType
+            context.getTypeByPath(node.returnTypeNode.getPath()) as ValuePositionType
         }
 
         val receiverType = when (val receiverPath = receiver.getPath()) {
             Path.self -> enclosingTrait ?: throw invocation.make<TypeChecker>("Using 'Self' type outside of a Trait definition is not supported", node)
-            else -> context.getType(receiverPath)
+            else -> context.getTypeByPath(receiverPath)
         } as ValuePositionType
 
         val funcType = if (isInstanceMethod) {

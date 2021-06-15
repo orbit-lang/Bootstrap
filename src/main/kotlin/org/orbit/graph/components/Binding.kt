@@ -11,6 +11,8 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 		object Api : Container
 		object Module : Container
 		object Type : Entity
+		object RequiredType : Entity
+		object TypeAlias : Entity
 		object Trait : Entity
 		object Self : Entity
 		object Ephemeral : Entity
@@ -22,7 +24,10 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 
 		data class Union(val left: Kind, val right: Kind) : Kind {
 			companion object {
-				val AnyEntity = Union(Kind.Type, Kind.Trait)
+				val container = Union(Kind.Module, Kind.Api)
+				val entity = Union(Union(Kind.Type, Kind.Trait), Kind.TypeAlias)
+				val entityOrMethod = Union(entity, Kind.Method)
+				val receiver = Union(entityOrMethod, Kind.Module)
 			}
 
 			override fun same(other: Kind): Boolean {

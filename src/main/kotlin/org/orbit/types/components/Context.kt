@@ -9,6 +9,7 @@ import org.orbit.core.components.CompilationEventBusAwareImpl
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
 import java.io.Serializable
+import java.lang.NullPointerException
 
 class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperators.all()) : Serial, Serializable, CompilationEventBusAware by CompilationEventBusAwareImpl {
     sealed class Events(override val identifier: String) : CompilationEvent {
@@ -18,7 +19,7 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
     constructor(builtIns: List<TypeProtocol>) : this(builtIns.toSet())
     constructor(vararg builtIns: TypeProtocol) : this(builtIns.toSet())
-    internal constructor(vararg builtIns: String) : this(builtIns.map { Type(it) })
+    internal constructor(vararg builtIns: String) : this(builtIns.map { Type(it, isRequired = false) })
 
     constructor(other: Context) : this() {
         this.types.addAll(other.types)
@@ -27,6 +28,7 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
     val types: MutableSet<TypeProtocol> = builtIns.toMutableSet()
     val bindings = mutableMapOf<String, TypeProtocol>()
+
 
     private var next = 0
 
@@ -49,17 +51,28 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
     fun addAll(types: List<TypeProtocol>) = types.forEach(::add)
 
-    fun get(name: String) : TypeProtocol? = bindings[name]
+    fun get(name: String) : TypeProtocol? {
+        val type = bindings[name]
+
+        return when (type is TypeAlias) {
+            true -> type.targetType
+            else -> type
+        }
+    }
 
     fun refresh(type: TypeProtocol) : TypeProtocol {
         return types.find { it.name == type.name }!!
     }
 
     fun getType(name: String) : TypeProtocol {
-        return getTypeOrNull(name)!!
+        try {
+            return getTypeOrNull(name)!!
+        } catch (_: NullPointerException) {
+            throw RuntimeException("NULL TYPE")
+        }
     }
 
-    fun getType(path: Path) : TypeProtocol = getType(path.toString(OrbitMangler))
+    fun getTypeByPath(path: Path) : TypeProtocol = getType(path.toString(OrbitMangler))
     fun getTypeOrNull(path: Path) : TypeProtocol? = getTypeOrNull(path.toString(OrbitMangler))
 
     fun getTypeOrNull(name: String) : TypeProtocol? {
@@ -67,7 +80,10 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
         return when (matches.size) {
             0 -> null
-            1 -> matches.first()
+            1 -> when (val type = matches.first()) {
+                is TypeAlias -> type.targetType
+                else -> type
+            }
             else -> throw RuntimeException("TODO - Multiple types named '$name'")
         }
     }

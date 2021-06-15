@@ -19,14 +19,19 @@ abstract class Entity(
     }
 }
 
-data class Type(override val name: String, override val properties: List<Property> = emptyList(), override val equalitySemantics: Equality<Entity> = NominalEquality) : Entity(name, properties, equalitySemantics) {
-    constructor(path: Path, properties: List<Property> = emptyList(), equalitySemantics: Equality<Entity> = NominalEquality)
-        : this(path.toString(OrbitMangler), properties, equalitySemantics)
+data class Type(override val name: String, override val properties: List<Property> = emptyList(), override val equalitySemantics: Equality<Entity> = NominalEquality, val isRequired: Boolean = false) : Entity(name, properties, equalitySemantics) {
+    constructor(path: Path, properties: List<Property> = emptyList(), equalitySemantics: Equality<Entity> = NominalEquality, isRequired: Boolean = false)
+        : this(path.toString(OrbitMangler), properties, equalitySemantics, isRequired)
 }
 
 data class Trait(override val name: String, override val properties: List<Property> = emptyList(), val signatures: List<SignatureProtocol<*>>, override val equalitySemantics: Equality<Entity> = StructuralEquality) : Entity(name, properties,equalitySemantics) {
     constructor(path: Path, properties: List<Property> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Entity> = StructuralEquality)
         : this(path.toString(OrbitMangler), properties, signatures, equalitySemantics)
+}
+
+data class TypeAlias(override val name: String, val targetType: Type) : TypeProtocol {
+    override val equalitySemantics: Equality<out TypeProtocol>
+        get() = targetType.equalitySemantics
 }
 
 data class Parameter(override val name: String, val type: TypeProtocol) : TypeProtocol {
@@ -121,11 +126,12 @@ class IntOperators {
 }
 
 enum class IntrinsicTypes(val type: ValuePositionType) {
-    Unit(Type("Orb::Types::Intrinsics::Unit")),
-    Int(Type("Orb::Types::Intrinsics::Int")),
-    Symbol(Type("Orb::Types::Intrinsics::Symbol")),
-    Main(Type("Orb::Core::Main::Main", listOf(Property("argc", Int.type)))),
-    BootstrapCoreStub(Type("Bootstrap::Core::Stub"));
+    Unit(Type("Orb::Types::Intrinsics::Unit", isRequired = false)),
+    Int(Type("Orb::Types::Intrinsics::Int", isRequired = false)),
+    Symbol(Type("Orb::Types::Intrinsics::Symbol", isRequired = false)),
+    Main(Type("Orb::Core::Main::Main", listOf(Property("argc", Int.type)), isRequired = false)),
+    BootstrapCoreStub(Type("Bootstrap::Core::Stub", isRequired = false)),
+    Bool(Type("Orb::Types::Intrinsics::Bool", isRequired = false));
 
     companion object {
         val allTypes: Set<TypeProtocol>

@@ -18,7 +18,7 @@ class AnnotationResolver<N: Node>(private val annotationNode: PhaseAnnotationNod
         pass: PathResolver.Pass,
         environment: Environment,
         graph: Graph
-	) : PathResolver.Result = environment.withNewScope(input) {
+	) : PathResolver.Result = environment.withScope(input) {
 		// Phase annotations map back to real types
 		val typeIdentifier = annotationNode.annotationIdentifierNode.value
 		val binding = environment.getBinding(typeIdentifier, Binding.Kind.Type)

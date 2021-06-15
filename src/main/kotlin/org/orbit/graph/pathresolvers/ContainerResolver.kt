@@ -2,15 +2,12 @@ package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
 import org.orbit.core.*
-import org.orbit.core.nodes.ContainerNode
-import org.orbit.core.nodes.TraitDefNode
-import org.orbit.core.nodes.TypeDefNode
+import org.orbit.core.nodes.*
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
-import org.orbit.graph.extensions.remove
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
@@ -22,11 +19,16 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 	private fun resolveFirstPass(input: ContainerNode, environment: Environment) : PathResolver.Result {
 		val path = OrbitMangler.unmangle(input.identifier.value)
 
-		environment.withNewScope {
+		environment.withScope {
 			input.annotate(it.identifier, Annotations.Scope, true)
 			input.annotate(path, Annotations.Path)
 
-			environment.bind(Binding.Kind.Module, input.identifier.value, path)
+			val kind = when (input) {
+				is ApiDefNode -> Binding.Kind.Api
+				else -> Binding.Kind.Module
+			}
+
+			environment.bind(kind, input.identifier.value, path)
 		}
 
 		return PathResolver.Result.Success(path)
@@ -40,7 +42,7 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 
 	// Next, we resolve the containers "within" paths
 	private fun resolveSecondPass(input: C, environment: Environment, cycles: Int = 0, context: Path? = null) : PathResolver.Result {
-		return environment.withNewScope(input) {
+		return environment.withScope(input) {
 			val simplePath = input.getPath()
 
 			if (cycles > 5) {
@@ -61,7 +63,7 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 
 				completeBinding(input, environment, simplePath, fullyQualifiedPath)
 
-				return@withNewScope PathResolver.Result.Success(fullyQualifiedPath)
+				return@withScope PathResolver.Result.Success(fullyQualifiedPath)
 			}
 
 			val parent = environment.searchAllScopes {
@@ -74,7 +76,7 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 
 			input.within?.annotate(parent.path, Annotations.Path)
 
-			return@withNewScope when (parent.path) {
+			return@withScope when (parent.path) {
 				is FullyQualifiedPath -> {
 					// TODO - This check shouldn't be necessary. Something is wrong with this algo
 					val fullyQualifiedPath = when (simplePath.containsSubPath(parent.path)) {
@@ -106,7 +108,7 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 	private fun resolveLastPass(input: ContainerNode, environment: Environment, graph: Graph) : PathResolver.Result {
 		val containerPath = input.getPath()
 
-		environment.withNewScope(input) {
+		environment.withScope(input) {
 			// TODO - Would be nice to inject these but the parentPath property makes it tricky
 			val typeResolver = TypeDefPathResolver(containerPath)
 			val traitResolver = TraitDefPathResolver(containerPath)
@@ -131,6 +133,13 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 
 			for (typeDef in typeDefs) {
 				typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Last))
+			}
+
+			if (input is ModuleNode) {
+				val typeAliasResolver = TypeAliasPathResolver(containerPath)
+				for (typeAlias in input.typeAliasNodes) {
+					typeAliasResolver.resolve(typeAlias, PathResolver.Pass.Initial, environment, graph)
+				}
 			}
 
 			for (methodDef in input.methodDefs) {

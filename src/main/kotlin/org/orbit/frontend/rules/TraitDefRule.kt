@@ -8,9 +8,16 @@ import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 
-object TraitDefRule : ParseRule<TraitDefNode> {
+class TraitDefRule(override val isRequired: Boolean = false) : EntityParseRule<TraitDefNode> {
+	companion object {
+		val required = TraitDefRule(true)
+	}
+
 	override fun parse(context: Parser) : ParseRule.Result {
-		val start = context.expect(TokenTypes.Trait)
+		val start = when (isRequired) {
+			true -> context.expect(TokenTypes.Required, true)
+			else -> context.expect(TokenTypes.Trait)
+		}
 		
 		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
 			?: TODO("@TraitDefRule:18")
@@ -26,7 +33,7 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 				context.consume()
 				context.consume()
 
-				return +TraitDefNode(start, end, typeIdentifierNode)
+				return +TraitDefNode(start, end, isRequired, typeIdentifierNode)
 			}
 
 			// NOTE - Same ambiguity as TypeDef
@@ -35,7 +42,7 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 			try {
 				lookaheadParser.execute(Parser.InputType(context.tokens))
 
-				return +TraitDefNode(start, end, typeIdentifierNode)
+				return +TraitDefNode(start, end, isRequired, typeIdentifierNode)
 			} catch (_: Exception) {
 				// fallthrough
 			}
@@ -97,10 +104,10 @@ object TraitDefRule : ParseRule<TraitDefNode> {
 				?: TODO("TraitDefRule:91")
 
 			@Suppress("UNCHECKED_CAST")
-			return +TraitDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode.body as List<MethodSignatureNode>)
+			return +TraitDefNode(start, bodyNode.lastToken, isRequired, typeIdentifierNode, propertyPairs, traitConformances, bodyNode.body as List<MethodSignatureNode>)
 		}
 		
-		return +TraitDefNode(start, end,
+		return +TraitDefNode(start, end, isRequired,
 			typeIdentifierNode,
 			propertyPairs, traitConformances)
 	}

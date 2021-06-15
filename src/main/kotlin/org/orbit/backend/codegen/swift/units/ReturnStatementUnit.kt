@@ -88,7 +88,7 @@ class ConstructorUnit(override val node: ConstructorNode, override val depth: In
     private val invocation: Invocation by inject()
 
     override fun generate(mangler: Mangler): String {
-        val targetType = context.getType(node.typeIdentifierNode.getPath())
+        val targetType = context.getTypeByPath(node.typeIdentifierNode.getPath())
 
         if (targetType !is Entity) {
             throw invocation.make<CodeWriter>("Only types may be initialised via a constructor call. Found $targetType", node.typeIdentifierNode)

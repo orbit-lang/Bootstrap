@@ -6,11 +6,11 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.CompilationEvent
 import org.orbit.core.components.CompilationEventBusAware
 import org.orbit.core.components.CompilationEventBusAwareImpl
+import org.orbit.core.phase.Phase
 import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.serial.Serial
 import org.orbit.util.Fatal
 import org.orbit.util.Monoid
-import org.orbit.util.partial
 import java.io.Serializable
 
 class Scope(
@@ -26,27 +26,27 @@ class Scope(
 
 	sealed class BindingSearchResult : Monoid<BindingSearchResult> {
 		private data class BindingNotFound(
-			override val phaseClazz: Class<out PathResolver<*>>,
+			override val phaseClazz: Class<out Phase<*, *>>,
 			override val sourcePosition: SourcePosition,
 			private val simpleName: String
-		) : Fatal<PathResolver<*>> {
+		) : Fatal<Phase<*, *>> {
 			override val message: String
 				get() = "Unknown binding: $simpleName"
 		}
 
 		private data class MultipleBindings(
-			override val phaseClazz: Class<out PathResolver<*>>,
+			override val phaseClazz: Class<out Phase<*, *>>,
 			override val sourcePosition: SourcePosition,
 			private val candidates: List<Binding>
-		) : Fatal<PathResolver<*>> {
+		) : Fatal<Phase<*, *>> {
 			override val message: String
 				get() = "Multiple candidates found for binding:\n\t" + candidates.joinToString("\n\t")
 		}
 
-		abstract fun unwrap(phase: PathResolver<*>, sourcePosition: SourcePosition) : Binding
+		abstract fun unwrap(phase: Phase<*, *>, sourcePosition: SourcePosition) : Binding
 
 		data class Success(val result: Binding) : BindingSearchResult() {
-			override fun unwrap(phase: PathResolver<*>, sourcePosition: SourcePosition): Binding {
+			override fun unwrap(phase: Phase<*, *>, sourcePosition: SourcePosition): Binding {
 				return result
 			}
 
@@ -58,7 +58,7 @@ class Scope(
 		}
 
 		class None(val simpleName: String) : BindingSearchResult() {
-			override fun unwrap(phase: PathResolver<*>, sourcePosition: SourcePosition): Binding {
+			override fun unwrap(phase: Phase<*, *>, sourcePosition: SourcePosition): Binding {
 				// TODO - Is simpleName a hard requirement here?
 				phase.invocation.reportError(BindingNotFound(phase::class.java, sourcePosition, simpleName))
 				throw Exception("Unreachable")
@@ -71,7 +71,7 @@ class Scope(
 		}
 
 		data class Multiple(val results: List<Binding>) : BindingSearchResult() {
-			override fun unwrap(phase: PathResolver<*>, sourcePosition: SourcePosition): Binding {
+			override fun unwrap(phase: Phase<*, *>, sourcePosition: SourcePosition): Binding {
 				if (results.size == 1) {
 					// NOTE - Hack to get around circular dependencies
 					return results.first()
@@ -136,6 +136,14 @@ class Scope(
 		val imported = imports.map { environment.getScope(it) }
 			.flatMap { it.bindings }
 		val all = (bindings + imported).distinct()
+			.toMutableList()
+
+		val typeAliases = all.filter { it.kind == Binding.Kind.TypeAlias }
+
+//		for (typeAlias in typeAliases) {
+//			val targetType =
+//		}
+
 		val partialMatches = all.filter {
 			it.simpleName == simpleName
 				|| it.path.toString(OrbitMangler) == simpleName

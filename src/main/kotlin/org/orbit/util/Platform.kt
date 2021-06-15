@@ -29,4 +29,7 @@ object Unix : Platform, PrintableFactory {
 
 	override fun getSuccess() : String
 		= "\u001b[92;1m"
+
+	override fun getItalics(): String
+		= "\u001b[3m"
 }

@@ -45,7 +45,6 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                 val expr = LiteralRule(TypeIdentifierRule.RValue).execute(context)
                     .asSuccessOrNull<RValueNode>()
                     ?: return ParseRule.Result.Failure.Abort
-                    //TypeIdentifierRule.RValue.execute(context)
 
                 val impl = expr.node.expressionNode as? TypeIdentifierNode
                     ?: TODO("@ModuleRule:50")
@@ -85,6 +84,7 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
         context.expect(TokenTypes.LBrace)
 
         val entityDefNodes = mutableListOf<EntityDefNode>()
+        val typeAliasNodes = mutableListOf<TypeAliasNode>()
         val methodDefNodes = mutableListOf<MethodDefNode>()
 
         next = context.peek()
@@ -99,10 +99,12 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                 }
 
                 TokenTypes.Type, TokenTypes.Trait -> {
-                    val entity = context.attempt(TypeDefRule)
-                        ?: context.attempt(TraitDefRule)
+                    val entity = context.attemptAny(EntityParseRule.anyEntity)
 
-                    entityDefNodes.add(entity!!)
+                    when (entity is TypeAliasNode) {
+                        true -> typeAliasNodes.add(entity)
+                        else -> entityDefNodes.add(entity!! as EntityDefNode)
+                    }
                 }
 
                 else -> TODO("@ModuleRule:107")
@@ -113,6 +115,6 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
 
         val end = context.expect(TokenTypes.RBrace)
 
-        return +ModuleNode(start, end, emptyList(), typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes)
+        return +ModuleNode(start, end, implements, typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes, typeAliasNodes)
     }
 }

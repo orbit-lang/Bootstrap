@@ -21,7 +21,7 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 
 		val withinNode = context.attempt(WithinRule)
 		var with = context.attempt(WithRule)
-		var withNodes = mutableListOf<TypeIdentifierNode>()
+		val withNodes = mutableListOf<TypeIdentifierNode>()
 		
 		while (with != null) {
 			withNodes.add(with)
@@ -35,8 +35,8 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		var next: Token = context.peek()
 
 		while (next.type != TokenTypes.RBrace) {
-			val entity = context.attempt(TypeDefRule)
-				?: context.attempt(TraitDefRule)
+			val entity = context.attemptAny(TypeDefRule.required, TraitDefRule.required, TypeDefRule(), TraitDefRule())
+				as? EntityDefNode
 
 			if (entity == null) {
 				val methodDefNode = context.attempt(MethodDefRule, true)
@@ -52,7 +52,25 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 
 		val end = context.expect(TokenTypes.RBrace)
 
+		val requiredTypes = mutableListOf<TypeDefNode>()
+		val requiredTraits = mutableListOf<TraitDefNode>()
+		val standardTypes = mutableListOf<TypeDefNode>()
+		val standardTraits = mutableListOf<TraitDefNode>()
+
+		for (entityNode in entityDefNodes) {
+			when (entityNode) {
+				is TypeDefNode -> when (entityNode.isRequired) {
+					true -> requiredTypes.add(entityNode)
+					else -> standardTypes.add(entityNode)
+				}
+				is TraitDefNode -> when (entityNode.isRequired) {
+					true -> requiredTraits.add(entityNode)
+					else -> standardTraits.add(entityNode)
+				}
+			}
+		}
+
 		return +ApiDefNode(start, end,
-			typeIdentifierNode, emptyList(), methodDefNodes, withinNode, withNodes)
+			typeIdentifierNode, requiredTypes, requiredTraits, methodDefNodes, withinNode, withNodes, standardTypes + standardTraits)
 	}
 }

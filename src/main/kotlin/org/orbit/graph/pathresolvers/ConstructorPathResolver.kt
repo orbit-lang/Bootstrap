@@ -12,7 +12,7 @@ class ConstructorPathResolver : PathResolver<ConstructorNode> {
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: ConstructorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
-		val binding = environment.getBinding(input.typeIdentifierNode.value, Binding.Kind.Union.AnyEntity)
+		val binding = environment.getBinding(input.typeIdentifierNode.value, Binding.Kind.Union.entity)
 
 		return when (binding) {
 			is Scope.BindingSearchResult.Success -> {

@@ -94,7 +94,10 @@ fun Node.getPath() : Path {
 }
 
 fun Node.getType() : TypeProtocol {
-	return getAnnotation<TypeProtocol>(Annotations.Type)!!.value
+	val type = getAnnotation<TypeProtocol>(Annotations.Type)
+		?: throw RuntimeException("HERE")
+
+	return type!!.value
 }
 
 interface Mangler {

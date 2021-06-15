@@ -23,12 +23,17 @@ data class ApiDefNode(
 	override val firstToken: Token,
 	override val lastToken: Token,
 	override val identifier: TypeIdentifierNode,
-	override val entityDefs: List<EntityDefNode>,
+	val requiredTypes: List<TypeDefNode>,
+	val requiredTraits: List<TraitDefNode>,
 	override val methodDefs: List<MethodDefNode>,
 	override val within: TypeIdentifierNode?,
-	override val with: List<TypeIdentifierNode>
-) : ContainerNode(firstToken, lastToken, identifier, within, with, entityDefs, methodDefs) {
+	override val with: List<TypeIdentifierNode>,
+	val standardEntityDefs: List<EntityDefNode>
+) : ContainerNode(firstToken, lastToken, identifier, within, with, standardEntityDefs + requiredTypes + requiredTraits, methodDefs) {
+	override val entityDefs: List<EntityDefNode>
+		get() = standardEntityDefs + requiredTypes + requiredTraits
+
 	override fun getChildren() : List<Node> {
-		return entityDefs + methodDefs
+		return entityDefs + requiredTypes + requiredTraits + methodDefs
 	}
 }

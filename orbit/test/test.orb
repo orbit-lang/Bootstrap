@@ -1,11 +1,13 @@
 api Comparator {
-    required trait ComparableType
-    required trait ResultType
+    required type ComparableType
+    required type ResultType
 }
 
-@Main module Main with Orb::Core::Main with Orb::Types::Intrinsics {
-    (self Main) main () () {
-        b = BB(Z())
-        print
+module IntComp : Comparator with Orb::Types::Intrinsics with Comparator {
+    type ComparableType = Int
+    type ResultType = Bool
+
+    (IntComp) compare (a ComparableType, b ComparableType) (ResultType) {
+        return ResultType()
     }
 }

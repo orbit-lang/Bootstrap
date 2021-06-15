@@ -7,7 +7,19 @@ import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.extensions.unaryPlus
 
-object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
+interface EntityParseRule<E: EntityDefNode> : PrefixPhaseAnnotatedParseRule<E> {
+	companion object {
+		val anyEntity = listOf<ParseRule<*>>(TypeAliasRule, TypeDefRule(), TraitDefRule())
+	}
+
+	val isRequired: Boolean
+}
+
+class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<TypeDefNode> {
+	companion object {
+		val required = TypeDefRule(true)
+	}
+
 	sealed class Errors {
 		data class MissingName(override val sourcePosition: SourcePosition)
 			: ParseError("Type definition requires a name", sourcePosition)
@@ -17,7 +29,13 @@ object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
 	}
 
 	override fun parse(context: Parser) : ParseRule.Result {
-		val start = context.expect(TokenTypes.Type)
+		val start = when (isRequired) {
+			true -> context.expect(TokenTypes.Required, true)
+			else -> context.expect(TokenTypes.Type)
+		}
+
+		if (isRequired) context.expect(TokenTypes.Type)
+
 		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue, true)
 			?: throw context.invocation.make(Errors.MissingName(start.position))
 
@@ -34,7 +52,7 @@ object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
 				context.consume()
 				context.consume()
 
-				return +TypeDefNode(start, end, typeIdentifierNode)
+				return +TypeDefNode(start, end, isRequired, typeIdentifierNode)
 			}
 
 			// NOTE - We have an ambiguous grammar here.
@@ -60,7 +78,7 @@ object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
 				// This is the ambiguous case described above.
 				// We can jump out here, safe in the knowledge that
 				// doing a lookahead parse did not affect the main token stack
-				return +TypeDefNode(start, end, typeIdentifierNode)
+				return +TypeDefNode(start, end, isRequired, typeIdentifierNode)
 			} catch (_: Exception) {
 				// This is not a real parse error; it just means this isn't the ambiguous case (see above).
 				// fallthrough
@@ -132,12 +150,12 @@ object TypeDefRule : PrefixPhaseAnnotatedParseRule<TypeDefNode> {
 			*/
 
 			// TODO - Swap MethodSignatureRule out for MethodDefRule
-			val bodyNode = context.attempt(BlockRule(TraitDefRule, TypeDefRule, MethodSignatureRule(false)), true)
+			val bodyNode = context.attempt(BlockRule(TraitDefRule(isRequired), TypeDefRule(isRequired), MethodSignatureRule(false)), true)
 				?: TODO("@TypeDefRule:128")
 
-			return +TypeDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode)
+			return +TypeDefNode(start, bodyNode.lastToken, isRequired, typeIdentifierNode, propertyPairs, traitConformances, bodyNode)
 		}
 		
-		return +TypeDefNode(start, end, typeIdentifierNode, propertyPairs, traitConformances)
+		return +TypeDefNode(start, end, isRequired, typeIdentifierNode, propertyPairs, traitConformances)
 	}
 }

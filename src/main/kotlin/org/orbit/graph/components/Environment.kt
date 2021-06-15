@@ -26,7 +26,7 @@ class Environment(
 		this.scopes.addAll(scopes)
 	}
 
-	fun <T> withNewScope(node: Node? = null, block: (Scope) -> T) : T {
+	fun <T> withScope(node: Node? = null, block: (Scope) -> T) : T {
 		openScope(node)
 		try {
 			return block(currentScope)

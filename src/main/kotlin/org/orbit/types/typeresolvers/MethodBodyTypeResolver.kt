@@ -13,7 +13,7 @@ import org.orbit.types.phase.TypeChecker
 import org.orbit.util.Invocation
 
 class MethodBodyTypeResolver(override val node: BlockNode, override val binding: Binding, private val returnType: TypeProtocol) : TypeResolver<BlockNode, TypeProtocol>, KoinComponent {
-    private val invocation: Invocation by inject()
+    override val invocation: Invocation by inject()
 
     override fun resolve(environment: Environment, context: Context) : TypeProtocol {
         for (statementNode in node.body) {

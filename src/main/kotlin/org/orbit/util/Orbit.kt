@@ -116,6 +116,7 @@ private val mainModule = module {
 		val util = PathResolverUtil()
 
 		util.registerPathResolver(ContainerResolver(), ModuleNode::class.java)
+		util.registerPathResolver(ContainerResolver(), ApiDefNode::class.java)
 		util.registerPathResolver(AssignmentPathResolver(), AssignmentStatementNode::class.java)
 		util.registerPathResolver(MethodDefPathResolver(), MethodDefNode::class.java)
 		util.registerPathResolver(MethodSignaturePathResolver(), MethodSignatureNode::class.java)

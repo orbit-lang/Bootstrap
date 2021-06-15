@@ -9,7 +9,8 @@ enum class PrintableKey(val generator: (PrintableFactory) -> String) {
 	Warning(PrintableFactory::getWarning),
 	Error(PrintableFactory::getError),
 	Underlined(PrintableFactory::getUnderlined),
-	Success(PrintableFactory::getSuccess);
+	Success(PrintableFactory::getSuccess),
+	Italics(PrintableFactory::getItalics);
 
 	operator fun plus(other: PrintableKey) : List<PrintableKey> {
 		return listOf(this, other)
@@ -29,6 +30,7 @@ interface PrintableFactory {
 	fun getBold() : String
 	fun getUnderlined() : String
 	fun getSuccess() : String
+	fun getItalics() : String
 
 	private fun appendIfPresent(keys: Array<out PrintableKey>, key: PrintableKey, fn: () -> String) : String? {
 		return when (keys.contains(key)) {
@@ -49,6 +51,10 @@ class Printer(private val factory: PrintableFactory) {
 		
 		return "$headers$text${factory.getTerminator()}"
 	}
+
+	fun apply(text: String, keys: List<PrintableKey>) : String {
+		return apply(text, *keys.toTypedArray())
+	}
 }
 
 interface PrinterAware {
@@ -63,4 +69,5 @@ object PrinterAwareImpl : PrinterAware, KoinComponent {
 	fun error(text: String) : String = printer.apply(text, PrintableKey.Error)
 	fun success(text: String) : String = printer.apply(text, PrintableKey.Success)
 	fun underline(text: String) : String = printer.apply(text, PrintableKey.Underlined)
+	fun italics(text: String) : String = printer.apply(text, PrintableKey.Italics)
 }

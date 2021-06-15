@@ -7,6 +7,7 @@ import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.TraitDefNode
+import org.orbit.core.nodes.TypeAliasNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.types.components.Context
 import org.orbit.types.components.Entity
@@ -31,7 +32,22 @@ private class PropertyDefUnit(override val node: PairNode, override val depth: I
     }
 }
 
-class TraitDefUnit(override val node: TraitDefNode, override val depth: Int) : CodeUnit<TraitDefNode>, KoinComponent {
+class TypeAliasUnit(override val node: TypeAliasNode, override val depth: Int) : CodeUnit<TypeAliasNode> {
+    override fun generate(mangler: Mangler): String {
+        val sourcePath = node.sourceTypeIdentifier.getPath()
+        val targetPath = node.targetTypeIdentifier.getPath()
+
+        val header = "/* type ${sourcePath.toString(OrbitMangler)} = ${targetPath.toString(OrbitMangler)} */"
+
+        return """
+            |$header
+            |typealias ${sourcePath.toString(mangler)} = ${targetPath.toString(mangler)}
+        """.trimMargin()
+            .prependIndent(indent())
+    }
+}
+
+class TraitDefUnit(override val node: TraitDefNode, override val depth: Int) : CodeUnit<TraitDefNode> {
     override fun generate(mangler: Mangler): String {
         val traitPath = node.getPath()
 
@@ -47,21 +63,15 @@ class TraitDefUnit(override val node: TraitDefNode, override val depth: Int) : C
             |$traitDef {
             |$propertyDefs
             |}
-        """.trimMargin().prependIndent(indent())
+        """.trimMargin()
+            .prependIndent(indent())
     }
 }
 
-class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : CodeUnit<TypeDefNode>, KoinComponent {
-    private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
+class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : CodeUnit<TypeDefNode> {
 
     override fun generate(mangler: Mangler): String {
         val typePath = node.getPath()
-        //val typeType = context.getType(typePath) as Entity
-
-//        if (IntrinsicTypes.isIntrinsicType(typePath)) {
-//            // Intrinsics are auto-defined as typealiases
-//            return ""
-//        }
 
         // TODO - Lookup value semantics for this type (i.e. class or struct)
         val header = "/* type ${typePath.toString(OrbitMangler)} */"

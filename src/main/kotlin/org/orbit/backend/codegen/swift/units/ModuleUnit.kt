@@ -30,21 +30,29 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
         val typeDefs = node.entityDefs
             .filterIsInstance<TypeDefNode>()
             .map(partial(::TypeDefUnit, depth))
-            .joinToString(newline(), transform = partial(TypeDefUnit::generate, mangler))
+            .joinToString(newline(2), transform = partial(TypeDefUnit::generate, mangler))
 
         val traitDefs = node.entityDefs
             .filterIsInstance<TraitDefNode>()
             .map(partial(::TraitDefUnit, depth))
-            .joinToString(newline(), transform = partial(TraitDefUnit::generate, mangler))
+            .joinToString(newline(2), transform = partial(TraitDefUnit::generate, mangler))
+
+        val typeAliases = node.typeAliasNodes
+            .map(partial(::TypeAliasUnit, depth))
+            .joinToString(newline(2), transform = partial(TypeAliasUnit::generate, mangler))
 
         val methodDefs = node.methodDefs
             .map(partial(::MethodDefUnit, depth))
-            .joinToString(newline(), transform = partial(MethodDefUnit::generate, mangler))
+            .joinToString(newline(2), transform = partial(MethodDefUnit::generate, mangler))
 
         return """
             |$header
             |$typeDefs
+            |
             |$traitDefs
+            |
+            |$typeAliases
+            |
             |$methodDefs
         """.trimMargin()
     }
