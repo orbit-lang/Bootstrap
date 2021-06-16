@@ -12,11 +12,13 @@ class ConstructorPathResolver : PathResolver<ConstructorNode> {
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: ConstructorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
-		val binding = environment.getBinding(input.typeIdentifierNode.value, Binding.Kind.Union.entity)
+		TypeExpressionPathResolver.resolve(input.typeExpressionNode, pass, environment, graph)
+
+		val binding = environment.getBinding(input.typeExpressionNode.value, Binding.Kind.Union.entityOrConstructor)
 
 		return when (binding) {
 			is Scope.BindingSearchResult.Success -> {
-				input.typeIdentifierNode.annotate(binding.result.path, Annotations.Path)
+				input.typeExpressionNode.annotate(binding.result.path, Annotations.Path)
 
 				// Resolver parameters
 				input.parameterNodes.forEach { pathResolverUtil.resolve(it, pass, environment, graph) }

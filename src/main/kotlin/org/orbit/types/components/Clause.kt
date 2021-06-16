@@ -29,6 +29,16 @@ object StructuralEquality : Equality<Entity> {
     }
 }
 
+object TypeConstructorEquality : Equality<TypeConstructor> {
+    override fun isSatisfied(context: Context, source: TypeConstructor, target: TypeConstructor): Boolean {
+        return source.typeParameters.count() == target.typeParameters.count()
+            && source.typeParameters.zip(target.typeParameters).all {
+                (source.equalitySemantics as AnyEquality)
+                    .isSatisfied(context, it.first, it.second)
+            }
+    }
+}
+
 object SignatureEquality : Equality<SignatureProtocol<TypeProtocol>>, KoinComponent {
     private val invocation: Invocation by inject()
 

@@ -51,7 +51,7 @@ class TraitConformanceTypeResolver(override val node: TypeDefNode, override val 
                 .forEach(node::extendProperties)
 
             // 1. Injected trait property definitions into type
-            partialType = Type(node.getPath(), traitType.properties, isRequired = node.isRequired)
+            partialType = Type(node.getPath(), properties = traitType.properties, isRequired = node.isRequired)
 
             node.annotate(partialType, Annotations.Type)
             context.add(partialType)

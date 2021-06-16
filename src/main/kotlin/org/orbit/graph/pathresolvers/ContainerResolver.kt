@@ -112,9 +112,11 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 			// TODO - Would be nice to inject these but the parentPath property makes it tricky
 			val typeResolver = TypeDefPathResolver(containerPath)
 			val traitResolver = TraitDefPathResolver(containerPath)
+			val typeConstructorResolver = TypeConstructorPathResolver(containerPath)
 
 			val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
 			val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
+			val typeConstructors = input.entityConstructors.filterIsInstance<TypeConstructorNode>()
 
 			// Run a first pass over all types & traits that resolves just their own paths
 			// (ignoring properties and trait conformance etc)
@@ -127,12 +129,20 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 				typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Initial))
 			}
 
+			for (typeConstructor in typeConstructors) {
+				typeConstructorResolver.execute(PathResolver.InputType(typeConstructor, PathResolver.Pass.Initial))
+			}
+
 			for (traitDef in traitDefs) {
 				traitResolver.execute(PathResolver.InputType(traitDef, PathResolver.Pass.Last))
 			}
 
 			for (typeDef in typeDefs) {
 				typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Last))
+			}
+
+			for (typeConstructor in typeConstructors) {
+				typeConstructorResolver.execute(PathResolver.InputType(typeConstructor, PathResolver.Pass.Last))
 			}
 
 			if (input is ModuleNode) {

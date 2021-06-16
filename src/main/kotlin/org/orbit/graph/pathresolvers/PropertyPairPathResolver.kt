@@ -12,14 +12,14 @@ class PropertyPairPathResolver : PathResolver<PairNode> {
 	override val invocation: Invocation by inject()
 
 	override fun resolve(input: PairNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
-		val typeNode = input.typeIdentifierNode
+		val typeNode = input.typeExpressionNode
 		val propertyTypeBindingResult = environment.getBinding(typeNode.value)
 		val propertyTypeBinding = propertyTypeBindingResult
-			.unwrap(this, input.typeIdentifierNode.firstToken.position)
+			.unwrap(this, input.typeExpressionNode.firstToken.position)
 		val propertyTypePath = propertyTypeBinding.path
 
 		input.annotate(propertyTypePath, Annotations.Path)
-		input.typeIdentifierNode.annotate(propertyTypePath, Annotations.Path)
+		input.typeExpressionNode.annotate(propertyTypePath, Annotations.Path)
 
 		return PathResolver.Result.Success(propertyTypePath)
 	}

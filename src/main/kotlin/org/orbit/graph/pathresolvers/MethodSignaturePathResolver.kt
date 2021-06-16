@@ -3,23 +3,58 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.Path
 import org.orbit.core.components.SourcePosition
+import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.core.nodes.MethodSignatureNode
+import org.orbit.core.nodes.TypeExpressionNode
+import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.graph.components.*
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.Invocation
+
+object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
+	override val invocation: Invocation by inject()
+
+	override fun resolve(input: TypeExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result = when (input) {
+		is TypeIdentifierNode -> {
+			val binding = environment.getBinding(input.value, Binding.Kind.Union.entityOrConstructor)
+				.unwrap(this, input.firstToken.position)
+
+			input.annotate(binding.path, Annotations.Path)
+
+			PathResolver.Result.Success(binding.path)
+		}
+
+		is MetaTypeNode -> {
+			val typeConstructorResult = resolve(input.typeConstructorIdentifier, pass, environment, graph)
+				.asSuccess()
+
+			input.typeParameters.forEach { resolve(it, pass, environment, graph) }
+
+			input.annotate(typeConstructorResult.path, Annotations.Path)
+			input.typeConstructorIdentifier.annotate(typeConstructorResult.path, Annotations.Path)
+
+			PathResolver.Result.Success(typeConstructorResult.path)
+		}
+
+		else -> TODO("???")
+	}
+}
 
 class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 	override val invocation: Invocation by inject()
 
 	override fun resolve(input: MethodSignatureNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		// A method's canonical path is `<ReceiverType>::<MethodName>[::ArgType1, ::ArgType2, ...]::<ReturnType>`
-		val receiver = input.receiverTypeNode.typeIdentifierNode.value
-		val receiverResult = environment.getBinding(receiver, Binding.Kind.Union.receiver)
-		val receiverBinding = receiverResult
-			.unwrap(this, input.receiverTypeNode.typeIdentifierNode.firstToken.position)
+		val receiver = input.receiverTypeNode.typeExpressionNode.value
+
+		val receiverResult = TypeExpressionPathResolver.resolve(input.receiverTypeNode.typeExpressionNode, pass, environment, graph)
+			.asSuccess()
+		val receiverBinding = environment.getBinding(receiver, Binding.Kind.Union.receiver)
+			.unwrap(this, input.receiverTypeNode.typeExpressionNode.firstToken.position)
 
 		input.receiverTypeNode.annotate(receiverBinding.path, Annotations.Path)
+		input.receiverTypeNode.typeExpressionNode.annotate(receiverBinding.path, Annotations.Path)
 
 		val name = input.identifierNode.identifier
 		val ret = input.returnTypeNode?.value ?: IntrinsicTypes.Unit.type.name
@@ -31,8 +66,8 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		input.returnTypeNode?.annotate(retPath.path, Annotations.Path)
 
 		val argPaths = input.parameterNodes.mapIndexed { idx, it ->
-			val result = environment.getBinding(it.typeIdentifierNode.value, Binding.Kind.Union.entityOrMethod)
-			val binding = result.unwrap(this, it.typeIdentifierNode.firstToken.position)
+			val result = environment.getBinding(it.typeExpressionNode.value, Binding.Kind.Union.entityOrMethod)
+			val binding = result.unwrap(this, it.typeExpressionNode.firstToken.position)
 
 			input.annotateParameter(idx, binding.path, Annotations.Path)
 
@@ -54,10 +89,10 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 			.slice(IntRange(path.relativeNames.indexOf(name), path.relativeNames.size - 1))
 			.joinToString("::")
 
-		val receiverID = graph.find(receiverBinding)
+		//val receiverID = graph.find(receiverBinding)
 		val vertexID = graph.insert(methodName)
 
-		graph.link(receiverID, vertexID)
+		//graph.link(receiverID, vertexID)
 
 		return PathResolver.Result.Success(path)
 	}

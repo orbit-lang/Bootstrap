@@ -70,7 +70,8 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 			}
 		}
 
+		// TODO - Entity constructors in Apis
 		return +ApiDefNode(start, end,
-			typeIdentifierNode, requiredTypes, requiredTraits, methodDefNodes, withinNode, withNodes, standardTypes + standardTraits)
+			typeIdentifierNode, requiredTypes, requiredTraits, methodDefNodes, withinNode, withNodes, standardTypes + standardTraits, emptyList())
 	}
 }

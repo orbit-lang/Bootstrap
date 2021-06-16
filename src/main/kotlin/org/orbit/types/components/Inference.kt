@@ -3,7 +3,6 @@ package org.orbit.types.components
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
-import org.orbit.core.components.SourcePosition
 import org.orbit.core.getPath
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.Annotations
@@ -20,7 +19,7 @@ object TypeInferenceUtil {
 
     fun infer(context: Context, expressionNode: ExpressionNode, typeAnnotation: TypeProtocol? = null) : TypeProtocol = when (expressionNode) {
         is IdentifierNode -> infer(context, Variable(expressionNode.identifier), typeAnnotation)
-        is TypeIdentifierNode -> context.getType(expressionNode.getPath().toString(OrbitMangler))
+        is TypeExpressionNode -> TypeExpressionInference.infer(context, expressionNode, typeAnnotation)
         is BinaryExpressionNode -> BinaryExpressionInference.infer(context, expressionNode, typeAnnotation)
         is UnaryExpressionNode -> UnaryExpressionInference.infer(context, expressionNode, typeAnnotation)
         is RValueNode -> infer(context, expressionNode.expressionNode)
@@ -35,6 +34,29 @@ object TypeInferenceUtil {
 
 private interface TypeInference<N: Node> {
     fun infer(context: Context, node: N, typeAnnotation: TypeProtocol?) : TypeProtocol
+}
+
+private object TypeExpressionInference : TypeInference<TypeExpressionNode> {
+    override fun infer(context: Context, node: TypeExpressionNode, typeAnnotation: TypeProtocol?): TypeProtocol = when (node) {
+        is TypeIdentifierNode -> context.getType(node.getPath().toString(OrbitMangler))
+        is MetaTypeNode -> MetaTypeInference.infer(context, node, typeAnnotation)
+        else -> TODO("???")
+    }
+}
+
+private object MetaTypeInference : TypeInference<MetaTypeNode> {
+    override fun infer(context: Context, node: MetaTypeNode, typeAnnotation: TypeProtocol?): TypeProtocol {
+        val typeConstructor = context.getTypeByPath(node.getPath())
+            as? TypeConstructor
+            ?: TODO("")
+
+        // TODO - Recursive inference on type parameters
+        val typeParameters = node.typeParameters
+            .map { context.getTypeByPath(it.getPath()) as ValuePositionType }
+
+        return MetaType(typeConstructor, typeParameters)
+            .evaluate(context)
+    }
 }
 
 private object UnaryExpressionInference : TypeInference<UnaryExpressionNode> {
@@ -167,12 +189,14 @@ private object ConstructorInference : TypeInference<ConstructorNode>, KoinCompon
     private val invocation: Invocation by inject()
 
     override fun infer(context: Context, node: ConstructorNode, typeAnnotation: TypeProtocol?): TypeProtocol {
-        val receiverType = TypeInferenceUtil.infer(context, node.typeIdentifierNode)
+        val receiverType = TypeInferenceUtil.infer(context, node.typeExpressionNode)
+
+        node.typeExpressionNode.annotate(receiverType, Annotations.Type)
 
         if (receiverType !is Type) {
             throw invocation.make<TypeChecker>(
                 "Only concrete types may be initialised via a constructor call. Found ${receiverType::class.java.simpleName} '${receiverType.name}'",
-                node.typeIdentifierNode
+                node.typeExpressionNode
             )
         }
 

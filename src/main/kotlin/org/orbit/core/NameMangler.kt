@@ -30,6 +30,12 @@ open class Path(val relativeNames: List<String>) : Serial, Serializable {
 		return Path(a + b)
 	}
 
+	operator fun plus(others: List<Path>) : Path {
+		return others.fold(this) { acc, next ->
+			acc + next
+		}
+	}
+
 	operator fun plus(other: String) : Path {
 		return this + Path(other)
 	}

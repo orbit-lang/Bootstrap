@@ -17,7 +17,7 @@ data class MethodSignatureNode(
         firstToken: Token,
         lastToken: Token,
         identifierNode: IdentifierNode,
-        receiverTypeNode: TypeIdentifierNode,
+        receiverTypeNode: TypeExpressionNode,
         parameterNodes: List<PairNode>,
         returnTypeNode: TypeIdentifierNode?
 	) : this(

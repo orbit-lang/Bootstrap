@@ -4,10 +4,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.backend.phase.CodeWriter
+import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
-import org.orbit.core.Mangler
-import org.orbit.core.getPath
-import org.orbit.core.injectResult
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.getAnnotation
@@ -88,10 +86,10 @@ class ConstructorUnit(override val node: ConstructorNode, override val depth: In
     private val invocation: Invocation by inject()
 
     override fun generate(mangler: Mangler): String {
-        val targetType = context.getTypeByPath(node.typeIdentifierNode.getPath())
+        val targetType = node.typeExpressionNode.getType()
 
         if (targetType !is Entity) {
-            throw invocation.make<CodeWriter>("Only types may be initialised via a constructor call. Found $targetType", node.typeIdentifierNode)
+            throw invocation.make<CodeWriter>("Only types may be initialised via a constructor call. Found $targetType", node.typeExpressionNode)
         }
 
         val parameters = node.parameterNodes
@@ -104,7 +102,7 @@ class ConstructorUnit(override val node: ConstructorNode, override val depth: In
             "${it.first}: ${it.second}"
         }.joinToString(", ")
 
-        val targetTypeName = node.typeIdentifierNode.getPath().toString(mangler)
+        val targetTypeName = (OrbitMangler + mangler).invoke(targetType.name)
 
         return """ 
             |$targetTypeName($properties)

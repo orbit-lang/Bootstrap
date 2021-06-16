@@ -16,10 +16,10 @@ object PairRule : ParseRule<PairNode> {
 		val start = context.peek()
 
 		val identifierNode = context.attempt(IdentifierRule)
-			?: throw context.invocation.make(PairRule.Errors.MissingIdentifier(start.position))
+			?: throw context.invocation.make(Errors.MissingIdentifier(start.position))
 		
-		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
-			?: throw context.invocation.make(PairRule.Errors.MissingType(start.position))
+		val typeIdentifierNode = context.attempt(TypeExpressionRule)
+			?: throw context.invocation.make(Errors.MissingType(start.position))
 
 		return +PairNode(start, typeIdentifierNode.lastToken, identifierNode, typeIdentifierNode)
 	}

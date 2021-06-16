@@ -32,8 +32,8 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 		
 		val start = context.expect(TokenTypes.LParen)
 
-		val receiverNode = context.attemptAny(PairRule, TypeIdentifierRule.RValue)
-			?: throw context.invocation.make(MethodSignatureRule.Errors.MissingReceiver(context.peek().position))
+		val receiverNode = context.attemptAny(PairRule, TypeExpressionRule)
+			?: throw context.invocation.make(Errors.MissingReceiver(context.peek().position))
 
 		context.expect(TokenTypes.RParen)
 
@@ -41,9 +41,9 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 		val identifierNode = context.attempt(IdentifierRule)
 		
 		if (anonymous && identifierNode != null) {
-			throw context.invocation.make(MethodSignatureRule.Errors.UnexpectedAnonymous(context.peek().position))
+			throw context.invocation.make(Errors.UnexpectedAnonymous(context.peek().position))
 		} else if (!anonymous && identifierNode == null) {
-			throw context.invocation.make(MethodSignatureRule.Errors.ExpectedAnonymous(context.peek().position))
+			throw context.invocation.make(Errors.ExpectedAnonymous(context.peek().position))
 		}
 
 		context.expect(TokenTypes.LParen)
@@ -79,7 +79,7 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 				null
 			} else {
 				context.attempt(TypeIdentifierRule.LValue)
-					?: throw context.invocation.make(MethodSignatureRule.Errors.MissingReturnType(next.position))
+					?: throw context.invocation.make(Errors.MissingReturnType(next.position))
 			}
 
 		val end = context.expect(TokenTypes.RParen)

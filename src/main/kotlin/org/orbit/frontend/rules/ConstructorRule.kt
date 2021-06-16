@@ -8,7 +8,7 @@ import org.orbit.frontend.extensions.parseTrailing
 
 class ConstructorRule : ValueRule<ConstructorNode> {
     override fun parse(context: Parser) : ParseRule.Result {
-        val typeIdentifier = context.attempt(TypeIdentifierRule.RValue)
+        val typeIdentifier = context.attempt(TypeExpressionRule)
             ?: return ParseRule.Result.Failure.Rewind()
 
         context.expectOrNull(TokenTypes.LParen)

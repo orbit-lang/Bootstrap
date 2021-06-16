@@ -11,10 +11,11 @@ data class ModuleNode(
     override val with: List<TypeIdentifierNode> = emptyList(),
     override val entityDefs: List<EntityDefNode> = emptyList(),
     override val methodDefs: List<MethodDefNode> = emptyList(),
-    val typeAliasNodes: List<TypeAliasNode> = emptyList()
-) : ContainerNode(firstToken, lastToken, identifier, within, with, entityDefs, methodDefs) {
+    val typeAliasNodes: List<TypeAliasNode> = emptyList(),
+    override val entityConstructors: List<EntityConstructorNode>
+) : ContainerNode(firstToken, lastToken, identifier, within, with, entityDefs, methodDefs, entityConstructors) {
     override fun getChildren(): List<Node> = when (within) {
-        null -> listOf(identifier) + implements + with + entityDefs + methodDefs + typeAliasNodes
-        else -> listOf(identifier, within) + implements + with + entityDefs + methodDefs + typeAliasNodes
+        null -> listOf(identifier) + implements + with + entityDefs + methodDefs + typeAliasNodes + entityConstructors
+        else -> listOf(identifier, within) + implements + with + entityDefs + methodDefs + typeAliasNodes + entityConstructors
     }
 }

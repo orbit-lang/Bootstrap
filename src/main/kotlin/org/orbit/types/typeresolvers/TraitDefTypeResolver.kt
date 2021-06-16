@@ -42,14 +42,14 @@ class TraitDefTypeResolver(override val node: TraitDefNode, override val binding
             val propertyType = context.getTypeByPath(propertyPair.getPath())
 
             if (propertyType == trait) {
-                throw invocation.make<TypeChecker>("Traits must not declare properties of their own type: Found property (${propertyPair.identifierNode.identifier} ${propertyType.name}) in trait ${trait.name}", propertyPair.typeIdentifierNode)
+                throw invocation.make<TypeChecker>("Traits must not declare properties of their own type: Found property (${propertyPair.identifierNode.identifier} ${propertyType.name}) in trait ${trait.name}", propertyPair.typeExpressionNode)
             }
 
             if (propertyType is Entity) {
                 val cyclicProperties = propertyType.properties.filter { it.type == trait }
 
                 if (cyclicProperties.isNotEmpty()) {
-                    throw invocation.make<TypeChecker>("Detected cyclic definition between trait '${trait.name}' and its property (${propertyPair.identifierNode.identifier} ${propertyType.name})", propertyPair.typeIdentifierNode)
+                    throw invocation.make<TypeChecker>("Detected cyclic definition between trait '${trait.name}' and its property (${propertyPair.identifierNode.identifier} ${propertyType.name})", propertyPair.typeExpressionNode)
                 }
             }
 

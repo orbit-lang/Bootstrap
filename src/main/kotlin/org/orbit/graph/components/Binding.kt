@@ -13,6 +13,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 		object Type : Entity
 		object RequiredType : Entity
 		object TypeAlias : Entity
+		object TypeConstructor : Kind
 		object Trait : Entity
 		object Self : Entity
 		object Ephemeral : Entity
@@ -27,7 +28,8 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 				val container = Union(Kind.Module, Kind.Api)
 				val entity = Union(Union(Kind.Type, Kind.Trait), Kind.TypeAlias)
 				val entityOrMethod = Union(entity, Kind.Method)
-				val receiver = Union(entityOrMethod, Kind.Module)
+				val receiver = Union(entityOrMethod, Union(Kind.Module, Kind.TypeConstructor))
+				val entityOrConstructor = Union(entity, Kind.TypeConstructor)
 			}
 
 			override fun same(other: Kind): Boolean {

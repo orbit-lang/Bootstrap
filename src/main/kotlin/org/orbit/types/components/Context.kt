@@ -1,6 +1,8 @@
 package org.orbit.types.components
 
 import org.json.JSONObject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.CompilationEvent
@@ -8,6 +10,7 @@ import org.orbit.core.components.CompilationEventBusAware
 import org.orbit.core.components.CompilationEventBusAwareImpl
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
+import org.orbit.util.Invocation
 import java.io.Serializable
 import java.lang.NullPointerException
 
@@ -28,7 +31,6 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
     val types: MutableSet<TypeProtocol> = builtIns.toMutableSet()
     val bindings = mutableMapOf<String, TypeProtocol>()
-
 
     private var next = 0
 
@@ -82,6 +84,9 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
             0 -> null
             1 -> when (val type = matches.first()) {
                 is TypeAlias -> type.targetType
+//                is TypeConstructor -> {
+//
+//                }
                 else -> type
             }
             else -> throw RuntimeException("TODO - Multiple types named '$name'")

@@ -16,7 +16,8 @@ abstract class ContainerNode(
 	open val within: TypeIdentifierNode?,
 	open val with: List<TypeIdentifierNode>,
 	open val entityDefs: List<EntityDefNode>,
-	open val methodDefs: List<MethodDefNode>
+	open val methodDefs: List<MethodDefNode>,
+	open val entityConstructors: List<EntityConstructorNode>
 ) : TopLevelDeclarationNode(firstToken, lastToken, PathResolver.Pass.Last)
 
 data class ApiDefNode(
@@ -28,12 +29,13 @@ data class ApiDefNode(
 	override val methodDefs: List<MethodDefNode>,
 	override val within: TypeIdentifierNode?,
 	override val with: List<TypeIdentifierNode>,
-	val standardEntityDefs: List<EntityDefNode>
-) : ContainerNode(firstToken, lastToken, identifier, within, with, standardEntityDefs + requiredTypes + requiredTraits, methodDefs) {
+	val standardEntityDefs: List<EntityDefNode>,
+	override val entityConstructors: List<EntityConstructorNode>
+) : ContainerNode(firstToken, lastToken, identifier, within, with, standardEntityDefs + requiredTypes + requiredTraits, methodDefs, entityConstructors) {
 	override val entityDefs: List<EntityDefNode>
 		get() = standardEntityDefs + requiredTypes + requiredTraits
 
 	override fun getChildren() : List<Node> {
-		return entityDefs + requiredTypes + requiredTraits + methodDefs
+		return entityDefs + requiredTypes + requiredTraits + methodDefs + entityConstructors
 	}
 }

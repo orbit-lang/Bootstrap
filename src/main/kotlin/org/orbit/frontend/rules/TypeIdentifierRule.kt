@@ -1,12 +1,23 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.components.SourcePosition
+import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.core.nodes.TypeParametersNode
 import org.orbit.frontend.components.ParseError
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.extensions.unaryPlus
+
+object TypeExpressionRule : ValueRule<TypeExpressionNode> {
+	override fun parse(context: Parser): ParseRule.Result {
+		val node = context.attemptAny(listOf(MetaTypeRule, TypeIdentifierRule.RValue))
+			as? TypeExpressionNode
+			?: return ParseRule.Result.Failure.Abort
+
+		return +node
+	}
+}
 
 enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : ValueRule<TypeIdentifierNode> {
 	LValue(Context.LValue), RValue(Context.RValue), Naked(Context.Naked);

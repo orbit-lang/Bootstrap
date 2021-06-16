@@ -1,13 +1,9 @@
-api Comparator {
-    required type ComparableType
-    required type ResultType
-}
+module Collections with Orb::Types::Intrinsics {
+    type constructor Array(T)
 
-module IntComp : Comparator with Orb::Types::Intrinsics with Comparator {
-    type ComparableType = Int
-    type ResultType = Bool
+    (self Array(Int)) get (index Int) (Int) {
+        l = Array(Int)()
 
-    (IntComp) compare (a ComparableType, b ComparableType) (ResultType) {
-        return ResultType()
+        return 0
     }
 }

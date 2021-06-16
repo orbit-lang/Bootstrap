@@ -2,12 +2,15 @@ package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
 
+abstract class TypeExpressionNode(firstToken: Token, lastToken: Token, value: String)
+	: LiteralNode<String>(firstToken, lastToken, value)
+
 data class TypeIdentifierNode(
     override val firstToken: Token,
     override val lastToken: Token,
     override val value: String,
     val typeParametersNode: TypeParametersNode = TypeParametersNode(firstToken, lastToken)
-) : LiteralNode<String>(firstToken, lastToken, value) {
+) : TypeExpressionNode(firstToken, lastToken, value) {
 	companion object {
 		fun unit(token: Token) : TypeIdentifierNode
 			= TypeIdentifierNode(token, token, "Unit")
