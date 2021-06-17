@@ -30,6 +30,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 				val entityOrMethod = Union(entity, Kind.Method)
 				val receiver = Union(entityOrMethod, Union(Kind.Module, Kind.TypeConstructor))
 				val entityOrConstructor = Union(entity, Kind.TypeConstructor)
+				val entityMethodOrConstructor = Union(entityOrMethod, Kind.TypeConstructor)
 			}
 
 			override fun same(other: Kind): Boolean {

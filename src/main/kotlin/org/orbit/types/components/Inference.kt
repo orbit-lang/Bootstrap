@@ -4,10 +4,12 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
+import org.orbit.core.getType
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.phase.TypeChecker
+import org.orbit.types.typeresolvers.TypeExpressionTypeResolver
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 import org.orbit.util.partialAlt
@@ -52,7 +54,8 @@ private object MetaTypeInference : TypeInference<MetaTypeNode> {
 
         // TODO - Recursive inference on type parameters
         val typeParameters = node.typeParameters
-            .map { context.getTypeByPath(it.getPath()) as ValuePositionType }
+            .map { TypeExpressionInference.infer(context, it, null) }
+            .map { it as ValuePositionType }
 
         return MetaType(typeConstructor, typeParameters)
             .evaluate(context)

@@ -78,7 +78,7 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 			if (context.peek().type == TokenTypes.RParen) {
 				null
 			} else {
-				context.attempt(TypeIdentifierRule.LValue)
+				context.attempt(TypeExpressionRule)
 					?: throw context.invocation.make(Errors.MissingReturnType(next.position))
 			}
 

@@ -11,6 +11,7 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 	companion object {
 		val defaultValue = ExpressionRule(
 			UnaryExpressionRule,
+//			MetaTypeRule,
 			ConstructorRule(),
 			LiteralRule()
 		)

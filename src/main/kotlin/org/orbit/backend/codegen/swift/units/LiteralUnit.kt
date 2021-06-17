@@ -2,15 +2,12 @@
 
 package org.orbit.backend.codegen.swift.units
 
+import org.koin.core.component.KoinComponent
 import org.orbit.backend.codegen.CodeUnit
-import org.orbit.core.Mangler
-import org.orbit.core.OrbitMangler
-import org.orbit.core.getPath
-import org.orbit.core.nodes.IntLiteralNode
-import org.orbit.core.nodes.LiteralNode
-import org.orbit.core.nodes.SymbolLiteralNode
-import org.orbit.core.nodes.TypeIdentifierNode
-import org.orbit.core.plus
+import org.orbit.core.*
+import org.orbit.core.components.CompilationSchemeEntry
+import org.orbit.core.nodes.*
+import org.orbit.types.components.Context
 import org.orbit.types.components.IntrinsicTypes
 import java.math.BigInteger
 
@@ -36,11 +33,23 @@ class TypeLiteralUnit(override val node: LiteralNode<String>, override val depth
     }
 }
 
+class MetaTypeUnit(override val node: MetaTypeNode, override val depth: Int) : LiteralUnit<String>, KoinComponent {
+    private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
+
+    override fun generate(mangler: Mangler): String {
+        val type = node.getType()
+        val typeName = (OrbitMangler + mangler).invoke(type.name)
+
+        return "${typeName}.self"
+    }
+}
+
 object LiteralUnitUtil {
     fun <T> generateLiteralUnit(node: LiteralNode<T>, depth: Int) : LiteralUnit<T> = when (node) {
         is IntLiteralNode -> IntLiteralUnit(node as LiteralNode<Pair<Int, BigInteger>>, depth) as LiteralUnit<T>
         is SymbolLiteralNode -> SymbolLiteralUnit(node, depth) as LiteralUnit<T>
         is TypeIdentifierNode -> TypeLiteralUnit(node, depth) as LiteralUnit<T>
+        is MetaTypeNode -> MetaTypeUnit(node, depth) as LiteralUnit<T>
         else -> TODO("@LiteralUnitUtil:19")
     }
 }

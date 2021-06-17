@@ -1,9 +1,7 @@
-module Collections with Orb::Types::Intrinsics {
-    type constructor Array(T)
+module Orb::Core::Collections with Orb::Types::Intrinsics {
+    type constructor Type(T)
 
-    (self Array(Int)) get (index Int) (Int) {
-        l = Array(Int)()
-
-        return 0
+    (self Int) getType () (Type(Type(Int))) {
+        return Type(Type(Int))()
     }
 }

@@ -6,7 +6,7 @@ class MetaTypeNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val typeConstructorIdentifier: TypeIdentifierNode,
-    val typeParameters: List<TypeIdentifierNode>
+    val typeParameters: List<TypeExpressionNode>
 ) : TypeExpressionNode(firstToken, lastToken, typeConstructorIdentifier.value) {
     override fun getChildren(): List<Node> {
         return listOf(typeConstructorIdentifier) + typeParameters

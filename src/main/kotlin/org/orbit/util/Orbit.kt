@@ -133,6 +133,7 @@ private val mainModule = module {
 		util.registerPathResolver(UnaryExpressionResolver(), UnaryExpressionNode::class.java)
 		util.registerPathResolver(IdentifierExpressionPathResolver(), IdentifierNode::class.java)
 		util.registerPathResolver(PrintPathResolver(), PrintNode::class.java)
+		util.registerPathResolver(MetaTypePathResolver, MetaTypeNode::class.java)
 
 		util
 	}

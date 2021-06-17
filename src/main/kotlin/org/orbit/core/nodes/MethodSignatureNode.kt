@@ -11,7 +11,7 @@ data class MethodSignatureNode(
     val identifierNode: IdentifierNode,
     val receiverTypeNode: PairNode,
     val parameterNodes: List<PairNode>,
-    val returnTypeNode: TypeIdentifierNode?
+    val returnTypeNode: TypeExpressionNode?
 ) : Node(firstToken, lastToken) {
 	constructor(
         firstToken: Token,
@@ -19,7 +19,7 @@ data class MethodSignatureNode(
         identifierNode: IdentifierNode,
         receiverTypeNode: TypeExpressionNode,
         parameterNodes: List<PairNode>,
-        returnTypeNode: TypeIdentifierNode?
+        returnTypeNode: TypeExpressionNode?
 	) : this(
 		firstToken,
 		lastToken,

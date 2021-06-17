@@ -11,10 +11,12 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
         val receiverName = node.receiverTypeNode.identifierNode.identifier
         val receiverType = node.receiverTypeNode.getType()
         val receiverPath = OrbitMangler.unmangle(receiverType.name)
-        val returnType = node.returnTypeNode?.getPathOrNull()?.toString(mangler) ?: (OrbitMangler + mangler)(
-            IntrinsicTypes.Unit.type.name)
+        val returnType = node.returnTypeNode?.getType() ?: IntrinsicTypes.Unit.type
+        val returnTypePath = OrbitMangler.unmangle(returnType.name)
+        val returnTypeNameOrbit = returnType.name
+        val returnTypeNameSwift = returnTypePath.toString(mangler)
 
-        val header = "/* ($receiverName ${receiverPath.toString(OrbitMangler)}) ${node.identifierNode.identifier} () ($returnType) */"
+        val header = "/* ($receiverName ${receiverPath.toString(OrbitMangler)}) ${node.identifierNode.identifier} () ($returnTypeNameOrbit) */"
         val parameterNodes = if (receiverName == "Self") {
             node.parameterNodes
         } else {
@@ -26,12 +28,12 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
             "${it.identifierNode.identifier}: ${it.getPath().toString(mangler)}"
         }
 
-        val methodPath = Path(listOf(receiverPath.toString(mangler), node.identifierNode.identifier) + paramTypes + returnType)
+        val methodPath = Path(listOf(receiverPath.toString(mangler), node.identifierNode.identifier) + paramTypes + returnTypeNameSwift)
             .toString(mangler)
 
         return """
             |$header
-            |func $methodPath($parameters) -> $returnType
+            |func $methodPath($parameters) -> $returnTypeNameSwift
         """.trimMargin().prependIndent(indent(depth - 1))
     }
 }

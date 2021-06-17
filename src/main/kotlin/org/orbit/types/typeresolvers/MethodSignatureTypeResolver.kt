@@ -21,7 +21,13 @@ class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override
     override val invocation: Invocation by inject()
 
     override fun resolve(environment: Environment, context: Context) : TypeExpression = when (node) {
-        is TypeIdentifierNode -> context.getTypeByPath(node.getPath()) as Entity
+        is TypeIdentifierNode -> {
+            val type = context.getTypeByPath(node.getPath()) as Entity
+
+            node.annotate(type, Annotations.Type)
+
+            type
+        }
         is MetaTypeNode -> {
             val typeConstructor = context.getTypeByPath(node.getPath()) as TypeConstructor
             // TODO - Convert this to a stream
@@ -31,7 +37,11 @@ class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override
                 .map(partial(TypeExpression::evaluate, context))
                 .map { it as ValuePositionType }
 
-            MetaType(typeConstructor, typeParameters)
+            val type = MetaType(typeConstructor, typeParameters)
+
+            node.annotate(type, Annotations.Type)
+
+            type
         }
 
         else -> TODO("Unsupported type expression $node")
@@ -80,13 +90,13 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
         val returnType: ValuePositionType = if (node.returnTypeNode == null) {
             IntrinsicTypes.Unit.type
         } else {
-            context.getTypeByPath(node.returnTypeNode.getPath()) as ValuePositionType
+            TypeExpressionTypeResolver(node.returnTypeNode, binding)
+                .resolve(environment, context)
+                .evaluate(context) as ValuePositionType
+//            context.getTypeByPath(node.returnTypeNode.getPath()) as ValuePositionType
         }
 
-//        val receiverType = when (val receiverPath = receiver.getPath()) {
-//            Path.self -> enclosingTrait ?: throw invocation.make<TypeChecker>("Using 'Self' type outside of a Trait definition is not supported", node)
-//            else -> context.getTypeByPath(receiverPath)
-//        } as ValuePositionType
+        node.returnTypeNode?.annotate(returnType, Annotations.Type)
 
         val funcType = if (isInstanceMethod) {
             InstanceSignature(

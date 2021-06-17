@@ -7,6 +7,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.types.phase.TypeChecker
 import org.orbit.util.Invocation
+import org.orbit.util.pluralise
 import org.orbit.util.toPath
 
 abstract class Entity(
@@ -68,7 +69,7 @@ data class MetaType(val typeConstructor: TypeConstructor, val concreteTypeParame
     override fun evaluate(context: Context): TypeProtocol {
         // TODO - Verify concrete types satisfy typeConstructor's type parameters
         if (concreteTypeParameters.count() != typeConstructor.typeParameters.count())
-            throw invocation.make("Type constructor expects ${typeConstructor.typeParameters} type parameters, found ${concreteTypeParameters.count()}")
+            throw invocation.make("Type constructor expects ${typeConstructor.typeParameters.count()} type ${"parameter".pluralise(typeConstructor.typeParameters.count())}, found ${concreteTypeParameters.count()}")
 
         val paramsPath = Path(typeConstructor.name) + concreteTypeParameters.map { Path(it.name) }
 

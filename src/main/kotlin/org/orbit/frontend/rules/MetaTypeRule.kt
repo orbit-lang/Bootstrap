@@ -1,12 +1,13 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.MetaTypeNode
+import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
-object MetaTypeRule : ParseRule<MetaTypeNode> {
+object MetaTypeRule : ValueRule<MetaTypeNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val typeConstructorIdentifier = context.attempt(TypeIdentifierRule.Naked)
             ?: return ParseRule.Result.Failure.Abort
@@ -18,19 +19,23 @@ object MetaTypeRule : ParseRule<MetaTypeNode> {
 
         context.consume()
 
-        val typeParameters = mutableListOf<TypeIdentifierNode>()
-        while (next.type != TokenTypes.RParen) {
-            // TODO - Allow for recursive meta type parameters here?
-            val typeParameter = context.attempt(TypeIdentifierRule.Naked)
-                ?: TODO("")
+        val typeParameters = mutableListOf<TypeExpressionNode>()
 
-            typeParameters.add(typeParameter)
+        if (context.peek().type != TokenTypes.RParen) {
 
-            next = context.peek()
+            while (next.type != TokenTypes.RParen) {
+                // TODO - Allow for recursive meta type parameters here?
+                val typeParameter = context.attempt(TypeExpressionRule)
+                    ?: TODO("")
 
-            if (next.type == TokenTypes.Comma) {
-                context.consume()
+                typeParameters.add(typeParameter)
+
                 next = context.peek()
+
+                if (next.type == TokenTypes.Comma) {
+                    context.consume()
+                    next = context.peek()
+                }
             }
         }
 

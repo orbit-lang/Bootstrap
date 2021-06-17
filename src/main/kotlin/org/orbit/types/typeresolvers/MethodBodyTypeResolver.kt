@@ -3,8 +3,10 @@ package org.orbit.types.typeresolvers
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.*
+import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
+import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.AnyEquality
 import org.orbit.types.components.Context
 import org.orbit.types.components.TypeInferenceUtil
@@ -36,6 +38,8 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
                     if (!equalitySemantics.isSatisfied(context, returnType, varType)) {
                         throw Exception("Method '${binding.simpleName}' declares a return type of '${returnType.name}', found '${varType.name}'")
                     }
+
+                    statementNode.valueNode.expressionNode.annotate(varType, Annotations.Type)
                 }
 
                 is DeferNode -> {
