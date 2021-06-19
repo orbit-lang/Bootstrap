@@ -3,6 +3,7 @@ package org.orbit.backend.codegen.swift.units
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
 import org.orbit.core.nodes.ModuleNode
+import org.orbit.core.nodes.TraitConstructorNode
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.types.components.IntrinsicTypes
@@ -27,6 +28,11 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
         val header = "/* module $moduleName */"
         //val moduleDef = "class ${node.getPath().toString(mangler)} "
 
+        val traitConstructorDefs = node.entityConstructors
+            .filterIsInstance<TraitConstructorNode>()
+            .map(partial(::TraitConstructorUnit, depth))
+            .joinToString(newline(2), transform = partial(TraitConstructorUnit::generate, mangler))
+
         val typeDefs = node.entityDefs
             .filterIsInstance<TypeDefNode>()
             .map(partial(::TypeDefUnit, depth))
@@ -47,6 +53,8 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
 
         return """
             |$header
+            |$traitConstructorDefs
+            |
             |$typeDefs
             |
             |$traitDefs

@@ -9,7 +9,8 @@ import org.orbit.frontend.extensions.unaryPlus
 
 interface EntityParseRule<E: EntityDefNode> : PrefixPhaseAnnotatedParseRule<E> {
 	companion object {
-		val anyEntity = listOf<ParseRule<*>>(TypeConstructorRule, TypeAliasRule, TypeDefRule(), TraitDefRule())
+		val moduleTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, TraitConstructorRule, TypeAliasRule, TypeDefRule(), TraitDefRule())
+		val apiTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, TraitConstructorRule, TypeAliasRule, TypeDefRule.required, TraitDefRule.required, TypeDefRule(), TraitDefRule())
 	}
 
 	val isRequired: Boolean
@@ -109,7 +110,7 @@ class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<Ty
 
 		next = context.peek()
 
-		var traitConformances = mutableListOf<TypeIdentifierNode>()
+		var traitConformances = mutableListOf<TypeExpressionNode>()
 
 		if (next.type == TokenTypes.Colon) {
 			context.consume()
@@ -117,7 +118,7 @@ class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<Ty
 			next = context.peek()
 
 			while (next.type == TokenTypes.TypeIdentifier) {
-				val traitConformance = context.attempt(TypeIdentifierRule.LValue)
+				val traitConformance = context.attempt(TypeExpressionRule)
 					?: throw context.invocation.make(Parser.Errors.UnexpectedToken(next))
 
 				traitConformances.add(traitConformance)

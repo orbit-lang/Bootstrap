@@ -37,9 +37,9 @@ data class Type(override val name: String, val typeParameters: List<ValuePositio
         : this(path.toString(OrbitMangler), typeParameters, properties, equalitySemantics, isRequired)
 }
 
-data class Trait(override val name: String, override val properties: List<Property> = emptyList(), val signatures: List<SignatureProtocol<*>>, override val equalitySemantics: Equality<Entity> = StructuralEquality) : Entity(name, properties,equalitySemantics) {
-    constructor(path: Path, properties: List<Property> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Entity> = StructuralEquality)
-        : this(path.toString(OrbitMangler), properties, signatures, equalitySemantics)
+data class Trait(override val name: String, val typeParameters: List<ValuePositionType> = emptyList(), override val properties: List<Property> = emptyList(), val signatures: List<SignatureProtocol<*>>, override val equalitySemantics: Equality<Entity> = StructuralEquality) : Entity(name, properties, equalitySemantics) {
+    constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Entity> = StructuralEquality)
+        : this(path.toString(OrbitMangler), typeParameters, properties, signatures, equalitySemantics)
 }
 
 data class TypeAlias(override val name: String, val targetType: Type) : TypeProtocol, TypeExpression {
@@ -49,31 +49,46 @@ data class TypeAlias(override val name: String, val targetType: Type) : TypeProt
     override fun evaluate(context: Context): TypeProtocol = targetType
 }
 
-data class TypeConstructor(override val name: String, val typeParameters: List<TypeParameter>) : TypeProtocol {
+interface EntityConstructor : TypeProtocol {
+    val typeParameters: List<TypeParameter>
+}
+
+data class TypeConstructor(override val name: String, override val typeParameters: List<TypeParameter>) : EntityConstructor {
     override val equalitySemantics: Equality<out TypeProtocol> = TypeConstructorEquality
 
     constructor(path: Path, typeParameters: List<TypeParameter>) : this(path.toString(OrbitMangler), typeParameters)
 }
 
-data class MetaType(val typeConstructor: TypeConstructor, val concreteTypeParameters: List<ValuePositionType>) : ValuePositionType, TypeExpression {
+data class TraitConstructor(override val name: String, override val typeParameters: List<TypeParameter>) : EntityConstructor {
+    // TODO - We need a separate 'TraitConstructorEquality' because of method signatures in trait constructors
+    override val equalitySemantics: Equality<out TypeProtocol> = TypeConstructorEquality
+
+    constructor(path: Path, typeParameters: List<TypeParameter>) : this(path.toString(OrbitMangler), typeParameters)
+}
+
+data class MetaType(val entityConstructor: EntityConstructor, val concreteTypeParameters: List<ValuePositionType>) : ValuePositionType, TypeExpression {
     companion object : KoinComponent {
         val invocation: Invocation by inject()
     }
 
     override val name: String
-        get() = typeConstructor.name
+        get() = entityConstructor.name
 
     override val equalitySemantics: Equality<out TypeProtocol>
-        get() = typeConstructor.equalitySemantics
+        get() = entityConstructor.equalitySemantics
 
     override fun evaluate(context: Context): TypeProtocol {
         // TODO - Verify concrete types satisfy typeConstructor's type parameters
-        if (concreteTypeParameters.count() != typeConstructor.typeParameters.count())
-            throw invocation.make("Type constructor expects ${typeConstructor.typeParameters.count()} type ${"parameter".pluralise(typeConstructor.typeParameters.count())}, found ${concreteTypeParameters.count()}")
+        if (concreteTypeParameters.count() != entityConstructor.typeParameters.count())
+            throw invocation.make("Type constructor expects ${entityConstructor.typeParameters.count()} type ${"parameter".pluralise(entityConstructor.typeParameters.count())}, found ${concreteTypeParameters.count()}")
 
-        val paramsPath = Path(typeConstructor.name) + concreteTypeParameters.map { Path(it.name) }
+        val paramsPath = Path(entityConstructor.name) + concreteTypeParameters.map { Path(it.name) }
 
-        return Type(paramsPath, concreteTypeParameters)
+        return when (entityConstructor) {
+            is TypeConstructor -> Type(paramsPath, concreteTypeParameters)
+            is TraitConstructor -> Trait(paramsPath, concreteTypeParameters)
+            else -> TODO("???")
+        }
     }
 }
 

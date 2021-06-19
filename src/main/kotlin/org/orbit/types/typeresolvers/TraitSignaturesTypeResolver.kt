@@ -31,7 +31,7 @@ class TraitSignaturesTypeResolver(override val node: TraitDefNode, override val 
             signatures.add(signatureType)
         }
 
-        partialTrait = Trait(node.getPath(), partialTrait.properties, signatures)
+        partialTrait = Trait(node.getPath(), properties = partialTrait.properties, signatures = signatures)
 
         node.annotate(partialTrait, Annotations.Type)
 

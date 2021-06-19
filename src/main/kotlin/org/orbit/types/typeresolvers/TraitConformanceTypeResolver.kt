@@ -7,6 +7,7 @@ import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.getPath
 import org.orbit.core.getType
 import org.orbit.core.injectResult
+import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.frontend.phase.Parser
@@ -32,23 +33,31 @@ class TraitConformanceTypeResolver(override val node: TypeDefNode, override val 
 
         for (tc in node.traitConformances) {
             val traitPath = tc.getPath()
-            val traitType = context.getTypeByPath(traitPath) as? Trait
+            val traitType = TypeExpressionTypeResolver(tc, binding)
+                .resolve(environment, context)
+                .evaluate(context)
+                as? Trait
                 ?: throw invocation.make<TypeChecker>("Types may only declare conformance to Traits, found ${traitPath.toString(
                     OrbitMangler
                 )} which is not a Trait", node)
 
-            val traitNodes = parserResult.ast.search(TraitDefNode::class.java)
-                .filter { it.typeIdentifierNode == tc }
+            tc.annotate(traitType, Annotations.Type)
 
-            assert(traitNodes.size == 1) {
-                "FATAL - TRAIT NOT NOT FOUND -- ${tc.value}"
+            if (tc !is MetaTypeNode) {
+
+                val traitNodes = parserResult.ast.search(TraitDefNode::class.java)
+                    .filter { it.typeIdentifierNode == tc }
+
+                assert(traitNodes.size == 1) {
+                    "FATAL - TRAIT NOT NOT FOUND -- ${tc.value}"
+                }
+
+                val traitNode = traitNodes.first()
+
+                // Synthesise Trait properties for this concrete type
+                traitNode.propertyPairs
+                    .forEach(node::extendProperties)
             }
-
-            val traitNode = traitNodes.first()
-
-            // Synthesise Trait properties for this concrete type
-            traitNode.propertyPairs
-                .forEach(node::extendProperties)
 
             // 1. Injected trait property definitions into type
             partialType = Type(node.getPath(), properties = traitType.properties, isRequired = node.isRequired)

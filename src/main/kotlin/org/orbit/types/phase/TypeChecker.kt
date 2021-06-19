@@ -46,6 +46,7 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
         val traitDefNodes = ast.search(TraitDefNode::class.java)
         val typeAliasNodes = ast.search(TypeAliasNode::class.java)
         val typeConstructorNodes = ast.search(TypeConstructorNode::class.java)
+        val traitConstructorNodes = ast.search(TraitConstructorNode::class.java)
         val methodDefNodes = ast.search(MethodDefNode::class.java)
 
         typeDefNodes.forEach {
@@ -102,6 +103,13 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
             .filterNodes(typeConstructorNodes)
             .map(::TypeConstructorTypeResolver)
             .map(partial(TypeConstructorTypeResolver::resolve, input.environment, context))
+            .forEach(context::add)
+
+        input.environment.scopes
+            .flatMap(partial(Scope::getBindingsByKind, Binding.Kind.TraitConstructor))
+            .filterNodes(traitConstructorNodes)
+            .map(::TraitConstructorTypeResolver)
+            .map(partial(TraitConstructorTypeResolver::resolve, input.environment, context))
             .forEach(context::add)
 
         val m = input.environment.scopes

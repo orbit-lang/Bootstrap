@@ -5,13 +5,8 @@ import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
-import org.orbit.core.nodes.PairNode
-import org.orbit.core.nodes.TraitDefNode
-import org.orbit.core.nodes.TypeAliasNode
-import org.orbit.core.nodes.TypeDefNode
-import org.orbit.types.components.Context
-import org.orbit.types.components.Entity
-import org.orbit.types.components.IntrinsicTypes
+import org.orbit.core.nodes.*
+import org.orbit.types.components.*
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 
@@ -68,14 +63,35 @@ class TraitDefUnit(override val node: TraitDefNode, override val depth: Int) : C
     }
 }
 
-class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : CodeUnit<TypeDefNode> {
+class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : CodeUnit<TypeDefNode>, KoinComponent {
+    private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
 
     override fun generate(mangler: Mangler): String {
         val typePath = node.getPath()
 
         // TODO - Lookup value semantics for this type (i.e. class or struct)
+        val associatedTypes = mutableListOf<String>()
         val header = "/* type ${typePath.toString(OrbitMangler)} */"
-        var adoptedProtocols = node.traitConformances.joinToString(", ") { it.getPath().toString(mangler) }
+        var adoptedProtocols = node.traitConformances.joinToString(", ") {
+            val type = (it.getType() as TypeExpression)
+
+            if (type is MetaType && it is MetaTypeNode) {
+                //val traitConstructor = context.getTypeByPath()
+                val concreteTypes = type.concreteTypeParameters
+
+                type.entityConstructor.typeParameters.zip(concreteTypes).forEach { p ->
+                    val typeParameter = p.first
+                    val concreteType = (p.second as TypeExpression).evaluate(context)
+
+                    val tpName = (OrbitMangler + mangler).invoke(typeParameter.name)
+                    val ctName = (OrbitMangler + mangler).invoke(concreteType.name)
+
+                    associatedTypes.add("typealias $tpName = $ctName".prependIndent(indent(depth + 1)))
+                }
+            }
+
+            (OrbitMangler + mangler).invoke((OrbitMangler + mangler).invoke(type.name))
+        }
 
         if (node.traitConformances.isNotEmpty()) {
             adoptedProtocols = " : $adoptedProtocols"
@@ -90,7 +106,37 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Cod
         return """
             |$header
             |$typeDef$adoptedProtocols {
+            |${associatedTypes.joinToString(newline())}
             |$propertyDefs
+            |}
+        """.trimMargin().prependIndent(indent())
+    }
+}
+
+class TypeParameterUnit(override val node: TypeIdentifierNode, override val depth: Int) : CodeUnit<TypeIdentifierNode> {
+    override fun generate(mangler: Mangler): String {
+        return "associatedtype ${node.value}".prependIndent(indent(depth))
+    }
+}
+
+class TraitConstructorUnit(override val node: TraitConstructorNode, override val depth: Int) : CodeUnit<TraitConstructorNode>, KoinComponent {
+    private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
+
+    override fun generate(mangler: Mangler): String {
+        val traitConstructor = node.getType() as TraitConstructor
+        val traitPath = node.getPath()
+        val typeParametersOrbit = traitConstructor.typeParameters.joinToString(", ", transform = TypeParameter::name)
+        val typeParametersSwift = node.typeParameterNodes
+            .map(partial(::TypeParameterUnit, depth + 1))
+            .map(partial(TypeParameterUnit::generate, mangler))
+            .joinToString(newline())
+
+        val header = "/* trait ${traitPath.toString(OrbitMangler)}(${typeParametersOrbit}) */"
+
+        return """
+            |$header
+            |protocol ${traitPath.toString(mangler)} {
+            |$typeParametersSwift
             |}
         """.trimMargin().prependIndent(indent())
     }

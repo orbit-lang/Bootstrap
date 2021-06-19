@@ -51,6 +51,10 @@ fun <A, B> dispose(fn: (A) -> B) : (A) -> Unit {
     }
 }
 
+typealias AnyFn<A, B> = (A) -> B
+
+operator fun <A, B> AnyFn<A, B>.unaryMinus() : (A) -> Unit = dispose(this)
+
 typealias Fn<A, B, C> = (A, B) -> C
 typealias Fn3<A, B, C, D> = (A, B, C) -> D
 

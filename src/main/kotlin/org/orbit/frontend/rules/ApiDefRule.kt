@@ -32,19 +32,19 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		
 		val entityDefNodes = mutableListOf<EntityDefNode>()
 		val methodDefNodes = mutableListOf<MethodDefNode>()
+		val typeAliasNodes = mutableListOf<TypeAliasNode>()
+		val entityConstructorNodes = mutableListOf<EntityConstructorNode>()
 		var next: Token = context.peek()
 
 		while (next.type != TokenTypes.RBrace) {
-			val entity = context.attemptAny(TypeDefRule.required, TraitDefRule.required, TypeDefRule(), TraitDefRule())
-				as? EntityDefNode
+			// TODO - Allowed required method signatures in this context
+			val entity = context.attemptAny(EntityParseRule.apiTopLevelRules)
 
-			if (entity == null) {
-				val methodDefNode = context.attempt(MethodDefRule, true)
-					?: throw Exception("Expected method signature following '(' at container level")
-
-				methodDefNodes.add(methodDefNode)
-			} else {
-				entityDefNodes.add(entity)
+			if (entity is EntityConstructorNode) {
+				entityConstructorNodes.add(entity)
+			} else when (entity) {
+				is TypeAliasNode -> typeAliasNodes.add(entity)
+				is EntityDefNode -> entityDefNodes.add(entity)
 			}
 
 			next = context.peek()
@@ -72,6 +72,6 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 
 		// TODO - Entity constructors in Apis
 		return +ApiDefNode(start, end,
-			typeIdentifierNode, requiredTypes, requiredTraits, methodDefNodes, withinNode, withNodes, standardTypes + standardTraits, emptyList())
+			typeIdentifierNode, requiredTypes, requiredTraits, methodDefNodes, withinNode, withNodes, standardTypes + standardTraits, entityConstructorNodes)
 	}
 }

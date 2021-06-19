@@ -10,6 +10,7 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
+import org.orbit.util.partial
 
 class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 	override val invocation: Invocation by inject()
@@ -105,6 +106,12 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 		}
 	}
 
+	private fun <N: Node> resolveAll(resolver: PathResolver<N>, nodes: List<N>, pass: PathResolver.Pass) {
+		for (node in nodes) {
+			resolver.execute(PathResolver.InputType(node, pass))
+		}
+	}
+
 	private fun resolveLastPass(input: ContainerNode, environment: Environment, graph: Graph) : PathResolver.Result {
 		val containerPath = input.getPath()
 
@@ -113,37 +120,25 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 			val typeResolver = TypeDefPathResolver(containerPath)
 			val traitResolver = TraitDefPathResolver(containerPath)
 			val typeConstructorResolver = TypeConstructorPathResolver(containerPath)
+			val traitConstructorResolver = TraitConstructorPathResolver(containerPath)
 
 			val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
 			val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
 			val typeConstructors = input.entityConstructors.filterIsInstance<TypeConstructorNode>()
+			val traitConstructors = input.entityConstructors.filterIsInstance<TraitConstructorNode>()
 
 			// Run a first pass over all types & traits that resolves just their own paths
 			// (ignoring properties and trait conformance etc)
-			for (traitDef in traitDefs) {
-				traitResolver.execute(PathResolver.InputType(traitDef, PathResolver.Pass.Initial))
-			}
+			// NOTE - We need to do 2 passes over types to avoid order-of-definition problems
+			resolveAll(traitResolver, traitDefs, PathResolver.Pass.Initial)
+			resolveAll(typeResolver, typeDefs, PathResolver.Pass.Initial)
+			resolveAll(typeConstructorResolver, typeConstructors, PathResolver.Pass.Initial)
+			resolveAll(traitConstructorResolver, traitConstructors, PathResolver.Pass.Initial)
 
-			// We need to do 2 passes over types to avoid order-of-definition problems
-			for (typeDef in typeDefs) {
-				typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Initial))
-			}
-
-			for (typeConstructor in typeConstructors) {
-				typeConstructorResolver.execute(PathResolver.InputType(typeConstructor, PathResolver.Pass.Initial))
-			}
-
-			for (traitDef in traitDefs) {
-				traitResolver.execute(PathResolver.InputType(traitDef, PathResolver.Pass.Last))
-			}
-
-			for (typeDef in typeDefs) {
-				typeResolver.execute(PathResolver.InputType(typeDef, PathResolver.Pass.Last))
-			}
-
-			for (typeConstructor in typeConstructors) {
-				typeConstructorResolver.execute(PathResolver.InputType(typeConstructor, PathResolver.Pass.Last))
-			}
+			resolveAll(traitResolver, traitDefs, PathResolver.Pass.Last)
+			resolveAll(typeResolver, typeDefs, PathResolver.Pass.Last)
+			resolveAll(typeConstructorResolver, typeConstructors, PathResolver.Pass.Last)
+			resolveAll(traitConstructorResolver, traitConstructors, PathResolver.Pass.Last)
 
 			if (input is ModuleNode) {
 				val typeAliasResolver = TypeAliasPathResolver(containerPath)

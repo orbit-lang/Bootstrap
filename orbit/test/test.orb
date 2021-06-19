@@ -1,7 +1,7 @@
-module Orb::Core::Collections with Orb::Types::Intrinsics {
-    type constructor Type(T)
+module CompilerPhase {
+    trait constructor Phase(InputType, OutputType)
+}
 
-    (self Int) getType () (Type(Type(Int))) {
-        return Type(Type(Int))()
-    }
+module TestPhase with CompilerPhase with Orb::Types::Intrinsics {
+    type P : Phase(Int, Int)
 }

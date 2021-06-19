@@ -3,6 +3,7 @@ package org.orbit.types.typeresolvers
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.getPath
+import org.orbit.core.nodes.TraitConstructorNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.graph.components.Annotations
@@ -21,7 +22,27 @@ class TypeConstructorTypeResolver(override val node: TypeConstructorNode, overri
     override fun resolve(environment: Environment, context: Context): TypeConstructor {
         val typeParameters = node.typeParameterNodes.map { TypeParameter(it.value) }
 
+        // TODO - Properties (construct new, temporary Context containing type parameters)
+
         return TypeConstructor(node.getPath(), typeParameters)
+    }
+}
+
+class TraitConstructorTypeResolver(override val node: TraitConstructorNode, override val binding: Binding) : TypeResolver<TraitConstructorNode, TraitConstructor>, KoinComponent {
+    override val invocation: Invocation by inject()
+
+    constructor(pair: Pair<TraitConstructorNode, Binding>) : this(pair.first, pair.second)
+
+    override fun resolve(environment: Environment, context: Context): TraitConstructor {
+        val typeParameters = node.typeParameterNodes.map { TypeParameter(it.value) }
+
+        // TODO - Properties & signatures (construct new, temporary Context containing type parameters)
+
+        val type = TraitConstructor(node.getPath(), typeParameters)
+
+        node.annotate(type, Annotations.Type)
+
+        return type
     }
 }
 

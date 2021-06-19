@@ -56,7 +56,7 @@ class TraitDefTypeResolver(override val node: TraitDefNode, override val binding
             members.add(Property(propertyPair.identifierNode.identifier, propertyType))
         }
 
-        trait = Trait(node.getPath(), members)
+        trait = Trait(node.getPath(), properties = members)
 
         node.annotate(trait, Annotations.Type)
 

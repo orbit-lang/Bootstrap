@@ -29,7 +29,7 @@ class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override
             type
         }
         is MetaTypeNode -> {
-            val typeConstructor = context.getTypeByPath(node.getPath()) as TypeConstructor
+            val typeConstructor = context.getTypeByPath(node.getPath()) as EntityConstructor
             // TODO - Convert this to a stream
             val typeParameters = node.typeParameters
                 .map(partial(::TypeExpressionTypeResolver, binding))

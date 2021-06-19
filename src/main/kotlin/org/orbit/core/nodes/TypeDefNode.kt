@@ -10,7 +10,7 @@ class TypeDefNode(
     override val isRequired: Boolean,
     val typeIdentifierNode: TypeIdentifierNode,
     val propertyPairs: List<PairNode> = emptyList(),
-    val traitConformances: List<TypeIdentifierNode> = emptyList(),
+    val traitConformances: List<TypeExpressionNode> = emptyList(),
     val body: BlockNode = BlockNode(lastToken, lastToken, emptyList()),
 ) : EntityDefNode(firstToken, lastToken, isRequired) {
     // When Trait conformance is resolved, types are extended with the adopted Trait's properties.
