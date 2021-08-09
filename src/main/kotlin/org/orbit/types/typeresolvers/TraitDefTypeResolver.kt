@@ -21,10 +21,23 @@ class TypeAliasTypeResolver(override val node: TypeAliasNode, override val bindi
 
     override fun resolve(environment: Environment, context: Context) : TypeAlias {
         val targetType = context.getTypeByPath(node.targetTypeIdentifier.getPath())
-            as? Type
-            ?: TODO("TypeAliasTypeResolver:25")
 
-        return TypeAlias(node.sourceTypeIdentifier.getPath().toString(OrbitMangler), targetType)
+        return when (targetType) {
+            is Type -> TypeAlias(node.sourceTypeIdentifier.getPath().toString(OrbitMangler), targetType)
+            is TypeConstructor -> {
+                val metaType = MetaType(targetType, targetType.typeParameters as List<ValuePositionType>)
+
+                val nType = metaType.evaluate(context) as? Type
+                    ?: throw invocation.make<TypeChecker>("Attempting to create a type alias '${node.sourceTypeIdentifier.value}' to a constructed type derived from entity constructor '${targetType.name}'", node.targetTypeIdentifier)
+
+                TypeAlias(node.sourceTypeIdentifier.getPath().toString(OrbitMangler), nType)
+            }
+
+            is TraitConstructor -> throw invocation.make<TypeChecker>("Attempted to create a type alias '${node.sourceTypeIdentifier.value}' to a constructed trait. Use `trait ${node.sourceTypeIdentifier.value} = ${node.targetTypeIdentifier.value}<${
+                targetType.typeParameters.joinToString(", ") { it.name }}>` instead", node.targetTypeIdentifier)
+
+            else -> TODO("???")
+        }
     }
 }
 

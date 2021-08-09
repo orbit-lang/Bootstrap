@@ -25,7 +25,7 @@ internal class CallTests {
     fun testSimpleFalse() {
         // Proposition: ((x) -> x)(y) fails where x != y contractually
         val a = Type("a")
-        val x = Type("x", listOf(Property("a", a)))
+        val x = Type("x", properties = listOf(Property("a", a)))
         val y = Type("y")
         val context = Context(x, y)
         // x(a) != y b/c y has no "a" member
@@ -60,7 +60,7 @@ internal class CallTests {
     fun testNestedFalse() {
         // Proposition: ((x) -> ((x) -> x))(y) fails b/c y != the expected type x
         val a = Type("a")
-        val x = Type("x", listOf(Property("a", a)))
+        val x = Type("x", properties = listOf(Property("a", a)))
         val y = Type("y")
         val context = Context(x)
 

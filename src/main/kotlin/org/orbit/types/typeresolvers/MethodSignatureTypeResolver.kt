@@ -2,6 +2,7 @@ package org.orbit.types.typeresolvers
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.getPath
 import org.orbit.core.nodes.MetaTypeNode
@@ -48,7 +49,7 @@ class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override
     }
 }
 
-class MethodSignatureTypeResolver(override val node: MethodSignatureNode, override val binding: Binding, private val enclosingTrait: Trait? = null) : TypeResolver<MethodSignatureNode, SignatureProtocol<out TypeProtocol>>,
+class MethodSignatureTypeResolver(override val node: MethodSignatureNode, override val binding: Binding, private val enclosingType: Entity? = null) : TypeResolver<MethodSignatureNode, SignatureProtocol<out TypeProtocol>>,
     KoinComponent {
     override val invocation: Invocation by inject()
 
@@ -62,12 +63,23 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
         var isInstanceMethod = false
         val receiverType: ValuePositionType
         if (receiver.identifierNode.identifier == "Self") {
-            TODO("Self")
+            isInstanceMethod = false
+
+            if (receiver.typeExpressionNode.value == "Self") {
+                receiverType = enclosingType
+                    ?: throw invocation.make<TypeChecker>(
+                        "Using 'Self' type outside of a Trait definition is not supported",
+                        node
+                    )
+            } else {
+                receiverType = context.getType(receiver.typeExpressionNode.getPath().toString(OrbitMangler))
+                    as ValuePositionType
+            }
         } else {
             isInstanceMethod = true
             // TODO - Handle Type methods (no instance receiver)
             receiverType = when (receiver.getPath()) {
-                Path.self -> enclosingTrait ?: throw invocation.make<TypeChecker>("Using 'Self' type outside of a Trait definitions is not supported", node)
+                Path.self -> enclosingType ?: throw invocation.make<TypeChecker>("Using 'Self' type outside of a Trait definition is not supported", node)
                 else -> TypeExpressionTypeResolver(receiver.typeExpressionNode, binding)
                     .resolve(environment, context)
                     .evaluate(context) as ValuePositionType

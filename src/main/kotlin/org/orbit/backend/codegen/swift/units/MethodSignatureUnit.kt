@@ -9,14 +9,14 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
     CodeUnit<MethodSignatureNode> {
     override fun generate(mangler: Mangler): String {
         val receiverName = node.receiverTypeNode.identifierNode.identifier
-        val receiverType = node.receiverTypeNode.getType()
-        val receiverPath = OrbitMangler.unmangle(receiverType.name)
-        val returnType = node.returnTypeNode?.getType() ?: IntrinsicTypes.Unit.type
-        val returnTypePath = OrbitMangler.unmangle(returnType.name)
-        val returnTypeNameOrbit = returnType.name
-        val returnTypeNameSwift = returnTypePath.toString(mangler)
+        val returnTypePath = node.returnTypeNode?.getPath() ?: IntrinsicTypes.Unit.path
+        val returnTypeName = when (node.returnTypeNode) {
+            null -> IntrinsicTypes.Unit.path.toString(mangler)
+            else -> TypeExpressionUnit(node.returnTypeNode, depth)
+                .generate(mangler)
+        }
 
-        val header = "/* ($receiverName ${receiverPath.toString(OrbitMangler)}) ${node.identifierNode.identifier} () ($returnTypeNameOrbit) */"
+        val header = "/* ($receiverName ${node.receiverTypeNode.typeExpressionNode.getPath().toString(OrbitMangler)}) ${node.identifierNode.identifier} () (${returnTypePath.toString(OrbitMangler)}) */"
         val parameterNodes = if (receiverName == "Self") {
             node.parameterNodes
         } else {
@@ -28,12 +28,21 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
             "${it.identifierNode.identifier}: ${it.getPath().toString(mangler)}"
         }
 
-        val methodPath = Path(listOf(receiverPath.toString(mangler), node.identifierNode.identifier) + paramTypes + returnTypeNameSwift)
+        val funcReceiverName = TypeExpressionUnit(node.receiverTypeNode.typeExpressionNode, depth, true)
+            .generate(mangler)
+
+        val funcReturnName = when (node.returnTypeNode) {
+            null -> IntrinsicTypes.Unit.path.toString(OrbitMangler)
+            else -> TypeExpressionUnit(node.returnTypeNode, depth, true)
+                .generate(mangler)
+        }
+
+        val methodPath = Path(listOf(funcReceiverName, node.identifierNode.identifier) + paramTypes + funcReturnName)
             .toString(mangler)
 
         return """
             |$header
-            |func $methodPath($parameters) -> $returnTypeNameSwift
+            |func $methodPath($parameters) -> $returnTypeName
         """.trimMargin().prependIndent(indent(depth - 1))
     }
 }

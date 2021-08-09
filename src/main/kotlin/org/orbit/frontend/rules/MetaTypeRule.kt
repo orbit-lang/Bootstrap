@@ -9,38 +9,39 @@ import org.orbit.frontend.phase.Parser
 
 object MetaTypeRule : ValueRule<MetaTypeNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val typeConstructorIdentifier = context.attempt(TypeIdentifierRule.Naked)
-            ?: return ParseRule.Result.Failure.Abort
+        return context.record { recordedTokens ->
+            val typeConstructorIdentifier = context.attempt(TypeIdentifierRule.Naked)
+                ?: return@record ParseRule.Result.Failure.Abort
 
-        var next = context.peek()
+            var next = context.peek()
 
-        if (next.type != TokenTypes.LParen)
-            return ParseRule.Result.Failure.Rewind(listOf(typeConstructorIdentifier.firstToken))
+            if (next.type != TokenTypes.LAngle)
+                return@record ParseRule.Result.Failure.Rewind(recordedTokens)
 
-        context.consume()
+            context.consume()
 
-        val typeParameters = mutableListOf<TypeExpressionNode>()
+            val typeParameters = mutableListOf<TypeExpressionNode>()
 
-        if (context.peek().type != TokenTypes.RParen) {
+            if (context.peek().type != TokenTypes.RAngle) {
+                while (next.type != TokenTypes.RAngle) {
+                    // TODO - Allow for recursive meta type parameters here?
+                    val typeParameter = context.attempt(TypeExpressionRule)
+                        ?: return@record ParseRule.Result.Failure.Rewind(recordedTokens)
 
-            while (next.type != TokenTypes.RParen) {
-                // TODO - Allow for recursive meta type parameters here?
-                val typeParameter = context.attempt(TypeExpressionRule)
-                    ?: TODO("")
+                    typeParameters.add(typeParameter)
 
-                typeParameters.add(typeParameter)
-
-                next = context.peek()
-
-                if (next.type == TokenTypes.Comma) {
-                    context.consume()
                     next = context.peek()
+
+                    if (next.type == TokenTypes.Comma) {
+                        context.consume()
+                        next = context.peek()
+                    }
                 }
             }
+
+            val end = context.expect(TokenTypes.RAngle)
+
+            return@record +MetaTypeNode(typeConstructorIdentifier.firstToken, end, typeConstructorIdentifier, typeParameters)
         }
-
-        val end = context.expect(TokenTypes.RParen)
-
-        return +MetaTypeNode(typeConstructorIdentifier.firstToken, end, typeConstructorIdentifier, typeParameters)
     }
 }

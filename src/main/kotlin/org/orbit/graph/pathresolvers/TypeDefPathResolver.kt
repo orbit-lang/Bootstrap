@@ -32,9 +32,15 @@ class TraitConstructorPathResolver(
 
 			graph.link(parentGraphID, graphID)
 		} else {
-			val methodSignaturePathResolver = MethodSignaturePathResolver()
+			environment.withScope { scope ->
+				input.typeParameterNodes.forEach { t ->
+					environment.bind(Binding.Kind.Type, t.value, path + Path(t.value))
+				}
 
-			input.signatureNodes.forEach(-partial(methodSignaturePathResolver::resolve, pass, environment, graph))
+				val methodSignaturePathResolver = MethodSignaturePathResolver()
+
+				input.signatureNodes.forEach(-partial(methodSignaturePathResolver::resolve, pass, environment, graph))
+			}
 		}
 
 		return PathResolver.Result.Success(path)
@@ -116,7 +122,10 @@ class TypeAliasPathResolver(private val parentPath: Path) : PathResolver<TypeAli
 		graph: Graph
 	): PathResolver.Result {
 		val sourcePath = parentPath + Path(input.sourceTypeIdentifier.value)
-		val targetBinding = environment.getBinding(input.targetTypeIdentifier.value, Binding.Kind.Type)
+
+		TypeExpressionPathResolver.execute(PathResolver.InputType(input.targetTypeIdentifier, pass))
+
+		val targetBinding = environment.getBinding(input.targetTypeIdentifier.value, Binding.Kind.Union.entityOrConstructor)
 			.unwrap(this, input.targetTypeIdentifier.firstToken.position)
 
 		val targetVertexID = graph.find(targetBinding)

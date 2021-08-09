@@ -15,6 +15,10 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 			ConstructorRule(),
 			LiteralRule()
 		)
+
+		val returnValue = ExpressionRule(
+
+		)
 	}
 
 	override fun parse(context: Parser) : ParseRule.Result {

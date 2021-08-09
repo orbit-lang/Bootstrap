@@ -64,8 +64,8 @@ internal class ClauseTests {
         // Proposition: A{x: X} == B{x: X}
         // where A & B & X are distinct entities AND A & B have identical contracts.
         val member = Property("x", Type("X"))
-        val entity1 = Type("A", listOf(member))
-        val entity2 = Type("B", listOf(member))
+        val entity1 = Type("A", properties = listOf(member))
+        val entity2 = Type("B", properties = listOf(member))
         val context = Context(entity1, entity2)
         val sut = StructuralEquality
 
@@ -77,8 +77,8 @@ internal class ClauseTests {
         // Proposition: A(x: X) != B(y: Y) contractually.
         val member1 = Property("x", Type("X"))
         val member2 = Property("y", Type("X"))
-        val entity1 = Type("A", listOf(member1))
-        val entity2 = Type("B", listOf(member2))
+        val entity1 = Type("A", properties = listOf(member1))
+        val entity2 = Type("B", properties = listOf(member2))
         val context = Context(entity1, entity2)
         val sut = StructuralEquality
 
@@ -90,8 +90,8 @@ internal class ClauseTests {
         // Proposition: A(x: T) != B(y: T) contractually.
         val member1 = Type("T") + "x"
         val member2 = Type("T") + "y"
-        val entity1 = Type("A", listOf(member1, member2))
-        val entity2 = Type("B", listOf(member2, member1))
+        val entity1 = Type("A", properties = listOf(member1, member2))
+        val entity2 = Type("B", properties = listOf(member2, member1))
         val context = Context(entity1, entity2)
         val sut = StructuralEquality
 

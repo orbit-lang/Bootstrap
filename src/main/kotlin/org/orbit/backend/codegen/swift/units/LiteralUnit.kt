@@ -33,23 +33,23 @@ class TypeLiteralUnit(override val node: LiteralNode<String>, override val depth
     }
 }
 
-class MetaTypeUnit(override val node: MetaTypeNode, override val depth: Int) : LiteralUnit<String>, KoinComponent {
-    private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
-
-    override fun generate(mangler: Mangler): String {
-        val type = node.getType()
-        val typeName = (OrbitMangler + mangler).invoke(type.name)
-
-        return "${typeName}.self"
-    }
-}
+//class MetaTypeUnit(override val node: MetaTypeNode, override val depth: Int) : LiteralUnit<String>, KoinComponent {
+//    private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
+//
+//    override fun generate(mangler: Mangler): String {
+//        val type = node.getType()
+//        val typeName = (OrbitMangler + mangler).invoke(type.name)
+//
+//        return "${typeName}.self"
+//    }
+//}
 
 object LiteralUnitUtil {
     fun <T> generateLiteralUnit(node: LiteralNode<T>, depth: Int) : LiteralUnit<T> = when (node) {
         is IntLiteralNode -> IntLiteralUnit(node as LiteralNode<Pair<Int, BigInteger>>, depth) as LiteralUnit<T>
         is SymbolLiteralNode -> SymbolLiteralUnit(node, depth) as LiteralUnit<T>
         is TypeIdentifierNode -> TypeLiteralUnit(node, depth) as LiteralUnit<T>
-        is MetaTypeNode -> MetaTypeUnit(node, depth) as LiteralUnit<T>
+        //is MetaTypeNode -> MetaTypeUnit(node, depth) as LiteralUnit<T>
         else -> TODO("@LiteralUnitUtil:19")
     }
 }

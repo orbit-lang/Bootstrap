@@ -6,7 +6,7 @@ import java.io.Serializable
 
 interface TypeProtocol : Serial, Serializable {
     val name: String
-    val equalitySemantics: Equality<out TypeProtocol>
+    val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol>
 
     fun isSatisfied(context: Context, type: TypeProtocol) : Boolean {
         return (equalitySemantics as AnyEquality).isSatisfied(context, this, type)

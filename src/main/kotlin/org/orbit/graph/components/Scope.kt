@@ -138,12 +138,6 @@ class Scope(
 		val all = (bindings + imported).distinct()
 			.toMutableList()
 
-		val typeAliases = all.filter { it.kind == Binding.Kind.TypeAlias }
-
-//		for (typeAlias in typeAliases) {
-//			val targetType =
-//		}
-
 		val partialMatches = all.filter {
 			it.simpleName == simpleName
 				|| it.path.toString(OrbitMangler) == simpleName
@@ -160,6 +154,16 @@ class Scope(
 			else -> {
 				if (context == null) {
 					// If there is no expected Kind, there is no way for us to narrow down the search
+					// We can try to resolve this conflict automatically by giving priority
+					// to a binding if it exists in the current scope
+					// TODO - This doesn't work, but the idea is good
+					for (binding in matches) {
+						if (bindings.contains(binding)) {
+							// TODO - We should probably raise a warning about potential conflicts here
+							return BindingSearchResult.Success(binding)
+						}
+					}
+
 					return BindingSearchResult.Multiple(matches)
 				}
 
@@ -168,7 +172,19 @@ class Scope(
 				when (refined.size) {
 					0 -> BindingSearchResult.None(simpleName)
 					1 -> BindingSearchResult.Success(refined[0])
-					else -> return BindingSearchResult.Multiple(matches)
+					else -> {
+						// We can try to resolve this conflict automatically by giving priority
+						// to a binding if it exists in the current scope
+						// TODO - This doesn't work, but the idea is good
+						for (binding in matches) {
+							if (bindings.contains(binding)) {
+								// TODO - We should probably raise a warning about potential conflicts here
+								return BindingSearchResult.Success(binding)
+							}
+						}
+
+						return BindingSearchResult.Multiple(matches)
+					}
 				}
 			}
 		}

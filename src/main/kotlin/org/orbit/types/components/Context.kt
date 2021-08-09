@@ -14,9 +14,12 @@ import org.orbit.util.Invocation
 import java.io.Serializable
 import java.lang.NullPointerException
 
+data class MissingTypeException(val typeName: String) : Exception("Missing type: $typeName")
+
 class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperators.all()) : Serial, Serializable, CompilationEventBusAware by CompilationEventBusAwareImpl {
     sealed class Events(override val identifier: String) : CompilationEvent {
         class TypeCreated(type: TypeProtocol) : Events("(Context) Type Added: ${type.name}")
+        class TypeProjectionCreated(typeProjection: TypeProjection) : Events("(Context) Type Projection Added: ${typeProjection.type.name} -> ${typeProjection.trait.name}")
         class BindingCreated(name: String, type: TypeProtocol) : Events("(Context) Binding Created: $name -> ${type.name}")
     }
 
@@ -27,10 +30,12 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     constructor(other: Context) : this() {
         this.types.addAll(other.types)
         this.bindings.putAll(other.bindings)
+        this.typeProjections.addAll(other.typeProjections)
     }
 
     val types: MutableSet<TypeProtocol> = builtIns.toMutableSet()
     val bindings = mutableMapOf<String, TypeProtocol>()
+    private val typeProjections = mutableListOf<TypeProjection>()
 
     private var next = 0
 
@@ -45,6 +50,11 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         compilationEventBus.notify(Events.BindingCreated(name, type))
     }
 
+    fun add(typeProjection: TypeProjection) {
+        typeProjections.add(typeProjection)
+        compilationEventBus.notify(Events.TypeProjectionCreated(typeProjection))
+    }
+
     fun add(type: TypeProtocol) {
         types.removeIf { it::class.java == type::class.java && it.name == type.name }
         types.add(type)
@@ -52,6 +62,13 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     }
 
     fun addAll(types: List<TypeProtocol>) = types.forEach(::add)
+
+    fun getTypeProjectionOrNull(type: Type, trait: Trait) : TypeProjection? {
+        return typeProjections.firstOrNull { it.type == type && it.trait == trait }
+    }
+
+    fun getTypeProjection(type: Type, trait: Trait) : TypeProjection
+        = getTypeProjectionOrNull(type, trait)!!
 
     fun get(name: String) : TypeProtocol? {
         val type = bindings[name]
@@ -70,7 +87,7 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         try {
             return getTypeOrNull(name)!!
         } catch (_: NullPointerException) {
-            throw RuntimeException("NULL TYPE")
+            throw MissingTypeException(name)
         }
     }
 

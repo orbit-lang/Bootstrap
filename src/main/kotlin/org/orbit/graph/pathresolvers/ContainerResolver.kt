@@ -145,6 +145,10 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 				for (typeAlias in input.typeAliasNodes) {
 					typeAliasResolver.resolve(typeAlias, PathResolver.Pass.Initial, environment, graph)
 				}
+
+				for (typeProjection in input.typeProjections) {
+					TypeProjectionPathResolver.resolve(typeProjection, PathResolver.Pass.Initial, environment, graph)
+				}
 			}
 
 			for (methodDef in input.methodDefs) {

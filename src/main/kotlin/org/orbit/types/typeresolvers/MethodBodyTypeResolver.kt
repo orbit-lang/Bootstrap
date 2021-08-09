@@ -33,10 +33,10 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
                 is ReturnStatementNode -> {
                     val varExpr = statementNode.valueNode.expressionNode
                     val varType = TypeInferenceUtil.infer(context, varExpr, returnType)
-                    val equalitySemantics = varType.equalitySemantics as AnyEquality
+                    val equalitySemantics = returnType.equalitySemantics as AnyEquality
 
                     if (!equalitySemantics.isSatisfied(context, returnType, varType)) {
-                        throw Exception("Method '${binding.simpleName}' declares a return type of '${returnType.name}', found '${varType.name}'")
+                        throw invocation.make<TypeChecker>("Method '${binding.simpleName}' declares a return type of '${returnType.name}', found '${varType.name}'", statementNode)
                     }
 
                     statementNode.valueNode.expressionNode.annotate(varType, Annotations.Type)

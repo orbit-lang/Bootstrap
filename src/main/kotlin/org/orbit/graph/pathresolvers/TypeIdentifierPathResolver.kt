@@ -2,15 +2,12 @@ package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
 import org.orbit.core.nodes.TypeIdentifierNode
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.components.Environment
-import org.orbit.graph.components.Graph
-import org.orbit.graph.components.Scope
+import org.orbit.graph.components.*
 import org.orbit.graph.extensions.annotate
 import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.util.Invocation
 
-class TypeIdentifierPathResolver : PathResolver<TypeIdentifierNode> {
+class TypeIdentifierPathResolver(private val kind: Binding.Kind? = null) : PathResolver<TypeIdentifierNode> {
 	override val invocation: Invocation by inject()
 
 	override fun resolve(
@@ -19,15 +16,14 @@ class TypeIdentifierPathResolver : PathResolver<TypeIdentifierNode> {
         environment: Environment,
         graph: Graph
 	): PathResolver.Result {
-		val binding = environment.getBinding(input.value)
+		return TypeExpressionPathResolver.execute(PathResolver.InputType(input, pass))
 
-		return when (binding) {
-			is Scope.BindingSearchResult.Success -> {
-				input.annotate(binding.result.path, Annotations.Path)
-                PathResolver.Result.Success(binding.result.path)
-			}
 
-			else -> throw invocation.make<CanonicalNameResolver>("Unknown binding '${input.value}'", input.firstToken)
-		}
+//		val binding = environment.getBinding(input.value, kind)
+//			.unwrap(this, input.firstToken.position)
+//
+//		input.annotate(binding.path, Annotations.Path)
+//
+//		return PathResolver.Result.Success(binding.path)
 	}
 }

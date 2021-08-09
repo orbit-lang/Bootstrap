@@ -4,32 +4,49 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
 import org.orbit.types.phase.TypeChecker
-import org.orbit.util.Invocation
-import org.orbit.util.partial
+import org.orbit.util.*
 import java.io.Serializable
 
-interface Equality<T: TypeProtocol> : Serializable {
-    fun isSatisfied(context: Context, source: T, target: T) : Boolean
+interface Equality<S: TypeProtocol, T: TypeProtocol> : Serializable {
+    fun isSatisfied(context: Context, source: S, target: T) : Boolean
 }
 
-typealias AnyEquality = Equality<TypeProtocol>
+typealias AnyEquality = Equality<TypeProtocol, TypeProtocol>
 
-object NominalEquality : Equality<Entity> {
+object NominalEquality : Equality<Entity, Entity> {
     override fun isSatisfied(context: Context, source: Entity, target: Entity): Boolean {
         return source.name == target.name
     }
 }
 
-object StructuralEquality : Equality<Entity> {
-    // TODO - Enable equality checking on properties
-    override fun isSatisfied(context: Context, source: Entity, target: Entity): Boolean {
+object StructuralEquality : Equality<Trait, Type>, KoinComponent {
+    private val invocation: Invocation by inject()
+
+    override fun isSatisfied(context: Context, source: Trait, target: Type): Boolean {
+        val explicitDeclaration = when (source.implicit) {
+            true -> true
+            else -> {
+                if (target.traitConformance.contains(source)) {
+                    true
+                } else {
+                    val projection = context.getTypeProjectionOrNull(target, source)
+
+                    when (projection) {
+                        null -> throw invocation.error<TypeChecker>(MissingTypeProjection(source, target))
+                        else -> true
+                    }
+                }
+            }
+        }
+
+        // TODO - Signatures
         val propertyContracts = source.drawPropertyContracts()
 
-        return target.executeContracts(context, propertyContracts)
+        return explicitDeclaration && target.executeContracts(context, propertyContracts)
     }
 }
 
-object TypeConstructorEquality : Equality<TypeConstructor> {
+object TypeConstructorEquality : Equality<TypeConstructor, TypeConstructor> {
     override fun isSatisfied(context: Context, source: TypeConstructor, target: TypeConstructor): Boolean {
         return source.typeParameters.count() == target.typeParameters.count()
             && source.typeParameters.zip(target.typeParameters).all {
@@ -39,7 +56,7 @@ object TypeConstructorEquality : Equality<TypeConstructor> {
     }
 }
 
-object SignatureEquality : Equality<SignatureProtocol<TypeProtocol>>, KoinComponent {
+object SignatureEquality : Equality<SignatureProtocol<TypeProtocol>, SignatureProtocol<TypeProtocol>>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun isSatisfied(context: Context, source: SignatureProtocol<TypeProtocol>, target: SignatureProtocol<TypeProtocol>) : Boolean {
@@ -89,8 +106,8 @@ interface TypeContract {
     fun isSatisfiedBy(context: Context, type: TypeProtocol) : Boolean
 }
 
-inline fun <reified T: TypeProtocol, reified U: TypeEqualityUtil<T>> Collection<T>.containsOne(context: Context, element: T, typeEqualityUtil: U, using: Equality<out TypeProtocol>) : Boolean {
-    return filter { typeEqualityUtil.equal(context, using as Equality<TypeProtocol>, element, it) }.size == 1
+inline fun <reified T: TypeProtocol, reified U: TypeEqualityUtil<T>> Collection<T>.containsOne(context: Context, element: T, typeEqualityUtil: U, using: Equality<out TypeProtocol, out TypeProtocol>) : Boolean {
+    return filter { typeEqualityUtil.equal(context, using as Equality<TypeProtocol, TypeProtocol>, element, it) }.size == 1
 }
 
 data class PropertyContract(val mandatoryProperty: Property) : TypeContract {

@@ -24,7 +24,8 @@ object TraitConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         next = context.peek()
 
-        if (next.type != TokenTypes.LParen) {
+        if (next.type != TokenTypes.LAngle) {
+            // TODO - Can trait constructors have case constructors?
             throw invocation.make<Parser>("Expected type parameter list after `trait constructor ${traitIdentifier.value}`", next)
         }
 
@@ -32,7 +33,7 @@ object TraitConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
         next = context.peek()
 
         val typeParameters = mutableListOf<TypeIdentifierNode>()
-        while (next.type != TokenTypes.RParen) {
+        while (next.type != TokenTypes.RAngle) {
             val typeParameter = context.attempt(TypeIdentifierRule.Naked)
                 ?: throw invocation.make<Parser>("", context.peek())
 
@@ -46,7 +47,7 @@ object TraitConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
             }
         }
 
-        var end = context.expect(TokenTypes.RParen)
+        var end = context.expect(TokenTypes.RAngle)
 
         next = context.peek()
 
@@ -78,7 +79,9 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         next = context.peek()
 
-        if (next.type != TokenTypes.LParen) {
+        if (next.type != TokenTypes.LAngle) {
+            // TODO - Parse case constructors. Type constructors without type params are allowed,
+            //  but you must have at least 1 case constructor, otherwise it doesn't do anything!
             throw invocation.make<Parser>("Expected type parameter list after `type constructor ${typeIdentifier.value}`", next)
         }
 
@@ -86,7 +89,7 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
         next = context.peek()
 
         val typeParameters = mutableListOf<TypeIdentifierNode>()
-        while (next.type != TokenTypes.RParen) {
+        while (next.type != TokenTypes.RAngle) {
             val typeParameter = context.attempt(TypeIdentifierRule.Naked)
                 ?: throw invocation.make<Parser>("", context.peek())
 
@@ -100,7 +103,7 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
             }
         }
 
-        val end = context.expect(TokenTypes.RParen)
+        val end = context.expect(TokenTypes.RAngle)
 
         return +TypeConstructorNode(start, end, typeIdentifier, typeParameters)
     }

@@ -10,10 +10,7 @@ import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.extensions.annotate
-import org.orbit.types.components.Context
-import org.orbit.types.components.Module
-import org.orbit.types.components.Type
-import org.orbit.types.components.TypeAlias
+import org.orbit.types.components.*
 import org.orbit.types.phase.TypeChecker
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
@@ -28,11 +25,13 @@ class ModuleTypeResolver(override val node: ModuleNode, override val binding: Bi
 
     override fun resolve(environment: Environment, context: Context): Module {
         val path = node.getPath()
+
         val typeAliases = node.typeAliasNodes
             .map {
-                val targetType = context.getTypeByPath(it.targetTypeIdentifier.getPath())
+                val targetType = TypeExpressionTypeResolver(it.targetTypeIdentifier, binding)
+                    .resolve(environment, context)
                     as? Type
-                    ?: TODO("ModuleTypeResolver:28")
+                    ?: throw MissingTypeException(it.targetTypeIdentifier.value)
 
                 if (targetType.isRequired) {
                     val code = printer.apply("type ${it.sourceTypeIdentifier.value} = ${targetType.name}", PrintableKey.Italics)

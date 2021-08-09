@@ -9,7 +9,7 @@ import org.orbit.frontend.extensions.unaryPlus
 
 interface EntityParseRule<E: EntityDefNode> : PrefixPhaseAnnotatedParseRule<E> {
 	companion object {
-		val moduleTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, TraitConstructorRule, TypeAliasRule, TypeDefRule(), TraitDefRule())
+		val moduleTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, TypeProjectionRule, TraitConstructorRule, TypeAliasRule, TypeDefRule(), TraitDefRule())
 		val apiTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, TraitConstructorRule, TypeAliasRule, TypeDefRule.required, TraitDefRule.required, TypeDefRule(), TraitDefRule())
 	}
 

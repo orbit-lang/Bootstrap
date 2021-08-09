@@ -1,7 +1,11 @@
-module CompilerPhase {
-    trait constructor Phase(InputType, OutputType)
+module IntComparator with Orb::Types::Intrinsics {
+    trait T(x Int)
+
+    type projection Int : T
+    type projection Symbol : T
+
+    (Int) compare (a Int, b Int, c Symbol) (T) {
+        return c
+    }
 }
 
-module TestPhase with CompilerPhase with Orb::Types::Intrinsics {
-    type P : Phase(Int, Int)
-}

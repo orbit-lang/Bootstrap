@@ -5,17 +5,17 @@ import org.orbit.serial.Serialiser
 import org.orbit.util.partialAlt
 
 interface TypeEqualityUtil<T: TypeProtocol> {
-    fun equal(context: Context, equality: Equality<TypeProtocol>, a: T, b: T) : Boolean
+    fun equal(context: Context, equality: Equality<TypeProtocol, TypeProtocol>, a: T, b: T) : Boolean
 }
 
 data class Property(
     override val name: String,
     val type: TypeProtocol
 ) : TypeProtocol {
-    override val equalitySemantics: Equality<out TypeProtocol> = type.equalitySemantics
+    override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = type.equalitySemantics
 
     companion object : TypeEqualityUtil<Property> {
-        override fun equal(context: Context, equality: Equality<TypeProtocol>, a: Property, b: Property): Boolean {
+        override fun equal(context: Context, equality: Equality<TypeProtocol, TypeProtocol>, a: Property, b: Property): Boolean {
             return a.name == b.name && equality.isSatisfied(context, a.type, b.type)
         }
     }

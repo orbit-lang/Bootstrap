@@ -57,12 +57,40 @@ class Parser(
 
 	var hasMore: Boolean = false
 		get() = tokens.isNotEmpty()
-	
+
+	fun peekAll(lookahead: Int) : List<Token> {
+		val tokens = mutableListOf<Token>()
+		var ptr = 0
+		while (ptr < lookahead) {
+			val next = tokens.getOrNull(ptr)
+
+			if (next == null) {
+				return tokens
+			} else {
+				tokens.add(next)
+			}
+
+			ptr += 1
+		}
+
+		return tokens
+	}
+
 	fun peek(lookahead: Int = 0) : Token {
 		if (isRepl && tokens.isEmpty()) return Token(TokenTypes.EOS, "", SourcePosition.unknown)
 
 		return tokens.getOrNull(lookahead)
 			?: throw Errors.NoMoreTokens
+	}
+
+	fun <T> record(block: (List<Token>) -> T) : T {
+		recordedTokens.clear()
+		isRecording = true
+		try {
+			return block(recordedTokens)
+		} finally {
+			isRecording = false
+		}
 	}
 
 	fun consume() : Token {

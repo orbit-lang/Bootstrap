@@ -3,6 +3,7 @@ package org.orbit.types.typeresolvers
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.getPath
+import org.orbit.core.nodes.Node
 import org.orbit.core.nodes.TraitConstructorNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.core.nodes.TypeDefNode
@@ -24,7 +25,11 @@ class TypeConstructorTypeResolver(override val node: TypeConstructorNode, overri
 
         // TODO - Properties (construct new, temporary Context containing type parameters)
 
-        return TypeConstructor(node.getPath(), typeParameters)
+        val type = TypeConstructor(node.getPath(), typeParameters)
+
+        node.annotate(type, Annotations.Type)
+
+        return type
     }
 }
 
@@ -73,7 +78,13 @@ class TypeDefTypeResolver(override val node: TypeDefNode, override val binding: 
             members.add(Property(propertyPair.identifierNode.identifier, propertyType))
         }
 
-        type = Type(node.getPath(), properties = members, isRequired = node.isRequired)
+        val traitConformance = when (node.traitConformances.isEmpty()) {
+            true -> emptyList()
+            else ->  node.traitConformances
+                .map { TypeInferenceUtil.infer(context, it) as Trait }
+        }
+
+        type = Type(node.getPath(), properties = members, traitConformance = traitConformance, isRequired = node.isRequired)
 
         node.annotate(type, Annotations.Type)
 

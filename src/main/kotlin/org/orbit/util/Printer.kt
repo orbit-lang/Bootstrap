@@ -10,7 +10,11 @@ enum class PrintableKey(val generator: (PrintableFactory) -> String) {
 	Error(PrintableFactory::getError),
 	Underlined(PrintableFactory::getUnderlined),
 	Success(PrintableFactory::getSuccess),
-	Italics(PrintableFactory::getItalics);
+	Italics(PrintableFactory::getItalics),
+	None(PrintableFactory::getNone),
+	Framed(PrintableFactory::getFramed),
+	Punctuation(PrintableFactory::getPunctuation),
+	Keyword(PrintableFactory::getKeyword);
 
 	operator fun plus(other: PrintableKey) : List<PrintableKey> {
 		return listOf(this, other)
@@ -31,6 +35,10 @@ interface PrintableFactory {
 	fun getUnderlined() : String
 	fun getSuccess() : String
 	fun getItalics() : String
+	fun getNone() : String
+	fun getFramed() : String
+	fun getKeyword() : String
+	fun getPunctuation() : String
 
 	private fun appendIfPresent(keys: Array<out PrintableKey>, key: PrintableKey, fn: () -> String) : String? {
 		return when (keys.contains(key)) {
@@ -70,4 +78,6 @@ object PrinterAwareImpl : PrinterAware, KoinComponent {
 	fun success(text: String) : String = printer.apply(text, PrintableKey.Success)
 	fun underline(text: String) : String = printer.apply(text, PrintableKey.Underlined)
 	fun italics(text: String) : String = printer.apply(text, PrintableKey.Italics)
+	fun none(text: String) : String = printer.apply(text, PrintableKey.None)
+	fun framed(text: String) : String = printer.apply(text, PrintableKey.Framed)
 }

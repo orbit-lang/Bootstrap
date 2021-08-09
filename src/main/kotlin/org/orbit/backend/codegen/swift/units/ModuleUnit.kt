@@ -2,12 +2,15 @@ package org.orbit.backend.codegen.swift.units
 
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
-import org.orbit.core.nodes.ModuleNode
-import org.orbit.core.nodes.TraitConstructorNode
-import org.orbit.core.nodes.TraitDefNode
-import org.orbit.core.nodes.TypeDefNode
+import org.orbit.core.nodes.*
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.partial
+
+//class ApiUnit(override val node: ApiDefNode, override val depth: Int) : CodeUnit<ApiDefNode> {
+//    override fun generate(mangler: Mangler): String {
+//        val traitConstructors
+//    }
+//}
 
 class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeUnit<ModuleNode> {
     override fun generate(mangler: Mangler): String {
@@ -47,6 +50,10 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
             .map(partial(::TypeAliasUnit, depth))
             .joinToString(newline(2), transform = partial(TypeAliasUnit::generate, mangler))
 
+        val typeProjections = node.typeProjections
+            .map(partial(::TypeProjectionUnit, depth))
+            .joinToString(newline(2), transform = partial(TypeProjectionUnit::generate, mangler))
+
         val methodDefs = node.methodDefs
             .map(partial(::MethodDefUnit, depth))
             .joinToString(newline(2), transform = partial(MethodDefUnit::generate, mangler))
@@ -60,6 +67,8 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
             |$traitDefs
             |
             |$typeAliases
+            |
+            |$typeProjections
             |
             |$methodDefs
         """.trimMargin()

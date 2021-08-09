@@ -87,6 +87,7 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
         val typeAliasNodes = mutableListOf<TypeAliasNode>()
         val entityConstructorNodes = mutableListOf<EntityConstructorNode>()
         val methodDefNodes = mutableListOf<MethodDefNode>()
+        val typeProjectionNodes = mutableListOf<TypeProjectionNode>()
 
         next = context.peek()
 
@@ -102,10 +103,10 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                 TokenTypes.Type, TokenTypes.Trait -> {
                     val entity = context.attemptAny(EntityParseRule.moduleTopLevelRules)
 
-                    if (entity is EntityConstructorNode) {
-                        entityConstructorNodes.add(entity)
-                    } else when (entity is TypeAliasNode) {
-                        true -> typeAliasNodes.add(entity)
+                    when (entity) {
+                        is EntityConstructorNode -> entityConstructorNodes.add(entity)
+                        is TypeAliasNode -> typeAliasNodes.add(entity)
+                        is TypeProjectionNode -> typeProjectionNodes.add(entity)
                         else -> entityDefNodes.add(entity!! as EntityDefNode)
                     }
                 }
@@ -118,6 +119,6 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
 
         val end = context.expect(TokenTypes.RBrace)
 
-        return +ModuleNode(start, end, implements, typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes, typeAliasNodes, entityConstructorNodes)
+        return +ModuleNode(start, end, implements, typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes, typeAliasNodes, entityConstructorNodes, typeProjectionNodes)
     }
 }

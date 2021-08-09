@@ -134,6 +134,7 @@ private val mainModule = module {
 		util.registerPathResolver(IdentifierExpressionPathResolver(), IdentifierNode::class.java)
 		util.registerPathResolver(PrintPathResolver(), PrintNode::class.java)
 		util.registerPathResolver(MetaTypePathResolver, MetaTypeNode::class.java)
+		util.registerPathResolver(TypeProjectionPathResolver, TypeProjectionNode::class.java)
 
 		util
 	}
@@ -319,9 +320,9 @@ class Build : CliktCommand(), KoinComponent {
 					val printer = Printer(invocation.platform.getPrintableFactory())
 					val eventName = printer.apply(it.identifier, PrintableKey.Bold, PrintableKey.Underlined)
 
-					if (verbose) {
-						println("Compiler event: $eventName")
-					}
+//					if (verbose) {
+//						println("Compiler event: $eventName")
+//					}
 				}
 
 				compilerGenerator.run(CompilationScheme)

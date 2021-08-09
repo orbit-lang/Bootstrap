@@ -12,7 +12,7 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRul
 	private companion object {
 		val Default = arrayOf<ValueRule<*>>(
 			MethodReferenceRule,
-			TypeIdentifierRule.RValue,
+			TypeIdentifierRule.Naked,
 			IdentifierRule,
 			IntLiteralRule,
 			SymbolRule

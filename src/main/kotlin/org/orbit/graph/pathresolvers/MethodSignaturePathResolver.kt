@@ -3,14 +3,30 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.Path
 import org.orbit.core.components.SourcePosition
-import org.orbit.core.nodes.MetaTypeNode
-import org.orbit.core.nodes.MethodSignatureNode
-import org.orbit.core.nodes.TypeExpressionNode
-import org.orbit.core.nodes.TypeIdentifierNode
+import org.orbit.core.nodes.*
 import org.orbit.graph.components.*
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.Invocation
+
+object TypeProjectionPathResolver : PathResolver<TypeProjectionNode> {
+	override val invocation: Invocation by inject()
+
+	override fun resolve(input: TypeProjectionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+		val typeResult = TypeExpressionPathResolver.resolve(input.typeIdentifier, pass, environment, graph)
+			.asSuccess()
+
+		val traitResult = TypeExpressionPathResolver.resolve(input.traitIdentifier, pass, environment, graph)
+			.asSuccess()
+
+		input.typeIdentifier.annotate(typeResult.path, Annotations.Path)
+		input.traitIdentifier.annotate(traitResult.path, Annotations.Path)
+
+		input.annotate(typeResult.path, Annotations.Path)
+
+		return typeResult
+	}
+}
 
 object MetaTypePathResolver : PathResolver<MetaTypeNode> {
 	override val invocation: Invocation by inject()

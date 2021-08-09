@@ -11,7 +11,7 @@ import org.orbit.frontend.extensions.unaryPlus
 
 object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
-		val node = context.attemptAny(listOf(MetaTypeRule, TypeIdentifierRule.RValue))
+		val node = context.attemptAny(listOf(MetaTypeRule, TypeIdentifierRule.Naked))
 			as? TypeExpressionNode
 			?: return ParseRule.Result.Failure.Abort
 
@@ -45,26 +45,6 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 
 		if (!context.hasMore) return +TypeIdentifierNode(start, start, start.text)
 
-		val next = context.peek()
-
-		if (ctxt == Context.Naked) {
-			// Declaring type parameters on a Type in a naked context is an error
-			if (next.type == TokenTypes.LAngle) {
-				throw context.invocation.make(TypeIdentifierRule.Errors.NakedTypeContext(next.position))
-			}
-		}
-
-		if (ctxt == Context.RValue || next.type != TokenTypes.LAngle) {
-			// If `Type` is in an rval context, it mustn't consume trailing type parameters
-			return +TypeIdentifierNode(start, start, start.text)
-		}
-
-		val typeParametersNode = TypeParametersRule(false)
-			.execute(context)
-			.asSuccessOrNull<TypeParametersNode>()
-			?.node
-			?: return ParseRule.Result.Failure.Abort
-
-		return +TypeIdentifierNode(start, typeParametersNode.lastToken, start.text, typeParametersNode)
+		return +TypeIdentifierNode(start, start, start.text)
 	}
 }

@@ -32,4 +32,16 @@ object Unix : Platform, PrintableFactory {
 
 	override fun getItalics(): String
 		= "\u001b[3m"
+
+	override fun getNone(): String
+		= "\u001B[0m"
+
+	override fun getFramed(): String
+		= "\u001b[51;1m"
+
+	override fun getKeyword(): String
+		= "\u001B[94;1m"
+
+	override fun getPunctuation(): String
+		= "\u001B[96;1m"
 }

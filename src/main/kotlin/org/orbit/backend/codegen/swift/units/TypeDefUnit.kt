@@ -42,6 +42,21 @@ class TypeAliasUnit(override val node: TypeAliasNode, override val depth: Int) :
     }
 }
 
+class TypeProjectionUnit(override val node: TypeProjectionNode, override val depth: Int) : CodeUnit<TypeProjectionNode> {
+    override fun generate(mangler: Mangler): String {
+        val typePath = node.typeIdentifier.getPath()
+        val traitPath = node.traitIdentifier.getPath()
+
+        val header = "/* type projection ${typePath.toString(OrbitMangler)} : ${traitPath.toString(OrbitMangler)} */"
+
+        return """
+            |$header
+            |extension ${typePath.toString(mangler)} : ${traitPath.toString(mangler)} {}
+        """.trimMargin()
+            .prependIndent(indent())
+    }
+}
+
 class TraitDefUnit(override val node: TraitDefNode, override val depth: Int) : CodeUnit<TraitDefNode> {
     override fun generate(mangler: Mangler): String {
         val traitPath = node.getPath()
@@ -63,41 +78,57 @@ class TraitDefUnit(override val node: TraitDefNode, override val depth: Int) : C
     }
 }
 
-class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : CodeUnit<TypeDefNode>, KoinComponent {
+class MetaTypeUnit(override val node: MetaTypeNode, override val depth: Int, private val inFuncNamePosition: Boolean = false) : CodeUnit<MetaTypeNode>, KoinComponent {
     private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
 
-    override fun generate(mangler: Mangler): String {
+    override fun generate(mangler: Mangler) : String {
+        val path = node.getPath()
+
+        val separator = when (inFuncNamePosition) {
+            true -> "_"
+            else -> ", "
+        }
+
+        val typeParameters = node.typeParameters
+            .map(partial(::TypeExpressionUnit, depth))
+            .joinToString(separator, transform = partial(TypeExpressionUnit::generate, mangler))
+
+        val typeName = path.toString(mangler)
+
+        return when (inFuncNamePosition) {
+            true -> "${typeName}_$typeParameters"
+            else -> "$typeName<$typeParameters>"
+        }
+    }
+}
+
+class TypeExpressionUnit(override val node: TypeExpressionNode, override val depth: Int, private val inFuncNamePosition: Boolean = false) : CodeUnit<TypeExpressionNode>, KoinComponent {
+    override fun generate(mangler: Mangler) : String {
+        val path = node.getPath()
+
+        return when (node) {
+            is TypeIdentifierNode -> path.toString(mangler)
+            is MetaTypeNode -> MetaTypeUnit(node, depth, inFuncNamePosition).generate(mangler)
+            else -> TODO("???")
+        }
+    }
+}
+
+class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : CodeUnit<TypeDefNode>, KoinComponent {
+    override fun generate(mangler: Mangler) : String {
         val typePath = node.getPath()
 
         // TODO - Lookup value semantics for this type (i.e. class or struct)
-        val associatedTypes = mutableListOf<String>()
         val header = "/* type ${typePath.toString(OrbitMangler)} */"
-        var adoptedProtocols = node.traitConformances.joinToString(", ") {
-            val type = (it.getType() as TypeExpression)
-
-            if (type is MetaType && it is MetaTypeNode) {
-                //val traitConstructor = context.getTypeByPath()
-                val concreteTypes = type.concreteTypeParameters
-
-                type.entityConstructor.typeParameters.zip(concreteTypes).forEach { p ->
-                    val typeParameter = p.first
-                    val concreteType = (p.second as TypeExpression).evaluate(context)
-
-                    val tpName = (OrbitMangler + mangler).invoke(typeParameter.name)
-                    val ctName = (OrbitMangler + mangler).invoke(concreteType.name)
-
-                    associatedTypes.add("typealias $tpName = $ctName".prependIndent(indent(depth + 1)))
-                }
-            }
-
-            (OrbitMangler + mangler).invoke((OrbitMangler + mangler).invoke(type.name))
-        }
+        var adoptedProtocols = node.traitConformances
+            .map(partial(::TypeExpressionUnit, depth))
+            .joinToString(", ", transform = partial(TypeExpressionUnit::generate, mangler))
 
         if (node.traitConformances.isNotEmpty()) {
             adoptedProtocols = " : $adoptedProtocols"
         }
 
-        val typeDef = "struct ${typePath.toString(mangler)}"
+        val typeDef = "class ${typePath.toString(mangler)}"
 
         val propertyDefs = node.getAllPropertyPairs()
             .map(partial(::PropertyDefUnit, depth + 2, false))
@@ -106,7 +137,6 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Cod
         return """
             |$header
             |$typeDef$adoptedProtocols {
-            |${associatedTypes.joinToString(newline())}
             |$propertyDefs
             |}
         """.trimMargin().prependIndent(indent())
@@ -115,10 +145,11 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Cod
 
 class TypeParameterUnit(override val node: TypeIdentifierNode, override val depth: Int) : CodeUnit<TypeIdentifierNode> {
     override fun generate(mangler: Mangler): String {
-        return "associatedtype ${node.value}".prependIndent(indent(depth))
+        return node.value
     }
 }
 
+// NOTE - Because generic protocols are dogshit in Swift, its easier to just export as a base class
 class TraitConstructorUnit(override val node: TraitConstructorNode, override val depth: Int) : CodeUnit<TraitConstructorNode>, KoinComponent {
     private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
 
@@ -129,15 +160,13 @@ class TraitConstructorUnit(override val node: TraitConstructorNode, override val
         val typeParametersSwift = node.typeParameterNodes
             .map(partial(::TypeParameterUnit, depth + 1))
             .map(partial(TypeParameterUnit::generate, mangler))
-            .joinToString(newline())
+            .joinToString(", ")
 
         val header = "/* trait ${traitPath.toString(OrbitMangler)}(${typeParametersOrbit}) */"
 
         return """
             |$header
-            |protocol ${traitPath.toString(mangler)} {
-            |$typeParametersSwift
-            |}
+            |class ${traitPath.toString(mangler)} <${typeParametersSwift}> {}
         """.trimMargin().prependIndent(indent())
     }
 }

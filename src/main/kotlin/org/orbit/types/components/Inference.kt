@@ -49,7 +49,7 @@ private object TypeExpressionInference : TypeInference<TypeExpressionNode> {
 private object MetaTypeInference : TypeInference<MetaTypeNode> {
     override fun infer(context: Context, node: MetaTypeNode, typeAnnotation: TypeProtocol?): TypeProtocol {
         val typeConstructor = context.getTypeByPath(node.getPath())
-            as? TypeConstructor
+            as? EntityConstructor
             ?: TODO("")
 
         // TODO - Recursive inference on type parameters

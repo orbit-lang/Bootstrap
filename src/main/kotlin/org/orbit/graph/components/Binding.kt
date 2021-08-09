@@ -8,6 +8,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 	interface Kind : Serializable {
 		interface Container : Kind
 		interface Entity : Kind
+		interface Projection : Kind
 		object Api : Container
 		object Module : Container
 		object Type : Entity
@@ -19,6 +20,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 		object Self : Entity
 		object Ephemeral : Entity
 		object Method : Kind
+		object TypeProjection : Projection
 
 		fun same(other: Kind) : Boolean {
 			return this::class.java == other::class.java
