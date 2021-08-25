@@ -1,7 +1,6 @@
 package org.orbit.util
 
 import org.orbit.core.components.SourcePosition
-import org.orbit.core.components.TokenTypeProvider
 import org.orbit.core.nodes.ExpressionNode
 import org.orbit.core.phase.Phase
 import org.orbit.frontend.StringSourceProvider
@@ -14,7 +13,7 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.TypeInferenceUtil
-import org.orbit.types.phase.TypeChecker
+import org.orbit.types.phase.TypeInitialisation
 import java.lang.Exception
 
 class Repl {
@@ -23,7 +22,7 @@ class Repl {
     private val replRule = ExpressionRule.defaultValue
     private val parser = Parser(invocation, replRule, isRepl = true)
     private val nameResolver = CanonicalNameResolver(invocation)
-    private val typeChecker = TypeChecker(invocation)
+    private val typeInitialiser = TypeInitialisation(invocation)
 
     private fun read() : String {
         kotlin.io.print(">> ")
@@ -37,7 +36,7 @@ class Repl {
             val parseResult = parser.execute(Parser.InputType(lexerResult.tokens))
 //            val env = nameResolver.execute(parseResult)
             val env = Environment(parseResult.ast)
-            val context = typeChecker.execute(NameResolverResult(env, Graph()))
+            val context = typeInitialiser.execute(NameResolverResult(env, Graph()))
 
             return TypeInferenceUtil.infer(context, parseResult.ast as ExpressionNode)
         } catch (e: Exception) {

@@ -7,7 +7,7 @@ import org.orbit.core.nodes.MethodDefNode
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.types.components.*
-import org.orbit.types.phase.TypeChecker
+import org.orbit.types.phase.TypeInitialisation
 import org.orbit.util.Invocation
 
 class MethodTypeResolver(override val node: MethodDefNode, override val binding: Binding) : TypeResolver<MethodDefNode, SignatureProtocol<out TypeProtocol>>, KoinComponent {
@@ -29,7 +29,7 @@ class MethodTypeResolver(override val node: MethodDefNode, override val binding:
                 // Return type is implied to be Unit, check signature agrees
                 val equalitySemantics = signature.returnType.equalitySemantics as AnyEquality
                 if (!equalitySemantics.isSatisfied(localContext, signature.returnType, IntrinsicTypes.Unit.type)) {
-                    throw invocation.make<TypeChecker>("Method '${signature.name}' declares a return type of '${signature.returnType.name}', found 'Unit'", node)
+                    throw invocation.make<TypeInitialisation>("Method '${signature.name}' declares a return type of '${signature.returnType.name}', found 'Unit'", node)
                 }
             } else {
                 val methodBodyTypeResolver = MethodBodyTypeResolver(body, binding, signature.returnType)

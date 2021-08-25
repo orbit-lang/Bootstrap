@@ -89,7 +89,7 @@ class Environment(
 	}
 
 	fun getBinding(simpleName: String, context: Binding.Kind? = null) : Scope.BindingSearchResult {
-		return currentScope.get(simpleName, context)
+		return currentScope.get2(simpleName, context)
 	}
 
 	/// Search across all scopes to resolve a binding

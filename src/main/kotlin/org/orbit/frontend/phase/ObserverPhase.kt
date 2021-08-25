@@ -9,7 +9,6 @@ import org.orbit.frontend.extensions.*
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Scope
-import org.orbit.types.phase.TypeChecker
 import org.orbit.util.Invocation
 
 class ObserverPhase(override val invocation: Invocation) : ReifiedPhase<SourceProvider, SourceProvider> {

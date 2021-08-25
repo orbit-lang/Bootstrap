@@ -11,6 +11,7 @@ import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.serial.Serial
 import org.orbit.util.Fatal
 import org.orbit.util.Monoid
+import org.orbit.util.endsWith
 import java.io.Serializable
 
 class Scope(
@@ -28,10 +29,14 @@ class Scope(
 		private data class BindingNotFound(
 			override val phaseClazz: Class<out Phase<*, *>>,
 			override val sourcePosition: SourcePosition,
-			private val simpleName: String
+			private val simpleName: String,
+			private val contextualKind: Binding.Kind? = null
 		) : Fatal<Phase<*, *>> {
 			override val message: String
-				get() = "Unknown binding: $simpleName"
+				get() = when (contextualKind) {
+					null -> "Unknown binding '$simpleName'"
+					else -> "Unknown binding '$simpleName' for context kind:\n\t\t${contextualKind.getName()}"
+				}
 		}
 
 		private data class MultipleBindings(
@@ -57,10 +62,10 @@ class Scope(
 			}
 		}
 
-		class None(val simpleName: String) : BindingSearchResult() {
+		class None(val simpleName: String, val contextualKind: Binding.Kind? = null) : BindingSearchResult() {
 			override fun unwrap(phase: Phase<*, *>, sourcePosition: SourcePosition): Binding {
 				// TODO - Is simpleName a hard requirement here?
-				phase.invocation.reportError(BindingNotFound(phase::class.java, sourcePosition, simpleName))
+				phase.invocation.reportError(BindingNotFound(phase::class.java, sourcePosition, simpleName, contextualKind))
 				throw Exception("Unreachable")
 			}
 
@@ -126,6 +131,45 @@ class Scope(
 
 	fun unbind(kind: Binding.Kind, simpleName: String, path: Path) {
 		bindings.remove(Binding(kind, simpleName, path))
+	}
+
+	fun get2(name: String, context: Binding.Kind? = null) : BindingSearchResult {
+		if (name == "Self") return BindingSearchResult.Success(Binding.Self)
+
+		// Collect together all visible bindings
+		val imported = imports.map { environment.getScope(it) }
+			.flatMap { it.bindings }
+		val all = (bindings + imported).distinct()
+
+		val path = OrbitMangler.unmangle(name)
+
+		// Get all bindings whose Path ends with name
+		var matches = all.filter { it.path.endsWith(path.last()) }
+
+		if (matches.isEmpty()) return BindingSearchResult.None(name)
+		if (matches.count() == 1) {
+			val result = matches.first()
+			if (context != null && !context.same(result.kind)) {
+				return BindingSearchResult.None(name, context)
+			}
+
+			return BindingSearchResult.Success(matches.first())
+		}
+
+		// If we have multiple results, then we can start filtering on context.
+		// Unless context is null, in which case we're screwed!
+		if (context == null) return BindingSearchResult.Multiple(matches)
+
+		matches = matches.filter { context.same(it.kind) }
+
+		if (matches.isEmpty()) return BindingSearchResult.None(name)
+		if (matches.count() == 1) return BindingSearchResult.Success(matches.first())
+
+		val finalAttempt = matches.filter { it.path == path }
+
+		if (finalAttempt.count() == 1) return BindingSearchResult.Success(finalAttempt.first())
+
+		return BindingSearchResult.Multiple(matches)
 	}
 
 	fun get(simpleName: String, context: Binding.Kind?) : BindingSearchResult {

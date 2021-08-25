@@ -34,6 +34,9 @@ data class MethodSignatureNode(
 		parameterNodes[idx].annotate(value, tag)
 	}
 
+	val hasInstanceReceiver: Boolean
+		get() = receiverTypeNode.identifierNode.identifier != "Self"
+
 	override fun getChildren() : List<Node> = when (returnTypeNode) {
 		null -> listOf(identifierNode, receiverTypeNode) + parameterNodes
 		else -> listOf(identifierNode, receiverTypeNode, returnTypeNode) + parameterNodes

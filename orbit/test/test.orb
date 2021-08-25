@@ -1,11 +1,10 @@
-module IntComparator with Orb::Types::Intrinsics {
-    trait T(x Int)
+module A with Orb::Types::Intrinsics {
+    trait T1(x Int)
+    trait T2(x Int)
+    trait T3(x Int)
+    type A(x Int, x Int) : T1, T2, T3
 
-    type projection Int : T
-    type projection Symbol : T
-
-    (Int) compare (a Int, b Int, c Symbol) (T) {
-        return c
+    (self A) a () (A) {
+        return self
     }
 }
-

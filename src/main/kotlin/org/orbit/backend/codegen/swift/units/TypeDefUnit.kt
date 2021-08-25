@@ -1,13 +1,11 @@
 package org.orbit.backend.codegen.swift.units
 
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.*
 import org.orbit.types.components.*
-import org.orbit.util.Invocation
 import org.orbit.util.partial
 
 private class PropertyDefUnit(override val node: PairNode, override val depth: Int, private val isProtocol: Boolean) : CodeUnit<PairNode> {
@@ -79,7 +77,7 @@ class TraitDefUnit(override val node: TraitDefNode, override val depth: Int) : C
 }
 
 class MetaTypeUnit(override val node: MetaTypeNode, override val depth: Int, private val inFuncNamePosition: Boolean = false) : CodeUnit<MetaTypeNode>, KoinComponent {
-    private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
+    private val context: Context by injectResult(CompilationSchemeEntry.typeInitialisation)
 
     override fun generate(mangler: Mangler) : String {
         val path = node.getPath()
@@ -151,7 +149,7 @@ class TypeParameterUnit(override val node: TypeIdentifierNode, override val dept
 
 // NOTE - Because generic protocols are dogshit in Swift, its easier to just export as a base class
 class TraitConstructorUnit(override val node: TraitConstructorNode, override val depth: Int) : CodeUnit<TraitConstructorNode>, KoinComponent {
-    private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
+    private val context: Context by injectResult(CompilationSchemeEntry.typeInitialisation)
 
     override fun generate(mangler: Mangler): String {
         val traitConstructor = node.getType() as TraitConstructor

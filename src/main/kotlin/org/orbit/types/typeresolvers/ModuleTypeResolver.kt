@@ -5,13 +5,12 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.ModuleNode
-import org.orbit.core.nodes.Node
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
-import org.orbit.types.phase.TypeChecker
+import org.orbit.types.phase.TypeInitialisation
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
@@ -35,7 +34,7 @@ class ModuleTypeResolver(override val node: ModuleNode, override val binding: Bi
 
                 if (targetType.isRequired) {
                     val code = printer.apply("type ${it.sourceTypeIdentifier.value} = ${targetType.name}", PrintableKey.Italics)
-                    throw invocation.make<TypeChecker>("Right-hand side of a type alias cannot be a required type:\n\t\t$code", it)
+                    throw invocation.make<TypeInitialisation>("Right-hand side of a type alias cannot be a required type:\n\t\t$code", it)
                 }
 
                 TypeAlias(it.sourceTypeIdentifier.value, targetType)

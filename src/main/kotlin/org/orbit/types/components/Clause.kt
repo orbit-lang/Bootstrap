@@ -3,7 +3,7 @@ package org.orbit.types.components
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
-import org.orbit.types.phase.TypeChecker
+import org.orbit.types.phase.TypeInitialisation
 import org.orbit.util.*
 import java.io.Serializable
 
@@ -23,26 +23,29 @@ object StructuralEquality : Equality<Trait, Type>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun isSatisfied(context: Context, source: Trait, target: Type): Boolean {
-        val explicitDeclaration = when (source.implicit) {
-            true -> true
-            else -> {
-                if (target.traitConformance.contains(source)) {
-                    true
-                } else {
-                    val projection = context.getTypeProjectionOrNull(target, source)
-
-                    when (projection) {
-                        null -> throw invocation.error<TypeChecker>(MissingTypeProjection(source, target))
-                        else -> true
-                    }
-                }
-            }
-        }
+        // Ensure we have the latest version of this type
+//        val trait = context.refresh(source) as Trait
+//
+//        val explicitDeclaration = when (source.implicit) {
+//            true -> true
+//            else -> {
+//                if (target.traitConformance.contains(trait)) {
+//                    true
+//                } else {
+//                    val projection = context.getTypeProjectionOrNull(target, trait)
+//
+//                    when (projection) {
+//                        null -> throw invocation.error<TypeChecker>(MissingTypeProjection(trait, target))
+//                        else -> true
+//                    }
+//                }
+//            }
+//        }
 
         // TODO - Signatures
-        val propertyContracts = source.drawPropertyContracts()
+        val propertyContracts = target.drawPropertyContracts()
 
-        return explicitDeclaration && target.executeContracts(context, propertyContracts)
+        return /*explicitDeclaration &&*/ target.executeContracts(context, propertyContracts)
     }
 }
 
@@ -84,11 +87,11 @@ object SignatureEquality : Equality<SignatureProtocol<TypeProtocol>, SignaturePr
             val typeB = context.refresh(it.value.second.type)
 
             if (!typeA.isSatisfied(context, typeB)) {
-                throw invocation.make<TypeChecker>("Method '${source.name}' declares a parameter '(${it.value.first.name} ${it.value.first.type.name})' at position ${it.index}, found '(${it.value.second.name} ${it.value.second.type.name})'", SourcePosition.unknown)
+                throw invocation.make<TypeInitialisation>("Method '${source.name}' declares a parameter '(${it.value.first.name} ${it.value.first.type.name})' at position ${it.index}, found '(${it.value.second.name} ${it.value.second.type.name})'", SourcePosition.unknown)
             }
 
             if (nameA != nameB) {
-                throw invocation.make<TypeChecker>("Method '${source.name}' declares a parameter '(${it.value.first.name} ${it.value.first.type.name})' at position ${it.index}, found '(${it.value.second.name} ${it.value.second.type.name})'", SourcePosition.unknown)
+                throw invocation.make<TypeInitialisation>("Method '${source.name}' declares a parameter '(${it.value.first.name} ${it.value.first.type.name})' at position ${it.index}, found '(${it.value.second.name} ${it.value.second.type.name})'", SourcePosition.unknown)
             }
 
             true

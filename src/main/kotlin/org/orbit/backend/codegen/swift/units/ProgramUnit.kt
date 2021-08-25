@@ -58,15 +58,19 @@ class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) :
             .map(partial(ModuleUnit::generate, mangler))
             .joinToString(newline(2))
 
-        val mainCall = when (main.mainSignature) {
-            null -> ""
-            else -> {
-                val sig = main.mainSignature!!
-                val rec = (OrbitMangler + mangler)(sig.receiver.type.name)
-                val ret = (OrbitMangler + mangler)(sig.returnType.name)
+        val mainCall = try{
+            when (main.mainSignature) {
+                null -> ""
+                else -> {
+                    val sig = main.mainSignature!!
+                    val rec = (OrbitMangler + mangler)(sig.receiver.type.name)
+                    val ret = (OrbitMangler + mangler)(sig.returnType.name)
 
-                "${rec}_main_${rec}_$ret(self: ${rec}(argc: 0, argv: []))"
+                    "${rec}_main_${rec}_$ret(self: ${rec}(argc: 0, argv: []))"
+                }
             }
+        } catch (_: Exception) {
+            ""
         }
 
 

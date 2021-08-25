@@ -4,15 +4,13 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
-import org.orbit.core.getType
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.annotate
-import org.orbit.types.phase.TypeChecker
-import org.orbit.types.typeresolvers.TypeExpressionTypeResolver
+import org.orbit.types.phase.TypeInitialisation
 import org.orbit.util.Invocation
 import org.orbit.util.partial
-import org.orbit.util.partialAlt
+import org.orbit.util.partialReverse
 import org.orbit.util.pluralise
 
 object TypeInferenceUtil {
@@ -86,7 +84,7 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
         val receiverType = TypeInferenceUtil.infer(context, node.receiverExpression)
                 as? Entity
             // TODO - Allow for signatures, potentially other types too
-            ?: throw invocation.make<TypeChecker>("Only entity types may appear on the left-hand side of a call expression", node.receiverExpression)
+            ?: throw invocation.make<TypeInitialisation>("Only entity types may appear on the left-hand side of a call expression", node.receiverExpression)
 
         // TODO - There is way too much happening here.
         //  This should be simpler, or at least split up a bit
@@ -94,9 +92,9 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
             val matches = receiverType.properties.filter { it.name == node.messageIdentifier.identifier }
 
             if (matches.isEmpty()) {
-                throw invocation.make<TypeChecker>("Type '${receiverType.name}' has no property named '${node.messageIdentifier.identifier}'", node.messageIdentifier)
+                throw invocation.make<TypeInitialisation>("Type '${receiverType.name}' has no property named '${node.messageIdentifier.identifier}'", node.messageIdentifier)
             } else if (matches.size > 1) {
-                throw invocation.make<TypeChecker>("Type '${receiverType.name}' has multiple properties named '${node.messageIdentifier.identifier}'", node.messageIdentifier)
+                throw invocation.make<TypeInitialisation>("Type '${receiverType.name}' has multiple properties named '${node.messageIdentifier.identifier}'", node.messageIdentifier)
             }
 
             return matches.first().type
@@ -106,7 +104,7 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
                 else -> emptyList()
             }
 
-            val parameterTypes = receiverParameter + node.parameterNodes.map(partialAlt(TypeInferenceUtil::infer, context))
+            val parameterTypes = receiverParameter + node.parameterNodes.map(partialReverse(TypeInferenceUtil::infer, context))
 
             val matches = mutableListOf<SignatureProtocol<*>>()
             for (binding in context.bindings.values) {
@@ -149,7 +147,7 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
 
             if (matches.isEmpty()) {
                 val params = if (parameterTypes.isEmpty()) "" else "(" + parameterTypes.joinToString(", ") { it.name } + ")"
-                throw invocation.make<TypeChecker>(
+                throw invocation.make<TypeInitialisation>(
                     "Receiver type '${receiverType.name}' does not respond to message '${node.messageIdentifier.identifier}' with parameter types $params",
                     node.messageIdentifier
                 )
@@ -161,7 +159,7 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
                     transform = partial(SignatureProtocol<*>::toString, OrbitMangler)
                 )
 
-                throw invocation.make<TypeChecker>(
+                throw invocation.make<TypeInitialisation>(
                     "Ambiguous method call '${node.messageIdentifier.identifier}' on receiver type '${receiverType.name}'. Found multiple candidates: \n\t\t${candidates}",
                     node.messageIdentifier
                 )
@@ -171,13 +169,13 @@ private object CallInference : TypeInference<CallNode>, KoinComponent {
             val expectedParameterCount = signature.parameters.size
 
             if (expectedParameterCount != parameterTypes.size) {
-                throw invocation.make<TypeChecker>("Method '${signature.name}' expects $expectedParameterCount ${"parameter".pluralise(expectedParameterCount)}, found ${parameterTypes.size}", node)
+                throw invocation.make<TypeInitialisation>("Method '${signature.name}' expects $expectedParameterCount ${"parameter".pluralise(expectedParameterCount)}, found ${parameterTypes.size}", node)
             }
 
             signature.parameters.zip(parameterTypes)
                 .forEachIndexed { idx, item ->
                     if (!(item.first.equalitySemantics as AnyEquality).isSatisfied(context, item.first.type, item.second)) {
-                        throw invocation.make<TypeChecker>("Method '${signature.name}' expects parameter of type ${item.first.type.name} at index $idx, found ${item.second.name}", node)
+                        throw invocation.make<TypeInitialisation>("Method '${signature.name}' expects parameter of type ${item.first.type.name} at index $idx, found ${item.second.name}", node)
                     }
                 }
 
@@ -197,7 +195,7 @@ private object ConstructorInference : TypeInference<ConstructorNode>, KoinCompon
         node.typeExpressionNode.annotate(receiverType, Annotations.Type)
 
         if (receiverType !is Type) {
-            throw invocation.make<TypeChecker>(
+            throw invocation.make<TypeInitialisation>(
                 "Only concrete types may be initialised via a constructor call. Found ${receiverType::class.java.simpleName} '${receiverType.name}'",
                 node.typeExpressionNode
             )
@@ -206,7 +204,7 @@ private object ConstructorInference : TypeInference<ConstructorNode>, KoinCompon
         val parameterTypes = receiverType.properties
 
         if (node.parameterNodes.size != parameterTypes.size) {
-            throw invocation.make<TypeChecker>("Type '${receiverType.name}' expects ${parameterTypes.size} constructor ${"parameter".pluralise(parameterTypes.size)}, found ${node.parameterNodes.size}", node.firstToken.position)
+            throw invocation.make<TypeInitialisation>("Type '${receiverType.name}' expects ${parameterTypes.size} constructor ${"parameter".pluralise(parameterTypes.size)}, found ${node.parameterNodes.size}", node.firstToken.position)
         }
 
         for ((idx, pair) in parameterTypes.zip(node.parameterNodes).withIndex()) {
@@ -214,7 +212,7 @@ private object ConstructorInference : TypeInference<ConstructorNode>, KoinCompon
             val equalitySemantics = argumentType.equalitySemantics as AnyEquality
 
             if (!equalitySemantics.isSatisfied(context, pair.first.type, argumentType)) {
-                throw invocation.make<TypeChecker>("Constructor expects parameter of type '${pair.first.type.name}' at position ${idx}, found '${argumentType.name}'", pair.second.firstToken.position)
+                throw invocation.make<TypeInitialisation>("Constructor expects parameter of type '${pair.first.type.name}' at position ${idx}, found '${argumentType.name}'", pair.second.firstToken.position)
             }
         }
 

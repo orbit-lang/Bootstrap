@@ -2,6 +2,7 @@ package org.orbit.util
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.frontend.components.TokenTypes
 import java.awt.print.Printable
 
 enum class PrintableKey(val generator: (PrintableFactory) -> String) {
@@ -63,6 +64,10 @@ class Printer(private val factory: PrintableFactory) {
 	fun apply(text: String, keys: List<PrintableKey>) : String {
 		return apply(text, *keys.toTypedArray())
 	}
+}
+
+interface AnyPrintable {
+	fun toString(printer: Printer) : String
 }
 
 interface PrinterAware {

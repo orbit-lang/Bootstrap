@@ -104,17 +104,20 @@ class Invocation(val platform: Platform) {
 	private fun<P: Phase<*, *>> makeString(error: OrbitError<P>) : String {
 		val printer = Printer(platform.getPrintableFactory())
 		val h1 = printer.apply("Error", PrintableKey.Error)
-		val h2 = printer.apply("reported by phase:", PrintableKey.Bold)
+		val h2 = printer.apply("reported by phase:", PrintableKey.None)
 		val phase = printer.apply(error.phaseClazz.simpleName, PrintableKey.Underlined)
 
-		val message = printer.apply(error.message, PrintableKey.Error)
+		val message = printer.apply(error.message, PrintableKey.None)
 		val footer = printer.apply(error.sourcePosition.toString(), PrintableKey.Underlined)
 
 		return """
+		|________________________________________________________________________________
 		|$h1 $h2 $phase
-		|	$message
+		|
+		|$message
 		|	
-		|	$footer
+		|$footer
+		|________________________________________________________________________________
 		""".trimMargin()
 	}
 
@@ -131,17 +134,20 @@ class Invocation(val platform: Platform) {
 
 		val printer = Printer(platform.getPrintableFactory())
 		val h1 = printer.apply("Error", PrintableKey.Error)
-		val h2 = printer.apply("reported by phase:", PrintableKey.Bold)
+		val h2 = printer.apply("reported by phase:", PrintableKey.None)
 		val phase = printer.apply(error.phaseClazz.simpleName, PrintableKey.Underlined)
 
-		val message = printer.apply(error.message, PrintableKey.Error)
+		val message = printer.apply(error.message, PrintableKey.None)
 		val footer = printer.apply(error.sourcePosition.toString(), PrintableKey.Underlined)
 
 		return """
+		|________________________________________________________________________________
 		|$h1 $h2 $phase
-		|	$message
+		|
+		|$message
 		|	
-		|	$footer
+		|$footer
+		|________________________________________________________________________________
 		""".trimMargin()
 	}
 

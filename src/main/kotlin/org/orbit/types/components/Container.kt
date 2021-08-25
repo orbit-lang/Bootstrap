@@ -1,5 +1,11 @@
 package org.orbit.types.components
 
+import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
+import org.orbit.core.getPath
+import org.orbit.core.nodes.ModuleNode
+import org.orbit.util.Printer
+
 // Containers (modules and apis) are value position types because
 // they can be passed around in a similar way to types & traits
 interface Container : ValuePositionType
@@ -47,7 +53,23 @@ data class ConcreteApi(private val virtualApi: Api, private val typeAliases: Lis
 }
 
 data class Module(override val name: String, val typeAliases: List<TypeAlias> = emptyList(), val entities: List<Entity> = emptyList(), val signatures: List<SignatureProtocol<*>> = emptyList()) : Container {
+    constructor(path: Path, typeAliases: List<TypeAlias> = emptyList(), entities: List<Entity> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList())
+        : this(path.toString(OrbitMangler), typeAliases, entities, signatures)
+
+    constructor(node: ModuleNode)
+        : this(node.getPath())
+
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = ModuleEquality
+
+    override fun toString(printer: Printer): String {
+        val ents = entities.joinToString(", ", transform = { it.toString(printer) })
+        val sigs = signatures.joinToString(", ", transform = { it.toString(printer) })
+
+        return """
+            |        Entities: ($ents)
+            |        Signatures: ($sigs)
+        """.trimMargin()
+    }
 }
 
 fun Type.conforms(to: Trait, module: Module) : Boolean {

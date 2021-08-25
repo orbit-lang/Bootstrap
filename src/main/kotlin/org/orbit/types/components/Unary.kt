@@ -3,7 +3,7 @@ package org.orbit.types.components
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
-import org.orbit.types.phase.TypeChecker
+import org.orbit.types.phase.TypeInitialisation
 import org.orbit.util.Invocation
 
 data class Unary(val op: String, val operand: TypeProtocol) : Expression, KoinComponent {
@@ -15,7 +15,7 @@ data class Unary(val op: String, val operand: TypeProtocol) : Expression, KoinCo
             .filter { it.operandType == operand }
 
         if (matches.isEmpty()) {
-            throw invocation.make<TypeChecker>("Cannot find binary operator matching signature '$op${operand.name}'",
+            throw invocation.make<TypeInitialisation>("Cannot find binary operator matching signature '$op${operand.name}'",
                 SourcePosition.unknown
             )
         }
@@ -30,7 +30,7 @@ data class Unary(val op: String, val operand: TypeProtocol) : Expression, KoinCo
                     val equalitySemantics = typeAnnotation.equalitySemantics as AnyEquality
 
                     if (!equalitySemantics.isSatisfied(context, typeAnnotation, resultType)) {
-                        throw invocation.make<TypeChecker>("Type '${resultType.name} is not equal to type '${typeAnnotation.name}' using equality semantics '${equalitySemantics}",
+                        throw invocation.make<TypeInitialisation>("Type '${resultType.name} is not equal to type '${typeAnnotation.name}' using equality semantics '${equalitySemantics}",
                             SourcePosition.unknown
                         )
                     }
@@ -40,7 +40,7 @@ data class Unary(val op: String, val operand: TypeProtocol) : Expression, KoinCo
             }
         }
 
-        throw invocation.make<TypeChecker>("Failed to infer type of unary expression: '$op${operand.name}'",
+        throw invocation.make<TypeInitialisation>("Failed to infer type of unary expression: '$op${operand.name}'",
             SourcePosition.unknown
         )
     }

@@ -5,8 +5,11 @@ import org.koin.core.component.inject
 import org.orbit.core.Mangler
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.types.phase.TypeChecker
+import org.orbit.core.getPath
+import org.orbit.core.nodes.TraitDefNode
+import org.orbit.core.nodes.TypeDefNode
 import org.orbit.util.Invocation
+import org.orbit.util.Printer
 import org.orbit.util.pluralise
 import org.orbit.util.toPath
 
@@ -44,11 +47,21 @@ data class Type(override val name: String, val typeParameters: List<ValuePositio
                 override val traitConformance: List<Trait> = emptyList(), override val equalitySemantics: Equality<Entity, Entity> = NominalEquality, val isRequired: Boolean = false) : Entity(name, properties, traitConformance, equalitySemantics) {
     constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), equalitySemantics: Equality<Entity, Entity> = NominalEquality, isRequired: Boolean = false)
         : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, equalitySemantics, isRequired)
+
+    constructor(node: TypeDefNode)
+        : this(node.getPath())
 }
 
 data class Trait(override val name: String, val typeParameters: List<ValuePositionType> = emptyList(), override val properties: List<Property> = emptyList(), override val traitConformance: List<Trait> = emptyList(), val signatures: List<SignatureProtocol<*>> = emptyList(), override val equalitySemantics: Equality<Trait, Type> = StructuralEquality, val implicit: Boolean = false) : Entity(name, properties, traitConformance, equalitySemantics) {
     constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Trait, Type> = StructuralEquality, implicit: Boolean = false)
         : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, signatures, equalitySemantics, implicit)
+
+    constructor(node: TraitDefNode) : this(node.getPath())
+
+    override fun equals(other: Any?): Boolean = when (other) {
+        is Trait -> name == other.name
+        else -> false
+    }
 }
 
 data class TypeAlias(override val name: String, val targetType: Type) : VirtualType, TypeExpression {
@@ -103,6 +116,10 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
 
 data class Parameter(override val name: String, val type: TypeProtocol) : TypeProtocol {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = type.equalitySemantics
+
+    override fun toString(printer: Printer): String {
+        return "${name}: ${type.toString(printer)}"
+    }
 }
 
 interface SignatureProtocol<T: TypeProtocol> : ValuePositionType {
@@ -126,6 +143,14 @@ interface SignatureProtocol<T: TypeProtocol> : ValuePositionType {
         = isReceiverSatisfied(by.receiver as Entity, context)
             && isReturnTypeSatisfied(by.returnType as Entity, context)
             && isParameterListSatisfied(by.parameters, context)
+
+    override fun toString(printer: Printer): String {
+        val params = parameters.joinToString(", ") { it.toString(printer) }
+
+        return """
+            (${receiver.toString(printer)}) $name ($params) (${returnType.toString(printer)})
+        """.trimIndent()
+    }
 }
 
 data class InstanceSignature(

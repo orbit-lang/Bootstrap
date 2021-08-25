@@ -10,9 +10,12 @@ import org.orbit.types.components.InstanceSignature
 import org.orbit.types.components.Parameter
 import org.orbit.types.components.TypeProtocol
 import org.orbit.types.components.TypeSignature
+import org.orbit.util.AnyPrintable
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
 import java.io.Serializable
 
-open class Path(val relativeNames: List<String>) : Serial, Serializable {
+open class Path(val relativeNames: List<String>) : Serial, Serializable, AnyPrintable, Collection<String> by relativeNames {
 	companion object {
 		val empty = Path()
 		val self = Path("Self")
@@ -48,6 +51,14 @@ open class Path(val relativeNames: List<String>) : Serial, Serializable {
 		return toString(mangler).startsWith(other.toString(mangler))
 	}
 
+	fun isAncestor(of: Path) : Boolean {
+		if (this == of) return false
+
+		val sub = of.relativeNames.dropLast(1)
+
+		return relativeNames == sub
+	}
+
 	fun containsPart(part: String) : Boolean {
 		return relativeNames.contains(part)
 	}
@@ -60,6 +71,10 @@ open class Path(val relativeNames: List<String>) : Serial, Serializable {
 
 	fun toString(mangler: Mangler) : String {
 		return mangler.mangle(this)
+	}
+
+	override fun toString(printer: Printer): String {
+		return printer.apply(toString(OrbitMangler), PrintableKey.Bold)
 	}
 
 	override fun equals(other: Any?) = when (other) {

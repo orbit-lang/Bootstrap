@@ -3,7 +3,6 @@ package org.orbit.types.typeresolvers
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.getPath
-import org.orbit.core.nodes.Node
 import org.orbit.core.nodes.TraitConstructorNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.core.nodes.TypeDefNode
@@ -12,7 +11,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
-import org.orbit.types.phase.TypeChecker
+import org.orbit.types.phase.TypeInitialisation
 import org.orbit.util.Invocation
 
 class TypeConstructorTypeResolver(override val node: TypeConstructorNode, override val binding: Binding) : TypeResolver<TypeConstructorNode, TypeConstructor>, KoinComponent {
@@ -64,14 +63,14 @@ class TypeDefTypeResolver(override val node: TypeDefNode, override val binding: 
             val propertyType = context.getTypeByPath(propertyPair.getPath())
 
             if (propertyType == type) {
-                throw invocation.make<TypeChecker>("Types must not declare properties of their own type: Found property (${propertyPair.identifierNode.identifier} ${propertyType.name}) in type ${type.name}", propertyPair.typeExpressionNode)
+                throw invocation.make<TypeInitialisation>("Types must not declare properties of their own type: Found property (${propertyPair.identifierNode.identifier} ${propertyType.name}) in type ${type.name}", propertyPair.typeExpressionNode)
             }
 
             if (propertyType is Entity) {
                 val cyclicProperties = propertyType.properties.filter { it.type == type }
 
                 if (cyclicProperties.isNotEmpty()) {
-                    throw invocation.make<TypeChecker>("Detected cyclic definition between type '${type.name}' and its property (${propertyPair.identifierNode.identifier} ${propertyType.name})", propertyPair.typeExpressionNode)
+                    throw invocation.make<TypeInitialisation>("Detected cyclic definition between type '${type.name}' and its property (${propertyPair.identifierNode.identifier} ${propertyType.name})", propertyPair.typeExpressionNode)
                 }
             }
 

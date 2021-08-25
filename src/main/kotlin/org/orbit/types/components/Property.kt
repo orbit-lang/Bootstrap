@@ -2,7 +2,10 @@ package org.orbit.types.components
 
 import org.json.JSONObject
 import org.orbit.serial.Serialiser
-import org.orbit.util.partialAlt
+import org.orbit.util.AnyPrintable
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
+import org.orbit.util.partialReverse
 
 interface TypeEqualityUtil<T: TypeProtocol> {
     fun equal(context: Context, equality: Equality<TypeProtocol, TypeProtocol>, a: T, b: T) : Boolean
@@ -11,7 +14,7 @@ interface TypeEqualityUtil<T: TypeProtocol> {
 data class Property(
     override val name: String,
     val type: TypeProtocol
-) : TypeProtocol {
+) : TypeProtocol, AnyPrintable {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = type.equalitySemantics
 
     companion object : TypeEqualityUtil<Property> {
@@ -23,6 +26,10 @@ data class Property(
     override fun describe(json: JSONObject) {
         json.put("member.name", name)
         json.put("member.type", Serialiser.serialise(type))
+    }
+
+    override fun toString(printer: Printer): String {
+        return "(${printer.apply(name, PrintableKey.Italics)} => ${type.toString(printer)})"
     }
 }
 
@@ -39,5 +46,5 @@ fun TypeProtocol.executeContract(context: Context, contract: TypeContract) : Boo
 }
 
 fun TypeProtocol.executeContracts(context: Context, contracts: Collection<TypeContract>) : Boolean {
-    return contracts.map(partialAlt(::executeContract, context)).fold(true, Boolean::and)
+    return contracts.map(partialReverse(::executeContract, context)).fold(true, Boolean::and)
 }

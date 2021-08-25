@@ -14,7 +14,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
-import org.orbit.types.phase.TypeChecker
+import org.orbit.types.phase.TypeInitialisation
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 
@@ -60,26 +60,22 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
         val argTypes = mutableListOf<Parameter>()
         val parameterBindings = mutableListOf<String>()
 
-        var isInstanceMethod = false
         val receiverType: ValuePositionType
         if (receiver.identifierNode.identifier == "Self") {
-            isInstanceMethod = false
-
-            if (receiver.typeExpressionNode.value == "Self") {
-                receiverType = enclosingType
-                    ?: throw invocation.make<TypeChecker>(
+            receiverType = if (receiver.typeExpressionNode.value == "Self") {
+                enclosingType
+                    ?: throw invocation.make<TypeInitialisation>(
                         "Using 'Self' type outside of a Trait definition is not supported",
                         node
                     )
             } else {
-                receiverType = context.getType(receiver.typeExpressionNode.getPath().toString(OrbitMangler))
+                context.getType(receiver.typeExpressionNode.getPath().toString(OrbitMangler))
                     as ValuePositionType
             }
         } else {
-            isInstanceMethod = true
             // TODO - Handle Type methods (no instance receiver)
             receiverType = when (receiver.getPath()) {
-                Path.self -> enclosingType ?: throw invocation.make<TypeChecker>("Using 'Self' type outside of a Trait definition is not supported", node)
+                Path.self -> enclosingType ?: throw invocation.make<TypeInitialisation>("Using 'Self' type outside of a Trait definition is not supported", node)
                 else -> TypeExpressionTypeResolver(receiver.typeExpressionNode, binding)
                     .resolve(environment, context)
                     .evaluate(context) as ValuePositionType
@@ -93,7 +89,6 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
         node.parameterNodes.forEach {
             val t = context.getTypeByPath(it.getPath())
 
-            //context.bind(it.identifierNode.identifier, t)
             parameterBindings.add(it.identifierNode.identifier)
 
             argTypes.add(Parameter(it.identifierNode.identifier, t))
@@ -105,21 +100,13 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
             TypeExpressionTypeResolver(node.returnTypeNode, binding)
                 .resolve(environment, context)
                 .evaluate(context) as ValuePositionType
-//            context.getTypeByPath(node.returnTypeNode.getPath()) as ValuePositionType
         }
 
         node.returnTypeNode?.annotate(returnType, Annotations.Type)
 
-        val funcType = if (isInstanceMethod) {
-            InstanceSignature(
-                node.identifierNode.identifier,
-                Parameter(receiver.identifierNode.identifier, receiverType),
-                argTypes,
-                returnType
-            )
-        } else {
-            TypeSignature(node.identifierNode.identifier, receiverType, argTypes, returnType)
-        }
+        // NOTE - Decided to erase the difference between Type & Instance methods here.
+        //  From this point, the compiler sees instance methods as type methods with an extra "self" param
+        val funcType = TypeSignature(node.identifierNode.identifier, receiverType, argTypes, returnType)
 
         node.annotate(funcType, Annotations.Type)
 

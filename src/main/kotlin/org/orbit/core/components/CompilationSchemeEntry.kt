@@ -7,7 +7,8 @@ data class CompilationSchemeEntry(val uniqueIdentifier: String, val resultIdenti
 		val parser = CompilationSchemeEntry("Parser", "Lexer")
 		val observers = CompilationSchemeEntry("Observers", "__source__")
 		val canonicalNameResolver = CompilationSchemeEntry("NameResolverResult", "Parser")
-		val typeChecker = CompilationSchemeEntry("TypeChecker", "NameResolverResult")
+		val typeInitialisation = CompilationSchemeEntry("TypeInitialisation", "NameResolverResult")
+		val traitEnforcer = CompilationSchemeEntry("TraitEnforcer", "TypeInitialisation")
 		val mainResolver = CompilationSchemeEntry("MainResolver", "Parser")
 	}
 

@@ -20,8 +20,11 @@ fun <A, B, C> partial(fn: (A, B) -> C, b: B) : (A) -> C {
     }
 }
 
+infix fun <A, B, C> ((A, B) -> C).apply(b: B) : (A) -> C
+    = partial(this, b)
+
 // Same as partial, but allows different ordering of args
-fun <A, B, C> partialAlt(fn: (A, B) -> C, a: A) : (B) -> C {
+fun <A, B, C> partialReverse(fn: (A, B) -> C, a: A) : (B) -> C {
     return {
         fn(a, it)
     }
@@ -39,7 +42,7 @@ fun <A, B, C, D, E> partial(fn: (A, B, C, D) -> E, b: B, c: C, d: D) : (A) -> E 
     }
 }
 
-fun <A, B, C, D> partialAlt(fn: (A, B, C) -> D, a: A, b: B) : (C) -> D {
+fun <A, B, C, D> partialReverse(fn: (A, B, C) -> D, a: A, b: B) : (C) -> D {
     return {
         fn(a, b, it)
     }
@@ -72,3 +75,46 @@ fun String.pluralise(count: Int) : String = when (count) {
 }
 
 fun String.toPath(mangler: Mangler = OrbitMangler) : Path = mangler.unmangle(this)
+
+fun <T> Collection<T>.startsWith(element: T) : Boolean {
+    return firstOrNull() == element
+}
+
+fun <T> Collection<T>.endsWith(element: T) : Boolean {
+    return lastOrNull() == element
+}
+
+fun <T, U> T.pairMap(transform: (T) -> U) : Pair<T, U> {
+    val transformedValue = transform(this)
+    return Pair(this, transformedValue)
+}
+
+fun <T, U> Collection<T>.pairMapAll(transform: (T) -> U) : List<Pair<T, U>> {
+    return map { it.pairMap(transform) }
+}
+
+fun <T, U> Collection<T>.flatPairMap(transform: (T) -> List<U>) : List<Pair<T, U>> = flatMap { elem ->
+    transform(elem).map { Pair(elem, it) }
+}
+
+fun <T, U, V> Pair<T, U>.flatten(into: (T, U) -> V) : V {
+    return into(first, second)
+}
+
+fun <T, U, V> Pair<T, U>.unflatten(into: (U, T) -> V) : V {
+    return into(second, first)
+}
+
+fun <T, U> Pair<T, U>.reverseFlatten() : Pair<U, T> {
+    return Pair(second, first)
+}
+
+fun <T, U> Collection<T>.cartesian(other: Collection<U>) : Collection<Pair<T, U>> {
+    return flatMap { lhs ->
+        other.map { rhs -> lhs to rhs }
+    }
+}
+
+fun <T> Collection<T>.cartesian() : Collection<Pair<T, T>> {
+    return flatMap { a -> map { b -> Pair(a, b) } }
+}

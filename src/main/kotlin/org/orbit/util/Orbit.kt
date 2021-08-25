@@ -31,7 +31,6 @@ import org.orbit.frontend.phase.Lexer
 import org.orbit.frontend.phase.ObserverPhase
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ProgramRule
-import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.components.Scope
 import org.orbit.graph.components.ScopeIdentifier
@@ -40,7 +39,9 @@ import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.*
-import org.orbit.types.phase.TypeChecker
+import org.orbit.types.phase.TraitEnforcer
+import org.orbit.types.phase.TypeAssistant
+import org.orbit.types.phase.TypeInitialisation
 import java.io.*
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
@@ -49,7 +50,7 @@ data class OrbitLibrary(val scopes: List<Scope>, val context: Context, val graph
 	companion object : FilenameFilter {
 		fun fromInvocation(invocation: Invocation) : OrbitLibrary {
 			val names = invocation.getResult<NameResolverResult>(CompilationSchemeEntry.canonicalNameResolver)
-			val context = invocation.getResult<Context>(CompilationSchemeEntry.typeChecker)
+			val context = invocation.getResult<Context>(CompilationSchemeEntry.typeInitialisation)
 
 			return OrbitLibrary(names.environment.scopes, context, names.graph)
 		}
@@ -313,7 +314,8 @@ class Build : CliktCommand(), KoinComponent {
 				compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
 				compilerGenerator[CompilationSchemeEntry.observers] = ObserverPhase(invocation)
 				compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
-				compilerGenerator[CompilationSchemeEntry.typeChecker] = TypeChecker(invocation)
+				compilerGenerator[CompilationSchemeEntry.typeInitialisation] = TypeInitialisation(invocation)
+				compilerGenerator[CompilationSchemeEntry.traitEnforcer] = TraitEnforcer()
 				compilerGenerator[CompilationSchemeEntry.mainResolver] = MainResolver
 
 				compilationEventBus.events.registerObserver {
@@ -326,6 +328,10 @@ class Build : CliktCommand(), KoinComponent {
 				}
 
 				compilerGenerator.run(CompilationScheme)
+
+				val typeAssistant = invocation.getResult<TypeAssistant>("__type_assistant__")
+
+				println(typeAssistant.dump())
 
 				val parserResult = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser)
 

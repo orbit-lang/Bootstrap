@@ -2,9 +2,12 @@ package org.orbit.types.components
 
 import org.json.JSONObject
 import org.orbit.serial.Serial
+import org.orbit.util.AnyPrintable
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
 import java.io.Serializable
 
-interface TypeProtocol : Serial, Serializable {
+interface TypeProtocol : Serial, Serializable, AnyPrintable {
     val name: String
     val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol>
 
@@ -16,6 +19,9 @@ interface TypeProtocol : Serial, Serializable {
         json.put("type.meta", javaClass.simpleName)
         json.put("type.name", name)
     }
+
+    override fun toString(printer: Printer): String
+        = printer.apply(name, PrintableKey.Bold, PrintableKey.Italics)
 }
 
 typealias TypeProtocolPair = Pair<TypeProtocol, TypeProtocol>

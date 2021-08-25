@@ -82,7 +82,7 @@ class IdentifierUnit(override val node: IdentifierNode, override val depth: Int)
 }
 
 class ConstructorUnit(override val node: ConstructorNode, override val depth: Int) : CodeUnit<ConstructorNode>, KoinComponent {
-    private val context: Context by injectResult(CompilationSchemeEntry.typeChecker)
+    private val context: Context by injectResult(CompilationSchemeEntry.typeInitialisation)
     private val invocation: Invocation by inject()
 
     override fun generate(mangler: Mangler): String {

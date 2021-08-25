@@ -22,6 +22,10 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 		object Method : Kind
 		object TypeProjection : Projection
 
+		fun getName() : String {
+			return javaClass.simpleName
+		}
+
 		fun same(other: Kind) : Boolean {
 			return this::class.java == other::class.java
 		}
@@ -32,9 +36,13 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 				val container = Union(Kind.Module, Kind.Api)
 				val entity = Union(Union(Kind.Type, Kind.Trait), Kind.TypeAlias)
 				val entityOrMethod = Union(entity, Kind.Method)
-				val receiver = Union(entityOrMethod, Union(Kind.Module, anyEntityConstructor))
+				val receiver = Union(entityOrMethod,anyEntityConstructor)
 				val entityOrConstructor = Union(entity, anyEntityConstructor)
 				val entityMethodOrConstructor = Union(entityOrMethod, anyEntityConstructor)
+			}
+
+			override fun getName(): String {
+				return "${left.getName()} | ${right.getName()}"
 			}
 
 			override fun same(other: Kind): Boolean {

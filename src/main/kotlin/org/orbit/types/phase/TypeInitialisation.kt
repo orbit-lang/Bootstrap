@@ -8,14 +8,11 @@ import org.orbit.core.nodes.*
 import org.orbit.core.phase.AdaptablePhase
 import org.orbit.frontend.phase.Parser
 import org.orbit.graph.components.Binding
-import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Scope
 import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.*
 import org.orbit.types.typeresolvers.*
 import org.orbit.util.*
-import java.awt.print.Printable
-import java.lang.RuntimeException
 
 class Stack<T> {
     private val storage = mutableListOf<T>()
@@ -113,9 +110,27 @@ class ResolveEntityProperties<N: EntityDefNode, E: Entity>(private val node: N) 
     }
 }
 
+class ResolverTraitConformance(private val node: TypeDefNode) : TypeAction {
+    private var type: Type? = null
+    private var traits: List<Trait> = emptyList()
+
+    override fun execute(context: Context) {
+        type = context.getTypeByPath(node.getPath()) as Type
+        traits = node.traitConformances.map { context.getTypeByPath(it.getPath()) as Trait }
+
+        val nType = Type(node.getPath(), type!!.typeParameters, type!!.properties, traits, type!!.equalitySemantics, false)
+
+        context.remove(type!!.name)
+        context.add(nType)
+    }
+
+    override fun describe(printer: Printer): String {
+        return "Resolving trait conformance for type ${type!!.name}:\n\t\t(${traits!!.joinToString(", ", transform = { it.toString(printer) })})"
+    }
+}
+
 class CreateMethodSignature(private val node: MethodSignatureNode, private val moduleNode: ModuleNode) : TypeAction, KoinComponent {
     private val nameResolverResult: NameResolverResult by injectResult(CompilationSchemeEntry.canonicalNameResolver)
-    private val printer: Printer by inject()
     private var result: SignatureProtocol<*>? = null
 
     override fun execute(context: Context) {
@@ -180,7 +195,7 @@ class TypeAssistant(private val context: Context) : KoinComponent {
     }
 }
 
-class TypeChecker(override val invocation: Invocation, private val context: Context = Context()) : AdaptablePhase<NameResolverResult, Context>() {
+class TypeInitialisation(override val invocation: Invocation, private val context: Context = Context()) : AdaptablePhase<NameResolverResult, Context>() {
     override val inputType: Class<NameResolverResult> = NameResolverResult::class.java
     override val outputType: Class<Context> = Context::class.java
 
@@ -196,9 +211,20 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
             .forEach(typeAssistant::perform)
     }
 
-    private fun createMethodSignatures(nodes: List<MethodSignatureNode>, moduleNode: ModuleNode) {
-        nodes.map { CreateMethodSignature(it, moduleNode) }
+    private fun resolveTraitConformance(nodes: List<TypeDefNode>) {
+        nodes.map(::ResolverTraitConformance)
             .forEach(typeAssistant::perform)
+    }
+
+    private fun createMethodSignatures(nodes: List<ModuleNode>) {
+        for (node in nodes) {
+            val signatures = node.search(MethodSignatureNode::class.java)
+
+            for (sig in signatures) {
+                val typeAction = CreateMethodSignature(sig, node)
+                typeAssistant.perform(typeAction)
+            }
+        }
     }
 
     private fun finaliseModules(nodes: List<ModuleNode>) {
@@ -225,18 +251,115 @@ class TypeChecker(override val invocation: Invocation, private val context: Cont
         resolveEntityProperties<TypeDefNode, Type>(typeDefs)
         resolveEntityProperties<TraitDefNode, Trait>(traitDefs)
 
-        moduleDefs.forEach {
-            val methodDefs = it.search(MethodSignatureNode::class.java)
+        resolveTraitConformance(typeDefs)
 
-            createMethodSignatures(methodDefs, it)
-        }
-
+        createMethodSignatures(moduleDefs)
         finaliseModules(moduleDefs)
 
-        invocation.storeResult(CompilationSchemeEntry.typeChecker, context)
+        invocation.storeResult(CompilationSchemeEntry.typeInitialisation, context)
         invocation.storeResult("__type_assistant__", typeAssistant)
 
         return context
+    }
+}
+
+sealed class TraitPropertyResult : Semigroup<TraitPropertyResult> {
+    object None : TraitPropertyResult()
+    data class Exists(val property: Property) : TraitPropertyResult()
+    data class Missing(val type: Type, val trait: Trait, val property: Property) : TraitPropertyResult()
+    data class Duplicate(val type: Type, val property: Property) : TraitPropertyResult()
+    data class SuccessGroup(val properties: List<Property>) : TraitPropertyResult()
+    data class FailureGroup(val results: List<TraitPropertyResult>) : TraitPropertyResult()
+
+    // NOTE - Exists results get erased if you try to add them to a failure case because they will never be used
+    //  if something is wrong with Trait conformance for this type
+    override fun plus(other: TraitPropertyResult): TraitPropertyResult = when {
+        this is None && other is None -> None
+        other is None -> this
+        this is None -> other
+
+        this is Duplicate && other is Duplicate -> when (this) {
+            other -> this
+            else -> FailureGroup(listOf(this, other))
+        }
+
+        this is Exists && other is Exists -> SuccessGroup(listOf(this.property, other.property))
+        this is Exists -> FailureGroup(listOf(other))
+
+        this is SuccessGroup && other is Exists -> SuccessGroup(this.properties + other.property)
+        this is SuccessGroup -> other
+
+        this is FailureGroup && other is Exists -> this
+        this is FailureGroup -> FailureGroup(this.results + other)
+
+        else -> FailureGroup(listOf(this, other))
+    }
+}
+
+class TraitEnforcer : AdaptablePhase<Context, Context>(), KoinComponent {
+    override val inputType: Class<Context> = Context::class.java
+    override val outputType: Class<Context> = Context::class.java
+
+    override val invocation: Invocation by inject()
+
+    private fun mapResult(type: Type, pair: Pair<Trait, Property>) : TraitPropertyResult {
+        val matches = type.properties.filter { it.name == pair.second.name }
+
+        return when (matches.count()) {
+            0 -> TraitPropertyResult.Missing(type, pair.first, pair.second)
+            1 -> TraitPropertyResult.Exists(pair.second)
+            else -> TraitPropertyResult.Duplicate(type, pair.second)
+        }
+    }
+
+    private fun enforce(type: Type, module: Module) {
+        // Get the superset of distinct pairs of Trait0.properties x TraitN.properties
+        val allProperties = type.traitConformance
+            .flatPairMap(Trait::properties)
+
+        val cartesianProperties = allProperties
+            .cartesian()
+            .filter { it.first != it.second }
+
+        // Ensure there are no conflicting property definitions across multiple Traits
+        for (pair in cartesianProperties) {
+            // TODO - For now, a conflict is any two distinct properties with the same name
+            // NOTE - This is a different error than implementing a required property more than once for a single type!
+            //  This is specifically if 2 or more Traits declare identical properties, e.g.:
+            //      trait A(x Int)
+            //      trait B(x Int)
+//            if (pair.first.second.name == pair.second.second.name) {
+//                throw invocation.error<TraitEnforcer>(DuplicateTraitProperty(type, pair.first.first, pair.second.first, pair.first.second, pair.second.second))
+//            }
+        }
+
+        val propertiesResult = allProperties
+            .map(partialReverse(::mapResult, type))
+            .fold(TraitPropertyResult.None)
+
+        when (propertiesResult) {
+            is TraitPropertyResult.FailureGroup, is TraitPropertyResult.Missing, is TraitPropertyResult.Duplicate ->
+                throw invocation.error<TraitEnforcer>(TraitEnforcerPropertyErrors(propertiesResult))
+
+            else -> {}
+        }
+    }
+
+    private fun enforceAll(module: Module) {
+        /**
+         * The rules here are simple for now; if a Type A declares conformance to a Trait B, then:
+         *      1. A's set of declared properties must contain AT LEAST all of those declared by B; and
+         *      2. A must implement all methods declared in B
+         */
+        module.entities.filterIsInstance<Type>()
+            .forEach { enforce(it, module) }
+    }
+
+    override fun execute(input: Context): Context {
+        input.types.filterIsInstance<Module>()
+            .forEach(::enforceAll)
+
+        return input
     }
 }
 
