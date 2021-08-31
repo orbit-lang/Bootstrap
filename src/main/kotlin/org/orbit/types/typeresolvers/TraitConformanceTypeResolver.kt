@@ -17,7 +17,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
-import org.orbit.types.phase.TypeInitialisation
+import org.orbit.types.phase.TypeSystem
 import org.orbit.util.DuplicateTraitConformance
 import org.orbit.util.Invocation
 import org.orbit.util.error
@@ -36,7 +36,7 @@ class TypeProjectionTypeResolver(override val node: TypeProjectionNode, override
         val trait = context.getTypeByPath(traitPath) as Trait
 
         if (type.traitConformance.contains(trait)) {
-            throw invocation.error<TypeInitialisation>(DuplicateTraitConformance(trait, type))
+            throw invocation.error<TypeSystem>(DuplicateTraitConformance(trait, type))
         }
 
         val nType = Type(type.name, type.typeParameters, type.properties, type.traitConformance + trait, type.equalitySemantics, type.isRequired)
@@ -66,7 +66,7 @@ class TraitConformanceTypeResolver(override val node: TypeDefNode, override val 
                 .resolve(environment, context)
                 .evaluate(context)
                 as? Trait
-                ?: throw invocation.make<TypeInitialisation>("Types may only declare conformance to Traits, found ${traitPath.toString(
+                ?: throw invocation.make<TypeSystem>("Types may only declare conformance to Traits, found ${traitPath.toString(
                     OrbitMangler
                 )} which is not a Trait", node)
 
@@ -116,7 +116,7 @@ class TraitConformanceTypeResolver(override val node: TypeDefNode, override val 
 
                 if (matches.isEmpty()) {
                     val sig = "(${partialType.name}) (${signature.parameters.joinToString(", ") { "${it.name} ${it.type.name}" }}) (${signature.returnType.name})"
-                    throw invocation.make<TypeInitialisation>("Type '${partialType.name}' declares conformance to Trait '${traitType.name}', but does not fulfill its contract. Must declare a method matching signature '$sig'", node)
+                    throw invocation.make<TypeSystem>("Type '${partialType.name}' declares conformance to Trait '${traitType.name}', but does not fulfill its contract. Must declare a method matching signature '$sig'", node)
                 }
             }
         }

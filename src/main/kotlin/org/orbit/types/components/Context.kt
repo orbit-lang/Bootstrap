@@ -43,6 +43,8 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         types.addAll(builtIns)
     }
 
+    fun <T> withSubContext(block: (Context) -> T) : T = block(Context(this))
+
     fun bind(name: String, type: TypeProtocol) {
         bindings[name] = type
         next += 1

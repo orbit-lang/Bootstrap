@@ -1,10 +1,14 @@
 module A with Orb::Types::Intrinsics {
-    trait T1(x Int)
-    trait T2(x Int)
-    trait T3(x Int)
-    type A(x Int, x Int) : T1, T2, T3
+    trait T(x Int) {
+        (self T) foo () (Int)
+    }
 
-    (self A) a () (A) {
-        return self
+    type A : T
+
+    type projection A : T
+        where x = 1
+
+    (self A) test () (Int) {
+        return self.foo()
     }
 }

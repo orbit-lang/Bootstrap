@@ -1,11 +1,12 @@
 package org.orbit.core.components
 
+import java.io.Serializable
+
 data class SourcePosition(
 	val line: Int,
 	val character: Int,
 	val absolute: Int = 0
-) {
-
+) : Serializable {
 	companion object {
 		val unknown = SourcePosition(-1, -1, -1)
 	}

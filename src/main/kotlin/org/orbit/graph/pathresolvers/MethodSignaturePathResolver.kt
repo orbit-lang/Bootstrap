@@ -6,11 +6,13 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.*
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.Invocation
 
 object TypeProjectionPathResolver : PathResolver<TypeProjectionNode> {
 	override val invocation: Invocation by inject()
+	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: TypeProjectionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
 		val typeResult = TypeExpressionPathResolver.resolve(input.typeIdentifier, pass, environment, graph)
@@ -23,6 +25,10 @@ object TypeProjectionPathResolver : PathResolver<TypeProjectionNode> {
 		input.traitIdentifier.annotate(traitResult.path, Annotations.Path)
 
 		input.annotate(typeResult.path, Annotations.Path)
+
+		// TODO - Resolve where clauses
+		input.whereNodes
+			.forEach { pathResolverUtil.resolve(it.whereStatement, pass, environment, graph) }
 
 		return typeResult
 	}

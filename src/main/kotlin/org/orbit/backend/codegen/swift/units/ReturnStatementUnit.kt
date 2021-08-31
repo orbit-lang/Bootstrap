@@ -98,9 +98,9 @@ class ConstructorUnit(override val node: ConstructorNode, override val depth: In
 
         val parameterNames = targetType.properties.map(Property::name)
 
-        val properties = parameterNames.zip(parameters).map {
+        val properties = parameterNames.zip(parameters).joinToString(", ") {
             "${it.first}: ${it.second}"
-        }.joinToString(", ")
+        }
 
         val targetTypeName = (OrbitMangler + mangler).invoke(targetType.name)
 

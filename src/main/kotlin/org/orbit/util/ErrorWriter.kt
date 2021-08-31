@@ -8,7 +8,7 @@ import org.orbit.core.phase.Phase
 import org.orbit.types.components.Property
 import org.orbit.types.components.Trait
 import org.orbit.types.components.Type
-import org.orbit.types.phase.TraitPropertyResult
+import org.orbit.types.components.TraitPropertyResult
 
 interface ErrorWriter {
     fun write(printer: Printer) : String

@@ -11,7 +11,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
-import org.orbit.types.phase.TypeInitialisation
+import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 
 class TypeAliasTypeResolver(override val node: TypeAliasNode, override val binding: Binding) : TypeResolver<TypeAliasNode, TypeAlias>, KoinComponent {
@@ -28,12 +28,12 @@ class TypeAliasTypeResolver(override val node: TypeAliasNode, override val bindi
                 val metaType = MetaType(targetType, targetType.typeParameters as List<ValuePositionType>)
 
                 val nType = metaType.evaluate(context) as? Type
-                    ?: throw invocation.make<TypeInitialisation>("Attempting to create a type alias '${node.sourceTypeIdentifier.value}' to a constructed type derived from entity constructor '${targetType.name}'", node.targetTypeIdentifier)
+                    ?: throw invocation.make<TypeSystem>("Attempting to create a type alias '${node.sourceTypeIdentifier.value}' to a constructed type derived from entity constructor '${targetType.name}'", node.targetTypeIdentifier)
 
                 TypeAlias(node.sourceTypeIdentifier.getPath().toString(OrbitMangler), nType)
             }
 
-            is TraitConstructor -> throw invocation.make<TypeInitialisation>("Attempted to create a type alias '${node.sourceTypeIdentifier.value}' to a constructed trait. Use `trait ${node.sourceTypeIdentifier.value} = ${node.targetTypeIdentifier.value}<${
+            is TraitConstructor -> throw invocation.make<TypeSystem>("Attempted to create a type alias '${node.sourceTypeIdentifier.value}' to a constructed trait. Use `trait ${node.sourceTypeIdentifier.value} = ${node.targetTypeIdentifier.value}<${
                 targetType.typeParameters.joinToString(", ") { it.name }}>` instead", node.targetTypeIdentifier)
 
             else -> TODO("???")
@@ -55,14 +55,14 @@ class TraitDefTypeResolver(override val node: TraitDefNode, override val binding
             val propertyType = context.getTypeByPath(propertyPair.getPath())
 
             if (propertyType == trait) {
-                throw invocation.make<TypeInitialisation>("Traits must not declare properties of their own type: Found property (${propertyPair.identifierNode.identifier} ${propertyType.name}) in trait ${trait.name}", propertyPair.typeExpressionNode)
+                throw invocation.make<TypeSystem>("Traits must not declare properties of their own type: Found property (${propertyPair.identifierNode.identifier} ${propertyType.name}) in trait ${trait.name}", propertyPair.typeExpressionNode)
             }
 
             if (propertyType is Entity) {
                 val cyclicProperties = propertyType.properties.filter { it.type == trait }
 
                 if (cyclicProperties.isNotEmpty()) {
-                    throw invocation.make<TypeInitialisation>("Detected cyclic definition between trait '${trait.name}' and its property (${propertyPair.identifierNode.identifier} ${propertyType.name})", propertyPair.typeExpressionNode)
+                    throw invocation.make<TypeSystem>("Detected cyclic definition between trait '${trait.name}' and its property (${propertyPair.identifierNode.identifier} ${propertyType.name})", propertyPair.typeExpressionNode)
                 }
             }
 

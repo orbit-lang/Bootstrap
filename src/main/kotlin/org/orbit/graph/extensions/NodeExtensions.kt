@@ -7,6 +7,7 @@ import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.GraphEntity
 import org.orbit.graph.components.ScopeIdentifier
 import org.orbit.serial.Serial
+import java.io.Serializable
 
 fun Node.getScopeIdentifier() : ScopeIdentifier {
     return getAnnotation<ScopeIdentifier>(Annotations.Scope)!!.value
@@ -24,7 +25,7 @@ fun Node.getGraphIDOrNull() : GraphEntity.Vertex.ID? {
     return getAnnotation<GraphEntity.Vertex.ID>(Annotations.GraphID)?.value
 }
 
-inline fun <reified T: Serial> Node.annotate(value: T, key: Annotations, mergeOnConflict: Boolean = false) {
+inline fun <reified T> Node.annotate(value: T, key: Annotations, mergeOnConflict: Boolean = false) where T: Serial, T: Serializable {
     annotateByKey(value, key.key, mergeOnConflict)
 }
 
@@ -44,6 +45,6 @@ fun Node.remove(annotation: Annotations) {
     }
 }
 
-inline fun <reified T: Serial> Node.getAnnotation(key: Annotations) : NodeAnnotation<T>? {
+inline fun <reified T> Node.getAnnotation(key: Annotations) : NodeAnnotation<T>? where T: Serial, T: Serializable {
     return getAnnotationByKey(key.key)
 }

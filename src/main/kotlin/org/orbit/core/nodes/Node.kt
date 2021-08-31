@@ -8,6 +8,7 @@ import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
 import org.orbit.util.PriorityComparator
 import org.orbit.util.prioritise
+import java.io.Serializable
 
 interface NodeAnnotationTag<T: Serial> : Serial {
 	override fun describe(json: JSONObject) {
@@ -15,7 +16,7 @@ interface NodeAnnotationTag<T: Serial> : Serial {
 	}
 }
 
-data class KeyedNodeAnnotationTag<T: Serial>(val key: String) : NodeAnnotationTag<T> {
+data class KeyedNodeAnnotationTag<T>(val key: String) : NodeAnnotationTag<T>, Serializable where T: Serial, T: Serializable {
 	override fun equals(other: Any?) : Boolean = when (other) {
 		null -> false
 		else -> {
@@ -31,9 +32,9 @@ data class KeyedNodeAnnotationTag<T: Serial>(val key: String) : NodeAnnotationTa
 	}
 }
 
-data class NodeAnnotation<T: Serial>(
+data class NodeAnnotation<T>(
 	val tag: NodeAnnotationTag<T>?,
-	val value: T) : Serial {
+	val value: T) : Serial, Serializable where T: Serial, T: Serializable {
 
 	override fun equals(other: Any?) : Boolean = when (other) {
 		null -> false
@@ -47,7 +48,9 @@ data class NodeAnnotation<T: Serial>(
 	}
 }
 
-abstract class Node(open val firstToken: Token, open val lastToken: Token) : Serial {
+interface ScopedNode
+
+abstract class Node(open val firstToken: Token, open val lastToken: Token) : Serial, Serializable {
 	interface MapFilter<N> {
 		fun filter(node: Node) : Boolean
 		fun map(node: Node) : List<N>
@@ -63,7 +66,7 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 		phaseAnnotationNodes.add(phaseAnnotationNode)
 	}
 
-	inline fun <reified T: Serial> annotate(value: T, tag: NodeAnnotationTag<T>, mergeOnConflict: Boolean = false) {
+	inline fun <reified T> annotate(value: T, tag: NodeAnnotationTag<T>, mergeOnConflict: Boolean = false) where T: Serial, T: Serializable {
 		val annotation = NodeAnnotation(tag, value)
 
 		if (mergeOnConflict && annotations.any { it.tag == tag }) {
@@ -73,11 +76,11 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 		annotations.add(annotation)
 	}
 
-	inline fun <reified T: Serial> annotateByKey(value: T, key: String, mergeOnConflict: Boolean = false) {
+	inline fun <reified T> annotateByKey(value: T, key: String, mergeOnConflict: Boolean = false) where T: Serial, T: Serializable {
 		annotate(value, KeyedNodeAnnotationTag(key), mergeOnConflict)
 	}
 
-	inline fun <reified T: Serial> getAnnotation(tag: NodeAnnotationTag<T>) : NodeAnnotation<T>? {
+	inline fun <reified T> getAnnotation(tag: NodeAnnotationTag<T>) : NodeAnnotation<T>? where T: Serial, T: Serializable {
 		val results = annotations
 			.filterIsInstance<NodeAnnotation<T>>()
 			.filter { it.tag == tag }
@@ -96,8 +99,8 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 		}
 	}
 
-	inline fun <reified T: Serial> getAnnotationByKey(key: String) : NodeAnnotation<T>? {
-		return getAnnotation(KeyedNodeAnnotationTag<T>(key))
+	inline fun <reified T> getAnnotationByKey(key: String) : NodeAnnotation<T>? where T: Serial, T: Serializable {
+		return getAnnotation(KeyedNodeAnnotationTag(key))
 	}
 
 	final fun getNumberOfAnnotations() : Int {
@@ -110,8 +113,14 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 		return search(N::class.java)
 	}
 
-	fun <N: Node> search(nodeType: Class<N>, priorityComparator: PriorityComparator<N>? = null) : List<N> {
+	fun <N: Node> search(nodeType: Class<N>, priorityComparator: PriorityComparator<N>? = null, ignoreScopedNodes: Boolean = false) : List<N> {
 		val matches = getChildren().filterIsInstance(nodeType)
+			.filter {
+				when (ignoreScopedNodes && it is ScopedNode) {
+					true -> false
+					else -> true
+				}
+			}
 
 		return matches + getChildren().flatMap { it.search(nodeType) }
 			.prioritise(priorityComparator)

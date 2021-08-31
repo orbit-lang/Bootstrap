@@ -42,6 +42,7 @@ object TokenTypes : TokenTypeProvider {
     // NOTE - This is kind of dirty, but if we want arbitrary keywords, we need a way to make the lexer
     // avoid recognising them in regular identifiers, e.g. a variable named "observeSomething"
     object Observe : TokenType("Observer", "observe ", true, false, Family.Keyword)
+    object Where : TokenType("Where", "where", true, false, Family.Keyword)
 
     // Literals
     object Int : TokenType("Int", "[0-9]+", true, false, Family.Num)
@@ -55,7 +56,7 @@ object TokenTypes : TokenTypeProvider {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Int, Real, Api, Module, Define, Defer, Observe, Print, Required, Projection, Extension, Constructor,
+            Int, Real, Api, Module, Define, Defer, Observe, Where, Print, Required, Projection, Extension, Constructor,
             TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,

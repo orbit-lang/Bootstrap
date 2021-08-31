@@ -11,7 +11,7 @@ import org.orbit.types.components.AnyEquality
 import org.orbit.types.components.Context
 import org.orbit.types.components.TypeInferenceUtil
 import org.orbit.types.components.TypeProtocol
-import org.orbit.types.phase.TypeInitialisation
+import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 
 class MethodBodyTypeResolver(override val node: BlockNode, override val binding: Binding, private val returnType: TypeProtocol) : TypeResolver<BlockNode, TypeProtocol>, KoinComponent {
@@ -36,7 +36,7 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
                     val equalitySemantics = returnType.equalitySemantics as AnyEquality
 
                     if (!equalitySemantics.isSatisfied(context, returnType, varType)) {
-                        throw invocation.make<TypeInitialisation>("Method '${binding.simpleName}' declares a return type of '${returnType.name}', found '${varType.name}'", statementNode)
+                        throw invocation.make<TypeSystem>("Method '${binding.simpleName}' declares a return type of '${returnType.name}', found '${varType.name}'", statementNode)
                     }
 
                     statementNode.valueNode.expressionNode.annotate(varType, Annotations.Type)
@@ -49,7 +49,7 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
                     if (statementNode.returnValueIdentifier != null) {
                         if (!node.containsReturn) {
                             // Defer statement is declared a return capture variable, but method does not return
-                            throw invocation.make<TypeInitialisation>("Defer blocks cannot capture return value in a method that returns implicit Unit type: 'defer(${statementNode.returnValueIdentifier!!.identifier})'", statementNode)
+                            throw invocation.make<TypeSystem>("Defer blocks cannot capture return value in a method that returns implicit Unit type: 'defer(${statementNode.returnValueIdentifier!!.identifier})'", statementNode)
                         }
 
                         // Given a `defer(i) {}` statement inside method known to return type Int,
@@ -64,7 +64,7 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
                     blockResolver.resolve(environment, localContext)
                 }
 
-                else -> throw invocation.make<TypeInitialisation>("Unsupported statement in method body: $statementNode", statementNode)
+                else -> throw invocation.make<TypeSystem>("Unsupported statement in method body: $statementNode", statementNode)
             }
         }
 

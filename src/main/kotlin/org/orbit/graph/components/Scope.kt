@@ -12,6 +12,7 @@ import org.orbit.serial.Serial
 import org.orbit.util.Fatal
 import org.orbit.util.Monoid
 import org.orbit.util.endsWith
+import org.orbit.util.partial
 import java.io.Serializable
 
 class Scope(
@@ -144,7 +145,7 @@ class Scope(
 		val path = OrbitMangler.unmangle(name)
 
 		// Get all bindings whose Path ends with name
-		var matches = all.filter { it.path.endsWith(path.last()) }
+		var matches = all.filter(partial(Binding::matches, name))
 
 		if (matches.isEmpty()) return BindingSearchResult.None(name)
 		if (matches.count() == 1) {

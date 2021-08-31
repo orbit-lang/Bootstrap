@@ -40,16 +40,52 @@ class TypeAliasUnit(override val node: TypeAliasNode, override val depth: Int) :
     }
 }
 
+class PropertyProjectionClauseUnit(override val node: AssignmentStatementNode, override val depth: Int) : CodeUnit<AssignmentStatementNode> {
+    override fun generate(mangler: Mangler): String {
+        val rhsUnit = ExpressionUnit(node.value, depth)
+        val rhsType = node.value.getType()
+        val rhsTypeName = (OrbitMangler + mangler).invoke(rhsType.name)
+        val rhsValue = rhsUnit.generate(mangler)
+        val propertyName = node.identifier.identifier
+
+        val header = "/* where propertyName = $rhsValue */"
+
+        return """
+            |$header
+            |var $propertyName: $rhsTypeName {
+            |   return $rhsValue
+            |}
+        """.trimMargin()
+            .prependIndent(indent())
+    }
+}
+
+class ProjectionWhereClauseUnit(override val node: WhereClauseNode, override val depth: Int) : CodeUnit<WhereClauseNode> {
+    override fun generate(mangler: Mangler): String {
+        val clauseUnit = when (node.whereStatement) {
+            is AssignmentStatementNode -> PropertyProjectionClauseUnit(node.whereStatement, depth)
+            else -> TODO("ProjectionWhereClause")
+        }
+
+        return clauseUnit.generate(mangler)
+    }
+}
+
 class TypeProjectionUnit(override val node: TypeProjectionNode, override val depth: Int) : CodeUnit<TypeProjectionNode> {
     override fun generate(mangler: Mangler): String {
         val typePath = node.typeIdentifier.getPath()
         val traitPath = node.traitIdentifier.getPath()
 
         val header = "/* type projection ${typePath.toString(OrbitMangler)} : ${traitPath.toString(OrbitMangler)} */"
+        val clauses = node.whereNodes
+            .map(partial(::ProjectionWhereClauseUnit, depth + 1))
+            .joinToString(newline(), transform = partial(ProjectionWhereClauseUnit::generate, mangler))
 
         return """
             |$header
-            |extension ${typePath.toString(mangler)} : ${traitPath.toString(mangler)} {}
+            |extension ${typePath.toString(mangler)} : ${traitPath.toString(mangler)} {
+            |$clauses
+            |}
         """.trimMargin()
             .prependIndent(indent())
     }

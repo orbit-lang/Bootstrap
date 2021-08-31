@@ -1,6 +1,8 @@
 package org.orbit.types.components
 
 import org.json.JSONObject
+import org.orbit.core.nodes.ExpressionNode
+import org.orbit.core.nodes.RValueNode
 import org.orbit.serial.Serialiser
 import org.orbit.util.AnyPrintable
 import org.orbit.util.PrintableKey
@@ -13,7 +15,8 @@ interface TypeEqualityUtil<T: TypeProtocol> {
 
 data class Property(
     override val name: String,
-    val type: TypeProtocol
+    val type: TypeProtocol,
+    val defaultValue: ExpressionNode? = null
 ) : TypeProtocol, AnyPrintable {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = type.equalitySemantics
 

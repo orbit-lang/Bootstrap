@@ -40,8 +40,8 @@ import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.*
 import org.orbit.types.phase.TraitEnforcer
-import org.orbit.types.phase.TypeAssistant
-import org.orbit.types.phase.TypeInitialisation
+import org.orbit.types.util.TypeAssistant
+import org.orbit.types.phase.TypeSystem
 import java.io.*
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
@@ -314,7 +314,7 @@ class Build : CliktCommand(), KoinComponent {
 				compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
 				compilerGenerator[CompilationSchemeEntry.observers] = ObserverPhase(invocation)
 				compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
-				compilerGenerator[CompilationSchemeEntry.typeInitialisation] = TypeInitialisation(invocation)
+				compilerGenerator[CompilationSchemeEntry.typeInitialisation] = TypeSystem(invocation)
 				compilerGenerator[CompilationSchemeEntry.traitEnforcer] = TraitEnforcer()
 				compilerGenerator[CompilationSchemeEntry.mainResolver] = MainResolver
 

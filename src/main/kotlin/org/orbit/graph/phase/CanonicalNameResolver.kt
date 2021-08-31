@@ -1,6 +1,5 @@
 package org.orbit.graph.phase
 
-import com.sun.xml.internal.txw2.NamespaceResolver
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -15,15 +14,16 @@ import org.orbit.core.phase.AdaptablePhase
 import org.orbit.core.phase.Phase
 import org.orbit.frontend.phase.Parser
 import org.orbit.graph.components.*
-import org.orbit.graph.pathresolvers.PathResolver
-import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getAnnotation
-import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.extensions.getScopeIdentifier
+import org.orbit.graph.pathresolvers.PathResolver
+import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.serial.Serial
 import org.orbit.util.*
+import java.io.Serializable
 import java.util.*
+import java.util.Stack
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -54,7 +54,7 @@ data class NameResolverInput(val parserResult: Parser.Result, val environment: E
 data class NameResolverResult(val environment: Environment, val graph: Graph)
 
 @JvmInline
-value class SerialBool(val flag: Boolean) : Serial {
+value class SerialBool(val flag: Boolean) : Serial, Serializable {
 	override fun describe(json: JSONObject) {
 		TODO("Not yet implemented")
 	}
@@ -181,7 +181,8 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 
 				pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Subsequent(2), input.environment, input.graph)
 
-				val path = nextContainer.getPathOrNull() ?: TODO("HERE")
+				val path = nextContainer.getPathOrNull()
+					?: TODO("HERE")
 				val id = input.graph.insert(path.toString(OrbitMangler))
 
 				nextContainer.annotate(id, Annotations.GraphID)

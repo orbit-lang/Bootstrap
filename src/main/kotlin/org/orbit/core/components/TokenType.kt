@@ -1,13 +1,16 @@
 package org.orbit.core.components
 
+import org.orbit.serial.Serial
+import java.io.Serializable
+
 abstract class TokenType(
 	val identifier: String,
 	val pattern: String,
 	val ignoreWhitespace: Boolean,
 	val isWhitespace: Boolean,
 	val family: Family
-) {
-	enum class Family {
+) : Serializable {
+	enum class Family : Serializable {
 		Keyword, Id, Op, Enclosing, White, Comment, Num;
 	}
 

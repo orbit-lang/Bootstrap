@@ -8,10 +8,7 @@ import org.orbit.core.Path
 import org.orbit.core.getPath
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.core.nodes.TypeDefNode
-import org.orbit.util.Invocation
-import org.orbit.util.Printer
-import org.orbit.util.pluralise
-import org.orbit.util.toPath
+import org.orbit.util.*
 
 abstract class Entity(
     override val name: String,
@@ -52,7 +49,7 @@ data class Type(override val name: String, val typeParameters: List<ValuePositio
         : this(node.getPath())
 }
 
-data class Trait(override val name: String, val typeParameters: List<ValuePositionType> = emptyList(), override val properties: List<Property> = emptyList(), override val traitConformance: List<Trait> = emptyList(), val signatures: List<SignatureProtocol<*>> = emptyList(), override val equalitySemantics: Equality<Trait, Type> = StructuralEquality, val implicit: Boolean = false) : Entity(name, properties, traitConformance, equalitySemantics) {
+data class Trait(override val name: String, val typeParameters: List<ValuePositionType> = emptyList(), override val properties: List<Property> = emptyList(), override val traitConformance: List<Trait> = emptyList(), val signatures: List<SignatureProtocol<*>> = emptyList(), override val equalitySemantics: Equality<Trait, Type> = TraitConformanceEquality, val implicit: Boolean = false) : Entity(name, properties, traitConformance, equalitySemantics) {
     constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Trait, Type> = StructuralEquality, implicit: Boolean = false)
         : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, signatures, equalitySemantics, implicit)
 
@@ -148,7 +145,7 @@ interface SignatureProtocol<T: TypeProtocol> : ValuePositionType {
         val params = parameters.joinToString(", ") { it.toString(printer) }
 
         return """
-            (${receiver.toString(printer)}) $name ($params) (${returnType.toString(printer)})
+            (${receiver.toString(printer)}) ${printer.apply(name, PrintableKey.Italics)} ($params) (${returnType.toString(printer)})
         """.trimIndent()
     }
 }

@@ -19,7 +19,7 @@ class ConstructorPathResolver : PathResolver<ConstructorNode> {
 		return when (binding) {
 			is Scope.BindingSearchResult.Success -> {
 				input.typeExpressionNode.annotate(binding.result.path, Annotations.Path)
-
+				input.annotate(binding.result.path, Annotations.Path)
 				// Resolver parameters
 				input.parameterNodes.forEach { pathResolverUtil.resolve(it, pass, environment, graph) }
 

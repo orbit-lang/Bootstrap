@@ -4,6 +4,7 @@ import org.orbit.core.components.Token
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.annotate
 import org.orbit.serial.Serial
+import java.io.Serializable
 
 data class MethodSignatureNode(
     override val firstToken: Token,
@@ -30,7 +31,7 @@ data class MethodSignatureNode(
 		returnTypeNode
 	)
 
-	inline fun <reified T: Serial> annotateParameter(idx: Int, value: T, tag: Annotations) {
+	inline fun <reified T> annotateParameter(idx: Int, value: T, tag: Annotations) where T: Serial, T: Serializable {
 		parameterNodes[idx].annotate(value, tag)
 	}
 

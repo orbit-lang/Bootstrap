@@ -2,6 +2,7 @@ package org.orbit.graph.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.util.endsWith
 import java.io.Serializable
 
 data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Serializable {
@@ -53,6 +54,12 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 
 	companion object {
 		val Self = Binding(Kind.Self, "Self", Path.self)
+	}
+
+	fun matches(name: String) : Boolean = when (kind) {
+		// If this binding represents a signature, match on the method name rather than last component
+		Kind.Method -> name == path.toString(OrbitMangler) || path.first { it.first().isLowerCase() } == name
+		else -> name == path.toString(OrbitMangler) || path.endsWith(name)
 	}
 
 	override fun equals(other: Any?) : Boolean = when (other) {

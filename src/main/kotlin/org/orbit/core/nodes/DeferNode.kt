@@ -7,7 +7,7 @@ data class DeferNode(
     override val lastToken: Token,
     val returnValueIdentifier: IdentifierNode?,
     val blockNode: BlockNode
-) : Node(firstToken, lastToken) {
+) : Node(firstToken, lastToken), ScopedNode {
     override fun getChildren(): List<Node> {
         return when (returnValueIdentifier) {
             null -> listOf(blockNode)

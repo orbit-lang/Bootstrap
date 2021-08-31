@@ -13,7 +13,7 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.TypeInferenceUtil
-import org.orbit.types.phase.TypeInitialisation
+import org.orbit.types.phase.TypeSystem
 import java.lang.Exception
 
 class Repl {
@@ -22,7 +22,7 @@ class Repl {
     private val replRule = ExpressionRule.defaultValue
     private val parser = Parser(invocation, replRule, isRepl = true)
     private val nameResolver = CanonicalNameResolver(invocation)
-    private val typeInitialiser = TypeInitialisation(invocation)
+    private val typeInitialiser = TypeSystem(invocation)
 
     private fun read() : String {
         kotlin.io.print(">> ")

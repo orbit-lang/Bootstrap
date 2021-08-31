@@ -14,7 +14,7 @@ import org.orbit.graph.components.Environment
 import org.orbit.types.components.Api
 import org.orbit.types.components.Context
 import org.orbit.types.components.Module
-import org.orbit.types.phase.TypeInitialisation
+import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
@@ -62,9 +62,9 @@ class ApiConformanceTypeResolver(override val node: ModuleNode, override val bin
                     val clause = printer.apply("required type ${requiredPath.relativeNames.last()}", PrintableKey.Italics)
 
                     if (matches.isEmpty()) {
-                        throw invocation.make<TypeInitialisation>("Module '${module.name}' declares conformance to Api '${api.name}', but does not satisfy the following clause:\n\t\t$clause", node)
+                        throw invocation.make<TypeSystem>("Module '${module.name}' declares conformance to Api '${api.name}', but does not satisfy the following clause:\n\t\t$clause", node)
                     } else if (matches.count() > 1) {
-                        throw invocation.make<TypeInitialisation>("Module '${module.name}' duplicate type aliases for the single clause:\n\t\t$clause", node)
+                        throw invocation.make<TypeSystem>("Module '${module.name}' duplicate type aliases for the single clause:\n\t\t$clause", node)
                     }
                 }
             }

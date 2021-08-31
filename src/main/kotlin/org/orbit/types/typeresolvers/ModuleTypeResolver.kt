@@ -10,7 +10,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
-import org.orbit.types.phase.TypeInitialisation
+import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
@@ -34,7 +34,7 @@ class ModuleTypeResolver(override val node: ModuleNode, override val binding: Bi
 
                 if (targetType.isRequired) {
                     val code = printer.apply("type ${it.sourceTypeIdentifier.value} = ${targetType.name}", PrintableKey.Italics)
-                    throw invocation.make<TypeInitialisation>("Right-hand side of a type alias cannot be a required type:\n\t\t$code", it)
+                    throw invocation.make<TypeSystem>("Right-hand side of a type alias cannot be a required type:\n\t\t$code", it)
                 }
 
                 TypeAlias(it.sourceTypeIdentifier.value, targetType)

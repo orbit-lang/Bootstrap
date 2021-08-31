@@ -1,6 +1,7 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
+import java.io.Serializable
 
 abstract class TypeExpressionNode(firstToken: Token, lastToken: Token, value: String)
 	: LiteralNode<String>(firstToken, lastToken, value)

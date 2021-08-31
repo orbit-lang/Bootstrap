@@ -3,7 +3,7 @@ package org.orbit.types.components
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
-import org.orbit.types.phase.TypeInitialisation
+import org.orbit.types.phase.TypeSystem
 import org.orbit.util.*
 import java.io.Serializable
 
@@ -12,6 +12,12 @@ interface Equality<S: TypeProtocol, T: TypeProtocol> : Serializable {
 }
 
 typealias AnyEquality = Equality<TypeProtocol, TypeProtocol>
+
+object TraitConformanceEquality : Equality<Trait, Type> {
+    override fun isSatisfied(context: Context, source: Trait, target: Type): Boolean {
+        return target.traitConformance.contains(source)
+    }
+}
 
 object NominalEquality : Equality<Entity, Entity> {
     override fun isSatisfied(context: Context, source: Entity, target: Entity): Boolean {
@@ -43,7 +49,7 @@ object StructuralEquality : Equality<Trait, Type>, KoinComponent {
 //        }
 
         // TODO - Signatures
-        val propertyContracts = target.drawPropertyContracts()
+        val propertyContracts = source.drawPropertyContracts()
 
         return /*explicitDeclaration &&*/ target.executeContracts(context, propertyContracts)
     }
@@ -87,11 +93,11 @@ object SignatureEquality : Equality<SignatureProtocol<TypeProtocol>, SignaturePr
             val typeB = context.refresh(it.value.second.type)
 
             if (!typeA.isSatisfied(context, typeB)) {
-                throw invocation.make<TypeInitialisation>("Method '${source.name}' declares a parameter '(${it.value.first.name} ${it.value.first.type.name})' at position ${it.index}, found '(${it.value.second.name} ${it.value.second.type.name})'", SourcePosition.unknown)
+                throw invocation.make<TypeSystem>("Method '${source.name}' declares a parameter '(${it.value.first.name} ${it.value.first.type.name})' at position ${it.index}, found '(${it.value.second.name} ${it.value.second.type.name})'", SourcePosition.unknown)
             }
 
             if (nameA != nameB) {
-                throw invocation.make<TypeInitialisation>("Method '${source.name}' declares a parameter '(${it.value.first.name} ${it.value.first.type.name})' at position ${it.index}, found '(${it.value.second.name} ${it.value.second.type.name})'", SourcePosition.unknown)
+                throw invocation.make<TypeSystem>("Method '${source.name}' declares a parameter '(${it.value.first.name} ${it.value.first.type.name})' at position ${it.index}, found '(${it.value.second.name} ${it.value.second.type.name})'", SourcePosition.unknown)
             }
 
             true
