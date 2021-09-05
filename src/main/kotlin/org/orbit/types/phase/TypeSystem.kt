@@ -7,10 +7,13 @@ import org.orbit.core.phase.AdaptablePhase
 import org.orbit.core.storeResult
 import org.orbit.frontend.phase.Parser
 import org.orbit.graph.phase.NameResolverResult
+import org.orbit.graph.phase.measureTimeWithResult
 import org.orbit.types.components.*
 import org.orbit.types.typeactions.*
 import org.orbit.types.util.TypeAssistant
 import org.orbit.util.Invocation
+import kotlin.contracts.ExperimentalContracts
+import kotlin.time.ExperimentalTime
 
 class TypeSystem(override val invocation: Invocation, private val context: Context = Context()) : AdaptablePhase<NameResolverResult, Context>() {
     override val inputType: Class<NameResolverResult> = NameResolverResult::class.java
@@ -20,6 +23,11 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
 
     private fun <N: Node, T: TypeProtocol> createStubs(nodes: List<N>, stubConstructor: (N) -> CreateStub<N, T>) {
         nodes.map(stubConstructor)
+            .forEach(typeAssistant::perform)
+    }
+
+    private fun createTypeAliases(nodes: List<TypeAliasNode>) {
+        nodes.map(::CreateTypeAlias)
             .forEach(typeAssistant::perform)
     }
 
@@ -35,6 +43,11 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
 
     private fun resolveTraitConformance(nodes: List<TypeDefNode>) {
         nodes.map(::ResolveTraitConformance)
+            .forEach(typeAssistant::perform)
+    }
+
+    private fun resolveTypeConstructorParameters(nodes: List<TypeConstructorNode>) {
+        nodes.map(::ResolveTypeConstructorTypeParameters)
             .forEach(typeAssistant::perform)
     }
 
@@ -68,38 +81,52 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             .forEach(typeAssistant::perform)
     }
 
+    @ExperimentalContracts
+    @ExperimentalTime
     override fun execute(input: NameResolverResult) : Context {
-        val ast = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser).ast
+        val timed = measureTimeWithResult {
+            val ast = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser).ast
 
-        // Start by creating type "stubs" for all modules
-        val moduleDefs = ast.search(ModuleNode::class.java)
+            // Start by creating type "stubs" for all modules
+            val moduleDefs = ast.search(ModuleNode::class.java)
 
-        createStubs(moduleDefs, ::CreateModuleStub)
+            createStubs(moduleDefs, ::CreateModuleStub)
 
-        // Next, create "stubs" for all types & traits
-        val typeDefs = ast.search(TypeDefNode::class.java)
-        val traitDefs = ast.search(TraitDefNode::class.java)
-        val typeProjections = ast.search(TypeProjectionNode::class.java)
+            // Next, create "stubs" for all types & traits
+            val typeDefs = ast.search(TypeDefNode::class.java)
+            val traitDefs = ast.search(TraitDefNode::class.java)
+            val typeProjections = ast.search(TypeProjectionNode::class.java)
+            val typeAliases = ast.search(TypeAliasNode::class.java)
+            val typeConstructors = ast.search(TypeConstructorNode::class.java)
 
-        createStubs(typeDefs, ::CreateTypeStub)
-        createStubs(traitDefs, ::CreateTraitStub)
+            createStubs(typeDefs, ::CreateTypeStub)
+            createStubs(traitDefs, ::CreateTraitStub)
+            createStubs(typeConstructors, ::CreateTypeConstructorStub)
 
-        // We now have enough information to resolve the types of properties for each type & trait
-        resolveEntityProperties<TypeDefNode, Type>(typeDefs)
-        resolveEntityProperties<TraitDefNode, Trait>(traitDefs)
-        resolveTraitSignatures(traitDefs)
+            // We now have enough information to resolve the types of properties for each type & trait
+            resolveEntityProperties<TypeDefNode, Type>(typeDefs)
+            resolveEntityProperties<TraitDefNode, Trait>(traitDefs)
+            resolveTraitSignatures(traitDefs)
+            resolveTypeConstructorParameters(typeConstructors)
 
-        assembleTypeProjections(typeProjections)
-        resolveTraitConformance(typeDefs)
+            createTypeAliases(typeAliases)
 
-        createMethodSignatures(moduleDefs)
-        checkMethodReturnTypes(moduleDefs)
-        finaliseModules(moduleDefs)
+            assembleTypeProjections(typeProjections)
+            resolveTraitConformance(typeDefs)
 
-        invocation.storeResult(CompilationSchemeEntry.typeInitialisation, context)
-        invocation.storeResult("__type_assistant__", typeAssistant)
+            createMethodSignatures(moduleDefs)
+            checkMethodReturnTypes(moduleDefs)
+            finaliseModules(moduleDefs)
 
-        return context
+            invocation.storeResult(CompilationSchemeEntry.typeSystem, context)
+            invocation.storeResult("__type_assistant__", typeAssistant)
+
+            return@measureTimeWithResult context
+        }
+
+        println("Completed Type checking in ${timed.first}")
+
+        return timed.second
     }
 }
 

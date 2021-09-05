@@ -19,6 +19,10 @@ object TraitConformanceEquality : Equality<Trait, Type> {
     }
 }
 
+object AnyTypeEquality : Equality<Entity, Entity> {
+    override fun isSatisfied(context: Context, source: Entity, target: Entity): Boolean = true
+}
+
 object NominalEquality : Equality<Entity, Entity> {
     override fun isSatisfied(context: Context, source: Entity, target: Entity): Boolean {
         return source.name == target.name

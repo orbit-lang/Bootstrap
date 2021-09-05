@@ -23,7 +23,7 @@ object MainResolver : ReifiedPhase<Parser.Result, Main>, KoinComponent {
     override val outputType: Class<Main> = Main::class.java
 
     override val invocation: Invocation by inject()
-    private val context: Context by injectResult(CompilationSchemeEntry.typeInitialisation)
+    private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
 
     override fun execute(input: Parser.Result) : Main {
         val mainType = IntrinsicTypes.Main

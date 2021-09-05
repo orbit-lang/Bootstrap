@@ -9,7 +9,7 @@ open class CompilationScheme(entries: List<CompilationSchemeEntry>) : MutableLis
         CompilationSchemeEntry.parser,
         CompilationSchemeEntry.canonicalNameResolver,
         CompilationSchemeEntry.observers,
-        CompilationSchemeEntry.typeInitialisation,
+        CompilationSchemeEntry.typeSystem,
 		CompilationSchemeEntry.traitEnforcer,
         CompilationSchemeEntry.mainResolver
 	))

@@ -15,7 +15,11 @@ import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.TypeInferenceUtil
 import org.orbit.types.phase.TypeSystem
 import java.lang.Exception
+import kotlin.contracts.ExperimentalContracts
+import kotlin.time.ExperimentalTime
 
+@ExperimentalContracts
+@ExperimentalTime
 class Repl {
     private val invocation = Invocation(Unix)
     private val lexer = Lexer(invocation, TokenTypes)

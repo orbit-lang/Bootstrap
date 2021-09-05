@@ -1,14 +1,10 @@
-module A with Orb::Types::Intrinsics {
-    trait T(x Int) {
-        (self T) foo () (Int)
-    }
+module M with Orb::Types::Intrinsics {
+    type A
+    type constructor B<T>(x T)
 
-    type A : T
+    type Z = B<A>
 
-    type projection A : T
-        where x = 1
+    (B) foo (z B<A>) (Z) {
 
-    (self A) test () (Int) {
-        return self.foo()
     }
 }

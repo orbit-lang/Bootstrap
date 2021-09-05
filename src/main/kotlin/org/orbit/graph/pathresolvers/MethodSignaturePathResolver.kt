@@ -3,71 +3,14 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.Path
 import org.orbit.core.components.SourcePosition
-import org.orbit.core.nodes.*
-import org.orbit.graph.components.*
+import org.orbit.core.nodes.MethodSignatureNode
+import org.orbit.graph.components.Annotations
+import org.orbit.graph.components.Binding
+import org.orbit.graph.components.Environment
+import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
-import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.Invocation
-
-object TypeProjectionPathResolver : PathResolver<TypeProjectionNode> {
-	override val invocation: Invocation by inject()
-	private val pathResolverUtil: PathResolverUtil by inject()
-
-	override fun resolve(input: TypeProjectionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		val typeResult = TypeExpressionPathResolver.resolve(input.typeIdentifier, pass, environment, graph)
-			.asSuccess()
-
-		val traitResult = TypeExpressionPathResolver.resolve(input.traitIdentifier, pass, environment, graph)
-			.asSuccess()
-
-		input.typeIdentifier.annotate(typeResult.path, Annotations.Path)
-		input.traitIdentifier.annotate(traitResult.path, Annotations.Path)
-
-		input.annotate(typeResult.path, Annotations.Path)
-
-		// TODO - Resolve where clauses
-		input.whereNodes
-			.forEach { pathResolverUtil.resolve(it.whereStatement, pass, environment, graph) }
-
-		return typeResult
-	}
-}
-
-object MetaTypePathResolver : PathResolver<MetaTypeNode> {
-	override val invocation: Invocation by inject()
-
-	override fun resolve(input: MetaTypeNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		val typeConstructorResult = TypeExpressionPathResolver.resolve(input.typeConstructorIdentifier,
-			pass, environment, graph).asSuccess()
-
-		input.typeParameters.forEach { TypeExpressionPathResolver.resolve(it, pass, environment, graph) }
-
-		input.annotate(typeConstructorResult.path, Annotations.Path)
-		input.typeConstructorIdentifier.annotate(typeConstructorResult.path, Annotations.Path)
-
-		return PathResolver.Result.Success(typeConstructorResult.path)
-	}
-}
-
-object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
-	override val invocation: Invocation by inject()
-
-	override fun resolve(input: TypeExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result = when (input) {
-		is TypeIdentifierNode -> {
-			val binding = environment.getBinding(input.value, Binding.Kind.Union.entityOrConstructor)
-				.unwrap(this, input.firstToken.position)
-
-			input.annotate(binding.path, Annotations.Path)
-
-			PathResolver.Result.Success(binding.path)
-		}
-
-		is MetaTypeNode -> MetaTypePathResolver.resolve(input, pass, environment, graph)
-
-		else -> TODO("???")
-	}
-}
 
 class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 	override val invocation: Invocation by inject()
@@ -100,7 +43,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		input.returnTypeNode?.annotate(retPath.path, Annotations.Path)
 
 		val argPaths = input.parameterNodes.mapIndexed { idx, it ->
-			val result = environment.getBinding(it.typeExpressionNode.value, Binding.Kind.Union.entityOrMethod)
+			val result = environment.getBinding(it.typeExpressionNode.value, Binding.Kind.Union.entityMethodOrConstructor)
 			val binding = result.unwrap(this, it.typeExpressionNode.firstToken.position)
 
 			input.annotateParameter(idx, binding.path, Annotations.Path)

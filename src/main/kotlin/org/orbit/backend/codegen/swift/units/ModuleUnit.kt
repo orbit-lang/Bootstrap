@@ -41,18 +41,18 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
             .map(partial(::TypeDefUnit, depth))
             .joinToString(newline(2), transform = partial(TypeDefUnit::generate, mangler))
 
-        val traitDefs = node.entityDefs
-            .filterIsInstance<TraitDefNode>()
-            .map(partial(::TraitDefUnit, depth))
-            .joinToString(newline(2), transform = partial(TraitDefUnit::generate, mangler))
+//        val traitDefs = node.entityDefs
+//            .filterIsInstance<TraitDefNode>()
+//            .map(partial(::TraitDefUnit, depth))
+//            .joinToString(newline(2), transform = partial(TraitDefUnit::generate, mangler))
 
         val typeAliases = node.typeAliasNodes
             .map(partial(::TypeAliasUnit, depth))
             .joinToString(newline(2), transform = partial(TypeAliasUnit::generate, mangler))
 
-        val typeProjections = node.typeProjections
-            .map(partial(::TypeProjectionUnit, depth))
-            .joinToString(newline(2), transform = partial(TypeProjectionUnit::generate, mangler))
+//        val typeProjections = node.typeProjections
+//            .map(partial(::TypeProjectionUnit, depth))
+//            .joinToString(newline(2), transform = partial(TypeProjectionUnit::generate, mangler))
 
         val methodDefs = node.methodDefs
             .map(partial(::MethodDefUnit, depth))
@@ -64,11 +64,7 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
             |
             |$typeDefs
             |
-            |$traitDefs
-            |
             |$typeAliases
-            |
-            |$typeProjections
             |
             |$methodDefs
         """.trimMargin()

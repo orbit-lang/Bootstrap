@@ -15,6 +15,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 		object Type : Entity
 		object RequiredType : Entity
 		object TypeAlias : Entity
+		object TypeParameter : Kind
 		object TypeConstructor : Kind
 		object TraitConstructor : Kind
 		object Trait : Entity

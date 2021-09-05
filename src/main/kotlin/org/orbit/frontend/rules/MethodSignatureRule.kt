@@ -46,31 +46,12 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 			throw context.invocation.make(Errors.ExpectedAnonymous(context.peek().position))
 		}
 
-		context.expect(TokenTypes.LParen)
-		
 		var next = context.peek()
 
-		val parameterNodes = mutableListOf<PairNode>()
-
-		if (next.type == TokenTypes.RParen) {
-			context.consume()
-		} else {
-			while (true) {
-				val pair = context.attempt(PairRule)
-					?: throw context.invocation.make(MethodSignatureRule.Errors.MissingParameters(next.position))
-
-				parameterNodes += pair
-
-				next = context.peek()
-
-				if (next.type == TokenTypes.Comma) {
-					context.consume()
-				} else {
-					context.expect(TokenTypes.RParen)
-					break
-				}
-			}
-		}
+		val delimtedRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule)
+		val parameterNodes = context.attempt(delimtedRule)
+			?.nodes
+			?: throw context.invocation.make(Errors.MissingParameters(next.position))
 
 		next = context.expect(TokenTypes.LParen)
 		

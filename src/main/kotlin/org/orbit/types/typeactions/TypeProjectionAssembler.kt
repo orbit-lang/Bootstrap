@@ -80,6 +80,8 @@ class TypeProjectionAssembler(private val node: TypeProjectionNode) : TypeAction
         type = context.getTypeByPath(node.typeIdentifier.getPath()) as Type
         trait = context.getTypeByPath(node.traitIdentifier.getPath()) as Trait
 
+        node.typeIdentifier.annotate(type, Annotations.Type)
+
         type = Type(
             type.name,
             type.typeParameters,
@@ -98,6 +100,12 @@ class TypeProjectionAssembler(private val node: TypeProjectionNode) : TypeAction
 
         context.remove(type.name)
         context.add(type)
+
+        val typeProjection = TypeProjection(type, trait)
+
+        node.annotate(typeProjection, Annotations.Type)
+
+        context.add(typeProjection)
     }
 
     override fun describe(printer: Printer): String {

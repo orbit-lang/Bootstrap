@@ -3,6 +3,9 @@ package org.orbit.util
 import org.orbit.core.Mangler
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.getType
+import org.orbit.core.nodes.Node
+import org.orbit.types.components.TypeProtocol
 
 fun <T> Collection<T>.containsAll(other: Collection<T>) : Boolean {
     return other.fold(true) { acc, next ->
@@ -89,9 +92,32 @@ fun <T, U> T.pairMap(transform: (T) -> U) : Pair<T, U> {
     return Pair(this, transformedValue)
 }
 
+fun <T, U> T.pairMapOrNull(transform: (T) -> U?) : Pair<T, U>? {
+    val transformedValue = transform(this) ?: return null
+    return Pair(this, transformedValue)
+}
+
 fun <T, U> Collection<T>.pairMapAll(transform: (T) -> U) : List<Pair<T, U>> {
     return map { it.pairMap(transform) }
 }
+
+fun <T, U> Collection<T>.pairMapOrNullAll(transform: (T) -> U?) : List<Pair<T, U>>
+    = mapNotNull { it.pairMapOrNull(transform) }
+
+fun <T, U> Collection<T>.washMapFirst(transform: (T) -> U, filter: (Pair<T, U>) -> Boolean) : List<T> {
+    return pairMapAll(transform)
+        .filter(filter)
+        .map(Pair<T, U>::first)
+}
+
+fun <T, U> Collection<T>.washMapSecond(transform: (T) -> U, filter: (Pair<T, U>) -> Boolean) : List<U> {
+    return pairMapAll(transform)
+        .filter(filter)
+        .map(Pair<T, U>::second)
+}
+
+inline fun <reified N: Node, reified T: TypeProtocol> Collection<N>.typeMap() : List<Pair<N, T>>
+    = pairMapOrNullAll { it.getType() as? T }
 
 fun <T, U> Collection<T>.flatPairMap(transform: (T) -> List<U>) : List<Pair<T, U>> = flatMap { elem ->
     transform(elem).map { Pair(elem, it) }

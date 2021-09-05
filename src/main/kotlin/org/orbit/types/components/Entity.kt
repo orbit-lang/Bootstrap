@@ -5,9 +5,10 @@ import org.koin.core.component.inject
 import org.orbit.core.Mangler
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.getPath
-import org.orbit.core.nodes.TraitDefNode
-import org.orbit.core.nodes.TypeDefNode
+import org.orbit.core.nodes.*
+import org.orbit.types.phase.TypeSystem
 import org.orbit.util.*
 
 abstract class Entity(
@@ -38,6 +39,8 @@ data class TypeParameter(override val name: String) : VirtualType {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = NominalEquality
 
     constructor(path: Path) : this(path.toString(OrbitMangler))
+    // TODO - Complex Type Parameter Expressions
+    constructor(node: TypeIdentifierNode) : this(node.getPath())
 }
 
 data class Type(override val name: String, val typeParameters: List<ValuePositionType> = emptyList(), override val properties: List<Property> = emptyList(),
@@ -62,10 +65,16 @@ data class Trait(override val name: String, val typeParameters: List<ValuePositi
 }
 
 data class TypeAlias(override val name: String, val targetType: Type) : VirtualType, TypeExpression {
+    constructor(path: Path, targetType: Type) : this(path.toString(OrbitMangler), targetType)
+
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol>
         get() = targetType.equalitySemantics
 
     override fun evaluate(context: Context): TypeProtocol = targetType
+
+    override fun toString(printer: Printer): String {
+        return "(${printer.apply(name, PrintableKey.Italics)} = ${targetType.toString(printer)})"
+    }
 }
 
 interface EntityConstructor : TypeProtocol {
@@ -75,7 +84,8 @@ interface EntityConstructor : TypeProtocol {
 data class TypeConstructor(override val name: String, override val typeParameters: List<TypeParameter>) : EntityConstructor {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = TypeConstructorEquality
 
-    constructor(path: Path, typeParameters: List<TypeParameter>) : this(path.toString(OrbitMangler), typeParameters)
+    constructor(path: Path, typeParameters: List<TypeParameter> = emptyList()) : this(path.toString(OrbitMangler), typeParameters)
+    constructor(node: TypeConstructorNode) : this(node.getPath())
 }
 
 data class TraitConstructor(override val name: String, override val typeParameters: List<TypeParameter>) : EntityConstructor {
@@ -98,10 +108,26 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
 
     override fun evaluate(context: Context): TypeProtocol {
         // TODO - Verify concrete types satisfy typeConstructor's type parameters
-        if (concreteTypeParameters.count() != entityConstructor.typeParameters.count())
-            throw invocation.make("Type constructor expects ${entityConstructor.typeParameters.count()} type ${"parameter".pluralise(entityConstructor.typeParameters.count())}, found ${concreteTypeParameters.count()}")
+        val typeParams = concreteTypeParameters.toMutableList()
+        val cCount = concreteTypeParameters.count()
+        val eCount = entityConstructor.typeParameters.count()
 
-        val paramsPath = Path(entityConstructor.name) + concreteTypeParameters.map { Path(it.name) }
+        if (cCount > eCount) {
+            throw invocation.make<TypeSystem>("Type constructor ${entityConstructor.name} expects ${entityConstructor.typeParameters.count()} type parameters, found ${concreteTypeParameters.count()}", SourcePosition.unknown)
+        } else if (eCount > cCount) {
+            val diff = eCount - cCount
+
+            for (i in IntRange(0, diff - 1)) {
+                typeParams.add(IntrinsicTypes.AnyType.type)
+            }
+
+            val typeParamsString = typeParams.joinToString(", ") { it.name }
+
+            // TODO - is this a good idea? Do we need an explicit wildcard?
+            invocation.warn("Type constructor invocation found without explicit type parameters. Type is inferred to be ${entityConstructor.name}<$typeParamsString>", SourcePosition.unknown)
+        }
+
+        val paramsPath = Path(entityConstructor.name) + typeParams.map { Path(it.name) }
 
         return when (entityConstructor) {
             is TypeConstructor -> Type(paramsPath, concreteTypeParameters)
@@ -238,6 +264,7 @@ class IntOperators {
 }
 
 enum class IntrinsicTypes(val type: ValuePositionType) {
+    AnyType(Type(name = "Orb::Core::Types::AnyType", isRequired = false, equalitySemantics = AnyTypeEquality)),
     Unit(Type("Orb::Types::Intrinsics::Unit", isRequired = false)),
     Int(Type("Orb::Types::Intrinsics::Int", isRequired = false)),
     Symbol(Type("Orb::Types::Intrinsics::Symbol", isRequired = false)),

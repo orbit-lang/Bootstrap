@@ -4,75 +4,14 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.getPath
-import org.orbit.core.nodes.TraitConstructorNode
-import org.orbit.core.nodes.TypeAliasNode
-import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.core.nodes.TypeDefNode
-import org.orbit.graph.components.*
+import org.orbit.graph.components.Annotations
+import org.orbit.graph.components.Binding
+import org.orbit.graph.components.Environment
+import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.util.*
-
-class TraitConstructorPathResolver(
-	private val parentPath: Path
-) : PathResolver<TraitConstructorNode> {
-	override val invocation: Invocation by inject()
-
-	override fun resolve(input: TraitConstructorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		val path = parentPath + Path(input.typeIdentifierNode.value)
-
-		if (pass == PathResolver.Pass.Initial) {
-			input.annotate(path, Annotations.Path)
-			input.typeIdentifierNode.annotate(path, Annotations.Path)
-
-			environment.bind(Binding.Kind.TraitConstructor, input.typeIdentifierNode.value, path)
-
-			val parentGraphID = graph.find(parentPath.toString(OrbitMangler))
-			val graphID = graph.insert(input.typeIdentifierNode.value)
-
-			graph.link(parentGraphID, graphID)
-		} else {
-			environment.withScope { scope ->
-				input.typeParameterNodes.forEach { t ->
-					environment.bind(Binding.Kind.Type, t.value, path + Path(t.value))
-				}
-
-				val methodSignaturePathResolver = MethodSignaturePathResolver()
-
-				input.signatureNodes.forEach(-partial(methodSignaturePathResolver::resolve, pass, environment, graph))
-			}
-		}
-
-		return PathResolver.Result.Success(path)
-	}
-}
-
-class TypeConstructorPathResolver(
-	private val parentPath: Path
-) : PathResolver<TypeConstructorNode> {
-	override val invocation: Invocation by inject()
-	private val pathResolverUtil: PathResolverUtil by inject()
-
-	override fun resolve(input: TypeConstructorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		val path = parentPath + Path(input.typeIdentifierNode.value)
-
-		if (pass == PathResolver.Pass.Initial) {
-			input.annotate(path, Annotations.Path)
-			input.typeIdentifierNode.annotate(path, Annotations.Path)
-
-			environment.bind(Binding.Kind.TypeConstructor, input.typeIdentifierNode.value, path)
-
-			val parentGraphID = graph.find(parentPath.toString(OrbitMangler))
-			val graphID = graph.insert(input.typeIdentifierNode.value)
-
-			graph.link(parentGraphID, graphID)
-		} else {
-			// TODO - Once we have complex type parameters, they need to be resolved
-		}
-
-		return PathResolver.Result.Success(path)
-	}
-}
+import org.orbit.util.Invocation
 
 class TypeDefPathResolver(
 	private val parentPath: Path
@@ -112,32 +51,3 @@ class TypeDefPathResolver(
 	}
 }
 
-class TypeAliasPathResolver(private val parentPath: Path) : PathResolver<TypeAliasNode> {
-	override val invocation: Invocation by inject()
-
-	override fun resolve(
-		input: TypeAliasNode,
-		pass: PathResolver.Pass,
-		environment: Environment,
-		graph: Graph
-	): PathResolver.Result {
-		val sourcePath = parentPath + Path(input.sourceTypeIdentifier.value)
-
-		TypeExpressionPathResolver.execute(PathResolver.InputType(input.targetTypeIdentifier, pass))
-
-		val targetBinding = environment.getBinding(input.targetTypeIdentifier.value, Binding.Kind.Union.entityOrConstructor)
-			.unwrap(this, input.targetTypeIdentifier.firstToken.position)
-
-		val targetVertexID = graph.find(targetBinding)
-
-		graph.alias(sourcePath.toString(OrbitMangler), targetVertexID)
-
-		input.annotate(sourcePath, Annotations.Path)
-		input.sourceTypeIdentifier.annotate(sourcePath, Annotations.Path)
-		input.targetTypeIdentifier.annotate(targetBinding.path, Annotations.Path)
-
-		environment.bind(Binding.Kind.TypeAlias, input.sourceTypeIdentifier.value, sourcePath)
-
-		return PathResolver.Result.Success(sourcePath)
-	}
-}

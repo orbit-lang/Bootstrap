@@ -50,7 +50,7 @@ data class OrbitLibrary(val scopes: List<Scope>, val context: Context, val graph
 	companion object : FilenameFilter {
 		fun fromInvocation(invocation: Invocation) : OrbitLibrary {
 			val names = invocation.getResult<NameResolverResult>(CompilationSchemeEntry.canonicalNameResolver)
-			val context = invocation.getResult<Context>(CompilationSchemeEntry.typeInitialisation)
+			val context = invocation.getResult<Context>(CompilationSchemeEntry.typeSystem)
 
 			return OrbitLibrary(names.environment.scopes, context, names.graph)
 		}
@@ -136,6 +136,7 @@ private val mainModule = module {
 		util.registerPathResolver(PrintPathResolver(), PrintNode::class.java)
 		util.registerPathResolver(MetaTypePathResolver, MetaTypeNode::class.java)
 		util.registerPathResolver(TypeProjectionPathResolver, TypeProjectionNode::class.java)
+		util.registerPathResolver(TypeExpressionPathResolver, TypeExpressionNode::class.java)
 
 		util
 	}
@@ -186,6 +187,8 @@ private val mainModule = module {
 			}
 		}
 	}
+
+	factory { ASTUtil() }
 }
 
 class Symbols : CliktCommand(), KoinComponent {
@@ -314,7 +317,7 @@ class Build : CliktCommand(), KoinComponent {
 				compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
 				compilerGenerator[CompilationSchemeEntry.observers] = ObserverPhase(invocation)
 				compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
-				compilerGenerator[CompilationSchemeEntry.typeInitialisation] = TypeSystem(invocation)
+				compilerGenerator[CompilationSchemeEntry.typeSystem] = TypeSystem(invocation)
 				compilerGenerator[CompilationSchemeEntry.traitEnforcer] = TraitEnforcer()
 				compilerGenerator[CompilationSchemeEntry.mainResolver] = MainResolver
 

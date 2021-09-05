@@ -19,8 +19,13 @@ data class TypeConstructorNode(
     override val firstToken: Token,
     override val lastToken: Token,
     override val typeIdentifierNode: TypeIdentifierNode,
-    override val typeParameterNodes: List<TypeIdentifierNode>
-): EntityConstructorNode(firstToken, lastToken, typeIdentifierNode, typeParameterNodes)
+    override val typeParameterNodes: List<TypeIdentifierNode>,
+    val properties: List<PairNode> = emptyList()
+): EntityConstructorNode(firstToken, lastToken, typeIdentifierNode, typeParameterNodes) {
+    override fun getChildren(): List<Node> {
+        return super.getChildren() + properties
+    }
+}
 
 data class TraitConstructorNode(
     override val firstToken: Token,
