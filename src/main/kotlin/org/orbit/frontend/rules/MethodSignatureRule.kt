@@ -48,8 +48,8 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 
 		var next = context.peek()
 
-		val delimtedRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule)
-		val parameterNodes = context.attempt(delimtedRule)
+		val delimitedRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule)
+		val parameterNodes = context.attempt(delimitedRule)
 			?.nodes
 			?: throw context.invocation.make(Errors.MissingParameters(next.position))
 

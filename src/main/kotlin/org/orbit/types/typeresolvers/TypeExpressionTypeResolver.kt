@@ -23,7 +23,7 @@ class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override
             val abstractType = context.getTypeByPath(node.getPath())
 
             val type = when (abstractType) {
-                is TypeConstructor -> MetaType(abstractType, emptyList())
+                is TypeConstructor -> MetaType(abstractType, emptyList(), abstractType.properties)
                 else -> abstractType as Entity
             }
 
@@ -33,15 +33,16 @@ class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override
         }
 
         is MetaTypeNode -> {
-            val typeConstructor = context.getTypeByPath(node.getPath()) as EntityConstructor
-            // TODO - Convert this to a stream
-            val typeParameters = node.typeParameters
-                .map(partial(::TypeExpressionTypeResolver, binding))
-                .map(partial(TypeExpressionTypeResolver::resolve, environment, context))
-                .map(partial(TypeExpression::evaluate, context))
-                .map { it as ValuePositionType }
-
-            val type = MetaType(typeConstructor, typeParameters)
+            val type = MetaTypeInference.infer(context, node, null) as TypeExpression
+//            val typeConstructor = context.getTypeByPath(node.getPath()) as EntityConstructor
+//            // TODO - Convert this to a stream
+//            val typeParameters = node.typeParameters
+//                .map(partial(::TypeExpressionTypeResolver, binding))
+//                .map(partial(TypeExpressionTypeResolver::resolve, environment, context))
+//                .map(partial(TypeExpression::evaluate, context))
+//                .map { it as ValuePositionType }
+//
+//            val type = MetaType(typeConstructor, typeParameters, typeConstructor.properties)
 
             node.annotate(type, Annotations.Type)
 

@@ -5,9 +5,11 @@ import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
+import org.orbit.util.Printer
 
 data class Binary(val op: String, val left: TypeProtocol, val right: TypeProtocol) : Expression, KoinComponent {
     private val invocation: Invocation by inject()
+    private val printer: Printer by inject()
 
     override fun infer(context: Context, typeAnnotation: TypeProtocol?) : TypeProtocol {
         var matches = context.types
@@ -16,9 +18,7 @@ data class Binary(val op: String, val left: TypeProtocol, val right: TypeProtoco
 
         if (matches.isEmpty()) {
             // TODO - Source position should be retained as Type metadata
-            throw invocation.make<TypeSystem>("Cannot find binary operator matching signature '${left.name} $op ${right.name}'",
-                SourcePosition.unknown
-            )
+            throw invocation.make<TypeSystem>("Cannot find binary operator matching signature '${left.name} $op ${right.name}'", SourcePosition.unknown)
         }
 
         if (matches.size > 1) {

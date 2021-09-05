@@ -7,12 +7,9 @@ import org.orbit.backend.phase.CodeWriter
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.*
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.getAnnotation
 import org.orbit.types.components.Context
 import org.orbit.types.components.Entity
 import org.orbit.types.components.Property
-import org.orbit.types.components.SignatureProtocol
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 
@@ -51,27 +48,6 @@ class BinaryExpressionUnit(override val node: BinaryExpressionNode, override val
         val right = ExpressionUnit(node.right, depth).generate(mangler)
 
         return "(($left) ${node.operator} ($right))"
-    }
-}
-
-class CallUnit(override val node: CallNode, override val depth: Int) : CodeUnit<CallNode> {
-    override fun generate(mangler: Mangler): String {
-        if (node.isPropertyAccess) {
-            val receiver = ExpressionUnit(node.receiverExpression, depth).generate(mangler)
-            return "$receiver.${node.messageIdentifier.identifier}"
-        }
-
-        val signature = node.getAnnotation<SignatureProtocol<*>>(Annotations.Type)?.value
-            ?: TODO("@CallUnit:64")
-
-        val sig = signature.toString(mangler)
-        val params = (listOf(node.receiverExpression) + node.parameterNodes).zip(signature.parameters).joinToString(", ") {
-            val expr = ExpressionUnit(it.first, depth).generate(mangler)
-
-            "${it.second.name}: $expr"
-        }
-
-        return "$sig($params)"
     }
 }
 

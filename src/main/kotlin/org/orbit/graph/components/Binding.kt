@@ -23,6 +23,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 		object Ephemeral : Entity
 		object Method : Kind
 		object TypeProjection : Projection
+		object Empty : Kind
 
 		fun getName() : String {
 			return javaClass.simpleName
@@ -55,6 +56,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Ser
 
 	companion object {
 		val Self = Binding(Kind.Self, "Self", Path.self)
+		val empty = Binding(Kind.Empty, "", Path.empty)
 	}
 
 	fun matches(name: String) : Boolean = when (kind) {

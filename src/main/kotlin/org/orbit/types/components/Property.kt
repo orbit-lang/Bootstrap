@@ -2,6 +2,7 @@ package org.orbit.types.components
 
 import org.json.JSONObject
 import org.orbit.core.nodes.ExpressionNode
+import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.RValueNode
 import org.orbit.serial.Serialiser
 import org.orbit.util.AnyPrintable
@@ -18,13 +19,17 @@ data class Property(
     val type: TypeProtocol,
     val defaultValue: ExpressionNode? = null
 ) : TypeProtocol, AnyPrintable {
-    override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = type.equalitySemantics
-
     companion object : TypeEqualityUtil<Property> {
         override fun equal(context: Context, equality: Equality<TypeProtocol, TypeProtocol>, a: Property, b: Property): Boolean {
             return a.name == b.name && equality.isSatisfied(context, a.type, b.type)
         }
     }
+
+    override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = type.equalitySemantics
+
+    // TODO - default values
+    constructor(pair: Pair<PairNode, TypeProtocol>)
+        : this(pair.first.identifierNode.identifier, pair.second)
 
     override fun describe(json: JSONObject) {
         json.put("member.name", name)

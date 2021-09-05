@@ -7,9 +7,15 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.getPath
-import org.orbit.core.nodes.*
+import org.orbit.core.nodes.TraitDefNode
+import org.orbit.core.nodes.TypeConstructorNode
+import org.orbit.core.nodes.TypeDefNode
+import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.types.phase.TypeSystem
-import org.orbit.util.*
+import org.orbit.util.Invocation
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
+import org.orbit.util.toPath
 
 abstract class Entity(
     override val name: String,
@@ -79,23 +85,28 @@ data class TypeAlias(override val name: String, val targetType: Type) : VirtualT
 
 interface EntityConstructor : TypeProtocol {
     val typeParameters: List<TypeParameter>
+    val properties: List<Property>
 }
 
-data class TypeConstructor(override val name: String, override val typeParameters: List<TypeParameter>) : EntityConstructor {
+data class TypeConstructor(override val name: String, override val typeParameters: List<TypeParameter>, override val properties: List<Property> = emptyList()) : EntityConstructor {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = TypeConstructorEquality
 
-    constructor(path: Path, typeParameters: List<TypeParameter> = emptyList()) : this(path.toString(OrbitMangler), typeParameters)
-    constructor(node: TypeConstructorNode) : this(node.getPath())
+    constructor(path: Path, typeParameters: List<TypeParameter> = emptyList(), properties: List<Property> = emptyList()) : this(path.toString(OrbitMangler), typeParameters, properties)
+    constructor(node: TypeConstructorNode, typeParameters: List<TypeParameter> = emptyList(), properties: List<Property> = emptyList()) : this(node.getPath(), typeParameters, properties)
+
+    fun getTypeParameterOrNull(path: Path) : TypeParameter? {
+        return typeParameters.find { OrbitMangler.unmangle(it.name) == path }
+    }
 }
 
-data class TraitConstructor(override val name: String, override val typeParameters: List<TypeParameter>) : EntityConstructor {
+data class TraitConstructor(override val name: String, override val typeParameters: List<TypeParameter>, override val properties: List<Property> = emptyList()) : EntityConstructor {
     // TODO - We need a separate 'TraitConstructorEquality' because of method signatures in trait constructors
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = TypeConstructorEquality
 
-    constructor(path: Path, typeParameters: List<TypeParameter>) : this(path.toString(OrbitMangler), typeParameters)
+    constructor(path: Path, typeParameters: List<TypeParameter> = emptyList(), properties: List<Property> = emptyList()) : this(path.toString(OrbitMangler), typeParameters, properties)
 }
 
-data class MetaType(val entityConstructor: EntityConstructor, val concreteTypeParameters: List<ValuePositionType>) : ValuePositionType, TypeExpression {
+data class MetaType(val entityConstructor: EntityConstructor, val concreteTypeParameters: List<ValuePositionType>, val properties: List<Property>) : ValuePositionType, TypeExpression {
     companion object : KoinComponent {
         val invocation: Invocation by inject()
     }
@@ -130,8 +141,8 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
         val paramsPath = Path(entityConstructor.name) + typeParams.map { Path(it.name) }
 
         return when (entityConstructor) {
-            is TypeConstructor -> Type(paramsPath, concreteTypeParameters)
-            is TraitConstructor -> Trait(paramsPath, concreteTypeParameters)
+            is TypeConstructor -> Type(paramsPath, concreteTypeParameters, properties)
+            is TraitConstructor -> Trait(paramsPath, concreteTypeParameters, properties)
             else -> TODO("???")
         }
     }
@@ -263,28 +274,3 @@ class IntOperators {
     }
 }
 
-enum class IntrinsicTypes(val type: ValuePositionType) {
-    AnyType(Type(name = "Orb::Core::Types::AnyType", isRequired = false, equalitySemantics = AnyTypeEquality)),
-    Unit(Type("Orb::Types::Intrinsics::Unit", isRequired = false)),
-    Int(Type("Orb::Types::Intrinsics::Int", isRequired = false)),
-    Symbol(Type("Orb::Types::Intrinsics::Symbol", isRequired = false)),
-    Main(Type("Orb::Core::Main::Main", properties = listOf(Property("argc", Int.type)), isRequired = false)),
-    BootstrapCoreStub(Type("Bootstrap::Core::Stub", isRequired = false)),
-    Bool(Type("Orb::Types::Intrinsics::Bool", isRequired = false));
-
-    companion object {
-        val allTypes: Set<TypeProtocol>
-            get() = values().map { it.type }.toSet()
-
-        fun isIntrinsicType(path: Path) : Boolean {
-            val mangled = OrbitMangler.mangle(path)
-
-            return values()
-                .map { it.type.name }
-                .contains(mangled)
-        }
-    }
-
-    val path: Path
-        get() = name.toPath()
-}

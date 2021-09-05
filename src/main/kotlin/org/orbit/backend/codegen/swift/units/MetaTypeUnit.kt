@@ -10,10 +10,7 @@ import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.types.components.Context
 import org.orbit.util.partial
 
-class MetaTypeUnit(override val node: MetaTypeNode, override val depth: Int, private val inFuncNamePosition: Boolean = false) : CodeUnit<MetaTypeNode>,
-    KoinComponent {
-    private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
-
+class MetaTypeUnit(override val node: MetaTypeNode, override val depth: Int, private val inFuncNamePosition: Boolean = false) : CodeUnit<MetaTypeNode>, KoinComponent {
     override fun generate(mangler: Mangler) : String {
         val path = node.getPath()
 
@@ -28,9 +25,6 @@ class MetaTypeUnit(override val node: MetaTypeNode, override val depth: Int, pri
 
         val typeName = path.toString(mangler)
 
-        return when (inFuncNamePosition) {
-            true -> "${typeName}_$typeParameters"
-            else -> "$typeName<$typeParameters>"
-        }
+        return "${typeName}_$typeParameters"
     }
 }

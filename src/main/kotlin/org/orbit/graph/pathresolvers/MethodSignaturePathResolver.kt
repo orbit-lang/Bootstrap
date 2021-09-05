@@ -43,12 +43,17 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		input.returnTypeNode?.annotate(retPath.path, Annotations.Path)
 
 		val argPaths = input.parameterNodes.mapIndexed { idx, it ->
-			val result = environment.getBinding(it.typeExpressionNode.value, Binding.Kind.Union.entityMethodOrConstructor)
-			val binding = result.unwrap(this, it.typeExpressionNode.firstToken.position)
+			val result = TypeExpressionPathResolver.resolve(it.typeExpressionNode, pass, environment, graph)
+				.asSuccess()
 
-			input.annotateParameter(idx, binding.path, Annotations.Path)
+//			val result = environment.getBinding(it.typeExpressionNode.value, Binding.Kind.Union.entityMethodOrConstructor)
+//			val binding = result.unwrap(this, it.typeExpressionNode.firstToken.position)
 
-			binding.path
+			input.annotateParameter(idx, result.path, Annotations.Path)
+//			it.annotate(binding.path, Annotations.Path)
+//			it.typeExpressionNode.annotate(binding.path, Annotations.Path)
+
+			result.path
 		}
 
 		var path = receiverBinding.path + Path(name)
@@ -65,11 +70,6 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		val methodName = path.relativeNames
 			.slice(IntRange(path.relativeNames.indexOf(name), path.relativeNames.size - 1))
 			.joinToString("::")
-
-		//val receiverID = graph.find(receiverBinding)
-		val vertexID = graph.insert(methodName)
-
-		//graph.link(receiverID, vertexID)
 
 		return PathResolver.Result.Success(path)
 	}

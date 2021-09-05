@@ -16,6 +16,31 @@ import org.orbit.util.partial
 class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : CodeUnit<TypeDefNode>, KoinComponent {
     private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
 
+    companion object {
+        fun generateMonomorphisedType(type: Type, mangler: Mangler) : String {
+            val nMangler = (OrbitMangler + mangler)
+
+            val properties = type.properties.map {
+                val header = "/* ${it.name} ${it.type.name} */"
+                val swift = "let ${it.name}: ${nMangler.invoke(it.type.name)}"
+
+                """
+                $header
+                $swift
+                """
+            }.joinToString("\n\t\t")
+
+            val header = "/* type ${type.name} */"
+
+            return """
+            $header
+            struct ${nMangler.invoke(type.name)} {
+                $properties
+            }
+            """.trimIndent()
+        }
+    }
+
     private fun generateProperty(property: Property, mangler: Mangler) : String {
         val propertyType = (OrbitMangler + mangler).invoke(property.type.name)
         val defaultValue = when (property.defaultValue) {

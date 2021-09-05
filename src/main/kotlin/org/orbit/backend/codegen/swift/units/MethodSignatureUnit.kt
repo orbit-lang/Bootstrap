@@ -32,10 +32,15 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
             listOf(node.receiverTypeNode) + node.parameterNodes
         }
 
-        val paramTypes = parameterNodes.map { it.getPath().toString(mangler) }
-        val parameters = parameterNodes.joinToString(", ") {
-            "${it.identifierNode.identifier}: ${it.getPath().toString(mangler)}"
+        val paramTypes = parameterNodes.map {
+            TypeExpressionUnit(it.typeExpressionNode, depth)
+                .generate(mangler)
         }
+
+        val parameters = parameterNodes.mapIndexed { idx, param ->
+            val pType = paramTypes[idx]
+            "${param.identifierNode.identifier}: $pType"
+        }.joinToString(", ")
 
         val funcReturnName = when (node.returnTypeNode) {
             null -> IntrinsicTypes.Unit.path.toString(OrbitMangler)

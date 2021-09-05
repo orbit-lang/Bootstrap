@@ -2,22 +2,31 @@ package org.orbit.types.typeresolvers
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.extensions.annotate
-import org.orbit.types.components.AnyEquality
-import org.orbit.types.components.Context
-import org.orbit.types.components.TypeInferenceUtil
-import org.orbit.types.components.TypeProtocol
+import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
+import org.orbit.util.Printer
 
 class MethodBodyTypeResolver(override val node: BlockNode, override val binding: Binding, private val returnType: TypeProtocol) : TypeResolver<BlockNode, TypeProtocol>, KoinComponent {
     override val invocation: Invocation by inject()
+    private val printer: Printer by inject()
 
     override fun resolve(environment: Environment, context: Context) : TypeProtocol {
+        // Ensure we have at least one return statement if the method declares an explicit return type
+        if (returnType !== IntrinsicTypes.Unit.type) {
+            val returnStatements = node.search(ReturnStatementNode::class.java)
+
+            if (returnStatements.isEmpty()) {
+                throw invocation.make<TypeSystem>("Method '${binding.simpleName}' declares an explicit return type of ${returnType.toString(printer)} but body contains no return statements", node.firstToken)
+            }
+        }
+
         for (statementNode in node.body) {
             when (statementNode) {
                 is ExpressionNode -> {
@@ -36,7 +45,7 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
                     val equalitySemantics = returnType.equalitySemantics as AnyEquality
 
                     if (!equalitySemantics.isSatisfied(context, returnType, varType)) {
-                        throw invocation.make<TypeSystem>("Method '${binding.simpleName}' declares a return type of '${returnType.name}', found '${varType.name}'", statementNode)
+                        throw invocation.make<TypeSystem>("Method '${binding.simpleName}' declares a return type of '${returnType.toString(printer)}', found '${varType.toString(printer)}'", statementNode)
                     }
 
                     statementNode.valueNode.expressionNode.annotate(varType, Annotations.Type)

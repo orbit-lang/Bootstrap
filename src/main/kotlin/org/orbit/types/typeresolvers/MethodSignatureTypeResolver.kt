@@ -52,7 +52,9 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
         }
 
         node.parameterNodes.forEach {
-            val t = context.getTypeByPath(it.getPath())
+            val resolver = TypeExpressionTypeResolver(it.typeExpressionNode, Binding.empty)
+            val t = resolver.resolve(environment, context)
+                .evaluate(context)
 
             parameterBindings.add(it.identifierNode.identifier)
 

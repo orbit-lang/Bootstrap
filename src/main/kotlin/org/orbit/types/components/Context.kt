@@ -8,6 +8,8 @@ import org.orbit.core.Path
 import org.orbit.core.components.CompilationEvent
 import org.orbit.core.components.CompilationEventBusAware
 import org.orbit.core.components.CompilationEventBusAwareImpl
+import org.orbit.core.getPath
+import org.orbit.core.nodes.Node
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
 import org.orbit.util.Invocation
@@ -31,11 +33,15 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         this.types.addAll(other.types)
         this.bindings.putAll(other.bindings)
         this.typeProjections.addAll(other.typeProjections)
+        this.monomorphisedTypes = other.monomorphisedTypes
     }
 
     val types: MutableSet<TypeProtocol> = builtIns.toMutableSet()
     val bindings = mutableMapOf<String, TypeProtocol>()
+
     private val typeProjections = mutableListOf<TypeProjection>()
+    var monomorphisedTypes = mutableListOf<Type>()
+        private set
 
     private var next = 0
 
@@ -44,6 +50,12 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     }
 
     fun <T> withSubContext(block: (Context) -> T) : T = block(Context(this))
+
+    fun registerMonomorphisation(type: Type) {
+        if (!monomorphisedTypes.contains(type)) {
+            monomorphisedTypes.add(type)
+        }
+    }
 
     fun bind(name: String, type: TypeProtocol) {
         bindings[name] = type
@@ -95,6 +107,7 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
     fun getTypeByPath(path: Path) : TypeProtocol = getType(path.toString(OrbitMangler))
     fun getTypeOrNull(path: Path) : TypeProtocol? = getTypeOrNull(path.toString(OrbitMangler))
+    fun getType(node: Node) = getTypeByPath(node.getPath())
 
     fun getTypeOrNull(name: String) : TypeProtocol? {
         val matches = types.filter { it.name == name }

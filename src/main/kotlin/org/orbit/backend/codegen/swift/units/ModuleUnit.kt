@@ -1,8 +1,11 @@
 package org.orbit.backend.codegen.swift.units
 
+import org.koin.core.component.KoinComponent
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
+import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.*
+import org.orbit.types.components.Context
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.partial
 
@@ -13,6 +16,10 @@ import org.orbit.util.partial
 //}
 
 class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeUnit<ModuleNode> {
+    private companion object : KoinComponent {
+        private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
+    }
+
     override fun generate(mangler: Mangler): String {
         val moduleName = node.getPath().toString(OrbitMangler)
 
@@ -29,7 +36,6 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
         }
 
         val header = "/* module $moduleName */"
-        //val moduleDef = "class ${node.getPath().toString(mangler)} "
 
         val traitConstructorDefs = node.entityConstructors
             .filterIsInstance<TraitConstructorNode>()
@@ -50,6 +56,10 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
             .map(partial(::TypeAliasUnit, depth))
             .joinToString(newline(2), transform = partial(TypeAliasUnit::generate, mangler))
 
+        val monos = context.monomorphisedTypes
+            .map(partial(TypeDefUnit.Companion::generateMonomorphisedType, mangler))
+            .joinToString("\n")
+
 //        val typeProjections = node.typeProjections
 //            .map(partial(::TypeProjectionUnit, depth))
 //            .joinToString(newline(2), transform = partial(TypeProjectionUnit::generate, mangler))
@@ -65,6 +75,8 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
             |$typeDefs
             |
             |$typeAliases
+            |
+            |$monos
             |
             |$methodDefs
         """.trimMargin()

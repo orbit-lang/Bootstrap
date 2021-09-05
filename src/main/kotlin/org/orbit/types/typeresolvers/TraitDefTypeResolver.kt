@@ -25,7 +25,7 @@ class TypeAliasTypeResolver(override val node: TypeAliasNode, override val bindi
         return when (targetType) {
             is Type -> TypeAlias(node.sourceTypeIdentifier.getPath().toString(OrbitMangler), targetType)
             is TypeConstructor -> {
-                val metaType = MetaType(targetType, targetType.typeParameters as List<ValuePositionType>)
+                val metaType = MetaType(targetType, targetType.typeParameters as List<ValuePositionType>, targetType.properties)
 
                 val nType = metaType.evaluate(context) as? Type
                     ?: throw invocation.make<TypeSystem>("Attempting to create a type alias '${node.sourceTypeIdentifier.value}' to a constructed type derived from entity constructor '${targetType.name}'", node.targetTypeIdentifier)
