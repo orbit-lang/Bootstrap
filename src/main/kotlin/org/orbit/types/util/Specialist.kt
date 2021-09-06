@@ -4,6 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
 import org.orbit.types.components.*
+import org.orbit.types.phase.TraitEnforcer
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
@@ -39,8 +40,16 @@ class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private
         val concreteProperties = typeConstructor.properties.map {
             when (it.type) {
                 is TypeParameter -> {
-                    val aIdx = abstractParameters.indexOf(it.type)
-                    val concreteType = concreteParameters[aIdx]
+                    val aIdx = abstractParameters.indexOfFirst { t -> t.name == it.type.name }
+                    val abstractType = typeConstructor.typeParameters[aIdx]
+                    val concreteType = concreteParameters[aIdx] as Type
+
+                    // Easiest way to do this is to construct an ephemeral subtype of concreteType + the constraint Traits
+                    val ephemeralType = Type(concreteType.name, concreteType.typeParameters, concreteType.properties, abstractType.constraints, concreteType.equalitySemantics)
+
+                    val traitEnforcer = TraitEnforcer()
+
+                    traitEnforcer.enforce(ephemeralType)
 
                     Property(it.name, concreteType)
                 }

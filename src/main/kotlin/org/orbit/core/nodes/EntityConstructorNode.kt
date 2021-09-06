@@ -6,12 +6,12 @@ sealed class EntityConstructorNode(
     override val firstToken: Token,
     override val lastToken: Token,
     open val typeIdentifierNode: TypeIdentifierNode,
-    // TODO - Allow arbitrary type constraint expressions as parameters
-    open val typeParameterNodes: List<TypeIdentifierNode>
+    open val typeParameterNodes: List<TypeIdentifierNode>,
+    open val clauses: List<EntityConstructorWhereClauseNode> = emptyList()
     // TODO - Methods & Properties
 ) : Node(firstToken, lastToken) {
     override fun getChildren(): List<Node> {
-        return listOf(typeIdentifierNode) + typeParameterNodes
+        return listOf(typeIdentifierNode) + typeParameterNodes + clauses
     }
 }
 
@@ -20,10 +20,11 @@ data class TypeConstructorNode(
     override val lastToken: Token,
     override val typeIdentifierNode: TypeIdentifierNode,
     override val typeParameterNodes: List<TypeIdentifierNode>,
-    val properties: List<PairNode> = emptyList()
-): EntityConstructorNode(firstToken, lastToken, typeIdentifierNode, typeParameterNodes) {
+    val properties: List<PairNode> = emptyList(),
+    override val clauses: List<EntityConstructorWhereClauseNode> = emptyList()
+): EntityConstructorNode(firstToken, lastToken, typeIdentifierNode, typeParameterNodes, clauses) {
     override fun getChildren(): List<Node> {
-        return super.getChildren() + properties
+        return super.getChildren() + properties + clauses
     }
 }
 
@@ -32,10 +33,10 @@ data class TraitConstructorNode(
     override val lastToken: Token,
     override val typeIdentifierNode: TypeIdentifierNode,
     override val typeParameterNodes: List<TypeIdentifierNode>,
-    val signatureNodes: List<MethodSignatureNode> = emptyList()
-    // TODO - Signatures & Properties
-): EntityConstructorNode(firstToken, lastToken, typeIdentifierNode, typeParameterNodes) {
+    val signatureNodes: List<MethodSignatureNode> = emptyList(),
+    override val clauses: List<EntityConstructorWhereClauseNode> = emptyList()
+): EntityConstructorNode(firstToken, lastToken, typeIdentifierNode, typeParameterNodes, clauses) {
     override fun getChildren(): List<Node> {
-        return super.getChildren() + signatureNodes
+        return super.getChildren() + signatureNodes + clauses
     }
 }

@@ -56,6 +56,11 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             .forEach(typeAssistant::perform)
     }
 
+    private fun refineEntityConstructorTypeParameters(nodes: List<EntityConstructorNode>) {
+        nodes.map(::RefineEntityConstructorTypeParameters)
+            .forEach(typeAssistant::perform)
+    }
+
     private fun createMethodSignatures(nodes: List<ModuleNode>) {
         for (node in nodes) {
             val signatures = node.search(MethodSignatureNode::class.java)
@@ -114,10 +119,11 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             resolveTraitSignatures(traitDefs)
             resolveTypeConstructorParameters(typeConstructors)
             resolveTypeConstructorProperties(typeConstructors)
+            assembleTypeProjections(typeProjections)
+            refineEntityConstructorTypeParameters(typeConstructors)
 
             createTypeAliases(typeAliases)
 
-            assembleTypeProjections(typeProjections)
             resolveTraitConformance(typeDefs)
 
             createMethodSignatures(moduleDefs)

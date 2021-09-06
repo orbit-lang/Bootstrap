@@ -41,10 +41,10 @@ data class TypeProjection(val type: Type, val trait: Trait) : VirtualType {
     override val name: String = type.name
 }
 
-data class TypeParameter(override val name: String) : VirtualType {
+data class TypeParameter(override val name: String, val constraints: List<Trait> = emptyList()) : VirtualType {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = NominalEquality
 
-    constructor(path: Path) : this(path.toString(OrbitMangler))
+    constructor(path: Path, constraints: List<Trait> = emptyList()) : this(path.toString(OrbitMangler), constraints)
     // TODO - Complex Type Parameter Expressions
     constructor(node: TypeIdentifierNode) : this(node.getPath())
 }

@@ -1,18 +1,12 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main {
-    type constructor B<T>(x T)
+    trait Anything(x Int)
 
-    type Z = B<Int>
+    type projection Int : Anything
+        where x = 1
 
-    (Z) add (a Z, b Z) (Z) {
-        return Z(a.x + b.x)
-    }
+    type constructor Wrapped<N>(n N)
+        where N : Anything
 
-    (Z) foo () (B<Int>) {
-        return Z.add(Z(1), Z(2))
-    }
-
-    (self Main) main () () {
-        print Z.foo().x
-    }
+    type I = Wrapped<Int>
 }

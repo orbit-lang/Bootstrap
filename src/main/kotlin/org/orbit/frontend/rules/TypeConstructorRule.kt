@@ -1,15 +1,24 @@
 package org.orbit.frontend.rules
 
+import kotlinx.coroutines.yield
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.nodes.EntityConstructorNode
-import org.orbit.core.nodes.PairNode
-import org.orbit.core.nodes.TypeConstructorNode
-import org.orbit.core.nodes.TypeIdentifierNode
+import org.orbit.core.nodes.*
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
+
+object EntityConstructorWhereClauseRule : ParseRule<EntityConstructorWhereClauseNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val start = context.expect(TokenTypes.Where)
+        val statementNode = context.attemptAny(TypeConstraintRule)
+            as? EntityConstructorWhereClauseStatementNode
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +EntityConstructorWhereClauseNode(start, statementNode.lastToken, statementNode)
+    }
+}
 
 object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
     private val invocation: Invocation by inject()
@@ -68,6 +77,18 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
             invocation.warn("Redundant empty property list", delimitedNode.lastToken)
         }
 
-        return +TypeConstructorNode(start, delimitedNode.lastToken, typeIdentifier, typeParameters, properties)
+        next = context.peek()
+
+        val whereClauses = mutableListOf<EntityConstructorWhereClauseNode>()
+        while (next.type == TokenTypes.Where) {
+            val whereClause = context.attempt(EntityConstructorWhereClauseRule)
+                ?: return ParseRule.Result.Failure.Abort
+
+            whereClauses.add(whereClause)
+
+            next = context.peek()
+        }
+
+        return +TypeConstructorNode(start, delimitedNode.lastToken, typeIdentifier, typeParameters, properties, whereClauses)
     }
 }
