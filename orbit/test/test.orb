@@ -1,4 +1,5 @@
-module M with Orb::Types::Intrinsics {
+@Main
+module M with Orb::Types::Intrinsics with Orb::Core::Main {
     type constructor B<T>(x T)
 
     type Z = B<Int>
@@ -7,7 +8,11 @@ module M with Orb::Types::Intrinsics {
         return Z(a.x + b.x)
     }
 
-    (B) foo () (B<Int>) {
+    (Z) foo () (B<Int>) {
         return Z.add(Z(1), Z(2))
+    }
+
+    (self Main) main () () {
+        print Z.foo().x
     }
 }
