@@ -76,9 +76,11 @@ class DuplicateTraitProperty(private val type: Type, private val traitA: Trait, 
     }
 }
 
-class TraitEnforcerPropertyErrors(private val result: TraitPropertyResult) : ErrorWriter {
-    private fun writeMissingProperty(printer: Printer, result: TraitPropertyResult.Missing) : String {
-        return "Type ${result.type.toString(printer)} declares conformance to Trait ${result.trait.toString(printer)} but does not implement property ${result.property.toString(printer)}"
+class TraitEnforcerPropertyErrors(private val result: TraitPropertyResult, private val isImplicitConformance: Boolean = false) : ErrorWriter {
+    private fun writeMissingProperty(printer: Printer, result: TraitPropertyResult.Missing) : String = when (isImplicitConformance) {
+        // TODO - Better error message when isImplicitConformance
+        true -> "Type ${result.type.toString(printer)} implicitly declares conformance to Trait ${result.trait.toString(printer)} because it is passed as a Type Parameter to a Type Constructor. However, it does not implement property ${result.property.toString(printer)}"
+        false -> "Type ${result.type.toString(printer)} declares conformance to Trait ${result.trait.toString(printer)} but does not implement property ${result.property.toString(printer)}"
     }
 
     private fun writeDuplicateProperty(printer: Printer, result: TraitPropertyResult.Duplicate) : String {

@@ -27,5 +27,5 @@ enum class IntrinsicTypes(val type: ValuePositionType) {
     }
 
     val path: Path
-        get() = name.toPath()
+        get() = OrbitMangler.unmangle(type.name)
 }

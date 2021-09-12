@@ -78,7 +78,7 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     fun addAll(types: List<TypeProtocol>) = types.forEach(::add)
 
     fun getTypeProjectionOrNull(type: Type, trait: Trait) : TypeProjection? {
-        return typeProjections.firstOrNull { it.type == type && it.trait == trait }
+        return typeProjections.firstOrNull { it.type.name == type.name && it.trait.name == trait.name }
     }
 
     fun getTypeProjection(type: Type, trait: Trait) : TypeProjection

@@ -42,13 +42,7 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
             "${param.identifierNode.identifier}: $pType"
         }.joinToString(", ")
 
-        val funcReturnName = when (node.returnTypeNode) {
-            null -> IntrinsicTypes.Unit.path.toString(OrbitMangler)
-            else -> TypeExpressionUnit(node.returnTypeNode, depth, true)
-                .generate(mangler)
-        }
-
-        val methodPath = Path(listOf(receiverTypeName, node.identifierNode.identifier) + paramTypes + funcReturnName)
+        val methodPath = Path(listOf(receiverTypeName, node.identifierNode.identifier) + paramTypes + returnTypeName)
             .toString(mangler)
 
         return """

@@ -23,7 +23,7 @@ class IntLiteralUnit(override val node: LiteralNode<Pair<Int, BigInteger>>, over
 class SymbolLiteralUnit(override val node: LiteralNode<Pair<Int, String>>, override val depth: Int) : LiteralUnit<Pair<Int, String>> {
     override fun generate(mangler: Mangler): String {
         val symbolType = (OrbitMangler + mangler)(IntrinsicTypes.Symbol.type.name)
-        return "${symbolType}(value: \"${node.value.second}\", len: ${node.value.second.length})"
+        return "${symbolType}(value: \"${node.value.second}\")"
     }
 }
 

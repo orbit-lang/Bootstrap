@@ -70,6 +70,8 @@ data class Trait(override val name: String, val typeParameters: List<ValuePositi
     }
 }
 
+data class SynthesisedEntity(val entity: Entity, val metaType: MetaType): TypeProtocol by entity
+
 data class TypeAlias(override val name: String, val targetType: Type) : VirtualType, TypeExpression {
     constructor(path: Path, targetType: Type) : this(path.toString(OrbitMangler), targetType)
 

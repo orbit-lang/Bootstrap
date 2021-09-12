@@ -119,10 +119,9 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             resolveTraitSignatures(traitDefs)
             resolveTypeConstructorParameters(typeConstructors)
             resolveTypeConstructorProperties(typeConstructors)
+            createTypeAliases(typeAliases)
             assembleTypeProjections(typeProjections)
             refineEntityConstructorTypeParameters(typeConstructors)
-
-            createTypeAliases(typeAliases)
 
             resolveTraitConformance(typeDefs)
 

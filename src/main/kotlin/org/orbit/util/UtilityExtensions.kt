@@ -144,3 +144,11 @@ fun <T, U> Collection<T>.cartesian(other: Collection<U>) : Collection<Pair<T, U>
 fun <T> Collection<T>.cartesian() : Collection<Pair<T, T>> {
     return flatMap { a -> map { b -> Pair(a, b) } }
 }
+
+fun Collection<String>.concatenate() : String {
+    var str = ""
+
+    for (s in this) str += s
+
+    return str
+}

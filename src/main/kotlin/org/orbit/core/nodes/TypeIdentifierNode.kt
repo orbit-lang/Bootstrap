@@ -14,7 +14,7 @@ data class TypeIdentifierNode(
 ) : TypeExpressionNode(firstToken, lastToken, value) {
 	companion object {
 		fun unit(token: Token) : TypeIdentifierNode
-			= TypeIdentifierNode(token, token, "Unit")
+			= TypeIdentifierNode(token, token, "Orb::Types::Intrinsics::Unit")
 	}
 
 	override fun equals(other: Any?): Boolean = when (other) {
