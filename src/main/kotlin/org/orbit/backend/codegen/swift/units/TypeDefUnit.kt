@@ -1,7 +1,6 @@
 package org.orbit.backend.codegen.swift.units
 
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
@@ -9,8 +8,6 @@ import org.orbit.core.nodes.TypeDefNode
 import org.orbit.types.components.Context
 import org.orbit.types.components.Property
 import org.orbit.types.components.Type
-import org.orbit.types.components.TypeProtocol
-import org.orbit.util.ASTUtil
 import org.orbit.util.partial
 
 class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : CodeUnit<TypeDefNode>, KoinComponent {
@@ -48,12 +45,33 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Cod
             else -> " = " + ExpressionUnit(property.defaultValue!!, depth).generate(mangler)
         }
 
-        val header = "/* ${property.name} $propertyType$defaultValue */"
-        val prop = "let ${property.name}: $propertyType$defaultValue"
+        return "${property.name}: $propertyType$defaultValue"
+    }
+
+    private fun generatePropertyLet(property: Property, mangler: Mangler) : String {
+        val propertyType = (OrbitMangler + mangler).invoke(property.type.name)
+
+        val header = "/* ${property.name} $propertyType */"
+        val prop = "let ${property.name}: $propertyType"
 
         return """
             |$header
             |$prop
+        """.trimMargin()
+            .prependIndent(indent(depth + 1))
+    }
+
+    private fun generateInitialiser(properties: List<Property>, mangler: Mangler) : String {
+        // NOTE - Swift's auto-generated constructors can't handle default values!
+        val arguments = properties.joinToString(", ", transform = partial(::generateProperty, mangler))
+        val assignments = properties.joinToString("\n\t") {
+            "\tself.${it.name} = ${it.name}"
+        }
+
+        return """
+            |init($arguments) {
+            |$assignments
+            |}
         """.trimMargin()
             .prependIndent(indent(depth + 1))
     }
@@ -76,12 +94,16 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Cod
         val typeDef = "struct ${typePath.toString(mangler)}"
 
         val propertyDefs = type.properties
-            .joinToString("\n${indent()}") { generateProperty(it, mangler) }
+            .joinToString("\n${indent()}") { generatePropertyLet(it, mangler) }
+
+        val init = generateInitialiser(type.properties, mangler)
 
         return """
             |$header
             |$typeDef {
             |$propertyDefs
+            |
+            |$init
             |}
         """.trimMargin().prependIndent(indent())
     }

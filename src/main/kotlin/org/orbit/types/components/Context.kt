@@ -40,7 +40,7 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     val bindings = mutableMapOf<String, TypeProtocol>()
 
     private val typeProjections = mutableListOf<TypeProjection>()
-    var monomorphisedTypes = mutableListOf<Type>()
+    var monomorphisedTypes = mutableMapOf<String, Type>()
         private set
 
     private var next = 0
@@ -52,8 +52,8 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     fun <T> withSubContext(block: (Context) -> T) : T = block(Context(this))
 
     fun registerMonomorphisation(type: Type) {
-        if (!monomorphisedTypes.contains(type)) {
-            monomorphisedTypes.add(type)
+        if (!monomorphisedTypes.containsKey(type.name)) {
+            monomorphisedTypes[type.name] = type
         }
     }
 

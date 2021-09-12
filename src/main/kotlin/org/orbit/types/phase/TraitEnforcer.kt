@@ -13,6 +13,8 @@ class TraitEnforcer(private val isImplicitConformance: Boolean = false) : Adapta
     override val invocation: Invocation by inject()
 
     private fun mapResult(context: Context, type: Type, pair: Pair<Trait, Property>) : TraitPropertyResult {
+        val projectedTraits = type.traitConformance
+
         val typeProjectedProperties = type.traitConformance
             .mapNotNull { context.getTypeProjectionOrNull(type, it) }
             .flatMap { it.trait.properties }
@@ -23,12 +25,22 @@ class TraitEnforcer(private val isImplicitConformance: Boolean = false) : Adapta
         return when (matches.count()) {
             0 -> TraitPropertyResult.Missing(type, pair.first, pair.second)
             1 -> TraitPropertyResult.Exists(pair.second)
-            else -> TraitPropertyResult.Duplicate(type, pair.second)
+            else -> {
+                // Is this exactly the same property defined more than once, based on type
+                val first = matches[0]
+                val pureDuplicates = matches.fold(true) { acc, next ->
+                    acc && (next.name == first.name && first.type.name == next.type.name)
+                }
+
+                when (pureDuplicates) {
+                    true -> TraitPropertyResult.Exists(pair.second)
+                    else -> TraitPropertyResult.Duplicate(type, pair.second)
+                }
+            }
         }
     }
 
     fun enforce(context: Context, type: Type) {
-
         // Get the superset of distinct pairs of Trait0.properties x TraitN.properties
         val allProperties = type.traitConformance
             .flatPairMap(Trait::properties)

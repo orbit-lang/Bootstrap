@@ -56,7 +56,7 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
             .map(partial(::TypeAliasUnit, depth))
             .joinToString(newline(2), transform = partial(TypeAliasUnit::generate, mangler))
 
-        val monos = context.monomorphisedTypes
+        val monos = context.monomorphisedTypes.values
             .map(partial(TypeDefUnit.Companion::generateMonomorphisedType, mangler))
             .joinToString("\n")
 

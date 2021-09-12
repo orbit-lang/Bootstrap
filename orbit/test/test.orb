@@ -1,11 +1,10 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main with Orb::Core::Types {
-    trait Anything(x Int, s Symbol)
+    trait Anything(x Int)
     type T
 
     type projection T : Anything
        where x = 1
-       where s = :s
 
     type constructor Wrapped<N>(n N)
         where N : Anything
@@ -14,15 +13,16 @@ module M with Orb::Types::Intrinsics with Orb::Core::Main with Orb::Core::Types 
 
     type projection I : Anything
         where x = 1
-        where s = :S
 
     /* HERE - Methods have to be specialised now! */
     /* HERE - Types with projected properties w/ default values must generate an explicit initialiser */
-    (self Wrapped<I>) foo () () {
+    (self Wrapped<T>) foo () () {
         print self.n
     }
 
     (self Main) main () () {
+        i = I(T(1))
 
+        print i.foo()
     }
 }
