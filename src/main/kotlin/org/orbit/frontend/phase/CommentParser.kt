@@ -19,7 +19,7 @@ class CommentParser(override val invocation: Invocation) :
 
 	override fun execute(input: SourceProvider) : Result {
 		val source = input.getSource()
-		var comments = mutableListOf<Comment>()
+		val comments = mutableListOf<Comment>()
 
 		var inComment = false
 		var comment = ""

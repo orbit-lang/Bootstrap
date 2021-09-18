@@ -37,7 +37,7 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
         next = context.peek()
 
         if (next.type != TokenTypes.LAngle) {
-            // TODO - Parse case constructors. Type constructors without type params are allowed,
+            // TODO - Parse sum types. Type constructors without type params are allowed,
             //  but you must have at least 1 case constructor, otherwise it doesn't do anything!
             throw invocation.make<Parser>("Expected type parameter list after `type constructor ${typeIdentifier.value}`", next)
         }

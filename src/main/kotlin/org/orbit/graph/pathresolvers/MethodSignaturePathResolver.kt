@@ -16,14 +16,28 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 	override val invocation: Invocation by inject()
 
 	override fun resolve(input: MethodSignatureNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
+		// We need to resolve any type parameters before we can look at the rest of the signature
+		val tp = input.typeParameters
+
+		if (tp != null) {
+			val mPath = Path(input.identifierNode.identifier)
+			tp.typeParameters.forEach {
+				val nPath = mPath + it.value
+
+				it.annotate(nPath, Annotations.Path)
+				// TODO - Recursively resolve nested type parameters
+				environment.bind(Binding.Kind.Type, it.value, nPath)
+			}
+		}
+
 		// A method's canonical path is `<ReceiverType>::<MethodName>[::ArgType1, ::ArgType2, ...]::<ReturnType>`
 		val receiver = input.receiverTypeNode.typeExpressionNode.value
 
-		TypeExpressionPathResolver.resolve(input.receiverTypeNode.typeExpressionNode, pass, environment, graph)
-			.asSuccess()
-
 		val receiverBinding = environment.getBinding(receiver, Binding.Kind.Union.receiver)
 			.unwrap(this, input.receiverTypeNode.typeExpressionNode.firstToken.position)
+
+		TypeExpressionPathResolver.resolve(input.receiverTypeNode.typeExpressionNode, pass, environment, graph)
+			.asSuccess()
 
 		input.receiverTypeNode.annotate(receiverBinding.path, Annotations.Path)
 		input.receiverTypeNode.typeExpressionNode.annotate(receiverBinding.path, Annotations.Path)

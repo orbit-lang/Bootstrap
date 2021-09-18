@@ -30,7 +30,9 @@ fun TypeProtocolPair.isSatisfied(context: Context) : Boolean {
     return first.isSatisfied(context, second)
 }
 
-interface ValuePositionType : TypeProtocol
+interface ValuePositionType : TypeProtocol {
+    val isEphemeral: Boolean
+}
 
 operator fun Entity.plus(name: String) : Property {
     return Property(name, this)

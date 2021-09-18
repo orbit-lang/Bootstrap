@@ -1,28 +1,15 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main with Orb::Core::Types {
-    trait Anything(x Int)
-    type T
+    type constructor List<Element>(first Element)
+    #type T
 
-    type projection T : Anything
-       where x = 1
-
-    type constructor Wrapped<N>(n N)
-        where N : Anything
-
-    type I = Wrapped<T>
-
-    type projection I : Anything
-        where x = 1
-
-    /* HERE - Methods have to be specialised now! */
-    /* HERE - Types with projected properties w/ default values must generate an explicit initialiser */
-    (self Wrapped<T>) foo () () {
-        print self.n
+    (self List<T>) numberOfElements <T> () (List<T>) {
+        return self
     }
 
     (self Main) main () () {
-        i = I(T(1))
+        l = List<Int>(0)
 
-        print i.foo()
+        print l.numberOfElements()
     }
 }

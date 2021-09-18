@@ -30,7 +30,7 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRul
 		val next = context.peek()
 
 		if (next.type == TokenTypes.LAngle) {
-			val typeParametersNode = TypeParametersRule(true)
+			val typeParametersNode = TypeParametersRule_Old(true)
 				.execute(context)
 				.unwrap<ParseRule.Result.Success<TypeParametersNode>>()
 				?.node

@@ -49,7 +49,7 @@ class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private
                         ?: throw invocation.make<TypeSystem>("Type Constructors must be specialised on concrete Types, found ${concreteType::class.java.simpleName} ${concreteType.toString(printer)}", SourcePosition.unknown)
 
                     // Easiest way to do this is to construct an ephemeral subtype of concreteType + the constraint Traits
-                    val ephemeralType = Type(concreteType.name, concreteType.typeParameters, concreteType.properties, abstractType.constraints, concreteType.equalitySemantics)
+                    val ephemeralType = Type(concreteType.name, concreteType.typeParameters, concreteType.properties, abstractType.constraints, concreteType.equalitySemantics, isEphemeral = concreteType.isEphemeral)
 
                     val traitEnforcer = TraitEnforcer(true)
 

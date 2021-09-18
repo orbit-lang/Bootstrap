@@ -12,7 +12,8 @@ data class MethodSignatureNode(
     val identifierNode: IdentifierNode,
     val receiverTypeNode: PairNode,
     val parameterNodes: List<PairNode>,
-    val returnTypeNode: TypeExpressionNode?
+    val returnTypeNode: TypeExpressionNode?,
+	val typeParameters: TypeParametersNode? = null
 ) : Node(firstToken, lastToken) {
 	constructor(
         firstToken: Token,
@@ -20,7 +21,8 @@ data class MethodSignatureNode(
         identifierNode: IdentifierNode,
         receiverTypeNode: TypeExpressionNode,
         parameterNodes: List<PairNode>,
-        returnTypeNode: TypeExpressionNode?
+        returnTypeNode: TypeExpressionNode?,
+		typeParameterNodes: TypeParametersNode? = null
 	) : this(
 		firstToken,
 		lastToken,
@@ -28,7 +30,8 @@ data class MethodSignatureNode(
 		PairNode(receiverTypeNode.firstToken, receiverTypeNode.lastToken,
 			IdentifierNode(receiverTypeNode.firstToken, receiverTypeNode.lastToken, "Self"), receiverTypeNode),
 		parameterNodes,
-		returnTypeNode
+		returnTypeNode,
+		typeParameterNodes,
 	)
 
 	inline fun <reified T> annotateParameter(idx: Int, value: T, tag: Annotations) where T: Serial, T: Serializable {

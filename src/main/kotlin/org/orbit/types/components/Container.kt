@@ -26,6 +26,7 @@ object ModuleEquality : Equality<TypeProtocol, TypeProtocol> {
 
 data class Api(override val name: String, val requiredTypes: List<Type> = emptyList(), val requiredSignatures: List<SignatureProtocol<*>> = emptyList()) : Container {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = ApiEquality
+    override val isEphemeral: Boolean = false
 
     fun monomorphise(substitutions: (Type) -> TypeAlias) : ConcreteApi {
         return ConcreteApi(this, requiredTypes.map(substitutions))
@@ -35,6 +36,7 @@ data class Api(override val name: String, val requiredTypes: List<Type> = emptyL
 data class ConcreteApi(private val virtualApi: Api, private val typeAliases: List<TypeAlias>) : Container {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = ApiEquality
     override val name: String = virtualApi.name
+    override val isEphemeral: Boolean = false
 
     init {
         assert(typeAliases.count() == virtualApi.requiredTypes.count())
@@ -58,6 +60,8 @@ data class Module(override val name: String, val typeAliases: List<TypeAlias> = 
 
     constructor(node: ModuleNode)
         : this(node.getPath())
+
+    override val isEphemeral: Boolean = false
 
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = ModuleEquality
 

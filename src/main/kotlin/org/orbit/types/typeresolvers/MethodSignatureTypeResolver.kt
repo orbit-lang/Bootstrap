@@ -24,6 +24,13 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
         val argTypes = mutableListOf<Parameter>()
         val parameterBindings = mutableListOf<String>()
 
+        val typeParameters = when (val tp = node.typeParameters) {
+            null -> emptyList()
+            else -> tp.typeParameters.map(::TypeParameter)
+        }
+
+        typeParameters.forEach(context::add)
+
         val receiverType: ValuePositionType
         if (receiver.identifierNode.identifier == "Self") {
             receiverType = if (receiver.typeExpressionNode.value == "Self") {
@@ -73,7 +80,7 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
 
         // NOTE - Decided to erase the difference between Type & Instance methods here.
         //  From this point, the compiler sees instance methods as type methods with an extra "self" param
-        val funcType = TypeSignature(node.identifierNode.identifier, receiverType, argTypes, returnType)
+        val funcType = TypeSignature(node.identifierNode.identifier, receiverType, argTypes, returnType, typeParameters)
 
         node.annotate(funcType, Annotations.Type)
 

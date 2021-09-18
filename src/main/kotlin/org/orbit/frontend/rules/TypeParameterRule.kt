@@ -1,11 +1,14 @@
 package org.orbit.frontend.rules
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.core.nodes.*
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
+import org.orbit.util.Invocation
 
-abstract class TypeParameterRule : ParseRule<TypeParameterNode>
+abstract class TypeParameterRule : ParseRule<AbstractTypeParameterNode>
 
 private object BoundedTypeParameterRule : TypeParameterRule() {
 	override fun parse(context: Parser) : ParseRule.Result {
@@ -71,9 +74,21 @@ private object ValueTypeParameterRule : TypeParameterRule() {
 	}
 }
 
-class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeParametersNode> {
+object TypeParametersRule : ParseRule<TypeParametersNode>, KoinComponent {
+	private val invocation: Invocation by inject()
+
+	override fun parse(context: Parser): ParseRule.Result {
+		val delimitedRule = DelimitedRule(TokenTypes.LAngle, TokenTypes.RAngle, TypeIdentifierRule.Naked)
+		val typeParameters = context.attempt(delimitedRule)
+			?: throw invocation.make<Parser>("", context.peek())
+
+		return +TypeParametersNode(typeParameters.firstToken, typeParameters.lastToken, typeParameters.nodes)
+	}
+}
+
+class TypeParametersRule_Old(private val isRValueContext: Boolean) : ParseRule<TypeParametersNode> {
 	override fun parse(context: Parser) : ParseRule.Result {
-		var typeParameterNodes = mutableListOf<TypeParameterNode>()
+		var typeParameterNodes = mutableListOf<AbstractTypeParameterNode>()
 
 		val start = context.expect(TokenTypes.LAngle)
 
@@ -95,7 +110,7 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 				// We're instantiating a generic type in an rval position, so only concrete Types/Values are allowed
 				val typeParameterNode = ValueTypeParameterRule
 					.execute(context)
-					.asSuccessOrNull<TypeParameterNode>()
+					.asSuccessOrNull<AbstractTypeParameterNode>()
 					?.node
 					?: return ParseRule.Result.Failure.Abort
 
@@ -118,7 +133,7 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 				}
 
 				var result: Parser.Result? = null
-				var typeParameterNode: TypeParameterNode
+				var typeParameterNode: AbstractTypeParameterNode
 
 				try {
 					result = lookaheadParser.execute(Parser.InputType(context.tokens))
@@ -156,6 +171,6 @@ class TypeParametersRule(private val isRValueContext: Boolean) : ParseRule<TypeP
 			}
 		}
 		
-		return +TypeParametersNode(start, end, typeParameterNodes)
+		return +TypeParametersNode(start, end, emptyList())
 	}
 }

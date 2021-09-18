@@ -26,6 +26,7 @@ object ConstructorInference : TypeInference<ConstructorNode>, KoinComponent {
 
         val parameterTypes = receiverType.properties
 
+        // HERE - Default values!
         if (node.parameterNodes.size != parameterTypes.size) {
             throw invocation.make<TypeSystem>("Type '${receiverType.name}' expects ${parameterTypes.size} constructor ${"parameter".pluralise(parameterTypes.size)}, found ${node.parameterNodes.size}", node.firstToken.position)
         }

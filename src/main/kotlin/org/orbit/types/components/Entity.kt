@@ -17,14 +17,27 @@ import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.toPath
 
+class EphemeralTypeGenerator {
+    private var counter = 0
+
+    fun generateEphemeralType(baseName: String, traits: List<Trait>) : Type {
+        try {
+            return Type("${baseName}::$counter", traitConformance = traits, isEphemeral = true)
+        } finally {
+            counter += 1
+        }
+    }
+}
+
 abstract class Entity(
     override val name: String,
     open val properties: List<Property> = emptyList(),
     open val traitConformance: List<Trait> = emptyList(),
-    override val equalitySemantics: Equality<out Entity, out Entity>
+    override val equalitySemantics: Equality<out Entity, out Entity>,
+    override val isEphemeral: Boolean = false
 ) : ValuePositionType, TypeExpression {
-    constructor(path: Path, properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), equalitySemantics: Equality<out Entity, out Entity>)
-        : this(path.toString(OrbitMangler), properties, traitConformance, equalitySemantics)
+    constructor(path: Path, properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), equalitySemantics: Equality<out Entity, out Entity>, isEphemeral: Boolean = false)
+        : this(path.toString(OrbitMangler), properties, traitConformance, equalitySemantics, isEphemeral)
 
     override fun evaluate(context: Context): TypeProtocol = this
 
@@ -49,18 +62,34 @@ data class TypeParameter(override val name: String, val constraints: List<Trait>
     constructor(node: TypeIdentifierNode) : this(node.getPath())
 }
 
-data class Type(override val name: String, val typeParameters: List<ValuePositionType> = emptyList(), override val properties: List<Property> = emptyList(),
-                override val traitConformance: List<Trait> = emptyList(), override val equalitySemantics: Equality<Entity, Entity> = NominalEquality, val isRequired: Boolean = false) : Entity(name, properties, traitConformance, equalitySemantics) {
-    constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), equalitySemantics: Equality<Entity, Entity> = NominalEquality, isRequired: Boolean = false)
-        : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, equalitySemantics, isRequired)
+data class Type(
+    override val name: String,
+    val typeParameters: List<ValuePositionType> = emptyList(),
+    override val properties: List<Property> = emptyList(),
+    override val traitConformance: List<Trait> = emptyList(),
+    override val equalitySemantics: Equality<Entity, Entity> = NominalEquality,
+    val isRequired: Boolean = false,
+    override val isEphemeral: Boolean = false
+) : Entity(name, properties, traitConformance, equalitySemantics) {
+    constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), equalitySemantics: Equality<Entity, Entity> = NominalEquality, isRequired: Boolean = false, isEphemeral: Boolean = false)
+        : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, equalitySemantics, isRequired, isEphemeral)
 
     constructor(node: TypeDefNode)
         : this(node.getPath())
 }
 
-data class Trait(override val name: String, val typeParameters: List<ValuePositionType> = emptyList(), override val properties: List<Property> = emptyList(), override val traitConformance: List<Trait> = emptyList(), val signatures: List<SignatureProtocol<*>> = emptyList(), override val equalitySemantics: Equality<Trait, Type> = TraitConformanceEquality, val implicit: Boolean = false) : Entity(name, properties, traitConformance, equalitySemantics) {
-    constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Trait, Type> = StructuralEquality, implicit: Boolean = false)
-        : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, signatures, equalitySemantics, implicit)
+data class Trait(
+    override val name: String,
+    val typeParameters: List<ValuePositionType> = emptyList(),
+    override val properties: List<Property> = emptyList(),
+    override val traitConformance: List<Trait> = emptyList(),
+    val signatures: List<SignatureProtocol<*>> = emptyList(),
+    override val equalitySemantics: Equality<Trait, Type> = TraitConformanceEquality,
+    val implicit: Boolean = false,
+    override val isEphemeral: Boolean = false
+) : Entity(name, properties, traitConformance, equalitySemantics) {
+    constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Trait, Type> = StructuralEquality, implicit: Boolean = false, isEphemeral: Boolean = false)
+        : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, signatures, equalitySemantics, implicit, isEphemeral)
 
     constructor(node: TraitDefNode) : this(node.getPath())
 
@@ -113,6 +142,8 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
         val invocation: Invocation by inject()
     }
 
+    override val isEphemeral: Boolean = true
+
     override val name: String
         get() = entityConstructor.name
 
@@ -142,9 +173,14 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
 
         val paramsPath = Path(entityConstructor.name) + typeParams.map { Path(it.name) }
 
+        // NOTE - Ephemerality propagates upwards
+        // i.e. if a Type Constructor has at least one ephemeral Type Parameters, it too is ephemeral
+        // NOTE - Ephemeral means compiler-generated in this context
+        val isEphemeral = concreteTypeParameters.any(ValuePositionType::isEphemeral)
+
         return when (entityConstructor) {
-            is TypeConstructor -> Type(paramsPath, concreteTypeParameters, properties)
-            is TraitConstructor -> Trait(paramsPath, concreteTypeParameters, properties)
+            is TypeConstructor -> Type(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral)
+            is TraitConstructor -> Trait(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral)
             else -> TODO("???")
         }
     }
@@ -195,6 +231,7 @@ data class InstanceSignature(
     override val parameters: List<Parameter>, override val returnType: ValuePositionType
 ) : SignatureProtocol<Parameter> {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = SignatureEquality
+    override val isEphemeral: Boolean = false
 
     override fun toString(mangler: Mangler): String {
         return mangler.mangle(this)
@@ -209,9 +246,11 @@ data class TypeSignature(
     override val name: String,
     override val receiver: ValuePositionType,
     override val parameters: List<Parameter>,
-    override val returnType: ValuePositionType
+    override val returnType: ValuePositionType,
+    val typeParameters: List<TypeParameter> = emptyList()
 ) : SignatureProtocol<ValuePositionType> {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = SignatureEquality
+    override val isEphemeral: Boolean = false
 
     override fun toString(mangler: Mangler): String {
         return mangler.mangle(this)

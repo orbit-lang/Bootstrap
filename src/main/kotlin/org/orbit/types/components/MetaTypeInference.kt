@@ -13,6 +13,8 @@ object MetaTypeInference : TypeInference<MetaTypeNode>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
+    private val ephemeralTypeGenerator = EphemeralTypeGenerator()
+
     override fun infer(context: Context, node: MetaTypeNode, typeAnnotation: TypeProtocol?): TypeProtocol {
         val typeConstructor = context.getTypeByPath(node.getPath())
             // TODO - Trait Constructors
@@ -23,8 +25,17 @@ object MetaTypeInference : TypeInference<MetaTypeNode>, KoinComponent {
         val typeParameters = node.typeParameters
             .map { TypeExpressionInference.infer(context, it, null) }
             .map {
-                it as? ValuePositionType
-                    ?: throw invocation.make<TypeSystem>("Type Constructors must be specialised on concrete types, found ${it::class.java.simpleName} ${it.toString(printer)}", node)
+                when (it) {
+                    is ValuePositionType -> it
+                    is VirtualType -> {
+                        // TODO - Calculate properties & signatures once method where clauses are done
+                        val virtualTrait = Trait(it.name, equalitySemantics = TraitConformanceEquality)
+
+                        ephemeralTypeGenerator.generateEphemeralType(it.name, listOf(virtualTrait))
+                    }
+
+                    else -> throw invocation.make<TypeSystem>("Type Constructors must be specialised on concrete types, found ${it::class.java.simpleName} ${it.toString(printer)}", node)
+                }
             }
 
         val specialisation = TypeMonomorphisation(typeConstructor, typeParameters)
