@@ -225,23 +225,6 @@ interface SignatureProtocol<T: TypeProtocol> : ValuePositionType {
     }
 }
 
-data class InstanceSignature(
-    override val name: String,
-    override val receiver: Parameter,
-    override val parameters: List<Parameter>, override val returnType: ValuePositionType
-) : SignatureProtocol<Parameter> {
-    override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = SignatureEquality
-    override val isEphemeral: Boolean = false
-
-    override fun toString(mangler: Mangler): String {
-        return mangler.mangle(this)
-    }
-
-    override fun isReceiverSatisfied(by: Entity, context: Context): Boolean {
-        return (receiver.type.equalitySemantics as AnyEquality).isSatisfied(context, receiver.type, by)
-    }
-}
-
 data class TypeSignature(
     override val name: String,
     override val receiver: ValuePositionType,

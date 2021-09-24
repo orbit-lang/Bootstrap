@@ -1,9 +1,10 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main with Orb::Core::Types {
+    trait Foo
     type constructor List<Element>(first Element)
     #type T
 
-    (self List<T>) numberOfElements <T> () (List<T>) {
+    (self List<T>) numberOfElements <T> () (List<T>) where T : Foo {
         return self
     }
 

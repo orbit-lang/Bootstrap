@@ -55,8 +55,7 @@ class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) :
         val modules = "${ProgramUtilsUnit.generate(mangler)}\n\n" + node.declarations
             .filterIsInstance<ModuleNode>()
             .map(partial(::ModuleUnit, depth))
-            .map(partial(ModuleUnit::generate, mangler))
-            .joinToString(newline(2))
+            .joinToString(newline(2), transform = partial(ModuleUnit::generate, mangler))
 
         val mainCall = try {
             when (main.mainSignature) {
@@ -72,8 +71,6 @@ class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) :
         } catch (_: Exception) {
             ""
         }
-
-
 
         return "$modules\n\n$mainCall"
     }

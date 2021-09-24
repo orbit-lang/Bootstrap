@@ -22,7 +22,7 @@ object MainResolver : ReifiedPhase<Parser.Result, Main>, KoinComponent {
     override val invocation: Invocation by inject()
     private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
 
-    private val mainPath = Path("Orb", "Core", "Main", "Main", "main", "Orb", "Types", "Intrinsics", "Unit")
+    private val mainPath = OrbitMangler.unmangle("Orb::Core::Main::Main::main::Orb::Core::Main::Main::Orb::Types::Intrinsics::Unit")
 
     override fun execute(input: Parser.Result) : Main {
         val mainFunc = context.get(mainPath.toString(OrbitMangler))

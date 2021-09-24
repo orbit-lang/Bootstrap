@@ -1,6 +1,5 @@
 package org.orbit.frontend.rules
 
-import kotlinx.coroutines.yield
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.*
@@ -9,14 +8,14 @@ import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
 
-object EntityConstructorWhereClauseRule : ParseRule<EntityConstructorWhereClauseNode> {
+object TypeConstraintWhereClauseRule : ParseRule<TypeConstraintWhereClauseNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.Where)
         val statementNode = context.attemptAny(TypeConstraintRule)
-            as? EntityConstructorWhereClauseStatementNode
+            as? TypeConstraintNode
             ?: return ParseRule.Result.Failure.Abort
 
-        return +EntityConstructorWhereClauseNode(start, statementNode.lastToken, statementNode)
+        return +TypeConstraintWhereClauseNode(start, statementNode.lastToken, statementNode)
     }
 }
 
@@ -79,9 +78,9 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         next = context.peek()
 
-        val whereClauses = mutableListOf<EntityConstructorWhereClauseNode>()
+        val whereClauses = mutableListOf<TypeConstraintWhereClauseNode>()
         while (next.type == TokenTypes.Where) {
-            val whereClause = context.attempt(EntityConstructorWhereClauseRule)
+            val whereClause = context.attempt(TypeConstraintWhereClauseRule)
                 ?: return ParseRule.Result.Failure.Abort
 
             whereClauses.add(whereClause)

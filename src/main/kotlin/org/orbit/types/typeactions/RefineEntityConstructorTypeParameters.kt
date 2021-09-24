@@ -5,8 +5,8 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.EntityConstructorNode
-import org.orbit.core.nodes.EntityConstructorWhereClauseNode
-import org.orbit.core.nodes.TypeConstraintNode
+import org.orbit.core.nodes.TypeConstraintWhereClauseNode
+import org.orbit.core.nodes.TraitConformanceTypeConstraintNode
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -21,7 +21,7 @@ class RefineEntityConstructorTypeParameters(private val node: EntityConstructorN
 
     private lateinit var entityConstructor: EntityConstructor
 
-    private fun resolveTypeConstraint(typeConstraintNode: TypeConstraintNode, context: Context) {
+    private fun resolveTypeConstraint(typeConstraintNode: TraitConformanceTypeConstraintNode, context: Context) {
         val constraintTrait = context.getTypeByPath(typeConstraintNode.constraintTraitNode.getPath()) as Trait
         val constrainedTypePath = typeConstraintNode.constrainedTypeNode.getPath()
 
@@ -52,8 +52,8 @@ class RefineEntityConstructorTypeParameters(private val node: EntityConstructorN
         context.add(entityConstructor)
     }
 
-    private fun resolveClause(clause: EntityConstructorWhereClauseNode, context: Context) = when (clause.statementNode) {
-        is TypeConstraintNode -> resolveTypeConstraint(clause.statementNode, context)
+    private fun resolveClause(clause: TypeConstraintWhereClauseNode, context: Context) = when (clause.statementNode) {
+        is TraitConformanceTypeConstraintNode -> resolveTypeConstraint(clause.statementNode, context)
         else -> TODO("RefineEntityConstructorTypeParameters::resolveClause")
     }
 

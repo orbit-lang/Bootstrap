@@ -4,6 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.*
 import org.orbit.core.components.SourcePosition
+import org.orbit.core.components.Token
 import org.orbit.frontend.components.ParseError
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.phase.Parser
@@ -78,20 +79,28 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 					?: throw context.invocation.make(Errors.MissingReturnType(next.position))
 			}
 
-		val end = context.expect(TokenTypes.RParen)
 		val id = identifierNode ?: IdentifierNode(idStart, idStart, autoName)
 
-		return +when {
-			receiverNode.first != null -> {
-				MethodSignatureNode(start, end,
-					id, receiverNode.first!!, parameterNodes, returnTypeNode, typeParameters)
+		var end = context.expect(TokenTypes.RParen)
+		next = context.peek()
+
+		val whereClauses = mutableListOf<TypeConstraintWhereClauseNode>()
+		if (next.type == TokenTypes.Where) {
+			while (next.type == TokenTypes.Where) {
+				val whereClause = context.attempt(TypeConstraintWhereClauseRule)
+					?: TODO("???")
+
+				whereClauses.add(whereClause)
+
+				next = context.peek()
 			}
-			receiverNode.second != null -> {
-				MethodSignatureNode(start, end,
-					id, receiverNode.second!!, parameterNodes, returnTypeNode, typeParameters)
-			}
-			
-			else -> throw Exception("???")
+
+			end = context.peek()
+		}
+
+		return +when(receiverNode.first) {
+			null -> MethodSignatureNode(start, end, id, receiverNode.second!!, parameterNodes, returnTypeNode, typeParameters, whereClauses)
+			else -> MethodSignatureNode(start, end, id, receiverNode.first!!.typeExpressionNode, listOf(receiverNode.first!!).plus(parameterNodes), returnTypeNode, typeParameters, whereClauses)
 		}
 	}
 }

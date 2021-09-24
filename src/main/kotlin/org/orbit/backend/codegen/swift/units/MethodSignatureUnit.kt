@@ -15,9 +15,8 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
     }
 
     override fun generate(mangler: Mangler): String {
-        val receiverType = (node.receiverTypeNode.typeExpressionNode.getType() as TypeExpression).evaluate(context)
+        val receiverType = (node.receiverTypeNode.getType() as TypeExpression).evaluate(context)
         val receiverTypeName = (OrbitMangler + mangler).invoke(receiverType.name)
-        val receiverName = node.receiverTypeNode.identifierNode.identifier
         val returnTypePath = node.returnTypeNode?.getPath() ?: IntrinsicTypes.Unit.path
         val returnTypeName = when (node.returnTypeNode) {
             null -> IntrinsicTypes.Unit.path.toString(mangler)
@@ -25,12 +24,8 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
                 .generate(mangler)
         }
 
-        val header = "/* ($receiverName ${receiverType.name}) ${node.identifierNode.identifier} () (${returnTypePath.toString(OrbitMangler)}) */"
-        val parameterNodes = if (receiverName == "Self") {
-            node.parameterNodes
-        } else {
-            listOf(node.receiverTypeNode) + node.parameterNodes
-        }
+        val header = "/* (${receiverType.name}) ${node.identifierNode.identifier} () (${returnTypePath.toString(OrbitMangler)}) */"
+        val parameterNodes =node.parameterNodes
 
         val paramTypes = parameterNodes.map {
             TypeExpressionUnit(it.typeExpressionNode, depth)

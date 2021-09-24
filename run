@@ -1,0 +1,3 @@
+#!/bin/sh
+./test
+./Test1/Test1

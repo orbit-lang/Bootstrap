@@ -11,6 +11,8 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.Invocation
+import org.orbit.util.dispose
+import org.orbit.util.partial
 
 class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 	override val invocation: Invocation by inject()
@@ -31,16 +33,15 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		}
 
 		// A method's canonical path is `<ReceiverType>::<MethodName>[::ArgType1, ::ArgType2, ...]::<ReturnType>`
-		val receiver = input.receiverTypeNode.typeExpressionNode.value
+		val receiver = input.receiverTypeNode.value
 
 		val receiverBinding = environment.getBinding(receiver, Binding.Kind.Union.receiver)
-			.unwrap(this, input.receiverTypeNode.typeExpressionNode.firstToken.position)
+			.unwrap(this, input.receiverTypeNode.firstToken.position)
 
-		TypeExpressionPathResolver.resolve(input.receiverTypeNode.typeExpressionNode, pass, environment, graph)
+		TypeExpressionPathResolver.resolve(input.receiverTypeNode, pass, environment, graph)
 			.asSuccess()
 
 		input.receiverTypeNode.annotate(receiverBinding.path, Annotations.Path)
-		input.receiverTypeNode.typeExpressionNode.annotate(receiverBinding.path, Annotations.Path)
 
 		val name = input.identifierNode.identifier
 		val ret = input.returnTypeNode?.value ?: IntrinsicTypes.Unit.type.name
@@ -60,12 +61,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 			val result = TypeExpressionPathResolver.resolve(it.typeExpressionNode, pass, environment, graph)
 				.asSuccess()
 
-//			val result = environment.getBinding(it.typeExpressionNode.value, Binding.Kind.Union.entityMethodOrConstructor)
-//			val binding = result.unwrap(this, it.typeExpressionNode.firstToken.position)
-
 			input.annotateParameter(idx, result.path, Annotations.Path)
-//			it.annotate(binding.path, Annotations.Path)
-//			it.typeExpressionNode.annotate(binding.path, Annotations.Path)
 
 			result.path
 		}
@@ -81,9 +77,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		input.annotate(path, Annotations.Path)
 		environment.bind(Binding.Kind.Method, name, path)
 
-		val methodName = path.relativeNames
-			.slice(IntRange(path.relativeNames.indexOf(name), path.relativeNames.size - 1))
-			.joinToString("::")
+		input.typeConstraints.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
 
 		return PathResolver.Result.Success(path)
 	}

@@ -47,23 +47,7 @@ object CallInference : TypeInference<CallNode>, KoinComponent {
             for (binding in context.bindings.values) {
                 if (binding.name != node.messageIdentifier.identifier) continue
 
-                if (binding is InstanceSignature) {
-                    val receiverSemantics = binding.receiver.type.equalitySemantics as AnyEquality
-
-                    if (receiverSemantics.isSatisfied(context, binding.receiver.type, receiverType)) {
-                        val all = binding.parameters
-                            .map(Parameter::type)
-                            .zip(parameterTypes)
-                            .all {
-                                val semantics = it.first.equalitySemantics as AnyEquality
-                                semantics.isSatisfied(context, it.first, it.second)
-                            }
-
-                        if (all) {
-                            matches.add(binding)
-                        }
-                    }
-                } else if (binding is TypeSignature) {
+                if (binding is TypeSignature) {
                     val receiverSemantics = binding.receiver.equalitySemantics as AnyEquality
 
                     if (receiverSemantics.isSatisfied(context, binding.receiver, receiverType)) {

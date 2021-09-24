@@ -3,8 +3,8 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.core.nodes.EntityConstructorWhereClauseNode
-import org.orbit.core.nodes.TypeConstraintNode
+import org.orbit.core.nodes.TypeConstraintWhereClauseNode
+import org.orbit.core.nodes.TraitConformanceTypeConstraintNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
@@ -16,10 +16,10 @@ import org.orbit.util.Invocation
 import org.orbit.util.dispose
 import org.orbit.util.partial
 
-object TypeConstraintPathResolver : PathResolver<TypeConstraintNode> {
+object TypeConstraintPathResolver : PathResolver<TraitConformanceTypeConstraintNode> {
 	override val invocation: Invocation by inject()
 
-	override fun resolve(input: TypeConstraintNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+	override fun resolve(input: TraitConformanceTypeConstraintNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
 		val constrainedTypePath = environment.getBinding(input.constrainedTypeNode.value, Binding.Kind.Type).unwrap(this, input.constrainedTypeNode.firstToken.position)
 		val constraintTraitPath = environment.getBinding(input.constraintTraitNode.value, Binding.Kind.Trait).unwrap(this, input.constraintTraitNode.firstToken.position)
 
@@ -31,11 +31,11 @@ object TypeConstraintPathResolver : PathResolver<TypeConstraintNode> {
 	}
 }
 
-object EntityConstructorWhereClausePathResolver : PathResolver<EntityConstructorWhereClauseNode> {
+object TypeConstraintWhereClausePathResolver : PathResolver<TypeConstraintWhereClauseNode> {
 	override val invocation: Invocation by inject()
 
-	override fun resolve(input: EntityConstructorWhereClauseNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result = when (input.statementNode) {
-		is TypeConstraintNode -> TypeConstraintPathResolver.resolve(input.statementNode, pass, environment, graph)
+	override fun resolve(input: TypeConstraintWhereClauseNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result = when (input.statementNode) {
+		is TraitConformanceTypeConstraintNode -> TypeConstraintPathResolver.resolve(input.statementNode, pass, environment, graph)
 		else -> TODO("EntityConstructorWhereClausePathResolver")
 	}
 }
@@ -69,7 +69,7 @@ class TypeConstructorPathResolver(
 			}
 		} else {
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
-			input.clauses.forEach(dispose(partial(EntityConstructorWhereClausePathResolver::resolve, pass, environment, graph)))
+			input.clauses.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
 		}
 
 		return PathResolver.Result.Success(path)

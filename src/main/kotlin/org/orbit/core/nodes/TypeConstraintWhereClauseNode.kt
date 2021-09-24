@@ -2,14 +2,14 @@ package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
 
-abstract class EntityConstructorWhereClauseStatementNode(
+abstract class TypeConstraintNode(
     override val firstToken: Token, override val lastToken: Token
 ) : Node(firstToken, lastToken)
 
-data class EntityConstructorWhereClauseNode(
+data class TypeConstraintWhereClauseNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val statementNode: EntityConstructorWhereClauseStatementNode
+    val statementNode: TypeConstraintNode
 ) : Node(firstToken, lastToken) {
     override fun getChildren(): List<Node> = listOf(statementNode)
 }

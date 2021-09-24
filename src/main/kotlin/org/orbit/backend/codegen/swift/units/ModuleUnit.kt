@@ -7,6 +7,7 @@ import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.*
 import org.orbit.types.components.Context
 import org.orbit.types.components.IntrinsicTypes
+import org.orbit.types.components.Type
 import org.orbit.util.partial
 
 //class ApiUnit(override val node: ApiDefNode, override val depth: Int) : CodeUnit<ApiDefNode> {
@@ -57,6 +58,7 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
             .joinToString(newline(2), transform = partial(TypeAliasUnit::generate, mangler))
 
         val monos = context.monomorphisedTypes.values
+            .filterNot(Type::isEphemeral)
             .map(partial(TypeDefUnit.Companion::generateMonomorphisedType, mangler))
             .joinToString("\n")
 

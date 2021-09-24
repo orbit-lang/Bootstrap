@@ -102,13 +102,7 @@ class TraitConformanceTypeResolver(override val node: TypeDefNode, override val 
                     .filterIsInstance<SignatureProtocol<*>>()
                     .filter { it.name == signature.name }
                     .filter {
-                        when (it) {
-                            is InstanceSignature -> {
-                                val t = context.refresh(it.receiver.type)
-                                t == partialType
-                            }
-                            else -> it.receiver == partialType
-                        }
+                        it.receiver == partialType
                     }
                     .filter {
                         signature.isSatisfied(context, it)

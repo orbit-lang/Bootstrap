@@ -3,7 +3,6 @@ package org.orbit.core
 import org.orbit.core.nodes.Node
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.getAnnotation
-import org.orbit.types.components.InstanceSignature
 import org.orbit.types.components.Parameter
 import org.orbit.types.components.TypeProtocol
 import org.orbit.types.components.TypeSignature
@@ -45,7 +44,6 @@ fun Node.getType() : TypeProtocol {
 interface Mangler {
 	fun mangle(path: Path) : String
 	fun unmangle(name: String) : Path
-	fun mangle(signature: InstanceSignature) : String
 	fun mangle(signature: TypeSignature) : String
 }
 
@@ -56,17 +54,6 @@ object OrbitMangler : Mangler {
 
 	override fun unmangle(name: String) : Path {
 		return Path(name.split("::"))
-	}
-
-	override fun mangle(signature: InstanceSignature): String {
-		val mang = (OrbitMangler + OrbitMangler)
-		val receiver = mang(signature.receiver.type.name)
-		val params = signature.parameters.map(Parameter::type)
-			.map(TypeProtocol::name).joinToString(", ", transform = mang)
-
-		val ret = mang(signature.returnType.name)
-
-		return "($receiver) ${signature.name} ($params) ($ret)"
 	}
 
 	override fun mangle(signature: TypeSignature): String {
