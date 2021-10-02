@@ -5,7 +5,7 @@ import org.orbit.core.Path
 import org.orbit.util.endsWith
 import java.io.Serializable
 
-data class Binding(val kind: Kind, val simpleName: String, val path: Path) : Serializable {
+data class Binding(val kind: Kind, val simpleName: String, val path: Path, val vertexID: GraphEntity.Vertex.ID? = null) : Serializable {
 	interface Kind : Serializable {
 		interface Container : Kind
 		interface Entity : Kind

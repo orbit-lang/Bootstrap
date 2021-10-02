@@ -9,6 +9,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphIDOrNull
 import org.orbit.util.Invocation
 
 object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
@@ -16,7 +17,7 @@ object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
 
 	override fun resolve(input: TypeExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result = when (input) {
 		is TypeIdentifierNode -> {
-			val binding = environment.getBinding(input.value, Binding.Kind.Union.entityOrConstructor)
+			val binding = environment.getBinding(input.value, Binding.Kind.Union.entityOrConstructor, graph, input.getGraphIDOrNull())
 				.unwrap(this, input.firstToken.position)
 
 			input.annotate(binding.path, Annotations.Path)

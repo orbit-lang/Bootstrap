@@ -78,8 +78,8 @@ class Environment(
 		return getScope(node.getScopeIdentifier())
 	}
 
-	fun bind(kind: Binding.Kind, simpleName: String, path: Path) {
-		currentScope.bind(kind, simpleName, path)
+	fun bind(kind: Binding.Kind, simpleName: String, path: Path, vertexID: GraphEntity.Vertex.ID? = null) {
+		currentScope.bind(kind, simpleName, path, vertexID)
 	}
 
 	fun unbind(kind: Binding.Kind, simpleName: String, path: Path) {
@@ -88,8 +88,8 @@ class Environment(
 		}
 	}
 
-	fun getBinding(simpleName: String, context: Binding.Kind? = null) : Scope.BindingSearchResult {
-		return currentScope.get2(simpleName, context)
+	fun getBinding(simpleName: String, context: Binding.Kind? = null, graph: Graph? = null, parentVertexID: GraphEntity.Vertex.ID? = null) : Scope.BindingSearchResult {
+		return currentScope.get2(simpleName, context, graph, parentVertexID)
 	}
 
 	/// Search across all scopes to resolve a binding

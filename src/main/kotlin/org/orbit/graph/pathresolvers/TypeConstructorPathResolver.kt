@@ -9,6 +9,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 import org.orbit.util.dispose
@@ -35,14 +36,27 @@ class TypeConstructorPathResolver(
 
 			graph.link(parentGraphID, graphID)
 
+			input.annotate(graphID, Annotations.GraphID)
+
 			for (typeParameter in input.typeParameterNodes) {
 				val nPath = path + typeParameter.value
 
 				typeParameter.annotate(nPath, Annotations.Path)
-				// TODO - Recursively resolve nested type parameters
-				environment.bind(Binding.Kind.Type, typeParameter.value, nPath)
+				typeParameter.annotate(graphID, Annotations.GraphID)
+
+				val vertexID = graph.insert(typeParameter.value)
+
+				graph.link(graphID, vertexID)
+
+				environment.bind(Binding.Kind.Type, typeParameter.value, nPath, vertexID)
 			}
 		} else {
+			val parentGraphID = input.getGraphID()
+
+			// This is a really disgusting hack to allow for multiple type parameters with the same name
+			// TODO - Type Parameters should be uniquely mangled somehow
+			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
+
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
 			input.clauses.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
 		}

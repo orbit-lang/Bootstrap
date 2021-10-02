@@ -10,6 +10,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 import org.orbit.util.dispose
@@ -36,19 +37,30 @@ class TraitConstructorPathResolver(
 
 			graph.link(parentGraphID, graphID)
 
+			input.annotate(graphID, Annotations.GraphID)
+
 			for (typeParameter in input.typeParameterNodes) {
 				val nPath = path + typeParameter.value
 
 				typeParameter.annotate(nPath, Annotations.Path)
-				// TODO - Recursively resolve nested type parameters
-				environment.bind(Binding.Kind.Type, typeParameter.value, nPath)
+				typeParameter.annotate(graphID, Annotations.GraphID)
+
+				val vertexID = graph.insert(typeParameter.value)
+
+				graph.link(graphID, vertexID)
+
+				environment.bind(Binding.Kind.Type, typeParameter.value, nPath, vertexID)
 			}
 		} else {
+			val parentGraphID = input.getGraphID()
+
 			input.typeParameterNodes.forEach { t ->
 				environment.bind(Binding.Kind.Type, t.value, path + Path(t.value))
 			}
 
 			val methodSignaturePathResolver = MethodSignaturePathResolver()
+
+			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
 
 			input.signatureNodes.forEach(-partial(methodSignaturePathResolver::resolve, pass, environment, graph))
 

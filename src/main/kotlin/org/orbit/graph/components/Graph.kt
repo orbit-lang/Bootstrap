@@ -62,6 +62,18 @@ class Graph : Serializable {
         else -> find(binding.path.toString(OrbitMangler))
     }
 
+    //fun findClosest(name: String, to: GraphEntity.Vertex.ID) : GraphEntity.Vertex.ID
+
+    fun isConnected(source: GraphEntity.Vertex.ID, target: GraphEntity.Vertex.ID) : Boolean {
+        val edgesA = edges.filter { it.right == source }
+
+        for (ea in edgesA) {
+            if (ea.left == target) return true
+        }
+
+        return false
+    }
+
     fun find(name: String) : GraphEntity.Vertex.ID {
         return vertices.find { it.name == name }?.id
             ?: throw Exception("Dependency not found: $name")

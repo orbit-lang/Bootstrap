@@ -38,10 +38,10 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
 
         val header = "/* module $moduleName */"
 
-        val traitConstructorDefs = node.entityConstructors
-            .filterIsInstance<TraitConstructorNode>()
-            .map(partial(::TraitConstructorUnit, depth))
-            .joinToString(newline(2), transform = partial(TraitConstructorUnit::generate, mangler))
+//        val traitConstructorDefs = node.entityConstructors
+//            .filterIsInstance<TraitConstructorNode>()
+//            .map(partial(::TraitConstructorUnit, depth))
+//            .joinToString(newline(2), transform = partial(TraitConstructorUnit::generate, mangler))
 
         val typeDefs = node.entityDefs
             .filterIsInstance<TypeDefNode>()
@@ -72,7 +72,6 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
 
         return """
             |$header
-            |$traitConstructorDefs
             |
             |$typeDefs
             |

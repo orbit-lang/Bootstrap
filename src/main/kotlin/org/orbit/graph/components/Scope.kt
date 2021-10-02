@@ -117,11 +117,11 @@ class Scope(
 		imports.addAll(scopeIdentifiers)
 	}
 
-	fun bind(kind: Binding.Kind, simpleName: String, path: Path) : Binding {
+	fun bind(kind: Binding.Kind, simpleName: String, path: Path, vertexID: GraphEntity.Vertex.ID? = null) : Binding {
 		// TODO - This is gross, but it is useful to be able to tell which scope a path belongs to.
 		// The alternative would be to search through all known scopes for a match, which is quite expensive
 		path.enclosingScope = this
-		val binding = Binding(kind, simpleName, path)
+		val binding = Binding(kind, simpleName, path, vertexID)
 		if (!bindings.contains(binding)) {
 			bindings.add(binding)
 			compilationEventBus.notify(Events.BindingCreated(binding))
@@ -134,7 +134,7 @@ class Scope(
 		bindings.remove(Binding(kind, simpleName, path))
 	}
 
-	fun get2(name: String, context: Binding.Kind? = null) : BindingSearchResult {
+	fun get2(name: String, context: Binding.Kind? = null, graph: Graph? = null, parentVertexID: GraphEntity.Vertex.ID? = null) : BindingSearchResult {
 		if (name == "Self") return BindingSearchResult.Success(Binding.Self)
 
 		// Collect together all visible bindings
@@ -159,7 +159,8 @@ class Scope(
 
 		// If we have multiple results, then we can start filtering on context.
 		// Unless context is null, in which case we're screwed!
-		if (context == null) return BindingSearchResult.Multiple(matches)
+		if (context == null)
+			return BindingSearchResult.Multiple(matches)
 
 		matches = matches.filter { context.same(it.kind) }
 
@@ -169,6 +170,16 @@ class Scope(
 		val finalAttempt = matches.filter { it.path == path }
 
 		if (finalAttempt.count() == 1) return BindingSearchResult.Success(finalAttempt.first())
+
+		// If bindings have associated records in the graph, we can try to order by "distance"
+		if (parentVertexID == null || graph == null) return BindingSearchResult.Multiple(matches)
+		val graphedMatches = matches.filter { it.vertexID != null }
+
+		if (graphedMatches.count() > 1) {
+			val connectedMatches = graphedMatches.filter { graph!!.isConnected(it.vertexID!!, parentVertexID!!) }
+
+			if (connectedMatches.count() == 1) return BindingSearchResult.Success(connectedMatches[0])
+		}
 
 		return BindingSearchResult.Multiple(matches)
 	}
