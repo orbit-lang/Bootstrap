@@ -12,9 +12,6 @@ data class TypeConstructor(override val name: String, override val typeParameter
     constructor(path: Path, typeParameters: List<TypeParameter> = emptyList(), properties: List<Property> = emptyList()) : this(path.toString(
         OrbitMangler
     ), typeParameters, properties)
-    constructor(node: TypeConstructorNode, typeParameters: List<TypeParameter> = emptyList(), properties: List<Property> = emptyList()) : this(node.getPath(), typeParameters, properties)
 
-    fun getTypeParameterOrNull(path: Path) : TypeParameter? {
-        return typeParameters.find { OrbitMangler.unmangle(it.name) == path }
-    }
+    constructor(node: TypeConstructorNode, typeParameters: List<TypeParameter> = emptyList(), properties: List<Property> = emptyList()) : this(node.getPath(), typeParameters, properties)
 }

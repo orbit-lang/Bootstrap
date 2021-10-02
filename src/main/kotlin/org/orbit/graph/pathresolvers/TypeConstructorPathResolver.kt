@@ -3,8 +3,6 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.core.nodes.TypeConstraintWhereClauseNode
-import org.orbit.core.nodes.TraitConformanceTypeConstraintNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
@@ -16,30 +14,7 @@ import org.orbit.util.Invocation
 import org.orbit.util.dispose
 import org.orbit.util.partial
 
-object TypeConstraintPathResolver : PathResolver<TraitConformanceTypeConstraintNode> {
-	override val invocation: Invocation by inject()
-
-	override fun resolve(input: TraitConformanceTypeConstraintNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		val constrainedTypePath = environment.getBinding(input.constrainedTypeNode.value, Binding.Kind.Type).unwrap(this, input.constrainedTypeNode.firstToken.position)
-		val constraintTraitPath = environment.getBinding(input.constraintTraitNode.value, Binding.Kind.Trait).unwrap(this, input.constraintTraitNode.firstToken.position)
-
-		input.constrainedTypeNode.annotate(constrainedTypePath.path, Annotations.Path)
-		input.constraintTraitNode.annotate(constraintTraitPath.path, Annotations.Path)
-		input.annotate(constrainedTypePath.path, Annotations.Path)
-
-		return PathResolver.Result.Success(constrainedTypePath.path)
-	}
-}
-
-object TypeConstraintWhereClausePathResolver : PathResolver<TypeConstraintWhereClauseNode> {
-	override val invocation: Invocation by inject()
-
-	override fun resolve(input: TypeConstraintWhereClauseNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result = when (input.statementNode) {
-		is TraitConformanceTypeConstraintNode -> TypeConstraintPathResolver.resolve(input.statementNode, pass, environment, graph)
-		else -> TODO("EntityConstructorWhereClausePathResolver")
-	}
-}
-
+// TODO - Unify this with TypeConstructorPathResolver; they do the same thing
 class TypeConstructorPathResolver(
 	private val parentPath: Path
 ) : PathResolver<TypeConstructorNode> {

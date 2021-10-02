@@ -1,3 +1,4 @@
+
 package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
@@ -9,7 +10,9 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
+import org.orbit.util.dispose
 import org.orbit.util.partial
 import org.orbit.util.unaryMinus
 
@@ -17,6 +20,7 @@ class TraitConstructorPathResolver(
 	private val parentPath: Path
 ) : PathResolver<TraitConstructorNode> {
 	override val invocation: Invocation by inject()
+	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: TraitConstructorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
 		val path = parentPath + Path(input.typeIdentifierNode.value)
@@ -31,16 +35,25 @@ class TraitConstructorPathResolver(
 			val graphID = graph.insert(input.typeIdentifierNode.value)
 
 			graph.link(parentGraphID, graphID)
-		} else {
-			environment.withScope { scope ->
-				input.typeParameterNodes.forEach { t ->
-					environment.bind(Binding.Kind.Type, t.value, path + Path(t.value))
-				}
 
-				val methodSignaturePathResolver = MethodSignaturePathResolver()
+			for (typeParameter in input.typeParameterNodes) {
+				val nPath = path + typeParameter.value
 
-				input.signatureNodes.forEach(-partial(methodSignaturePathResolver::resolve, pass, environment, graph))
+				typeParameter.annotate(nPath, Annotations.Path)
+				// TODO - Recursively resolve nested type parameters
+				environment.bind(Binding.Kind.Type, typeParameter.value, nPath)
 			}
+		} else {
+			input.typeParameterNodes.forEach { t ->
+				environment.bind(Binding.Kind.Type, t.value, path + Path(t.value))
+			}
+
+			val methodSignaturePathResolver = MethodSignaturePathResolver()
+
+			input.signatureNodes.forEach(-partial(methodSignaturePathResolver::resolve, pass, environment, graph))
+
+			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
+			input.clauses.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
 		}
 
 		return PathResolver.Result.Success(path)

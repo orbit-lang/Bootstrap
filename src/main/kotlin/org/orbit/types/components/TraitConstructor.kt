@@ -2,6 +2,9 @@ package org.orbit.types.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.getPath
+import org.orbit.core.nodes.TraitConstructorNode
+import org.orbit.core.nodes.TypeConstructorNode
 
 data class TraitConstructor(override val name: String, override val typeParameters: List<TypeParameter>, override val properties: List<Property> = emptyList()) :
     EntityConstructor {
@@ -11,4 +14,6 @@ data class TraitConstructor(override val name: String, override val typeParamete
     constructor(path: Path, typeParameters: List<TypeParameter> = emptyList(), properties: List<Property> = emptyList()) : this(path.toString(
         OrbitMangler
     ), typeParameters, properties)
+
+    constructor(node: TraitConstructorNode, typeParameters: List<TypeParameter> = emptyList(), properties: List<Property> = emptyList()) : this(node.getPath(), typeParameters, properties)
 }

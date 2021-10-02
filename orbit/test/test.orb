@@ -1,4 +1,4 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main with Orb::Core::Types {
-    type Number = Int | Real
+    trait constructor Option<T>(value T)
 }

@@ -205,7 +205,7 @@ class Parser(
 	}
 
 	fun attemptAny(of: List<ParseRule<*>>, throwOnNull: Boolean = false) : Node? {
-		return attemptAny(*of.toTypedArray())
+		return attemptAny(*of.toTypedArray(), throwOnNull = throwOnNull)
 	}
 
 	fun attemptAny(vararg of: ParseRule<*>, throwOnNull: Boolean = false) : Node? {

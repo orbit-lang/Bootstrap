@@ -3,6 +3,7 @@ package org.orbit.frontend.rules
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.EntityConstructorNode
+import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.TraitConstructorNode
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.frontend.components.TokenTypes
@@ -53,20 +54,28 @@ object TraitConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         next = context.peek()
 
-        if (next.type != TokenTypes.LBrace) return +TraitConstructorNode(start, end, traitIdentifier, typeParameters)
+        val properties: List<PairNode> = if (next.type == TokenTypes.LParen) {
+            val propertiesRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule, TokenTypes.Comma)
+            val propertiesResult = context.attempt(propertiesRule)
+                ?: return ParseRule.Result.Failure.Rewind(emptyList())
+
+            propertiesResult.nodes
+        } else {
+            emptyList()
+        }
+
+        if (next.type != TokenTypes.LBrace) return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, properties = properties)
 
         val signatureNodes = context.attempt(
             DelimitedRule(
                 TokenTypes.LBrace,
                 TokenTypes.RBrace,
-                MethodSignatureRule(false)
-            )
-        )
+                MethodSignatureRule(false)))
             ?.nodes
             ?: throw invocation.make<Parser>("Only method signatures are allowed in the body of a trait or trait constructor definition", context.peek())
 
         end = signatureNodes.lastOrNull()?.lastToken ?: end
 
-        return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, signatureNodes)
+        return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, signatureNodes, properties = properties)
     }
 }

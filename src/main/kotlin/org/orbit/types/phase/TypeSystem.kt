@@ -12,6 +12,8 @@ import org.orbit.types.components.*
 import org.orbit.types.typeactions.*
 import org.orbit.types.util.TypeAssistant
 import org.orbit.util.Invocation
+import org.orbit.util.partial
+import org.orbit.util.partialReverse
 import kotlin.contracts.ExperimentalContracts
 import kotlin.time.ExperimentalTime
 
@@ -46,13 +48,13 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             .forEach(typeAssistant::perform)
     }
 
-    private fun resolveTypeConstructorParameters(nodes: List<TypeConstructorNode>) {
-        nodes.map(::ResolveTypeConstructorTypeParameters)
+    private fun <N: EntityConstructorNode, C: EntityConstructor> resolveEntityConstructorParameters(nodes: List<N>, generator: (String, List<TypeParameter>) -> C) {
+        nodes.map { ResolveEntityConstructorTypeParameters<N, C>(it, generator) }
             .forEach(typeAssistant::perform)
     }
 
-    private fun resolveTypeConstructorProperties(nodes: List<TypeConstructorNode>) {
-        nodes.map(::ResolveTypeConstructorProperties)
+    private fun <N: EntityConstructorNode, C: EntityConstructor> resolveEntityConstructorProperties(nodes: List<N>, generator: (String, List<TypeParameter>, List<Property>) -> C) {
+        nodes.map { ResolveEntityConstructorProperties(it, generator) }
             .forEach(typeAssistant::perform)
     }
 
@@ -108,17 +110,24 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             val typeProjections = ast.search(TypeProjectionNode::class.java)
             val typeAliases = ast.search(TypeAliasNode::class.java)
             val typeConstructors = ast.search(TypeConstructorNode::class.java)
+            val traitConstructors = ast.search(TraitConstructorNode::class.java)
 
             createStubs(typeDefs, ::CreateTypeStub)
             createStubs(traitDefs, ::CreateTraitStub)
             createStubs(typeConstructors, ::CreateTypeConstructorStub)
+            createStubs(traitConstructors, ::CreateTraitConstructorStub)
 
             // We now have enough information to resolve the types of properties for each type & trait
             resolveEntityProperties<TypeDefNode, Type>(typeDefs)
             resolveEntityProperties<TraitDefNode, Trait>(traitDefs)
             resolveTraitSignatures(traitDefs)
-            resolveTypeConstructorParameters(typeConstructors)
-            resolveTypeConstructorProperties(typeConstructors)
+
+            resolveEntityConstructorParameters(typeConstructors, ::TypeConstructor)
+            resolveEntityConstructorProperties(typeConstructors, ::TypeConstructor)
+
+            resolveEntityConstructorParameters(traitConstructors, ::TraitConstructor)
+            resolveEntityConstructorProperties(traitConstructors, ::TraitConstructor)
+
             createTypeAliases(typeAliases)
             assembleTypeProjections(typeProjections)
             refineEntityConstructorTypeParameters(typeConstructors)
