@@ -1,7 +1,9 @@
 package org.orbit.backend.codegen.swift.units
 
 import org.koin.core.component.KoinComponent
-import org.orbit.backend.codegen.CodeUnit
+import org.koin.core.component.inject
+import org.orbit.backend.codegen.CodeGenFactory
+import org.orbit.backend.codegen.common.AbstractTypeDefUnit
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.TypeDefNode
@@ -10,14 +12,16 @@ import org.orbit.types.components.Property
 import org.orbit.types.components.Type
 import org.orbit.util.partial
 
-class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : CodeUnit<TypeDefNode>, KoinComponent {
+class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : AbstractTypeDefUnit, KoinComponent {
     private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
 
     companion object {
         fun generateMonomorphisedType(type: Type, mangler: Mangler) : String {
             val nMangler = (OrbitMangler + mangler)
 
-            val properties = type.properties.map {
+            val properties = type.properties.joinToString("\n\t\t") {
                 val header = "/* ${it.name} ${it.type.name} */"
                 val swift = "let ${it.name}: ${nMangler.invoke(it.type.name)}"
 
@@ -25,7 +29,7 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Cod
                 $header
                 $swift
                 """
-            }.joinToString("\n\t\t")
+            }
 
             val header = "/* type ${type.name} */"
 
@@ -42,7 +46,7 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Cod
         val propertyType = (OrbitMangler + mangler).invoke(property.type.name)
         val defaultValue = when (property.defaultValue) {
             null -> ""
-            else -> " = " + ExpressionUnit(property.defaultValue!!, depth).generate(mangler)
+            else -> " = " + codeGenFactory.getExpressionUnit(property.defaultValue!!, depth).generate(mangler)
         }
 
         return "${property.name}: $propertyType$defaultValue"
@@ -82,14 +86,6 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Cod
 
         // TODO - Lookup value semantics for this type (i.e. class or struct)
         val header = "/* type ${typePath.toString(OrbitMangler)} */"
-
-//        var adoptedProtocols = node.traitConformances
-//            .map(partial(::TypeExpressionUnit, depth))
-//            .joinToString(", ", transform = partial(TypeExpressionUnit::generate, mangler))
-//
-//        if (node.traitConformances.isNotEmpty()) {
-//            adoptedProtocols = " : $adoptedProtocols"
-//        }
 
         val typeDef = "struct ${typePath.toString(mangler)}"
 

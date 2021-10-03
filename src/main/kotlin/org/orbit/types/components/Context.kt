@@ -12,6 +12,7 @@ import org.orbit.core.getPath
 import org.orbit.core.nodes.Node
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
+import org.orbit.util.ImportManager
 import org.orbit.util.Invocation
 import java.io.Serializable
 import java.lang.NullPointerException
@@ -19,6 +20,10 @@ import java.lang.NullPointerException
 data class MissingTypeException(val typeName: String) : Exception("Missing type: $typeName")
 
 class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperators.all()) : Serial, Serializable, CompilationEventBusAware by CompilationEventBusAwareImpl {
+    companion object : KoinComponent {
+        private val importManager: ImportManager by inject()
+    }
+
     sealed class Events(override val identifier: String) : CompilationEvent {
         class TypeCreated(type: TypeProtocol) : Events("(Context) Type Added: ${type.name}")
         class TypeProjectionCreated(typeProjection: TypeProjection) : Events("(Context) Type Projection Added: ${typeProjection.type.name} -> ${typeProjection.trait.name}")
@@ -47,6 +52,14 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
     init {
         types.addAll(builtIns)
+
+        val importedTypes = importManager.allTypes
+
+        for (t in importedTypes) {
+            if (types.none { it.name == t.name }) {
+                types.add(t)
+            }
+        }
     }
 
     fun <T> withSubContext(block: (Context) -> T) : T = block(Context(this))
@@ -116,9 +129,6 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
             0 -> null
             1 -> when (val type = matches.first()) {
                 is TypeAlias -> type.targetType
-//                is TypeConstructor -> {
-//
-//                }
                 else -> type
             }
             else -> throw RuntimeException("TODO - Multiple types named '$name'")

@@ -1,7 +1,9 @@
 package org.orbit.backend.codegen.swift.units
 
 import org.koin.core.component.KoinComponent
-import org.orbit.backend.codegen.CodeUnit
+import org.koin.core.component.inject
+import org.orbit.backend.codegen.CodeGenFactory
+import org.orbit.backend.codegen.common.AbstractMethodSignatureUnit
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.MethodSignatureNode
@@ -9,10 +11,13 @@ import org.orbit.types.components.Context
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.types.components.TypeExpression
 
-class MethodSignatureUnit(override val node: MethodSignatureNode, override val depth: Int) : CodeUnit<MethodSignatureNode> {
+class MethodSignatureUnit(override val node: MethodSignatureNode, override val depth: Int) : AbstractMethodSignatureUnit {
     private companion object : KoinComponent {
         private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
     }
+
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val receiverType = (node.receiverTypeNode.getType() as TypeExpression).evaluate(context)
@@ -20,15 +25,15 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
         val returnTypePath = node.returnTypeNode?.getPath() ?: IntrinsicTypes.Unit.path
         val returnTypeName = when (node.returnTypeNode) {
             null -> IntrinsicTypes.Unit.path.toString(mangler)
-            else -> TypeExpressionUnit(node.returnTypeNode, depth)
+            else -> codeGenFactory.getTypeExpressionUnit(node.returnTypeNode, depth)
                 .generate(mangler)
         }
 
         val header = "/* (${receiverType.name}) ${node.identifierNode.identifier} () (${returnTypePath.toString(OrbitMangler)}) */"
-        val parameterNodes =node.parameterNodes
+        val parameterNodes = node.parameterNodes
 
         val paramTypes = parameterNodes.map {
-            TypeExpressionUnit(it.typeExpressionNode, depth)
+            codeGenFactory.getTypeExpressionUnit(it.typeExpressionNode, depth)
                 .generate(mangler)
         }
 

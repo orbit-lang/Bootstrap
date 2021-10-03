@@ -1,13 +1,21 @@
 package org.orbit.backend.codegen.swift.units
 
-import org.orbit.backend.codegen.CodeUnit
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.orbit.backend.codegen.CodeGenFactory
+import org.orbit.backend.codegen.common.*
+import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
+import org.orbit.core.injectQualified
 import org.orbit.core.nodes.*
-import org.orbit.util.partial
 
-class ReturnStatementUnit(override val node: ReturnStatementNode, override val depth: Int, private val resultIsDeferred: Boolean) : CodeUnit<ReturnStatementNode> {
+class ReturnStatementUnit(override val node: ReturnStatementNode, override val depth: Int, private val resultIsDeferred: Boolean) : AbstractReturnStatementUnit, KoinComponent {
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+
     override fun generate(mangler: Mangler): String {
-        val retVal = RValueUnit(node.valueNode, depth).generate(mangler)
+        val retVal = codeGenFactory.getRValueUnit(node.valueNode, depth)
+            .generate(mangler)
 
         return if (resultIsDeferred) {
             """
@@ -23,27 +31,39 @@ class ReturnStatementUnit(override val node: ReturnStatementNode, override val d
     }
 }
 
-class PrintStatementUnit(override val node: PrintNode, override val depth: Int) : CodeUnit<PrintNode> {
+class PrintStatementUnit(override val node: PrintNode, override val depth: Int) : AbstractPrintStatementUnit, KoinComponent {
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+
     override fun generate(mangler: Mangler): String {
-        val value = ExpressionUnit(node.expressionNode, depth).generate(mangler)
+        val value = codeGenFactory.getExpressionUnit(node.expressionNode, depth)
+            .generate(mangler)
 
         return "print($value)".prependIndent(indent())
     }
 }
 
-class AssignmentStatementUnit(override val node: AssignmentStatementNode, override val depth: Int) : CodeUnit<AssignmentStatementNode> {
+class AssignmentStatementUnit(override val node: AssignmentStatementNode, override val depth: Int) : AbstractAssignmentStatementUnit, KoinComponent {
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+
     override fun generate(mangler: Mangler): String {
         // TODO - Mutability?!
-        val rhs = ExpressionUnit(node.value, depth).generate(mangler)
+        val rhs = codeGenFactory.getExpressionUnit(node.value, depth)
+            .generate(mangler)
 
         return "let ${node.identifier.identifier} = $rhs".prependIndent(indent())
     }
 }
 
-class DeferStatementUnit(override val node: DeferNode, override val depth: Int) : CodeUnit<DeferNode> {
+class DeferStatementUnit(override val node: DeferNode, override val depth: Int) : AbstractDeferStatementUnit, KoinComponent {
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+
     override fun generate(mangler: Mangler): String {
-        val block = BlockUnit(node.blockNode, depth, true)
+        val block = codeGenFactory.getBlockUnit(node.blockNode, depth, true)
             .generate(mangler)
+
         val retId = when (node.returnValueIdentifier) {
             null -> ""
             else -> "${node.returnValueIdentifier!!.identifier} in"
@@ -57,7 +77,7 @@ class DeferStatementUnit(override val node: DeferNode, override val depth: Int) 
     }
 }
 
-class DeferCallUnit(override val node: BlockNode, override val depth: Int) : CodeUnit<BlockNode> {
+class DeferCallUnit(override val node: BlockNode, override val depth: Int) : AbstractDeferCallUnit {
     override fun generate(mangler: Mangler): String {
         if (!node.containsDefer) return ""
         if (node.containsReturn) return ""
@@ -67,41 +87,5 @@ class DeferCallUnit(override val node: BlockNode, override val depth: Int) : Cod
         } else {
             "__on_defer()"
         }.prependIndent(indent())
-    }
-}
-
-class BlockUnit(override val node: BlockNode, override val depth: Int, private val stripBraces: Boolean = false) : CodeUnit<BlockNode> {
-    override fun generate(mangler: Mangler): String {
-        val units: List<CodeUnit<*>> = node.body.mapNotNull {
-            when (it) {
-                is ReturnStatementNode ->
-                    ReturnStatementUnit(it, depth, node.search(DeferNode::class.java).isNotEmpty())
-
-                is AssignmentStatementNode ->
-                    AssignmentStatementUnit(it, depth)
-
-                is PrintNode -> PrintStatementUnit(it, depth)
-
-                is DeferNode -> DeferStatementUnit(it, depth)
-
-                else ->
-                    TODO("Generate code for statement in block: $it")
-            }
-        }
-
-        // Blocks that defer without returning (i.e implied Unit return type) need to call their defer block here
-        val shouldOutputDeferCall = node.containsDefer && !node.containsReturn
-        val deferCall = DeferCallUnit(node, depth).generate(mangler)
-
-        val body = units.joinToString("\n|", transform = partial(CodeUnit<*>::generate, mangler))
-        return when (stripBraces) {
-            true -> body
-            else -> """
-            |{
-            |$body
-            |$deferCall
-            |}
-            """.trimMargin()
-        }
     }
 }

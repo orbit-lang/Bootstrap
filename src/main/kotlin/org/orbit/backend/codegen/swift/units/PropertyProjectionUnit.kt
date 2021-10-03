@@ -1,16 +1,18 @@
 package org.orbit.backend.codegen.swift.units
 
-import org.orbit.backend.codegen.CodeUnit
-import org.orbit.core.Mangler
-import org.orbit.core.OrbitMangler
-import org.orbit.core.getType
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.orbit.backend.codegen.CodeGenFactory
+import org.orbit.backend.codegen.common.AbstractPropertyProjectionUnit
+import org.orbit.core.*
 import org.orbit.core.nodes.AssignmentStatementNode
-import org.orbit.core.plus
 
-class PropertyProjectionClauseUnit(override val node: AssignmentStatementNode, override val depth: Int) :
-    CodeUnit<AssignmentStatementNode> {
+class PropertyProjectionUnit(override val node: AssignmentStatementNode, override val depth: Int) : AbstractPropertyProjectionUnit, KoinComponent {
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+
     override fun generate(mangler: Mangler): String {
-        val rhsUnit = ExpressionUnit(node.value, depth)
+        val rhsUnit = codeGenFactory.getExpressionUnit(node.value, depth)
         val rhsType = node.value.getType()
         val rhsTypeName = (OrbitMangler + mangler).invoke(rhsType.name)
         val rhsValue = rhsUnit.generate(mangler)

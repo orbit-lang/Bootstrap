@@ -28,7 +28,7 @@ interface QualifiedEnum : Qualified {
 }
 
 enum class CodeGeneratorQualifier : QualifiedEnum {
-	Swift;
+	Swift, C;
 }
 
 inline fun <reified T> Module.single(

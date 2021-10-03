@@ -1,8 +1,11 @@
 package org.orbit.backend.codegen.swift.units
 
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.orbit.backend.codegen.CodeGenFactory
+import org.orbit.backend.codegen.common.AbstractModuleUnit
+import org.orbit.backend.codegen.common.AbstractProgramUnit
 import org.orbit.backend.phase.Main
-import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.ModuleNode
@@ -48,14 +51,16 @@ private object ProgramUtilsUnit {
     }
 }
 
-class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) : CodeUnit<ProgramNode>, KoinComponent {
+class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) : AbstractProgramUnit, KoinComponent {
     private val main: Main by injectResult(CompilationSchemeEntry.mainResolver)
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val modules = "${ProgramUtilsUnit.generate(mangler)}\n\n" + node.declarations
             .filterIsInstance<ModuleNode>()
-            .map(partial(::ModuleUnit, depth))
-            .joinToString(newline(2), transform = partial(ModuleUnit::generate, mangler))
+            .map(partial(codeGenFactory::getModuleUnit, depth))
+            .joinToString(newline(2), transform = partial(AbstractModuleUnit::generate, mangler))
 
         val mainCall = try {
             when (main.mainSignature) {

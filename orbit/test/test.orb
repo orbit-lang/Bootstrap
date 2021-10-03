@@ -1,13 +1,10 @@
-@Main
-module M with Orb::Types::Intrinsics with Orb::Core::Main with Orb::Core::Types {
+module M with Orb::Types::Intrinsics with Orb::Core::Main with Orb::Meta::Entities {
     trait Foo
-    trait constructor Option<T>(value T)
-        where T : Foo
-
-    type Some : Option<Int>
-    type IntSome = Some<Int>
 
     (self Main) main () () {
-        o = IntSome(1)
+        f = Foo
+        i = 1
+        print f
+        print i
     }
 }

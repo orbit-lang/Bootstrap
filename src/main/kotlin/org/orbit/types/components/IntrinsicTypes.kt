@@ -11,7 +11,9 @@ enum class IntrinsicTypes(val type: ValuePositionType) {
     Symbol(Type("Orb::Types::Intrinsics::Symbol", isRequired = false)),
     Main(Type("Orb::Core::Main::Main", properties = listOf(Property("argc", Int.type)), isRequired = false)),
     BootstrapCoreStub(Type("Bootstrap::Core::Stub", isRequired = false)),
-    Bool(Type("Orb::Types::Intrinsics::Bool", isRequired = false));
+    Bool(Type("Orb::Types::Intrinsics::Bool", isRequired = false)),
+
+    Type(Type("Orb::Meta::Entities::Type", isRequired = false));
 
     companion object {
         val allTypes: Set<TypeProtocol>

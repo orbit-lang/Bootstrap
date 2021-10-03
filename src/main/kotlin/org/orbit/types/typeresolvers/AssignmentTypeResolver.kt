@@ -3,8 +3,10 @@ package org.orbit.types.typeresolvers
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.AssignmentStatementNode
+import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
+import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.Context
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.types.components.TypeInferenceUtil
@@ -26,6 +28,7 @@ class AssignmentTypeResolver(override val node: AssignmentStatementNode, overrid
         val rhsType = TypeInferenceUtil.infer(context, node.value)
 
         context.bind(node.identifier.identifier, rhsType)
+        node.annotate(rhsType, Annotations.Type)
 
         return IntrinsicTypes.Unit.type
     }

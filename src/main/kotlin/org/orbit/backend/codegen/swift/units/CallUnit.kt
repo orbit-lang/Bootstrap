@@ -1,16 +1,26 @@
 package org.orbit.backend.codegen.swift.units
 
-import org.orbit.backend.codegen.CodeUnit
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.orbit.backend.codegen.CodeGenFactory
+import org.orbit.backend.codegen.common.AbstractCallUnit
+import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
+import org.orbit.core.injectQualified
 import org.orbit.core.nodes.CallNode
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.getAnnotation
 import org.orbit.types.components.SignatureProtocol
 
-class CallUnit(override val node: CallNode, override val depth: Int) : CodeUnit<CallNode> {
+class CallUnit(override val node: CallNode, override val depth: Int) : AbstractCallUnit, KoinComponent {
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+
     override fun generate(mangler: Mangler): String {
         if (node.isPropertyAccess) {
-            val receiver = ExpressionUnit(node.receiverExpression, depth).generate(mangler)
+            val receiver = codeGenFactory.getExpressionUnit(node.receiverExpression, depth)
+                .generate(mangler)
+
             return "$receiver.${node.messageIdentifier.identifier}"
         }
 
@@ -24,7 +34,8 @@ class CallUnit(override val node: CallNode, override val depth: Int) : CodeUnit<
         }
 
         val params = rParams.zip(signature.parameters).joinToString(", ") {
-            val expr = ExpressionUnit(it.first, depth).generate(mangler)
+            val expr = codeGenFactory.getExpressionUnit(it.first, depth)
+                .generate(mangler)
 
             "${it.second.name}: $expr"
         }

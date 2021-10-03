@@ -34,15 +34,6 @@ class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override
 
         is MetaTypeNode -> {
             val type = MetaTypeInference.infer(context, node, null) as TypeExpression
-//            val typeConstructor = context.getTypeByPath(node.getPath()) as EntityConstructor
-//            // TODO - Convert this to a stream
-//            val typeParameters = node.typeParameters
-//                .map(partial(::TypeExpressionTypeResolver, binding))
-//                .map(partial(TypeExpressionTypeResolver::resolve, environment, context))
-//                .map(partial(TypeExpression::evaluate, context))
-//                .map { it as ValuePositionType }
-//
-//            val type = MetaType(typeConstructor, typeParameters, typeConstructor.properties)
 
             node.annotate(type, Annotations.Type)
 

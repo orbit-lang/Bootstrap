@@ -1,6 +1,8 @@
-package org.orbit.backend.codegen.swift.units
+package org.orbit.backend.codegen.common
 
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.orbit.backend.codegen.CodeGenFactory
 import org.orbit.backend.codegen.CodeUnit
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
@@ -13,10 +15,15 @@ import org.orbit.types.components.Context
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.types.components.TypeConstructor
 
-class TypeExpressionUnit(override val node: TypeExpressionNode, override val depth: Int, private val inFuncNamePosition: Boolean = false) : CodeUnit<TypeExpressionNode> {
+interface AbstractTypeExpressionUnit : CodeUnit<TypeExpressionNode>
+
+class TypeExpressionUnit(override val node: TypeExpressionNode, override val depth: Int, private val inFuncNamePosition: Boolean = false) : AbstractTypeExpressionUnit, KoinComponent {
     private companion object : KoinComponent {
         private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
     }
+
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler) : String {
         val path = node.getPath()
@@ -33,13 +40,13 @@ class TypeExpressionUnit(override val node: TypeExpressionNode, override val dep
                     nNode.annotate(node.getPath(), Annotations.Path)
                     nTypeParameterNode.annotate(IntrinsicTypes.AnyType.path, Annotations.Path)
 
-                    MetaTypeUnit(nNode, depth, inFuncNamePosition)
+                    codeGenFactory.getMetaTypeUnit(nNode, depth, inFuncNamePosition)
                         .generate(mangler)
                 }
 
                 typeName
             }
-            is MetaTypeNode -> MetaTypeUnit(node, depth, inFuncNamePosition).generate(mangler)
+            is MetaTypeNode -> codeGenFactory.getMetaTypeUnit(node, depth, inFuncNamePosition).generate(mangler)
             else -> TODO("???")
         }
     }

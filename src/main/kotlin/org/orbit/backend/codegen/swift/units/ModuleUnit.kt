@@ -1,7 +1,12 @@
 package org.orbit.backend.codegen.swift.units
 
 import org.koin.core.component.KoinComponent
-import org.orbit.backend.codegen.CodeUnit
+import org.koin.core.component.inject
+import org.orbit.backend.codegen.CodeGenFactory
+import org.orbit.backend.codegen.common.AbstractMethodDefUnit
+import org.orbit.backend.codegen.common.AbstractModuleUnit
+import org.orbit.backend.codegen.common.AbstractTypeAliasUnit
+import org.orbit.backend.codegen.common.AbstractTypeDefUnit
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.*
@@ -16,10 +21,13 @@ import org.orbit.util.partial
 //    }
 //}
 
-class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeUnit<ModuleNode> {
+class ModuleUnit(override val node: ModuleNode, override val depth: Int) : AbstractModuleUnit {
     private companion object : KoinComponent {
         private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
     }
+
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val moduleName = node.getPath().toString(OrbitMangler)
@@ -38,37 +46,26 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : CodeU
 
         val header = "/* module $moduleName */"
 
-//        val traitConstructorDefs = node.entityConstructors
-//            .filterIsInstance<TraitConstructorNode>()
-//            .map(partial(::TraitConstructorUnit, depth))
-//            .joinToString(newline(2), transform = partial(TraitConstructorUnit::generate, mangler))
-
         val typeDefs = node.entityDefs
             .filterIsInstance<TypeDefNode>()
-            .map(partial(::TypeDefUnit, depth))
-            .joinToString(newline(2), transform = partial(TypeDefUnit::generate, mangler))
-
-//        val traitDefs = node.entityDefs
-//            .filterIsInstance<TraitDefNode>()
-//            .map(partial(::TraitDefUnit, depth))
-//            .joinToString(newline(2), transform = partial(TraitDefUnit::generate, mangler))
+            .map(partial(codeGenFactory::getTypeDefUnit, depth))
+            .joinToString(newline(2), transform = partial(AbstractTypeDefUnit::generate, mangler))
 
         val typeAliases = node.typeAliasNodes
-            .map(partial(::TypeAliasUnit, depth))
-            .joinToString(newline(2), transform = partial(TypeAliasUnit::generate, mangler))
+            .map(partial(codeGenFactory::getTypeAliasUnit, depth))
+            .joinToString(newline(2), transform = partial(AbstractTypeAliasUnit::generate, mangler))
 
         val monos = context.monomorphisedTypes.values
             .filterNot(Type::isEphemeral)
-            .map(partial(TypeDefUnit.Companion::generateMonomorphisedType, mangler))
-            .joinToString("\n")
+            .joinToString("\n", transform = partial(TypeDefUnit.Companion::generateMonomorphisedType, mangler))
 
 //        val typeProjections = node.typeProjections
 //            .map(partial(::TypeProjectionUnit, depth))
 //            .joinToString(newline(2), transform = partial(TypeProjectionUnit::generate, mangler))
 
         val methodDefs = node.methodDefs
-            .map(partial(::MethodDefUnit, depth))
-            .joinToString(newline(2), transform = partial(MethodDefUnit::generate, mangler))
+            .map(partial(codeGenFactory::getMethodDefUnit, depth))
+            .joinToString(newline(2), transform = partial(AbstractMethodDefUnit::generate, mangler))
 
         return """
             |$header

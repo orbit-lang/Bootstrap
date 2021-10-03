@@ -2,21 +2,21 @@ package org.orbit.backend.codegen.swift.units
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.codegen.CodeUnit
+import org.orbit.backend.codegen.CodeGenFactory
+import org.orbit.backend.codegen.common.AbstractConstructorUnit
+import org.orbit.backend.codegen.common.AbstractExpressionUnit
 import org.orbit.backend.phase.CodeWriter
 import org.orbit.core.*
-import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.ConstructorNode
-import org.orbit.types.components.Context
 import org.orbit.types.components.Entity
 import org.orbit.types.components.Property
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 
-class ConstructorUnit(override val node: ConstructorNode, override val depth: Int) : CodeUnit<ConstructorNode>,
-    KoinComponent {
-    private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
+class ConstructorUnit(override val node: ConstructorNode, override val depth: Int) : AbstractConstructorUnit, KoinComponent {
     private val invocation: Invocation by inject()
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val targetType = node.typeExpressionNode.getType()
@@ -26,8 +26,8 @@ class ConstructorUnit(override val node: ConstructorNode, override val depth: In
         }
 
         val parameters = node.parameterNodes
-            .map(partial(::ExpressionUnit, depth))
-            .map(partial(ExpressionUnit::generate, mangler))
+            .map { codeGenFactory.getExpressionUnit(it, depth) }
+            .map(partial(AbstractExpressionUnit::generate, mangler))
 
         val parameterNames = targetType.properties.map(Property::name)
 
