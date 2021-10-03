@@ -5,6 +5,7 @@ import org.orbit.core.nodes.TypeDefNode
 import org.orbit.types.components.Context
 import org.orbit.types.components.Trait
 import org.orbit.types.components.Type
+import org.orbit.types.components.TypeInferenceUtil
 import org.orbit.util.Printer
 
 class ResolveTraitConformance(private val node: TypeDefNode) : TypeAction {
@@ -13,7 +14,9 @@ class ResolveTraitConformance(private val node: TypeDefNode) : TypeAction {
 
     override fun execute(context: Context) {
         type = context.getTypeByPath(node.getPath()) as Type
-        traits = node.traitConformances.map { context.getTypeByPath(it.getPath()) as Trait }
+        traits = node.traitConformances.map {
+            TypeInferenceUtil.infer(context, it) as Trait
+        }
 
         val nType = Type(node.getPath(), type.typeParameters, type.properties, traits, type.equalitySemantics, false)
 
@@ -22,6 +25,6 @@ class ResolveTraitConformance(private val node: TypeDefNode) : TypeAction {
     }
 
     override fun describe(printer: Printer): String {
-        return "Resolving trait conformance for type ${type.name}:\n\t\t(${traits.joinToString(", ", transform = { it.toString(printer) })})"
+        return "Resolving trait conformance for type ${type.toString(printer)}\n\t\t(${traits.joinToString(", ", transform = { it.toString(printer) })})"
     }
 }

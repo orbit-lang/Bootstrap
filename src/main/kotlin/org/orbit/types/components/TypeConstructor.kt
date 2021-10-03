@@ -8,6 +8,7 @@ import org.orbit.core.nodes.TypeConstructorNode
 data class TypeConstructor(override val name: String, override val typeParameters: List<TypeParameter>, override val properties: List<Property> = emptyList()) :
     EntityConstructor {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = TypeConstructorEquality
+    override val kind: TypeKind = EntityConstructorKind
 
     constructor(path: Path, typeParameters: List<TypeParameter> = emptyList(), properties: List<Property> = emptyList()) : this(path.toString(
         OrbitMangler

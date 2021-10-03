@@ -24,6 +24,50 @@ interface Specialisation<T: TypeProtocol> {
  */
 class TypePropertySpecialisation
 
+class TraitMonomorphisation(private val traitConstructor: TraitConstructor, private val concreteParameters: List<ValuePositionType>) : Specialisation<Trait> {
+    private companion object : KoinComponent {
+        private val invocation: Invocation by inject()
+        private val printer: Printer by inject()
+    }
+
+    override fun specialise(context: Context): Trait {
+        val abstractParameters = traitConstructor.typeParameters
+        val aPCount = abstractParameters.count()
+        val cPCount = concreteParameters.count()
+
+        if (cPCount != aPCount) throw invocation.make<TypeSystem>("Incorrect number of type parameters passed to Trait Constructor ${traitConstructor.toString(printer)}. Expected $aPCount, found $cPCount", SourcePosition.unknown)
+
+        val concreteProperties = traitConstructor.properties.map {
+            when (it.type) {
+                is TypeParameter -> {
+                    val aIdx = abstractParameters.indexOfFirst { t -> t.name == it.type.name }
+                    val abstractType = traitConstructor.typeParameters[aIdx]
+                    var concreteType = concreteParameters[aIdx]
+
+                    concreteType = concreteType
+                            as? Type
+                        ?: throw invocation.make<TypeSystem>("Type Constructors must be specialised on concrete Types, found ${concreteType::class.java.simpleName} ${concreteType.toString(printer)}", SourcePosition.unknown)
+
+                    // Easiest way to do this is to construct an ephemeral subtype of concreteType + the constraint Traits
+                    val ephemeralType = Type(concreteType.name, concreteType.typeParameters, concreteType.properties, abstractType.constraints, concreteType.equalitySemantics, isEphemeral = concreteType.isEphemeral)
+
+                    val traitEnforcer = TraitEnforcer(true)
+
+                    traitEnforcer.enforce(context, ephemeralType)
+
+                    Property(it.name, concreteType)
+                }
+
+                else -> it
+            }
+        }
+
+        val monomorphisedType = MetaType(traitConstructor, concreteParameters, concreteProperties)
+
+        return monomorphisedType.evaluate(context) as Trait
+    }
+}
+
 class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private val concreteParameters: List<ValuePositionType>) : Specialisation<Type> {
     private companion object : KoinComponent {
         private val invocation: Invocation by inject()

@@ -4,6 +4,7 @@ import org.orbit.util.Printer
 
 data class Parameter(override val name: String, val type: TypeProtocol) : TypeProtocol {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = type.equalitySemantics
+    override val kind: TypeKind = NullaryType
 
     override fun toString(printer: Printer): String {
         return "${name}: ${type.toString(printer)}"

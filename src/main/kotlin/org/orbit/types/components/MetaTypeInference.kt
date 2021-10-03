@@ -5,6 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.core.getPath
 import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.types.phase.TypeSystem
+import org.orbit.types.util.TraitMonomorphisation
 import org.orbit.types.util.TypeMonomorphisation
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
@@ -16,10 +17,10 @@ object MetaTypeInference : TypeInference<MetaTypeNode>, KoinComponent {
     private val ephemeralTypeGenerator = EphemeralTypeGenerator()
 
     override fun infer(context: Context, node: MetaTypeNode, typeAnnotation: TypeProtocol?): TypeProtocol {
-        val typeConstructor = context.getTypeByPath(node.getPath())
-            // TODO - Trait Constructors
-            as? TypeConstructor
-            ?: TODO("")
+        val t = context.getTypeByPath(node.getPath())
+        val entityConstructor = t as? EntityConstructor
+            ?: throw invocation.make<TypeSystem>("Expected Type of kind ${EntityConstructorKind.toString(printer)}, found ${t.toString(printer)} of kind ${t.kind.toString(
+                printer)}", node)
 
         // TODO - Recursive inference on type parameters
         val typeParameters = node.typeParameters
@@ -38,8 +39,12 @@ object MetaTypeInference : TypeInference<MetaTypeNode>, KoinComponent {
                 }
             }
 
-        val specialisation = TypeMonomorphisation(typeConstructor, typeParameters)
+        val specialiser = when (entityConstructor) {
+            is TypeConstructor -> TypeMonomorphisation(entityConstructor, typeParameters)
+            is TraitConstructor -> TraitMonomorphisation(entityConstructor, typeParameters)
+            else -> TODO("UNREACHABLE -- MetaTypeInference:45")
+        }
 
-        return specialisation.specialise(context)
+        return specialiser.specialise(context)
     }
 }

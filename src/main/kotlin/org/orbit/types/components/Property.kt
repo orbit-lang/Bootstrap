@@ -26,6 +26,7 @@ data class Property(
     }
 
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = type.equalitySemantics
+    override val kind: TypeKind = NullaryType
 
     // TODO - default values
     constructor(pair: Pair<PairNode, TypeProtocol>)

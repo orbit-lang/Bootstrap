@@ -7,6 +7,7 @@ import org.orbit.core.nodes.TypeIdentifierNode
 
 data class TypeParameter(override val name: String, val constraints: List<Trait> = emptyList()) : VirtualType {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = NominalEquality
+    override val kind: TypeKind = NullaryType
 
     constructor(path: Path, constraints: List<Trait> = emptyList()) : this(path.toString(OrbitMangler), constraints)
     // TODO - Complex Type Parameter Expressions

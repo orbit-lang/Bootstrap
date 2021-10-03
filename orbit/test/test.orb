@@ -1,9 +1,13 @@
-@Ephemeral @Main
-module M with Orb::Types::Intrinsics with Orb::Core::Main with Orb::Core::Types with Bootstrap::Annotations {
+@Main
+module M with Orb::Types::Intrinsics with Orb::Core::Main with Orb::Core::Types {
+    trait Foo
     trait constructor Option<T>(value T)
-    type constructor Some<T>(value T)
+        where T : Foo
+
+    type Some : Option<Int>
+    type IntSome = Some<Int>
 
     (self Main) main () () {
-        print Option
+        o = IntSome(1)
     }
 }

@@ -14,6 +14,7 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
     }
 
     override val isEphemeral: Boolean = true
+    override val kind: TypeKind = NullaryType
 
     override val name: String
         get() = entityConstructor.name

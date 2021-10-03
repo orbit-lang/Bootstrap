@@ -59,7 +59,7 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
             }
         }
 
-        val end = context.expect(TokenTypes.RAngle)
+        var end = context.expect(TokenTypes.RAngle)
 
         next = context.peek()
 
@@ -78,6 +78,41 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         next = context.peek()
 
+        val traitConformance: List<TypeExpressionNode> = if (next.type == TokenTypes.Colon) {
+            context.consume()
+
+            next = context.peek()
+
+            val result = mutableListOf<TypeExpressionNode>()
+            while (next.type == TokenTypes.TypeIdentifier) {
+                val traitConformance = context.attempt(TypeExpressionRule)
+                    ?: throw context.invocation.make(Parser.Errors.UnexpectedToken(next))
+
+                result.add(traitConformance)
+
+                // Another potential lastToken (assumes `type A : B`)
+                end = traitConformance.lastToken
+
+                next = context.peek()
+
+                if (next.type == TokenTypes.Comma) {
+                    context.consume()
+
+                    next = context.peek()
+
+                    if (next.type != TokenTypes.TypeIdentifier) {
+                        // Dangling comma
+                        // TODO - Better error message
+                        throw context.invocation.make(Parser.Errors.UnexpectedToken(next))
+                    }
+                }
+            }
+
+            result
+        } else {
+            emptyList()
+        }
+
         val whereClauses = mutableListOf<TypeConstraintWhereClauseNode>()
         while (next.type == TokenTypes.Where) {
             val whereClause = context.attempt(TypeConstraintWhereClauseRule)
@@ -86,8 +121,9 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
             whereClauses.add(whereClause)
 
             next = context.peek()
+            end = whereClause.lastToken
         }
 
-        return +TypeConstructorNode(start, delimitedNode.lastToken, typeIdentifier, typeParameters, properties, whereClauses)
+        return +TypeConstructorNode(start, end, typeIdentifier, typeParameters, traitConformance, properties, whereClauses)
     }
 }

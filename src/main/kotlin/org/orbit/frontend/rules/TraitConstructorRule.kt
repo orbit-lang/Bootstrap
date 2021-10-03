@@ -2,10 +2,7 @@ package org.orbit.frontend.rules
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.nodes.EntityConstructorNode
-import org.orbit.core.nodes.PairNode
-import org.orbit.core.nodes.TraitConstructorNode
-import org.orbit.core.nodes.TypeIdentifierNode
+import org.orbit.core.nodes.*
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
@@ -64,7 +61,19 @@ object TraitConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
             emptyList()
         }
 
-        if (next.type != TokenTypes.LBrace) return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, properties = properties)
+        next = context.peek()
+
+        val whereClauses = mutableListOf<TypeConstraintWhereClauseNode>()
+        while (next.type == TokenTypes.Where) {
+            val whereClause = context.attempt(TypeConstraintWhereClauseRule)
+                ?: return ParseRule.Result.Failure.Abort
+
+            whereClauses.add(whereClause)
+
+            next = context.peek()
+        }
+
+        if (next.type != TokenTypes.LBrace) return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, properties = properties, clauses = whereClauses)
 
         val signatureNodes = context.attempt(
             DelimitedRule(
@@ -76,6 +85,6 @@ object TraitConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         end = signatureNodes.lastOrNull()?.lastToken ?: end
 
-        return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, signatureNodes, properties = properties)
+        return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, signatureNodes, properties = properties, clauses = whereClauses)
     }
 }

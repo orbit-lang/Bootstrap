@@ -11,6 +11,7 @@ data class TypeSignature(
 ) : SignatureProtocol<ValuePositionType> {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = SignatureEquality
     override val isEphemeral: Boolean = false
+    override val kind: TypeKind = FunctionKind
 
     override fun toString(mangler: Mangler): String {
         return mangler.mangle(this)
