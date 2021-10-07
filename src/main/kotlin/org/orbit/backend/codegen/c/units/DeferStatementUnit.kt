@@ -3,12 +3,44 @@ package org.orbit.backend.codegen.c.units
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeGenFactory
+import org.orbit.backend.codegen.CodeUnit
 import org.orbit.backend.codegen.common.AbstractDeferStatementUnit
-import org.orbit.backend.codegen.common.BlockUnit
-import org.orbit.core.CodeGeneratorQualifier
-import org.orbit.core.Mangler
-import org.orbit.core.injectQualified
+import org.orbit.core.*
 import org.orbit.core.nodes.DeferNode
+import org.orbit.graph.components.Annotations
+import org.orbit.graph.components.StringKey
+import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getAnnotation
+
+class DeferFunctionUnit(override val node: DeferNode, override val depth: Int, private val index: Int) : CodeUnit<DeferNode>, KoinComponent {
+    private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
+    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+
+    override fun generate(mangler: Mangler): String {
+        val funcName = "__defer$index"
+        val param = when (node.returnValueIdentifier) {
+            null -> ""
+            else -> {
+                val paramType = (OrbitMangler + mangler)(node.getType().name)
+                val paramName = node.returnValueIdentifier!!.identifier
+
+                "$paramType $paramName"
+            }
+        }
+
+        val body = codeGenFactory.getBlockUnit(node.blockNode, depth + 1, true, false)
+            .generate(mangler)
+
+        node.annotate(StringKey(funcName), key = Annotations.DeferFunction, true)
+        node.blockNode.annotate(StringKey(funcName), key = Annotations.DeferFunction, true)
+
+        return """
+            |void $funcName($param) {
+            |$body
+            |}
+        """.trimMargin().prependIndent(indent())
+    }
+}
 
 class DeferStatementUnit(override val node: DeferNode, override val depth: Int) : AbstractDeferStatementUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
@@ -16,18 +48,10 @@ class DeferStatementUnit(override val node: DeferNode, override val depth: Int) 
 
     // TODO
     override fun generate(mangler: Mangler): String {
-        val block = codeGenFactory.getBlockUnit(node.blockNode, depth, true)
-            .generate(mangler)
+        val deferFunc = node.getAnnotation<StringKey>(Annotations.DeferFunction)
+            ?.value
+            ?: return ""
 
-        val retId = when (node.returnValueIdentifier) {
-            null -> ""
-            else -> "${node.returnValueIdentifier!!.identifier} in"
-        }
-
-        return """
-            |let __on_defer = { $retId
-            |$block
-            |}
-        """.trimMargin().prependIndent()
+        return ""
     }
 }

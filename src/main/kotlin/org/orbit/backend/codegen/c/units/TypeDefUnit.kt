@@ -31,9 +31,9 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Abs
 
             return """
             $header
-            struct ${nMangler.invoke(type.name)} {
+            typedef struct __${nMangler.invoke(type.name).lowercase()} {
                 $properties
-            };
+            } ${nMangler.invoke(type.name)};
             """.trimIndent()
         }
     }

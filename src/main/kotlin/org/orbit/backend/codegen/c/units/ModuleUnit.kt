@@ -9,6 +9,7 @@ import org.orbit.backend.codegen.common.AbstractTypeAliasUnit
 import org.orbit.backend.codegen.common.AbstractTypeDefUnit
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
+import org.orbit.core.nodes.DeferNode
 import org.orbit.core.nodes.ModuleNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.types.components.Context
@@ -54,9 +55,9 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
             .filterNot(Type::isEphemeral)
             .joinToString("\n", transform = partial(TypeDefUnit.Companion::generateMonomorphisedType, mangler))
 
-//        val typeProjections = node.typeProjections
-//            .map(partial(::TypeProjectionUnit, depth))
-//            .joinToString(newline(2), transform = partial(TypeProjectionUnit::generate, mangler))
+        val deferFuncs = node.search(DeferNode::class.java)
+            .mapIndexed { idx, item -> DeferFunctionUnit(item, depth, idx) }
+            .joinToString("\n", transform = partial(DeferFunctionUnit::generate, mangler))
 
         val methodDefs = node.methodDefs
             .map(partial(codeGenFactory::getMethodDefUnit, depth))
@@ -64,13 +65,10 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
 
         return """
             |$header
-            |
             |$typeDefs
-            |
             |$typeAliases
-            |
             |$monos
-            |
+            |$deferFuncs
             |$methodDefs
         """.trimMargin()
     }

@@ -2,7 +2,6 @@ package org.orbit.types.typeresolvers
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
@@ -55,6 +54,8 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
                     // Create a new lexical scope derived from (i.e. inheriting existing bindings) the current scope
                     val localContext = Context(context)
 
+                    statementNode.annotate(returnType, Annotations.Type, true)
+
                     if (statementNode.returnValueIdentifier != null) {
                         if (!node.containsReturn) {
                             // Defer statement is declared a return capture variable, but method does not return
@@ -68,7 +69,7 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
 
                     // TODO - We'll need a separate TypeResolver for arbitrary Blocks, rather than this
                     //  specialised one for just method bodies
-                    val blockResolver = MethodBodyTypeResolver(statementNode.blockNode, binding, returnType)
+                    val blockResolver = DeferBodyTypeResolver(statementNode, binding)
 
                     blockResolver.resolve(environment, localContext)
                 }

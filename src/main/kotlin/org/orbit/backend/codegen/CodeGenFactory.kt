@@ -2,6 +2,7 @@ package org.orbit.backend.codegen
 
 import org.orbit.backend.codegen.common.*
 import org.orbit.core.nodes.*
+import org.orbit.graph.components.StringKey
 import java.math.BigInteger
 
 interface CodeGenFactory {
@@ -9,12 +10,12 @@ interface CodeGenFactory {
     fun getModuleUnit(node: ModuleNode, depth: Int) : AbstractModuleUnit
     fun getMethodDefUnit(node: MethodDefNode, depth: Int) : AbstractMethodDefUnit = MethodDefUnit(node, depth)
     fun getMethodSignatureUnit(node: MethodSignatureNode, depth: Int) : AbstractMethodSignatureUnit
-    fun getBlockUnit(node: BlockNode, depth: Int, stripBraces: Boolean) : AbstractBlockUnit = BlockUnit(node, depth, stripBraces)
-    fun getReturnStatementUnit(node: ReturnStatementNode, depth: Int, resultIsDeferred: Boolean) : AbstractReturnStatementUnit
+    fun getBlockUnit(node: BlockNode, depth: Int, stripBraces: Boolean, isMethodBody: Boolean) : AbstractBlockUnit = BlockUnit(node, depth, stripBraces, isMethodBody)
+    fun getReturnStatementUnit(node: ReturnStatementNode, depth: Int, resultIsDeferred: Boolean, deferFunctions: List<StringKey>) : AbstractReturnStatementUnit
     fun getAssignmentStatementUnit(node: AssignmentStatementNode, depth: Int) : AbstractAssignmentStatementUnit
     fun getPrintStatementUnit(node: PrintNode, depth: Int) : AbstractPrintStatementUnit
     fun getDeferStatementUnit(node: DeferNode, depth: Int) : AbstractDeferStatementUnit
-    fun getDeferCallUnit(node: BlockNode, depth: Int) : AbstractDeferCallUnit
+    fun getDeferCallUnit(node: DeferNode, depth: Int) : AbstractDeferCallUnit
     fun getMetaTypeUnit(node: MetaTypeNode, depth: Int, inFuncNamePosition: Boolean = false) : AbstractMetaTypeUnit = MetaTypeUnit(node, depth, inFuncNamePosition)
     fun getExpressionUnit(node: ExpressionNode, depth: Int) : AbstractExpressionUnit = ExpressionUnit(node, depth)
     fun getPropertyDefUnit(node: PairNode, depth: Int, isProtocol: Boolean = false) : AbstractPropertyDefUnit

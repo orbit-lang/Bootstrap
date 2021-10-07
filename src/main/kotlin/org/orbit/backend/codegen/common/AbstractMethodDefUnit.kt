@@ -19,7 +19,7 @@ class MethodDefUnit(override val node: MethodDefNode, override val depth: Int) :
 
     override fun generate(mangler: Mangler) : String {
         val signatureUnit = codeGenFactory.getMethodSignatureUnit(node.signature, depth)
-        val bodyUnit = codeGenFactory.getBlockUnit(node.body, depth + 1, false)
+        val bodyUnit = codeGenFactory.getBlockUnit(node.body, depth + 1, stripBraces = false, isMethodBody = true)
 
         return """
             |${signatureUnit.generate(mangler)}

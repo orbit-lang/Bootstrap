@@ -13,11 +13,8 @@ import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 
-class MethodSignatureTypeResolver(override val node: MethodSignatureNode, override val binding: Binding, private val enclosingType: Entity? = null) : TypeResolver<MethodSignatureNode, TypeSignature>,
-    KoinComponent {
+class MethodSignatureTypeResolver(override val node: MethodSignatureNode, override val binding: Binding, private val enclosingType: Entity? = null) : TypeResolver<MethodSignatureNode, TypeSignature>, KoinComponent {
     override val invocation: Invocation by inject()
-
-    constructor(pair: Pair<MethodSignatureNode, Binding>) : this(pair.first, pair.second)
 
     override fun resolve(environment: Environment, context: Context): TypeSignature {
         val receiver = node.receiverTypeNode

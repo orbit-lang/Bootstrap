@@ -1,10 +1,4 @@
-module M with Orb::Types::Intrinsics with Orb::Core::Main with Orb::Meta::Entities {
-    trait Foo
-
-    (self Main) main () () {
-        f = Foo
-        i = 1
-        print f
-        print i
-    }
+module Strings with Orb::Types::Intrinsics {
+	trait StringEncoding(characterWidth Int)
+	type String(bytes [UInt8], encoding StringEncoding)
 }

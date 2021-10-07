@@ -3,6 +3,7 @@ package org.orbit.backend.codegen.swift.units
 import org.orbit.backend.codegen.CodeGenFactory
 import org.orbit.backend.codegen.common.*
 import org.orbit.core.nodes.*
+import org.orbit.graph.components.StringKey
 import java.math.BigInteger
 
 object SwiftCodeGenFactory : CodeGenFactory {
@@ -15,8 +16,8 @@ object SwiftCodeGenFactory : CodeGenFactory {
     override fun getMethodSignatureUnit(node: MethodSignatureNode, depth: Int): AbstractMethodSignatureUnit
         = MethodSignatureUnit(node, depth)
 
-    override fun getReturnStatementUnit(node: ReturnStatementNode, depth: Int, resultIsDeferred: Boolean): AbstractReturnStatementUnit
-        = ReturnStatementUnit(node, depth, resultIsDeferred)
+    override fun getReturnStatementUnit(node: ReturnStatementNode, depth: Int, resultIsDeferred: Boolean, deferFunctions: List<StringKey>): AbstractReturnStatementUnit
+        = ReturnStatementUnit(node, depth, resultIsDeferred, deferFunctions)
 
     override fun getAssignmentStatementUnit(node: AssignmentStatementNode, depth: Int): AbstractAssignmentStatementUnit
         = AssignmentStatementUnit(node, depth)
@@ -27,7 +28,7 @@ object SwiftCodeGenFactory : CodeGenFactory {
     override fun getDeferStatementUnit(node: DeferNode, depth: Int): AbstractDeferStatementUnit
         = DeferStatementUnit(node, depth)
 
-    override fun getDeferCallUnit(node: BlockNode, depth: Int): AbstractDeferCallUnit
+    override fun getDeferCallUnit(node: DeferNode, depth: Int): AbstractDeferCallUnit
         = DeferCallUnit(node, depth)
 
     override fun getPropertyDefUnit(node: PairNode, depth: Int, isProtocol: Boolean): AbstractPropertyDefUnit

@@ -25,8 +25,10 @@ class ResolveTraitSignatures(private val node: TraitDefNode) : TypeAction {
         trait = context.getTypeByPath(node.getPath()) as Trait
 
         signatures = node.signatures
-            .map { MethodSignatureTypeResolver(it, Binding(Binding.Kind.Method, it.identifierNode.identifier, it.getPath()), trait)
-                .resolve(nameResolverResult.environment, context) }
+            .map {
+                MethodSignatureTypeResolver(it, Binding(Binding.Kind.Method, it.identifierNode.identifier, it.getPath()), trait)
+                    .resolve(nameResolverResult.environment, context)
+            }
 
         trait = Trait(trait.name, trait.typeParameters, trait.properties, trait.traitConformance, signatures, trait.equalitySemantics, trait.implicit)
     }

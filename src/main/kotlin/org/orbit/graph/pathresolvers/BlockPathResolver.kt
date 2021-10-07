@@ -18,8 +18,8 @@ class BlockPathResolver : PathResolver<BlockNode> {
 		return environment.withScope {
 
 			// TODO - Non-linear routes through a block, e.g. conditionals, controls etc
-			var result: PathResolver.Result =
-                PathResolver.Result.Success(OrbitMangler.unmangle(IntrinsicTypes.Unit.type.name))
+			var result: PathResolver.Result = PathResolver.Result.Success(OrbitMangler.unmangle(IntrinsicTypes.Unit.type.name))
+
 			for (node in input.body) {
 				when (node) {
 					is PrintNode ->

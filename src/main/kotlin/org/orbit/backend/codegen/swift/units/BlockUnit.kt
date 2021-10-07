@@ -8,8 +8,9 @@ import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
 import org.orbit.core.injectQualified
 import org.orbit.core.nodes.*
+import org.orbit.graph.components.StringKey
 
-class ReturnStatementUnit(override val node: ReturnStatementNode, override val depth: Int, private val resultIsDeferred: Boolean) : AbstractReturnStatementUnit, KoinComponent {
+class ReturnStatementUnit(override val node: ReturnStatementNode, override val depth: Int, private val resultIsDeferred: Boolean, override val deferFunctions: List<StringKey>) : AbstractReturnStatementUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
     private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
 
@@ -61,7 +62,7 @@ class DeferStatementUnit(override val node: DeferNode, override val depth: Int) 
     private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
-        val block = codeGenFactory.getBlockUnit(node.blockNode, depth, true)
+        val block = codeGenFactory.getBlockUnit(node.blockNode, depth, stripBraces = true, isMethodBody = false)
             .generate(mangler)
 
         val retId = when (node.returnValueIdentifier) {
@@ -77,15 +78,16 @@ class DeferStatementUnit(override val node: DeferNode, override val depth: Int) 
     }
 }
 
-class DeferCallUnit(override val node: BlockNode, override val depth: Int) : AbstractDeferCallUnit {
+class DeferCallUnit(override val node: DeferNode, override val depth: Int) : AbstractDeferCallUnit {
     override fun generate(mangler: Mangler): String {
-        if (!node.containsDefer) return ""
-        if (node.containsReturn) return ""
-
-        return if (node.containsReturn) {
-            "__on_defer(__ret_val)"
-        } else {
-            "__on_defer()"
-        }.prependIndent(indent())
+        return ""
+//        if (!node.containsDefer) return ""
+//        if (node.containsReturn) return ""
+//
+//        return if (node.containsReturn) {
+//            "__on_defer(__ret_val)"
+//        } else {
+//            "__on_defer()"
+//        }.prependIndent(indent())
     }
 }

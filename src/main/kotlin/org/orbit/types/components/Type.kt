@@ -20,3 +20,12 @@ data class Type(
     constructor(node: TypeDefNode)
         : this(node.getPath())
 }
+
+object None : TypeProtocol {
+    override val name: String = ""
+    override val kind: TypeKind = NullaryType
+
+    override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = object : Equality<None, TypeProtocol> {
+        override fun isSatisfied(context: Context, source: None, target: TypeProtocol): Boolean = false
+    }
+}

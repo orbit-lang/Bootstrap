@@ -19,6 +19,6 @@ class PrintStatementUnit(override val node: PrintNode, override val depth: Int) 
             .generate(mangler)
 
         // TODO - printf
-        return "printf(\"%s\\n\", \"$value\");".prependIndent(indent())
+        return "printf(\"%s\\n\", $value);".prependIndent(indent())
     }
 }
