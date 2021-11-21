@@ -13,7 +13,7 @@ import java.math.BigInteger
 
 object LiteralUnitUtil : KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     fun <T> generateLiteralUnit(node: LiteralNode<T>, depth: Int) : AbstractLiteralUnit<T> = when (node) {
         is IntLiteralNode -> codeGenFactory.getIntLiteralUnit(node as LiteralNode<Pair<Int, BigInteger>>, depth) as AbstractLiteralUnit<T>

@@ -19,7 +19,7 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Abs
             val properties = type.properties.joinToString("\n\t\t") {
                 val typeName = nMangler(it.type.name)
                 val header = "/* ${it.name} ${it.type.name} */"
-                val c = "$typeName ${it.name};"
+                val c = "$typeName *${it.name};"
 
                 """
                 $header
@@ -31,7 +31,7 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Abs
 
             return """
             $header
-            typedef struct __${nMangler.invoke(type.name).lowercase()} {
+            struct {
                 $properties
             } ${nMangler.invoke(type.name)};
             """.trimIndent()
@@ -42,7 +42,7 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Abs
         val propertyType = (OrbitMangler + mangler).invoke(property.type.name)
 
         val header = "/* ${property.name} ${property.type.name} */"
-        val prop = "$propertyType ${property.name};"
+        val prop = "$propertyType *${property.name};"
 
         return """
             |$header

@@ -1,6 +1,9 @@
 package org.orbit.types.components
 
 import org.orbit.core.Mangler
+import org.orbit.types.phase.AnyEqualityConstraint
+import org.orbit.types.phase.NominalEqualityConstraint
+import org.orbit.types.phase.StructuralEqualityConstraint
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 
@@ -10,14 +13,14 @@ interface SignatureProtocol<T: TypeProtocol> : ValuePositionType {
     val returnType: ValuePositionType
 
     fun toString(mangler: Mangler) : String
-    fun isReceiverSatisfied(by: Entity, context: Context) : Boolean
-    fun isReturnTypeSatisfied(by: Entity, context: Context) : Boolean {
-        return (returnType.equalitySemantics as AnyEquality).isSatisfied(context, returnType, by)
-    }
+    fun isReceiverSatisfied(by: Entity, context: ContextProtocol) : Boolean
+    fun isReturnTypeSatisfied(by: Entity, context: ContextProtocol) : Boolean
+        = AnyEqualityConstraint(returnType).checkConformance(context, by)
 
-    fun isParameterListSatisfied(by: List<Parameter>, context: Context) : Boolean {
+    fun isParameterListSatisfied(by: List<Parameter>, context: ContextProtocol) : Boolean {
         return parameters.count() == by.count() && parameters.zip(by).all {
-            (it.first.equalitySemantics as AnyEquality).isSatisfied(context, it.first, it.second)
+            AnyEqualityConstraint(it.first.type)
+                .checkConformance(context, it.second.type)
         }
     }
 

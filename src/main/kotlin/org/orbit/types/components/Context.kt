@@ -19,7 +19,15 @@ import java.lang.NullPointerException
 
 data class MissingTypeException(val typeName: String) : Exception("Missing type: $typeName")
 
-class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperators.all()) : Serial, Serializable, CompilationEventBusAware by CompilationEventBusAwareImpl {
+interface ContextProtocol {
+    val universe: List<TypeProtocol>
+}
+
+fun ContextProtocol.refresh(type: TypeProtocol) : TypeProtocol {
+    return universe.find { it.name == type.name }!!
+}
+
+class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperators.all()) : Serial, Serializable, CompilationEventBusAware by CompilationEventBusAwareImpl, ContextProtocol {
     companion object : KoinComponent {
         private val importManager: ImportManager by inject()
     }
@@ -35,7 +43,8 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     internal constructor(vararg builtIns: String) : this(builtIns.map { Type(it, isRequired = false) })
 
     constructor(other: Context) : this() {
-        this.types.addAll(other.types)
+        merge(other.types.toList())
+        //this.types.addAll(other.types)
         this.bindings.putAll(other.bindings)
         this.typeProjections.addAll(other.typeProjections)
         this.monomorphisedTypes = other.monomorphisedTypes
@@ -43,6 +52,9 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
     val types: MutableSet<TypeProtocol> = builtIns.toMutableSet()
     val bindings = mutableMapOf<String, TypeProtocol>()
+
+    override val universe: List<TypeProtocol>
+        get() = types.toList()
 
     private val typeProjections = mutableListOf<TypeProjection>()
     var monomorphisedTypes = mutableMapOf<String, Type>()
@@ -77,6 +89,16 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         compilationEventBus.notify(Events.BindingCreated(name, type))
     }
 
+    private fun merge(other: List<TypeProtocol>) {
+        for (type in other) {
+            if (types.any { it.name == type.name }) {
+                replace(type)
+            } else {
+                types.add(type)
+            }
+        }
+    }
+
     fun add(typeProjection: TypeProjection) {
         typeProjections.add(typeProjection)
         compilationEventBus.notify(Events.TypeProjectionCreated(typeProjection))
@@ -106,8 +128,8 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         }
     }
 
-    fun refresh(type: TypeProtocol) : TypeProtocol {
-        return types.find { it.name == type.name }!!
+    inline fun <reified T> refreshOrNull(type: TypeProtocol) : T? {
+        return types.find { it.name == type.name } as? T
     }
 
     fun getType(name: String) : TypeProtocol {
@@ -141,6 +163,15 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
     fun removeAll(names: List<String>) {
         names.forEach { remove(it) }
+    }
+
+    fun replace(type: TypeProtocol) {
+        remove(type.name)
+        add(type)
+    }
+
+    fun replaceMonomorphisedType(type: Type) {
+        monomorphisedTypes[type.name] = type
     }
 
     override fun describe(json: JSONObject) {

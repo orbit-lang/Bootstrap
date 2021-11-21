@@ -13,7 +13,7 @@ interface AbstractUnaryExpressionUnit : CodeUnit<UnaryExpressionNode>
 
 class UnaryExpressionUnit(override val node: UnaryExpressionNode, override val depth: Int) : AbstractUnaryExpressionUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val operand = codeGenFactory.getExpressionUnit(node.operand, depth).generate(mangler)

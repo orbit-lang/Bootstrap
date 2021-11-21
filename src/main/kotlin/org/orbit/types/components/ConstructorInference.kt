@@ -26,9 +26,13 @@ object ConstructorInference : TypeInference<ConstructorNode>, KoinComponent {
             )
         }
 
-        val parameterTypes = receiverType.properties
+        val parameterTypes = receiverType.properties.mapNotNull {
+             when (it.defaultValue) {
+                 null -> it
+                 else -> null
+             }
+        }
 
-        // HERE - Default values!
         if (node.parameterNodes.size != parameterTypes.size) {
             throw invocation.make<TypeSystem>("Type '${receiverType.name}' expects ${parameterTypes.size} constructor ${"parameter".pluralise(parameterTypes.size)}, found ${node.parameterNodes.size}", node.firstToken.position)
         }
@@ -36,11 +40,6 @@ object ConstructorInference : TypeInference<ConstructorNode>, KoinComponent {
         for ((idx, pair) in parameterTypes.zip(node.parameterNodes).withIndex()) {
             val argumentType = TypeInferenceUtil.infer(context, pair.second)
             val equalitySemantics = argumentType.equalitySemantics as AnyEquality
-
-            if (pair.first.type is TypeParameter) {
-                // Constructed type MUST be a MetaType
-                println(receiverType)
-            }
 
             if (!equalitySemantics.isSatisfied(context, pair.first.type, argumentType)) {
                 throw invocation.make<TypeSystem>("Constructor expects parameter of type '${pair.first.type.name}' at position ${idx}, found '${argumentType.name}'", pair.second.firstToken.position)

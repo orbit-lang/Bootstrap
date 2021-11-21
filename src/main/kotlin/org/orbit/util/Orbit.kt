@@ -4,8 +4,10 @@ import com.github.ajalt.clikt.core.CliktCommand
 import org.koin.dsl.module
 import org.orbit.backend.codegen.CodeGenFactory
 import org.orbit.backend.codegen.c.units.CCodeGenFactory
+import org.orbit.backend.codegen.c.units.CHeader
 import org.orbit.backend.codegen.c.units.CMangler
 import org.orbit.backend.codegen.swift.units.SwiftCodeGenFactory
+import org.orbit.backend.codegen.swift.units.SwiftHeader
 import org.orbit.backend.codegen.swift.units.SwiftMangler
 import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
@@ -49,11 +51,11 @@ val mainModule = module {
 		util
 	}
 
-	single<CodeGenFactory>(CodeGeneratorQualifier.Swift) {
+	single<CodeGenFactory<SwiftHeader>>(CodeGeneratorQualifier.Swift) {
 		SwiftCodeGenFactory
 	}
 
-	single<CodeGenFactory>(CodeGeneratorQualifier.C) {
+	single<CodeGenFactory<CHeader>>(CodeGeneratorQualifier.C) {
 		CCodeGenFactory
 	}
 

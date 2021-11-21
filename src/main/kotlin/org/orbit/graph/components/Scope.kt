@@ -138,14 +138,14 @@ class Scope(
 		if (name == "Self") return BindingSearchResult.Success(Binding.Self)
 
 		// Collect together all visible bindings
-		val imported = imports.map { environment.getScope(it) }
-			.flatMap { it.bindings }
-		val all = (bindings + imported).distinct()
+//		val imported = imports.map { environment.getScope(it) }
+//			.flatMap { it.bindings }
+//		val all = (bindings + imported).distinct()
 
 		val path = OrbitMangler.unmangle(name)
 
 		// Get all bindings whose Path ends with name
-		var matches = all.filter(partial(Binding::matches, name))
+		var matches = environment.allBindings.filter(partial(Binding::matches, name))
 
 		if (matches.isEmpty()) return BindingSearchResult.None(name)
 		if (matches.count() == 1) {

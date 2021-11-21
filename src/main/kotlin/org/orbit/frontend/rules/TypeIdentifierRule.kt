@@ -1,6 +1,7 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.components.SourcePosition
+import org.orbit.core.nodes.CollectionTypeLiteralNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.core.nodes.TypeParametersNode
@@ -11,7 +12,7 @@ import org.orbit.frontend.extensions.unaryPlus
 
 object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
-		val node = context.attemptAny(listOf(MetaTypeRule, TypeIdentifierRule.Naked))
+		val node = context.attemptAny(listOf(MetaTypeRule, TypeIdentifierRule.Naked, CollectionTypeLiteralRule))
 			as? TypeExpressionNode
 			?: return ParseRule.Result.Failure.Abort
 
@@ -46,5 +47,17 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 		if (!context.hasMore) return +TypeIdentifierNode(start, start, start.text)
 
 		return +TypeIdentifierNode(start, start, start.text)
+	}
+}
+
+object CollectionTypeLiteralRule : ValueRule<CollectionTypeLiteralNode> {
+	override fun parse(context: Parser): ParseRule.Result {
+		val start = context.expect(TokenTypes.LBracket)
+		val typeExpression = context.attempt(TypeExpressionRule)
+			?: TODO("TypeIdentifierRule.kt:57")
+
+		val end = context.expect(TokenTypes.RBracket)
+
+		return +CollectionTypeLiteralNode(start, end, typeExpression.value, typeExpression)
 	}
 }

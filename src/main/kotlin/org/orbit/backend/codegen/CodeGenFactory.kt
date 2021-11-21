@@ -5,9 +5,9 @@ import org.orbit.core.nodes.*
 import org.orbit.graph.components.StringKey
 import java.math.BigInteger
 
-interface CodeGenFactory {
-    fun getProgramUnit(node: ProgramNode, depth: Int) : AbstractProgramUnit
-    fun getModuleUnit(node: ModuleNode, depth: Int) : AbstractModuleUnit
+interface CodeGenFactory<H: AbstractHeader> {
+    fun getProgramUnit(node: ProgramNode, depth: Int) : AbstractProgramUnit<H>
+    fun getModuleUnit(node: ModuleNode, depth: Int, header: H) : AbstractModuleUnit
     fun getMethodDefUnit(node: MethodDefNode, depth: Int) : AbstractMethodDefUnit = MethodDefUnit(node, depth)
     fun getMethodSignatureUnit(node: MethodSignatureNode, depth: Int) : AbstractMethodSignatureUnit
     fun getBlockUnit(node: BlockNode, depth: Int, stripBraces: Boolean, isMethodBody: Boolean) : AbstractBlockUnit = BlockUnit(node, depth, stripBraces, isMethodBody)

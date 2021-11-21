@@ -8,7 +8,7 @@ import org.orbit.core.phase.Phase
 import org.orbit.types.components.Property
 import org.orbit.types.components.Trait
 import org.orbit.types.components.Type
-import org.orbit.types.components.TraitPropertyResult
+import org.orbit.types.components.TraitEnforcementResult
 
 interface ErrorWriter {
     fun write(printer: Printer) : String
@@ -76,21 +76,21 @@ class DuplicateTraitProperty(private val type: Type, private val traitA: Trait, 
     }
 }
 
-class TraitEnforcerPropertyErrors(private val result: TraitPropertyResult, private val isImplicitConformance: Boolean = false) : ErrorWriter {
-    private fun writeMissingProperty(printer: Printer, result: TraitPropertyResult.Missing) : String = when (isImplicitConformance) {
+class TraitEnforcerPropertyErrors(private val result: TraitEnforcementResult<Property>, private val isImplicitConformance: Boolean = false) : ErrorWriter {
+    private fun writeMissingProperty(printer: Printer, result: TraitEnforcementResult.Missing<Property>) : String = when (isImplicitConformance) {
         // TODO - Better error message when isImplicitConformance
-        true -> "Type ${result.type.toString(printer)} implicitly declares conformance to Trait ${result.trait.toString(printer)} because it is passed as a Type Parameter to a Type Constructor. However, it does not implement property ${result.property.toString(printer)}"
-        false -> "Type ${result.type.toString(printer)} declares conformance to Trait ${result.trait.toString(printer)} but does not implement property ${result.property.toString(printer)}"
+        true -> "Type ${result.type.toString(printer)} implicitly declares conformance to Trait ${result.trait.toString(printer)} because it is passed as a Type Parameter to a Type Constructor. However, it does not implement property ${result.value.toString(printer)}"
+        false -> "Type ${result.type.toString(printer)} declares conformance to Trait ${result.trait.toString(printer)} but does not implement property ${result.value.toString(printer)}"
     }
 
-    private fun writeDuplicateProperty(printer: Printer, result: TraitPropertyResult.Duplicate) : String {
+    private fun writeDuplicateProperty(printer: Printer, result: TraitEnforcementResult.Duplicate<Property>) : String {
         val propertyOwners = result.type
             .traitConformance
-            .filter { it.properties.contains(result.property) }
+            .filter { it.properties.contains(result.value) }
 
         val traits = propertyOwners.joinToString(", ") { it.toString(printer) }
         val conflicts = propertyOwners.mapIndexed { idx, elem ->
-            val property = elem.properties.first { prop -> prop.name == result.property.name }
+            val property = elem.properties.first { prop -> prop.name == result.value.name }
             "\t${idx + 1}. ${elem.toString(printer)} -- ${property.toString(printer)}"
         }.joinToString("\n")
 
@@ -102,16 +102,16 @@ class TraitEnforcerPropertyErrors(private val result: TraitPropertyResult, priva
         """.trimMargin()
     }
 
-    private fun writeFailureGroup(printer: Printer, result: TraitPropertyResult.FailureGroup) : String {
+    private fun writeFailureGroup(printer: Printer, result: TraitEnforcementResult.FailureGroup<Property>) : String {
         return result.results
             .map(::TraitEnforcerPropertyErrors)
             .joinToString("\n\n") { it.write(printer) }
     }
 
     override fun write(printer: Printer): String = when (result) {
-        is TraitPropertyResult.Missing -> writeMissingProperty(printer, result)
-        is TraitPropertyResult.Duplicate -> writeDuplicateProperty(printer, result)
-        is TraitPropertyResult.FailureGroup -> writeFailureGroup(printer, result)
+        is TraitEnforcementResult.Missing -> writeMissingProperty(printer, result)
+        is TraitEnforcementResult.Duplicate -> writeDuplicateProperty(printer, result)
+        is TraitEnforcementResult.FailureGroup -> writeFailureGroup(printer, result)
         else -> ""
     }
 }

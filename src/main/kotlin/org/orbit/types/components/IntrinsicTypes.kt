@@ -10,9 +10,9 @@ enum class IntrinsicTypes(val type: ValuePositionType) {
     Int(Type("Orb::Types::Intrinsics::Int", isRequired = false)),
     Symbol(Type("Orb::Types::Intrinsics::Symbol", isRequired = false)),
     Main(Type("Orb::Core::Main::Main", properties = listOf(Property("argc", Int.type)), isRequired = false)),
-    BootstrapCoreStub(Type("Bootstrap::Core::Stub", isRequired = false)),
+    CodeGenOmit(Type("Orb::Compiler::CodeGen::Omit", isRequired = false)),
     Bool(Type("Orb::Types::Intrinsics::Bool", isRequired = false)),
-
+    Array(Type("Orb::Types::Intrinsics::Array", isRequired = false)),
     Type(Type("Orb::Meta::Entities::Type", isRequired = false));
 
     companion object {

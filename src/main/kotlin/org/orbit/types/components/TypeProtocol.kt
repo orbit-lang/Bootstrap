@@ -12,7 +12,7 @@ interface TypeProtocol : Serial, Serializable, AnyPrintable {
     val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol>
     val kind: TypeKind
 
-    fun isSatisfied(context: Context, type: TypeProtocol) : Boolean {
+    fun isSatisfied(context: ContextProtocol, type: TypeProtocol) : Boolean {
         return (equalitySemantics as AnyEquality).isSatisfied(context, this, type)
     }
 
@@ -27,7 +27,7 @@ interface TypeProtocol : Serial, Serializable, AnyPrintable {
 
 typealias TypeProtocolPair = Pair<TypeProtocol, TypeProtocol>
 
-fun TypeProtocolPair.isSatisfied(context: Context) : Boolean {
+fun TypeProtocolPair.isSatisfied(context: ContextProtocol) : Boolean {
     return first.isSatisfied(context, second)
 }
 

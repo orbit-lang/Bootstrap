@@ -13,7 +13,7 @@ interface AbstractBinaryExpressionUnit : CodeUnit<BinaryExpressionNode>
 
 class BinaryExpressionUnit(override val node: BinaryExpressionNode, override val depth: Int) : AbstractBinaryExpressionUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val left = codeGenFactory.getExpressionUnit(node.left, depth).generate(mangler)

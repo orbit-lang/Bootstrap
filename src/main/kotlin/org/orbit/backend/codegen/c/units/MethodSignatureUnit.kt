@@ -19,7 +19,7 @@ class MethodSignatureUnit(override val node: MethodSignatureNode, override val d
     }
 
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<CHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val receiverType = (node.receiverTypeNode.getType() as TypeExpression).evaluate(context)

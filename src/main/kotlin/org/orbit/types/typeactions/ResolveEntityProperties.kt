@@ -13,7 +13,8 @@ class ResolveEntityProperties<N: EntityDefNode, E: Entity>(private val node: N) 
     override fun execute(context: Context) {
         val stub = context.getTypeByPath(node.getPath())
         val propertyTypes = node.propertyPairs.map {
-            val pType = context.getTypeByPath(it.typeExpressionNode.getPath())
+            //val pType = context.getTypeByPath(it.typeExpressionNode.getPath())
+            val pType = TypeExpressionInference.infer(context, it.typeExpressionNode, null)
 
             Property(it.identifierNode.identifier, pType)
         }

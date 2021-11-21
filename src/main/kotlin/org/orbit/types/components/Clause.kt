@@ -9,23 +9,23 @@ import org.orbit.util.*
 import java.io.Serializable
 
 interface Equality<S: TypeProtocol, T: TypeProtocol> : Serializable {
-    fun isSatisfied(context: Context, source: S, target: T) : Boolean
+    fun isSatisfied(context: ContextProtocol, source: S, target: T) : Boolean
 }
 
 typealias AnyEquality = Equality<TypeProtocol, TypeProtocol>
 
 object TraitConformanceEquality : Equality<Trait, Type> {
-    override fun isSatisfied(context: Context, source: Trait, target: Type): Boolean {
+    override fun isSatisfied(context: ContextProtocol, source: Trait, target: Type): Boolean {
         return target.traitConformance.contains(source)
     }
 }
 
 object AnyTypeEquality : Equality<Entity, Entity> {
-    override fun isSatisfied(context: Context, source: Entity, target: Entity): Boolean = true
+    override fun isSatisfied(context: ContextProtocol, source: Entity, target: Entity): Boolean = true
 }
 
 object NominalEquality : Equality<Entity, Entity> {
-    override fun isSatisfied(context: Context, source: Entity, target: Entity): Boolean {
+    override fun isSatisfied(context: ContextProtocol, source: Entity, target: Entity): Boolean {
         if (source.isEphemeral && target.isEphemeral) {
             val pathA = OrbitMangler.unmangle(source.name)
             val pathB = OrbitMangler.unmangle(target.name)
@@ -45,7 +45,7 @@ object NominalEquality : Equality<Entity, Entity> {
 object StructuralEquality : Equality<Trait, Type>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun isSatisfied(context: Context, source: Trait, target: Type): Boolean {
+    override fun isSatisfied(context: ContextProtocol, source: Trait, target: Type): Boolean {
         // Ensure we have the latest version of this type
 //        val trait = context.refresh(source) as Trait
 //
@@ -73,7 +73,7 @@ object StructuralEquality : Equality<Trait, Type>, KoinComponent {
 }
 
 object TypeConstructorEquality : Equality<TypeConstructor, TypeConstructor> {
-    override fun isSatisfied(context: Context, source: TypeConstructor, target: TypeConstructor): Boolean {
+    override fun isSatisfied(context: ContextProtocol, source: TypeConstructor, target: TypeConstructor): Boolean {
         return source.typeParameters.count() == target.typeParameters.count()
             && source.typeParameters.zip(target.typeParameters).all {
                 (source.equalitySemantics as AnyEquality)
@@ -85,7 +85,7 @@ object TypeConstructorEquality : Equality<TypeConstructor, TypeConstructor> {
 object SignatureEquality : Equality<SignatureProtocol<TypeProtocol>, SignatureProtocol<TypeProtocol>>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun isSatisfied(context: Context, source: SignatureProtocol<TypeProtocol>, target: SignatureProtocol<TypeProtocol>) : Boolean {
+    override fun isSatisfied(context: ContextProtocol, source: SignatureProtocol<TypeProtocol>, target: SignatureProtocol<TypeProtocol>) : Boolean {
         if (target.parameters.size != source.parameters.size) return false
 
         val receiversEqual = if (source.receiver is Parameter) {
@@ -129,15 +129,15 @@ interface Clause {
 }
 
 interface TypeContract {
-    fun isSatisfiedBy(context: Context, type: TypeProtocol) : Boolean
+    fun isSatisfiedBy(context: ContextProtocol, type: TypeProtocol) : Boolean
 }
 
-inline fun <reified T: TypeProtocol, reified U: TypeEqualityUtil<T>> Collection<T>.containsOne(context: Context, element: T, typeEqualityUtil: U, using: Equality<out TypeProtocol, out TypeProtocol>) : Boolean {
+inline fun <reified T: TypeProtocol, reified U: TypeEqualityUtil<T>> Collection<T>.containsOne(context: ContextProtocol, element: T, typeEqualityUtil: U, using: Equality<out TypeProtocol, out TypeProtocol>) : Boolean {
     return filter { typeEqualityUtil.equal(context, using as Equality<TypeProtocol, TypeProtocol>, element, it) }.size == 1
 }
 
 data class PropertyContract(val mandatoryProperty: Property) : TypeContract {
-    override fun isSatisfiedBy(context: Context, type: TypeProtocol): Boolean {
+    override fun isSatisfiedBy(context: ContextProtocol, type: TypeProtocol): Boolean {
         if (type !is Entity) return false
 
         return type.properties.containsOne(context, mandatoryProperty,

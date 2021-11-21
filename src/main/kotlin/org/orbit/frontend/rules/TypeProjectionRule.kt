@@ -34,12 +34,12 @@ object TypeProjectionRule : ParseRule<TypeProjectionNode>, KoinComponent {
 
         context.consume()
 
-        val typeIdentifier = context.attempt(TypeIdentifierRule.Naked)
+        val typeIdentifier = context.attempt(TypeExpressionRule)
             ?: throw invocation.make<Parser>("Expected type identifier after `type projection`", context.peek())
 
         context.expect(TokenTypes.Colon)
 
-        val traitIdentifierRule = context.attempt(TypeIdentifierRule.Naked)
+        val traitIdentifierRule = context.attempt(TypeExpressionRule)
             ?: throw invocation.make<Parser>("Expected trait identifier after `type projection ${typeIdentifier.value} :`", context.peek())
 
         next = context.peek()

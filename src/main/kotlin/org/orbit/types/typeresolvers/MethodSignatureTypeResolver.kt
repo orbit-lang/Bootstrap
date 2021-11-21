@@ -28,31 +28,11 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
 
         typeParameters.forEach(context::add)
 
-        val receiverType: ValuePositionType
-        if (receiver.value == "Self") {
-            receiverType = if (receiver.value == "Self") {
-                enclosingType
-                    ?: throw invocation.make<TypeSystem>(
-                        "Using 'Self' type outside of a Trait definition is not supported",
-                        node
-                    )
-            } else {
-                TypeExpressionTypeResolver(receiver, binding)
-                    .resolve(environment, context)
-                    .evaluate(context) as ValuePositionType
-            }
-        } else {
-            // TODO - Handle Type methods (no instance receiver)
-            receiverType = when (receiver.getPath()) {
-                Path.self -> enclosingType ?: throw invocation.make<TypeSystem>("Using 'Self' type outside of a Trait definition is not supported", node)
-                else -> TypeExpressionTypeResolver(receiver, binding)
-                    .resolve(environment, context)
-                    .evaluate(context) as ValuePositionType
-            }
+        val receiverType = TypeExpressionTypeResolver(receiver, binding)
+            .resolve(environment, context)
+            .evaluate(context) as ValuePositionType
 
-            receiver.annotate(receiverType, Annotations.Type)
-//            argTypes.add(Parameter(receiver.value, receiverType))
-        }
+        receiver.annotate(receiverType, Annotations.Type)
 
         node.parameterNodes.forEach {
             val resolver = TypeExpressionTypeResolver(it.typeExpressionNode, Binding.empty)

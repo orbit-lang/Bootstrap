@@ -27,8 +27,19 @@ interface QualifiedEnum : Qualified {
 	override fun toQualifier(): Qualifier = StringQualifier(name)
 }
 
-enum class CodeGeneratorQualifier : QualifiedEnum {
-	Swift, C;
+sealed class CodeGeneratorQualifier(val implementationExtension: String, val headerExtension: String) : QualifiedEnum {
+	object Swift : CodeGeneratorQualifier("swift", "")
+	object C : CodeGeneratorQualifier("c", "h")
+
+	override val name: String = javaClass.simpleName
+
+	companion object {
+		fun valueOf(name: String) = when (name) {
+			"Swift" -> Swift
+			"C" -> C
+			else -> TODO("")
+		}
+	}
 }
 
 inline fun <reified T> Module.single(

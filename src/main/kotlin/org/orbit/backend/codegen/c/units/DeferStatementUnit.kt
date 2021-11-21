@@ -14,7 +14,7 @@ import org.orbit.graph.extensions.getAnnotation
 
 class DeferFunctionUnit(override val node: DeferNode, override val depth: Int, private val index: Int) : CodeUnit<DeferNode>, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<CHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val funcName = "__defer$index"
@@ -44,7 +44,7 @@ class DeferFunctionUnit(override val node: DeferNode, override val depth: Int, p
 
 class DeferStatementUnit(override val node: DeferNode, override val depth: Int) : AbstractDeferStatementUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<CHeader> by injectQualified(codeGeneratorQualifier)
 
     // TODO
     override fun generate(mangler: Mangler): String {

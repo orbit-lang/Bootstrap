@@ -44,7 +44,7 @@ class RefineEntityConstructorTypeParameters(private val node: EntityConstructorN
         allTypeParameters.add(idx, nTypeParameter)
 
         entityConstructor = when (entityConstructor) {
-            is TypeConstructor -> TypeConstructor(entityConstructor.name, allTypeParameters, entityConstructor.properties)
+            is TypeConstructor -> TypeConstructor(entityConstructor.name, allTypeParameters, entityConstructor.properties, entityConstructor.partiallyResolvedTraitConstructors)
             else -> TraitConstructor(entityConstructor.name, allTypeParameters, entityConstructor.properties)
         }
 

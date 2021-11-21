@@ -3,10 +3,7 @@ package org.orbit.backend.codegen.swift.units
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeGenFactory
-import org.orbit.backend.codegen.common.AbstractMethodDefUnit
-import org.orbit.backend.codegen.common.AbstractModuleUnit
-import org.orbit.backend.codegen.common.AbstractTypeAliasUnit
-import org.orbit.backend.codegen.common.AbstractTypeDefUnit
+import org.orbit.backend.codegen.common.*
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.*
@@ -21,13 +18,17 @@ import org.orbit.util.partial
 //    }
 //}
 
+object SwiftHeader : AbstractHeader {
+    override fun generate(): String = ""
+}
+
 class ModuleUnit(override val node: ModuleNode, override val depth: Int) : AbstractModuleUnit {
     private companion object : KoinComponent {
         private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
     }
 
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val moduleName = node.getPath().toString(OrbitMangler)
@@ -37,10 +38,14 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
         val stubAnnotation = node.phaseAnnotationNodes.find {
             val path = it.getPathOrNull() ?: return@find false
 
-            path == IntrinsicTypes.BootstrapCoreStub.path
+            path == IntrinsicTypes.CodeGenOmit.path
         }
 
         if (stubAnnotation != null) {
+            return ""
+        }
+
+        if (node.entityDefs.isEmpty() && node.typeAliasNodes.isEmpty() && context.monomorphisedTypes.isEmpty()) {
             return ""
         }
 
@@ -69,14 +74,10 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
 
         return """
             |$header
-            |
             |$typeDefs
-            |
             |$typeAliases
-            |
             |$monos
-            |
             |$methodDefs
-        """.trimMargin()
+        """.trimMargin().trim()
     }
 }

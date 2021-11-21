@@ -8,8 +8,9 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.components.TokenType
 import org.orbit.serial.Serial
+import java.io.Serializable
 
-private data class SerialWrapper<T>(val value: T) : Serial {
+private data class SerialWrapper<T>(val value: T) : Serial, Serializable {
 	override fun describe(json: JSONObject) {
 		json.put("value", value.toString())
 	}

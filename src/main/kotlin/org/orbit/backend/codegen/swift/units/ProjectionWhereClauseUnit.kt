@@ -12,7 +12,7 @@ import org.orbit.core.nodes.WhereClauseNode
 
 class ProjectionWhereClauseUnit(override val node: WhereClauseNode, override val depth: Int) : AbstractProjectionWhereClauseUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val clauseUnit = when (node.whereStatement) {

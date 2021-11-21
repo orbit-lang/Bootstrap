@@ -23,7 +23,7 @@ class TypeExpressionUnit(override val node: TypeExpressionNode, override val dep
     }
 
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler) : String {
         val path = node.getPath()

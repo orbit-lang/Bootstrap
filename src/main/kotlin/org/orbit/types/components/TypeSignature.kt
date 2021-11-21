@@ -1,6 +1,7 @@
 package org.orbit.types.components
 
 import org.orbit.core.Mangler
+import org.orbit.types.phase.AnyEqualityConstraint
 
 data class TypeSignature(
     override val name: String,
@@ -17,7 +18,6 @@ data class TypeSignature(
         return mangler.mangle(this)
     }
 
-    override fun isReceiverSatisfied(by: Entity, context: Context): Boolean {
-        return (receiver.equalitySemantics as AnyEquality).isSatisfied(context, receiver, by)
-    }
+    override fun isReceiverSatisfied(by: Entity, context: ContextProtocol): Boolean
+        = AnyEqualityConstraint(receiver).checkConformance(context, by)
 }

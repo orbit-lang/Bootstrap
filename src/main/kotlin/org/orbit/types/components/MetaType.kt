@@ -7,7 +7,7 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 
-data class MetaType(val entityConstructor: EntityConstructor, val concreteTypeParameters: List<ValuePositionType>, val properties: List<Property>) : ValuePositionType,
+data class MetaType(val entityConstructor: EntityConstructor, val concreteTypeParameters: List<ValuePositionType>, val properties: List<Property>, val traitConformance: List<Trait> = emptyList()) : ValuePositionType,
     TypeExpression {
     companion object : KoinComponent {
         val invocation: Invocation by inject()
@@ -55,8 +55,8 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
         val isEphemeral = concreteTypeParameters.any(ValuePositionType::isEphemeral)
 
         return when (entityConstructor) {
-            is TypeConstructor -> Type(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral)
-            is TraitConstructor -> Trait(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral)
+            is TypeConstructor -> Type(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral, traitConformance = traitConformance)
+            is TraitConstructor -> Trait(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral, traitConformance = traitConformance)
             else -> TODO("???")
         }
     }

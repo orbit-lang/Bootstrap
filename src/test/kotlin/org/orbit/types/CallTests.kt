@@ -1,11 +1,34 @@
 package org.orbit.types
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
+import org.koin.test.KoinTest
+import org.orbit.core.components.CompilationEventBus
 import org.orbit.types.components.*
+import org.orbit.util.ImportManager
 
-internal class CallTests {
+internal class CallTests : KoinTest {
+    val testModule = module {
+        single { ImportManager(emptyList()) }
+        single { CompilationEventBus() }
+    }
+
+    @BeforeEach
+    fun setup() {
+        startKoin { modules(testModule) }
+    }
+
+    @AfterEach
+    fun tearDown() {
+        stopKoin()
+    }
+
     @Test
     fun testSimpleTrue() {
         // Proposition: ((x) -> x)(x) infers type x

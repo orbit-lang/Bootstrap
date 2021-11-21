@@ -15,7 +15,7 @@ interface AbstractMethodDefUnit : CodeUnit<MethodDefNode>
 
 class MethodDefUnit(override val node: MethodDefNode, override val depth: Int) : AbstractMethodDefUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler) : String {
         val signatureUnit = codeGenFactory.getMethodSignatureUnit(node.signature, depth)

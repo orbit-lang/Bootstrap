@@ -28,45 +28,45 @@ internal class ConformanceTests {
         assertFalse(NominalEquality.isSatisfied(context, typeA, typeB))
     }
 
-    @Test
-    fun `True - Simple structural equality`() {
-        val context = Context()
-        val typeA = Type("A")
-        val typeB = Type("B")
+//    @Test
+//    fun `True - Simple structural equality`() {
+//        val context = Context()
+//        val typeA = Type("A")
+//        val typeB = Type("B")
+//
+//        // Prove identity
+//        assertTrue(StructuralEquality.isSatisfied(context, typeA, typeB))
+//        // Prove A == B because they have the same structure (i.e. none)
+//        assertTrue(StructuralEquality.isSatisfied(context, typeA, typeB))
+//    }
 
-        // Prove identity
-        assertTrue(StructuralEquality.isSatisfied(context, typeA, typeB))
-        // Prove A == B because they have the same structure (i.e. none)
-        assertTrue(StructuralEquality.isSatisfied(context, typeA, typeB))
-    }
+//    @Test
+//    fun `False - Complex structural equality where properties are mismatched`() {
+//        val context = Context()
+//        val foo = Type("Foo")
+//        val f = Property("f", foo)
+//
+//        val typeA = Type("A", properties = listOf(f))
+//        val typeB = Type("B")
+//
+//        // Prove identity
+//        assertTrue(StructuralEquality.isSatisfied(context, typeA, typeA))
+//        // Prove A != B because properties don't match
+//        assertFalse(StructuralEquality.isSatisfied(context, typeA, typeB))
+//    }
 
-    @Test
-    fun `False - Complex structural equality where properties are mismatched`() {
-        val context = Context()
-        val foo = Type("Foo")
-        val f = Property("f", foo)
-
-        val typeA = Type("A", properties = listOf(f))
-        val typeB = Type("B")
-
-        // Prove identity
-        assertTrue(StructuralEquality.isSatisfied(context, typeA, typeA))
-        // Prove A != B because properties don't match
-        assertFalse(StructuralEquality.isSatisfied(context, typeA, typeB))
-    }
-
-    @Test
-    fun `True - Complex structural equality where properties match`() {
-        val context = Context()
-        val foo = Type("Foo")
-        val f = Property("f", foo)
-
-        val typeA = Type("A", properties = listOf(f))
-        val typeB = Type("B", properties = listOf(f))
-
-        // Prove A == B because properties match
-        assertTrue(StructuralEquality.isSatisfied(context, typeA, typeB))
-    }
+//    @Test
+//    fun `True - Complex structural equality where properties match`() {
+//        val context = Context()
+//        val foo = Type("Foo")
+//        val f = Property("f", foo)
+//
+//        val typeA = Type("A", properties = listOf(f))
+//        val typeB = Type("B", properties = listOf(f))
+//
+//        // Prove A == B because properties match
+//        assertTrue(StructuralEquality.isSatisfied(context, typeA, typeB))
+//    }
 
     @Test
     fun `True - Simple Type Signature conformance`() {
@@ -100,19 +100,19 @@ internal class ConformanceTests {
         assertFalse(SignatureEquality.isSatisfied(context, sigA as SignatureProtocol<TypeProtocol>, sigB as SignatureProtocol<TypeProtocol>))
     }
 
-    @Test
-    fun `True - Simple trait conformance by structural equality`() {
-        val context = Context()
-        val trait = Trait("Trait")
-        val type = Type("Type")
-
-        // Prove traits resolve use StructuralEquality
-        assertTrue(trait.equalitySemantics is StructuralEquality)
-        // Prove identity
-        assertTrue(StructuralEquality.isSatisfied(context, trait, trait))
-        // Prove A == B because they have the same structure (i.e. none)
-        assertTrue(StructuralEquality.isSatisfied(context, trait, type))
-    }
+//    @Test
+//    fun `True - Simple trait conformance by structural equality`() {
+//        val context = Context()
+//        val trait = Trait("Trait")
+//        val type = Type("Type")
+//
+//        // Prove traits resolve use StructuralEquality
+//        assertTrue(trait.equalitySemantics is StructuralEquality)
+//        // Prove identity
+//        assertTrue(StructuralEquality.isSatisfied(context, trait, trait))
+//        // Prove A == B because they have the same structure (i.e. none)
+//        assertTrue(StructuralEquality.isSatisfied(context, trait, type))
+//    }
 
     @Test
     fun `False - Simple trait conformance by structural equality where properties are mismatched`() {

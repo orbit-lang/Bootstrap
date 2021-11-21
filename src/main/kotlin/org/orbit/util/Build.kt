@@ -55,7 +55,7 @@ class Build : CliktCommand(), KoinComponent {
 	private val compilerGenerator: CompilerGenerator by inject()
 	private val compilationEventBus: CompilationEventBus by inject()
 
-	data class BuildConfig(val maxDepth: Int)
+	data class BuildConfig(val maxDepth: Int, val productName: String, val outputPath: File)
 
 	private val sources by argument(help = "Orbit source file to compile")
 		.file()
@@ -91,7 +91,7 @@ class Build : CliktCommand(), KoinComponent {
                 }
 
                 loadKoinModules(module {
-                    single { BuildConfig(maxDepth) }
+                    single { BuildConfig(maxDepth, output, outputPath) }
                     single { CodeGeneratorQualifier.valueOf(codeGenTarget) }
                 })
 
@@ -182,25 +182,9 @@ class Build : CliktCommand(), KoinComponent {
                     swiftLibraryFile.createNewFile()
                 }
 
-                val swiftCode = CodeWriter.execute(parserResult.ast as ProgramNode)
+                val codeWriter = CodeWriter(completeLibraryOutputDirectoryPath)
 
-                val fw = FileWriter(swiftLibraryFile)
-
-                fw.write(swiftCode)
-
-                fw.close()
-
-//				val html = (parserResult.ast as ProgramNode).write(HtmlNodeWriterFactory, 0)
-//
-//				val fileReader = FileReader("output.css")
-//				val css = fileReader.readText()
-//
-//				fileReader.close()
-//
-//				val fileWriter = FileWriter("output.html")
-//
-//				fileWriter.write("<html><head>$css</head><body>${html}</body></html>")
-//				fileWriter.close()
+                codeWriter.execute(parserResult.ast as ProgramNode)
 
                 println(invocation.dumpWarnings())
             } catch (ex: Exception) {

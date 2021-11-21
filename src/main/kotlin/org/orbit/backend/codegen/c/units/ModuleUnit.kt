@@ -3,27 +3,48 @@ package org.orbit.backend.codegen.c.units
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeGenFactory
-import org.orbit.backend.codegen.common.AbstractMethodDefUnit
-import org.orbit.backend.codegen.common.AbstractModuleUnit
-import org.orbit.backend.codegen.common.AbstractTypeAliasUnit
-import org.orbit.backend.codegen.common.AbstractTypeDefUnit
+import org.orbit.backend.codegen.common.*
 import org.orbit.core.*
 import org.orbit.core.components.CompilationSchemeEntry
-import org.orbit.core.nodes.DeferNode
-import org.orbit.core.nodes.ModuleNode
-import org.orbit.core.nodes.TypeDefNode
+import org.orbit.core.nodes.*
 import org.orbit.types.components.Context
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.types.components.Type
 import org.orbit.util.partial
+import java.util.*
 
-class ModuleUnit(override val node: ModuleNode, override val depth: Int) : AbstractModuleUnit {
+class CHeader : AbstractHeader {
+    private val typedefs = mutableListOf<String>()
+
+    fun add(typedef: String) {
+        typedefs.add(typedef)
+    }
+
+    override fun generate() : String {
+        return """
+            |#pragma once
+            |#include <Orb/OrbCore.h>
+            |
+            |${typedefs.joinToString("\n")}
+        """.trimMargin()
+    }
+}
+
+//object TypeDefSort {
+//    fun sort(nodes: List<TypeDefNode>) : List<TypeDefNode> {
+//        for (node in nodes) {
+//            val propertyNames = node.propertyPairs.map { it. }
+//        }
+//    }
+//}
+
+class ModuleUnit(override val node: ModuleNode, override val depth: Int, private val cHeader: CHeader) : AbstractModuleUnit {
     private companion object : KoinComponent {
         private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
     }
 
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<CHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val moduleName = node.getPath().toString(OrbitMangler)
@@ -33,7 +54,7 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
         val stubAnnotation = node.phaseAnnotationNodes.find {
             val path = it.getPathOrNull() ?: return@find false
 
-            path == IntrinsicTypes.BootstrapCoreStub.path
+            path == IntrinsicTypes.CodeGenOmit.path
         }
 
         if (stubAnnotation != null) {
@@ -42,18 +63,21 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
 
         val header = "/* module $moduleName */"
 
-        val typeDefs = node.entityDefs
+        node.entityDefs
             .filterIsInstance<TypeDefNode>()
             .map(partial(codeGenFactory::getTypeDefUnit, depth))
-            .joinToString(newline(2), transform = partial(AbstractTypeDefUnit::generate, mangler))
+            .map(partial(AbstractTypeDefUnit::generate, mangler))
+            .forEach(cHeader::add)
 
         val typeAliases = node.typeAliasNodes
             .map(partial(codeGenFactory::getTypeAliasUnit, depth))
             .joinToString(newline(2), transform = partial(AbstractTypeAliasUnit::generate, mangler))
 
-        val monos = context.monomorphisedTypes.values
+        context.monomorphisedTypes.values
             .filterNot(Type::isEphemeral)
-            .joinToString("\n", transform = partial(TypeDefUnit.Companion::generateMonomorphisedType, mangler))
+            .map(partial(TypeDefUnit.Companion::generateMonomorphisedType, mangler))
+            .forEach(cHeader::add)
+//            .joinToString("\n", transform = partial(TypeDefUnit.Companion::generateMonomorphisedType, mangler))
 
         val deferFuncs = node.search(DeferNode::class.java)
             .mapIndexed { idx, item -> DeferFunctionUnit(item, depth, idx) }
@@ -65,9 +89,7 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
 
         return """
             |$header
-            |$typeDefs
             |$typeAliases
-            |$monos
             |$deferFuncs
             |$methodDefs
         """.trimMargin()

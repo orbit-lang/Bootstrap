@@ -9,7 +9,7 @@ import org.orbit.core.nodes.AssignmentStatementNode
 
 class PropertyProjectionUnit(override val node: AssignmentStatementNode, override val depth: Int) : AbstractPropertyProjectionUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val rhsUnit = codeGenFactory.getExpressionUnit(node.value, depth)

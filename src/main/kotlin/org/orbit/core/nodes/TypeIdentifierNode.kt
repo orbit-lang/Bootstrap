@@ -32,3 +32,10 @@ data class TypeIdentifierNode(
 	override fun toString() : String
 		= "${value}<${typeParametersNode.typeParameters.joinToString(", ") { it.toString() }}>"
 }
+
+data class CollectionTypeLiteralNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
+	override val value: String,
+	val typeExpressionNode: TypeExpressionNode
+) : TypeExpressionNode(firstToken, lastToken, value)

@@ -12,7 +12,8 @@ object TypeExpressionInference : TypeInference<TypeExpressionNode> {
 //            IntrinsicTypes.Type.type
             context.getType(node.getPath().toString(OrbitMangler))
         }
-        is MetaTypeNode -> MetaTypeInference.infer(context, node, typeAnnotation)
+        is MetaTypeNode ->
+            MetaTypeInference.infer(context, node, typeAnnotation)
         else -> TODO("???")
     }
 }

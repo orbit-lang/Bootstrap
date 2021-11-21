@@ -4,7 +4,7 @@ import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 
 object KindEquality : Equality<TypeKind, TypeKind> {
-    override fun isSatisfied(context: Context, source: TypeKind, target: TypeKind): Boolean {
+    override fun isSatisfied(context: ContextProtocol, source: TypeKind, target: TypeKind): Boolean {
         return source.name == target.name
     }
 }

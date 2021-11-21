@@ -1,6 +1,7 @@
 package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
+import org.orbit.core.nodes.CollectionTypeLiteralNode
 import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.TypeIdentifierNode
@@ -27,6 +28,8 @@ object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
 
 		is MetaTypeNode ->
 			MetaTypePathResolver.resolve(input, pass, environment, graph)
+
+		//is CollectionTypeLiteralNode ->
 
 		else -> TODO("???")
 	}

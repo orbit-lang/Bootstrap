@@ -13,7 +13,7 @@ interface AbstractExpressionUnit : CodeUnit<ExpressionNode>
 
 class ExpressionUnit(override val node: ExpressionNode, override val depth: Int) : AbstractExpressionUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String = when (node) {
         is LiteralNode<*> ->

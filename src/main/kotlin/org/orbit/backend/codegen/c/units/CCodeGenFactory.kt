@@ -6,12 +6,12 @@ import org.orbit.core.nodes.*
 import org.orbit.graph.components.StringKey
 import java.math.BigInteger
 
-object CCodeGenFactory : CodeGenFactory {
-    override fun getProgramUnit(node: ProgramNode, depth: Int): AbstractProgramUnit
+object CCodeGenFactory : CodeGenFactory<CHeader> {
+    override fun getProgramUnit(node: ProgramNode, depth: Int): AbstractProgramUnit<CHeader>
         = ProgramUnit(node, depth)
 
-    override fun getModuleUnit(node: ModuleNode, depth: Int): AbstractModuleUnit
-        = ModuleUnit(node, depth)
+    override fun getModuleUnit(node: ModuleNode, depth: Int, header: CHeader): AbstractModuleUnit
+        = ModuleUnit(node, depth, header)
 
     override fun getMethodSignatureUnit(node: MethodSignatureNode, depth: Int): AbstractMethodSignatureUnit
         = MethodSignatureUnit(node, depth)

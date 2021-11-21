@@ -12,12 +12,12 @@ interface Container : ValuePositionType
 
 // Apis can never be equal
 object ApiEquality : Equality<TypeProtocol, TypeProtocol> {
-    override fun isSatisfied(context: Context, source: TypeProtocol, target: TypeProtocol): Boolean = false
+    override fun isSatisfied(context: ContextProtocol, source: TypeProtocol, target: TypeProtocol): Boolean = false
 }
 
 // Modules can only be compared to Apis. Equality here means the module implements the Api's contract
 object ModuleEquality : Equality<TypeProtocol, TypeProtocol> {
-    override fun isSatisfied(context: Context, source: TypeProtocol, target: TypeProtocol): Boolean {
+    override fun isSatisfied(context: ContextProtocol, source: TypeProtocol, target: TypeProtocol): Boolean {
         return if (source is Module && target is Api) {
             source.conforms(target, context)
         } else false
@@ -82,7 +82,7 @@ fun Type.conforms(to: Trait, module: Module) : Boolean {
     return false
 }
 
-fun Module.conforms(to: Api, context: Context) : Boolean {
+fun Module.conforms(to: Api, context: ContextProtocol) : Boolean {
     if (to.requiredTypes.isEmpty() && to.requiredSignatures.isEmpty()) return true
 
     val typeAliasConformance = to.requiredTypes

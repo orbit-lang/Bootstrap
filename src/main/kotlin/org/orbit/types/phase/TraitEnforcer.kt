@@ -6,57 +6,63 @@ import org.orbit.core.phase.AdaptablePhase
 import org.orbit.types.components.*
 import org.orbit.util.*
 
+class TraitConstraintEnforcer<T: TypeProtocol>(private val trait: Trait, private val type: Entity, private val componentGenerator: () -> List<T>, private val constraintGenerator: () -> List<Constraint<T, Entity>>) {
+    fun enforce(context: ContextProtocol) : TraitEnforcementResult<T> {
+        if (componentGenerator().isEmpty()) return TraitEnforcementResult.SuccessGroup(emptyList())
+
+        var result: TraitEnforcementResult<T> = TraitEnforcementResult.None()
+        val constraints = constraintGenerator()
+
+        for (constraint in constraints) {
+            result = when (constraint.checkConformance(context, type)) {
+                true -> result.plus(TraitEnforcementResult.Exists(constraint.target))
+                else -> result.plus(TraitEnforcementResult.Missing(type, trait, constraint.target))
+            }
+        }
+
+        return result.promote()
+    }
+}
+
 class TraitEnforcer(private val isImplicitConformance: Boolean = false) : AdaptablePhase<Context, Context>(), KoinComponent {
     override val inputType: Class<Context> = Context::class.java
     override val outputType: Class<Context> = Context::class.java
 
     override val invocation: Invocation by inject()
-
-    private fun mapResult(context: Context, type: Type, pair: Pair<Trait, Property>) : TraitPropertyResult {
-        val projectedTraits = type.traitConformance
-
-        val typeProjectedProperties = type.traitConformance
-            .mapNotNull { context.getTypeProjectionOrNull(type, it) }
-            .flatMap { it.trait.properties }
-
-        val matches = (type.properties + typeProjectedProperties)
-            .filter { it.name == pair.second.name }
-
-        return when (matches.count()) {
-            0 -> TraitPropertyResult.Missing(type, pair.first, pair.second)
-            1 -> TraitPropertyResult.Exists(pair.second)
-            else -> {
-                // Is this exactly the same property defined more than once, based on type
-                val first = matches[0]
-                val pureDuplicates = matches.fold(true) { acc, next ->
-                    acc && (next.name == first.name && first.type.name == next.type.name)
-                }
-
-                when (pureDuplicates) {
-                    true -> TraitPropertyResult.Exists(pair.second)
-                    else -> TraitPropertyResult.Duplicate(type, pair.second)
-                }
-            }
-        }
-    }
+    private val printer: Printer by inject()
 
     fun enforce(context: Context, type: Type) {
-        // Get the superset of distinct pairs of Trait0.properties x TraitN.properties
-        val allProperties = type.traitConformance
-            .flatPairMap(Trait::properties)
+        var propertiesResult: TraitEnforcementResult<Property> = TraitEnforcementResult.None()
+        for (trait in type.traitConformance) {
+            val enforcer = TraitConstraintEnforcer(trait, type, trait::properties, trait::buildPropertyConstraints)
 
-        val propertiesResult = allProperties
-            .map(partialReverse(::mapResult, context, type))
-            .fold(TraitPropertyResult.None)
-
-        when (propertiesResult) {
-            is TraitPropertyResult.FailureGroup, is TraitPropertyResult.Missing, is TraitPropertyResult.Duplicate ->
-                throw invocation.error<TraitEnforcer>(TraitEnforcerPropertyErrors(propertiesResult, isImplicitConformance))
-
-            else -> {}
+            propertiesResult += enforcer.enforce(context)
         }
 
-        // TODO - Signatures
+        if (propertiesResult is TraitEnforcementResult.FailureGroup) {
+            throw invocation.error<TraitEnforcer>(TraitEnforcerPropertyErrors(propertiesResult, isImplicitConformance))
+        }
+
+        var signaturesResult: TraitEnforcementResult<SignatureProtocol<*>> = TraitEnforcementResult.None()
+        for (trait in type.traitConformance) {
+            val enforcer = TraitConstraintEnforcer(trait, type, trait::signatures, trait::buildSignatureConstraints)
+
+            signaturesResult += enforcer.enforce(context)
+        }
+
+        if (signaturesResult is TraitEnforcementResult.FailureGroup) {
+            // TODO - Proper error message
+            val sigs = signaturesResult.results.map {
+                when (it) {
+                    is TraitEnforcementResult.Missing -> it.value.toString(printer)
+                    else -> ""
+                }
+            }
+
+            val msg = sigs.joinToString("\n\t\t")
+
+            throw invocation.make("Required signature(s) are unimplemented for type ${type.toString(printer)}\n\t\t$msg")
+        }
     }
 
     private fun enforceAll(context: Context, module: Module) {

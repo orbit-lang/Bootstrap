@@ -2,6 +2,7 @@ package org.orbit.types.util
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.OrbitMangler
 import org.orbit.core.components.SourcePosition
 import org.orbit.types.components.*
 import org.orbit.types.phase.TraitEnforcer
@@ -12,17 +13,6 @@ import org.orbit.util.Printer
 interface Specialisation<T: TypeProtocol> {
     fun specialise(context: Context) : T
 }
-
-/**
- * EXAMPLE:
- *
- * trait T(x Int)
- * type A : T
- * type B(t T) // (T) -> B<T>
- *
- * b = B(A()) // => b = B(
- */
-class TypePropertySpecialisation
 
 class TraitMonomorphisation(private val traitConstructor: TraitConstructor, private val concreteParameters: List<ValuePositionType>) : Specialisation<Trait> {
     private companion object : KoinComponent {
@@ -35,7 +25,8 @@ class TraitMonomorphisation(private val traitConstructor: TraitConstructor, priv
         val aPCount = abstractParameters.count()
         val cPCount = concreteParameters.count()
 
-        if (cPCount != aPCount) throw invocation.make<TypeSystem>("Incorrect number of type parameters passed to Trait Constructor ${traitConstructor.toString(printer)}. Expected $aPCount, found $cPCount", SourcePosition.unknown)
+        if (cPCount != aPCount)
+            throw invocation.make<TypeSystem>("Incorrect number of type parameters passed to Trait Constructor ${traitConstructor.toString(printer)}. Expected $aPCount, found $cPCount", SourcePosition.unknown)
 
         val concreteProperties = traitConstructor.properties.map {
             when (it.type) {
@@ -62,7 +53,7 @@ class TraitMonomorphisation(private val traitConstructor: TraitConstructor, priv
             }
         }
 
-        val monomorphisedType = MetaType(traitConstructor, concreteParameters, concreteProperties)
+        val monomorphisedType = MetaType(traitConstructor, concreteParameters, concreteProperties, emptyList())
 
         return monomorphisedType.evaluate(context) as Trait
     }
@@ -74,12 +65,32 @@ class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private
         private val printer: Printer by inject()
     }
 
+    private fun specialiseTrait(context: Context, partiallyResolvedTraitConstructor: PartiallyResolvedTraitConstructor, abstractParameters: List<TypeParameter>, concreteParameters: List<ValuePositionType>) : Trait {
+        val concreteTraitParameters = partiallyResolvedTraitConstructor.typeParameterMap
+            .map { abstractParameters.indexOf(it.value) }
+            .map { concreteParameters[it] }
+
+        return TraitMonomorphisation(partiallyResolvedTraitConstructor.traitConstructor, concreteTraitParameters)
+            .specialise(context)
+    }
+
     override fun specialise(context: Context): Type {
+        val nTypePath = concreteParameters.fold(OrbitMangler.unmangle(typeConstructor.name)) { acc, nxt ->
+            acc + OrbitMangler.unmangle(nxt.name)
+        }
+
+        val nTypeName = nTypePath.toString(OrbitMangler)
+
+        if (context.monomorphisedTypes.containsKey(nTypeName)) {
+            return context.monomorphisedTypes[nTypeName]!!
+        }
+
         val abstractParameters = typeConstructor.typeParameters
         val aPCount = abstractParameters.count()
         val cPCount = concreteParameters.count()
 
-        if (cPCount != aPCount) throw invocation.make<TypeSystem>("Incorrect number of type parameters passed to Type Constructor ${typeConstructor.toString(printer)}. Expected $aPCount, found $cPCount", SourcePosition.unknown)
+        if (cPCount != aPCount)
+            throw invocation.make<TypeSystem>("Incorrect number of type parameters passed to Type Constructor ${typeConstructor.toString(printer)}. Expected $aPCount, found $cPCount", SourcePosition.unknown)
 
         val concreteProperties = typeConstructor.properties.map {
             when (it.type) {
@@ -106,7 +117,10 @@ class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private
             }
         }
 
-        val monomorphisedType = MetaType(typeConstructor, concreteParameters, concreteProperties)
+        val metaTraits = typeConstructor.partiallyResolvedTraitConstructors
+            .map { specialiseTrait(context, it, abstractParameters, concreteParameters) }
+
+        val monomorphisedType = MetaType(typeConstructor, concreteParameters, concreteProperties, metaTraits)
             .evaluate(context) as Type
 
         // We need to save a record of these specialised types to that we can code gen for them later on

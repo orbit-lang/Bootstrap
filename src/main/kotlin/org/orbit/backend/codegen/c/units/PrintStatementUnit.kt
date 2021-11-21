@@ -12,7 +12,7 @@ import org.orbit.core.nodes.PrintNode
 
 class PrintStatementUnit(override val node: PrintNode, override val depth: Int) : AbstractPrintStatementUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<CHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val value = codeGenFactory.getExpressionUnit(node.expressionNode, depth)

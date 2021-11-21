@@ -5,8 +5,8 @@ import org.orbit.core.components.Token
 data class TypeProjectionNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val typeIdentifier: TypeIdentifierNode,
-    val traitIdentifier: TypeIdentifierNode,
+    val typeIdentifier: TypeExpressionNode,
+    val traitIdentifier: TypeExpressionNode,
     val whereNodes: List<WhereClauseNode> = emptyList()
 ) : Node(firstToken, lastToken) {
     override fun getChildren(): List<Node> = listOf(typeIdentifier, traitIdentifier) + whereNodes

@@ -11,7 +11,7 @@ import org.orbit.types.components.Context
 
 class AssignmentStatementUnit(override val node: AssignmentStatementNode, override val depth: Int) : AbstractAssignmentStatementUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<CHeader> by injectQualified(codeGeneratorQualifier)
     private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
 
     override fun generate(mangler: Mangler): String {

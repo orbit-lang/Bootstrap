@@ -15,7 +15,7 @@ import org.orbit.util.partial
 class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : AbstractTypeDefUnit, KoinComponent {
     private val context: Context by injectResult(CompilationSchemeEntry.typeSystem)
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     companion object {
         fun generateMonomorphisedType(type: Type, mangler: Mangler) : String {

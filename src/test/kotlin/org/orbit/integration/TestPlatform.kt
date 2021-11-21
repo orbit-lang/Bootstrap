@@ -16,4 +16,8 @@ internal object TestPlatform : Platform, PrintableFactory {
     override fun getSuccess(): String = ""
     override fun getItalics(): String = ""
     override fun getPrintable(vararg keys: PrintableKey): String = ""
+    override fun getNone(): String = ""
+    override fun getFramed(): String = ""
+    override fun getKeyword(): String = ""
+    override fun getPunctuation(): String = ""
 }

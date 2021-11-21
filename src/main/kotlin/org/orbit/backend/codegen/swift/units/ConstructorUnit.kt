@@ -16,7 +16,7 @@ import org.orbit.util.partial
 class ConstructorUnit(override val node: ConstructorNode, override val depth: Int) : AbstractConstructorUnit, KoinComponent {
     private val invocation: Invocation by inject()
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val targetType = node.typeExpressionNode.getType()
@@ -25,9 +25,20 @@ class ConstructorUnit(override val node: ConstructorNode, override val depth: In
             throw invocation.make<CodeWriter>("Only types may be initialised via a constructor call. Found $targetType", node.typeExpressionNode)
         }
 
-        val parameters = node.parameterNodes
-            .map { codeGenFactory.getExpressionUnit(it, depth) }
-            .map(partial(AbstractExpressionUnit::generate, mangler))
+        val parameters = when (node.parameterNodes.count() == targetType.properties.count()) {
+            true -> node.parameterNodes
+                .map { codeGenFactory.getExpressionUnit(it, depth) }
+                .map(partial(AbstractExpressionUnit::generate, mangler))
+
+            else -> {
+                targetType.properties.mapIndexed { idx, item ->
+                    when (val def = item.defaultValue) {
+                        null -> codeGenFactory.getExpressionUnit(node.parameterNodes[idx], depth).generate(mangler)
+                        else -> codeGenFactory.getExpressionUnit(def, depth).generate(mangler)
+                    }
+                }
+            }
+        }
 
         val parameterNames = targetType.properties.map(Property::name)
 

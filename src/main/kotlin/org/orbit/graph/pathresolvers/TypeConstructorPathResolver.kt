@@ -3,6 +3,7 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
@@ -53,10 +54,22 @@ class TypeConstructorPathResolver(
 		} else {
 			val parentGraphID = input.getGraphID()
 
+			input.traitConformance.forEach {
+				it.annotate(parentGraphID, Annotations.GraphID, true)
+
+				when (it) {
+					is MetaTypeNode -> {
+						it.typeConstructorIdentifier.annotate(parentGraphID, Annotations.GraphID, true)
+						it.typeParameters.forEach { tp -> tp.annotate(parentGraphID, Annotations.GraphID, true) }
+					}
+				}
+			}
+
+			input.traitConformance.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
+
 			// This is a really disgusting hack to allow for multiple type parameters with the same name
 			// TODO - Type Parameters should be uniquely mangled somehow
 			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
-
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
 			input.clauses.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
 		}

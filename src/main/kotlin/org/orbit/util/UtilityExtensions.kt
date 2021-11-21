@@ -33,6 +33,10 @@ fun <A, B, C> partialReverse(fn: (A, B) -> C, a: A) : (B) -> C {
     }
 }
 
+fun <A, B, C, D> partialReverseLast2(fn: (A, B, C) -> D, a: A) : (B, C) -> D = { b, c ->
+    fn(a, b, c)
+}
+
 fun <A, B, C, D> partial(fn: (A, B, C) -> D, b: B, c: C) : (A) -> D {
     return {
         fn(it, b, c)

@@ -6,11 +6,11 @@ import org.orbit.core.nodes.*
 import org.orbit.graph.components.StringKey
 import java.math.BigInteger
 
-object SwiftCodeGenFactory : CodeGenFactory {
-    override fun getProgramUnit(node: ProgramNode, depth: Int): AbstractProgramUnit
+object SwiftCodeGenFactory : CodeGenFactory<SwiftHeader> {
+    override fun getProgramUnit(node: ProgramNode, depth: Int): AbstractProgramUnit<SwiftHeader>
         = ProgramUnit(node, depth)
 
-    override fun getModuleUnit(node: ModuleNode, depth: Int): AbstractModuleUnit
+    override fun getModuleUnit(node: ModuleNode, depth: Int, header: SwiftHeader): AbstractModuleUnit
         = ModuleUnit(node, depth)
 
     override fun getMethodSignatureUnit(node: MethodSignatureNode, depth: Int): AbstractMethodSignatureUnit

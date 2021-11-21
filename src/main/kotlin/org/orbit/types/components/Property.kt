@@ -11,7 +11,7 @@ import org.orbit.util.Printer
 import org.orbit.util.partialReverse
 
 interface TypeEqualityUtil<T: TypeProtocol> {
-    fun equal(context: Context, equality: Equality<TypeProtocol, TypeProtocol>, a: T, b: T) : Boolean
+    fun equal(context: ContextProtocol, equality: Equality<TypeProtocol, TypeProtocol>, a: T, b: T) : Boolean
 }
 
 data class Property(
@@ -20,7 +20,7 @@ data class Property(
     val defaultValue: ExpressionNode? = null
 ) : TypeProtocol, AnyPrintable {
     companion object : TypeEqualityUtil<Property> {
-        override fun equal(context: Context, equality: Equality<TypeProtocol, TypeProtocol>, a: Property, b: Property): Boolean {
+        override fun equal(context: ContextProtocol, equality: Equality<TypeProtocol, TypeProtocol>, a: Property, b: Property): Boolean {
             return a.name == b.name && equality.isSatisfied(context, a.type, b.type)
         }
     }
@@ -50,10 +50,10 @@ fun Entity.drawPropertyContracts() : List<PropertyContract> {
     return properties.drawContracts()
 }
 
-fun TypeProtocol.executeContract(context: Context, contract: TypeContract) : Boolean {
+fun TypeProtocol.executeContract(context: ContextProtocol, contract: TypeContract) : Boolean {
     return contract.isSatisfiedBy(context, this)
 }
 
-fun TypeProtocol.executeContracts(context: Context, contracts: Collection<TypeContract>) : Boolean {
+fun TypeProtocol.executeContracts(context: ContextProtocol, contracts: Collection<TypeContract>) : Boolean {
     return contracts.map(partialReverse(::executeContract, context)).fold(true, Boolean::and)
 }

@@ -12,7 +12,7 @@ import org.orbit.graph.components.StringKey
 
 class ReturnStatementUnit(override val node: ReturnStatementNode, override val depth: Int, private val resultIsDeferred: Boolean, override val deferFunctions: List<StringKey>) : AbstractReturnStatementUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val retVal = codeGenFactory.getRValueUnit(node.valueNode, depth)
@@ -34,7 +34,7 @@ class ReturnStatementUnit(override val node: ReturnStatementNode, override val d
 
 class PrintStatementUnit(override val node: PrintNode, override val depth: Int) : AbstractPrintStatementUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val value = codeGenFactory.getExpressionUnit(node.expressionNode, depth)
@@ -46,7 +46,7 @@ class PrintStatementUnit(override val node: PrintNode, override val depth: Int) 
 
 class AssignmentStatementUnit(override val node: AssignmentStatementNode, override val depth: Int) : AbstractAssignmentStatementUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         // TODO - Mutability?!
@@ -59,7 +59,7 @@ class AssignmentStatementUnit(override val node: AssignmentStatementNode, overri
 
 class DeferStatementUnit(override val node: DeferNode, override val depth: Int) : AbstractDeferStatementUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val block = codeGenFactory.getBlockUnit(node.blockNode, depth, stripBraces = true, isMethodBody = false)

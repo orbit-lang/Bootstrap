@@ -15,7 +15,7 @@ interface AbstractMetaTypeUnit : CodeUnit<MetaTypeNode>
 
 class MetaTypeUnit(override val node: MetaTypeNode, override val depth: Int, private val inFuncNamePosition: Boolean = false) : AbstractMetaTypeUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler) : String {
         val path = node.getPath()

@@ -4,6 +4,8 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.getPath
 import org.orbit.core.nodes.TraitDefNode
+import org.orbit.types.phase.PropertyConstraint
+import org.orbit.types.phase.SignatureConstraint
 
 data class Trait(
     override val name: String,
@@ -24,4 +26,10 @@ data class Trait(
         is Trait -> name == other.name
         else -> false
     }
+
+    fun buildPropertyConstraints() : List<PropertyConstraint>
+        = properties.map(::PropertyConstraint)
+
+    fun buildSignatureConstraints() : List<SignatureConstraint>
+        = signatures.map(::SignatureConstraint)
 }

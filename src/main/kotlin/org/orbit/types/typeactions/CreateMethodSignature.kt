@@ -21,6 +21,8 @@ class CreateMethodSignature(private val node: MethodSignatureNode, private val m
     private var result: SignatureProtocol<*>? = null
 
     override fun execute(context: Context) {
+        val localContext = Context(context)
+
         val module = context.getTypeByPath(moduleNode.getPath()) as Module
         val typeResolver = MethodSignatureTypeResolver(node, Binding.Self, null)
         result = typeResolver.resolve(nameResolverResult.environment, context)

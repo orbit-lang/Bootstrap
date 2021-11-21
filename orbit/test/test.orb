@@ -1,4 +1,12 @@
-module Strings with Orb::Types::Intrinsics {
-	trait StringEncoding(characterWidth Int)
-	type String(bytes [UInt8], encoding StringEncoding)
+@Main
+module Algebra with Orb::Types::Intrinsics with Orb::Core::Main {
+    trait Semigroup {
+        (Self) combine (a Self, b Self) (Self)
+    }
+
+    type Foo : Semigroup
+
+    (self Main) main () () {
+
+    }
 }

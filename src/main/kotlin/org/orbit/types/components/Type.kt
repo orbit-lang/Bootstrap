@@ -26,6 +26,6 @@ object None : TypeProtocol {
     override val kind: TypeKind = NullaryType
 
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = object : Equality<None, TypeProtocol> {
-        override fun isSatisfied(context: Context, source: None, target: TypeProtocol): Boolean = false
+        override fun isSatisfied(context: ContextProtocol, source: None, target: TypeProtocol): Boolean = false
     }
 }

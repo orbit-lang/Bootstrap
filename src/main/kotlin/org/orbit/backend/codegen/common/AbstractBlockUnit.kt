@@ -20,7 +20,7 @@ interface AbstractBlockUnit : CodeUnit<BlockNode> {
 
 class BlockUnit(override val node: BlockNode, override val depth: Int, private val stripBraces: Boolean = false, override val isMethodBody: Boolean) : AbstractBlockUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
         val deferStatements = node.search(DeferNode::class.java)

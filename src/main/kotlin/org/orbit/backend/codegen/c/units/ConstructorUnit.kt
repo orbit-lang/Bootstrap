@@ -14,7 +14,7 @@ import org.orbit.util.Invocation
 
 class ConstructorUnit(override val node: ConstructorNode, override val depth: Int) : AbstractConstructorUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<CHeader> by injectQualified(codeGeneratorQualifier)
     private val invocation: Invocation by inject()
 
     override fun generate(mangler: Mangler): String {

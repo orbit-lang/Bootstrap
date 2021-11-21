@@ -36,31 +36,21 @@ fun generateTypeAlias(mangler: Mangler, access: SwiftAccessModifier = SwiftAcces
 private object ProgramUtilsUnit {
     fun generate(mangler: Mangler) : String {
         return "import OrbCore"
-//        return """
-//            |/* Intrinsic Types */
-//            |${generateTypeAlias(mangler, SwiftAccessModifier.Internal, IntrinsicTypes.Unit)}
-//            |${generateTypeAlias(mangler, SwiftAccessModifier.Internal, IntrinsicTypes.Int)}
-//            |struct ${mangler.mangle(OrbitMangler.unmangle(IntrinsicTypes.Main.type.name))} {
-//            |   let argc: Int
-//            |}
-//            |struct ${mangler.mangle(OrbitMangler.unmangle(IntrinsicTypes.Symbol.type.name))} {
-//            |   static let emptySymbol = Self(value: "")
-//            |   let value: String
-//            |}
-//        """.trimMargin()
     }
 }
 
-class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) : AbstractProgramUnit, KoinComponent {
+class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) : AbstractProgramUnit<SwiftHeader>, KoinComponent {
     private val main: Main by injectResult(CompilationSchemeEntry.mainResolver)
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
-    private val codeGenFactory: CodeGenFactory by injectQualified(codeGeneratorQualifier)
+    private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
+
+    override val header = SwiftHeader
 
     override fun generate(mangler: Mangler): String {
-        val modules = "${ProgramUtilsUnit.generate(mangler)}\n\n" + node.declarations
+        val modules = ProgramUtilsUnit.generate(mangler) + node.declarations
             .filterIsInstance<ModuleNode>()
-            .map(partial(codeGenFactory::getModuleUnit, depth))
-            .joinToString(newline(2), transform = partial(AbstractModuleUnit::generate, mangler))
+            .map(partial(codeGenFactory::getModuleUnit, depth, SwiftHeader))
+            .joinToString(newline(), transform = partial(AbstractModuleUnit::generate, mangler))
 
         val mainCall = try {
             when (main.mainSignature) {
