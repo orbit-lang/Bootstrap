@@ -23,7 +23,7 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Abs
 
             val properties = type.properties.joinToString("\n\t\t") {
                 val header = "/* ${it.name} ${it.type.name} */"
-                val swift = "let ${it.name}: ${nMangler.invoke(it.type.name)}"
+                val swift = "let ${it.name}: ${mangler.mangle((it.type as Type).getFullyQualifiedPath())}"
 
                 """
                 $header
@@ -35,7 +35,7 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Abs
 
             return """
             $header
-            struct ${nMangler.invoke(type.name)} {
+            struct ${mangler.mangle(type.getFullyQualifiedPath())} {
                 $properties
             }
             """.trimIndent()

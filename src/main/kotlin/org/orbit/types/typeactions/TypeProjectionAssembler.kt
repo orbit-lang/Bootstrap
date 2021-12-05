@@ -60,7 +60,8 @@ class TypeProjectionAssembler(private val node: TypeProjectionNode) : TypeAction
             type.properties + nProperty,
             type.traitConformance,
             type.equalitySemantics,
-            false
+            false,
+            typeConstructor = type.typeConstructor
         )
 
         assignmentNode.annotate(rhs, Annotations.Type)
@@ -96,7 +97,8 @@ class TypeProjectionAssembler(private val node: TypeProjectionNode) : TypeAction
             type.properties,
             type.traitConformance + trait,
             type.equalitySemantics,
-            false
+            false,
+            typeConstructor = type.typeConstructor
         )
 
         node.whereNodes

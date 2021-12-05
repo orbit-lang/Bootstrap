@@ -21,6 +21,9 @@ data class MissingTypeException(val typeName: String) : Exception("Missing type:
 
 interface ContextProtocol {
     val universe: List<TypeProtocol>
+    val monomorphisedTypes: Map<String, Type>
+
+    fun registerMonomorphisation(type: Type) {}
 }
 
 fun ContextProtocol.refresh(type: TypeProtocol) : TypeProtocol {
@@ -57,7 +60,7 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         get() = types.toList()
 
     private val typeProjections = mutableListOf<TypeProjection>()
-    var monomorphisedTypes = mutableMapOf<String, Type>()
+    override var monomorphisedTypes = mutableMapOf<String, Type>()
         private set
 
     private var next = 0
@@ -76,8 +79,26 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
     fun <T> withSubContext(block: (Context) -> T) : T = block(Context(this))
 
-    fun registerMonomorphisation(type: Type) {
-        if (!monomorphisedTypes.containsKey(type.name)) {
+    override fun registerMonomorphisation(type: Type) {
+        // HERE - Checking name is not enough for type constructors!
+
+        val previouslyMonomorphised = monomorphisedTypes.filter {
+            it.key.startsWith(type.name)
+        }
+
+        if (previouslyMonomorphised.isNotEmpty()) {
+            var path = OrbitMangler.unmangle(type.name)
+            path += Path("﹙")
+            for (p in type.properties) {
+                path += OrbitMangler.unmangle(p.type.name)
+            }
+
+            path += Path("﹚")
+
+            val nType = Type(path, type.typeParameters, type.properties, type.traitConformance, type.equalitySemantics, type.isRequired, type.isEphemeral, type.typeConstructor)
+
+            monomorphisedTypes[path.toString(OrbitMangler)] = nType
+        } else if (!monomorphisedTypes.containsKey(type.name)) {
             monomorphisedTypes[type.name] = type
         }
     }

@@ -13,7 +13,7 @@ data class TypeAlias(override val name: String, val targetType: Type) : VirtualT
 
     override val kind: TypeKind = NullaryType
 
-    override fun evaluate(context: Context): TypeProtocol = targetType
+    override fun evaluate(context: ContextProtocol): TypeProtocol = targetType
 
     override fun toString(printer: Printer): String {
         return "(${printer.apply(name, PrintableKey.Italics)} = ${targetType.toString(printer)})"

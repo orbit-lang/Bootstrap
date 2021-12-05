@@ -3,8 +3,10 @@ package org.orbit.types.components
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.ConstructorNode
+import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.annotate
+import org.orbit.types.phase.AnyEqualityConstraint
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
@@ -26,12 +28,12 @@ object ConstructorInference : TypeInference<ConstructorNode>, KoinComponent {
             )
         }
 
-        val parameterTypes = receiverType.properties.mapNotNull {
+        var parameterTypes = receiverType.properties.mapNotNull {
              when (it.defaultValue) {
                  null -> it
                  else -> null
              }
-        }
+        }.toMutableList()
 
         if (node.parameterNodes.size != parameterTypes.size) {
             throw invocation.make<TypeSystem>("Type '${receiverType.name}' expects ${parameterTypes.size} constructor ${"parameter".pluralise(parameterTypes.size)}, found ${node.parameterNodes.size}", node.firstToken.position)
@@ -39,11 +41,24 @@ object ConstructorInference : TypeInference<ConstructorNode>, KoinComponent {
 
         for ((idx, pair) in parameterTypes.zip(node.parameterNodes).withIndex()) {
             val argumentType = TypeInferenceUtil.infer(context, pair.second)
-            val equalitySemantics = argumentType.equalitySemantics as AnyEquality
+            val equalityConstraint = AnyEqualityConstraint(pair.first.type)
 
-            if (!equalitySemantics.isSatisfied(context, pair.first.type, argumentType)) {
-                throw invocation.make<TypeSystem>("Constructor expects parameter of type '${pair.first.type.name}' at position ${idx}, found '${argumentType.name}'", pair.second.firstToken.position)
+            if (!equalityConstraint.checkConformance(context, argumentType)) {
+                throw invocation.make<TypeSystem>("Constructor expects parameter of type ${pair.first.type.toString(printer)} at position ${idx}, found ${argumentType.toString(printer)}", pair.second.firstToken.position)
             }
+
+            parameterTypes[idx] = Property(pair.first.name, argumentType)
+        }
+
+        if (node.typeExpressionNode is MetaTypeNode) {
+            // TODO - this is super dirty!!!
+            val nType = Type(receiverType.name, properties = parameterTypes, typeParameters = receiverType.typeParameters, traitConformance = receiverType.traitConformance, equalitySemantics = receiverType.equalitySemantics, isRequired = receiverType.isRequired, isEphemeral = receiverType.isEphemeral,typeConstructor = receiverType.typeConstructor)
+
+            context.registerMonomorphisation(nType)
+
+            node.typeExpressionNode.annotate(nType, Annotations.Type, true)
+
+            return nType
         }
 
         return receiverType

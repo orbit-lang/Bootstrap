@@ -1,1 +1,23 @@
-environment E
+int : (:int *)
+bool : (:bool" *)
+
+Tree A : (* a)
+Leaf A : ((Tree A) A)
+Branch A : ((Tree A) A A)
+mapTree A B : Λ t:(Tree A) f:(A -> B) -> Tree f(t@A)
+mapTree int int (x -> x)
+
+Foo A B : (* A B)
+f1 = Foo int // (* int (B:*)) OR (* int int)
+f2 = f2 int // (* int int) OR _
+
+{
+    i : Int
+    j : Int
+    B ⟸ Branch i j // B = (Branch Int Int)
+
+    ⟹ B Int Bool // Type check fails because Bool != Int
+}
+
+
+⟹λΛΣΦΨΩΠωπϕψφϴ

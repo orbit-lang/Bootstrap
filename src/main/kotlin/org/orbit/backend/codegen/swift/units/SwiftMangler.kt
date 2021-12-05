@@ -22,7 +22,6 @@ object SwiftMangler : Mangler {
         val receiver = mang(signature.receiver.name)
         val ret = mang(signature.returnType.name)
 
-
         val params = when (signature.parameters.isEmpty()) {
             true -> ""
             else -> "_" + signature.parameters.map(Parameter::type)

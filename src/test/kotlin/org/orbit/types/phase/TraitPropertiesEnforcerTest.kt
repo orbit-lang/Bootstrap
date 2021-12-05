@@ -13,6 +13,7 @@ internal class TraitPropertiesEnforcerTest : TestCase() {
         val sut = TraitConstraintEnforcer(trait, typeFoo, trait::properties, trait::buildPropertyConstraints)
 
         val universe = object : ContextProtocol {
+            override val monomorphisedTypes: Map<String, Type> = emptyMap()
             override val universe: List<TypeProtocol> = listOf(typeX, trait, typeFoo)
         }
 
@@ -29,6 +30,7 @@ internal class TraitPropertiesEnforcerTest : TestCase() {
         val sut = TraitConstraintEnforcer<Property>(trait, typeFoo, trait::properties, trait::buildPropertyConstraints)
 
         val universe = object : ContextProtocol {
+            override val monomorphisedTypes: Map<String, Type> = emptyMap()
             override val universe: List<TypeProtocol> = listOf(typeX, trait, typeFoo)
         }
 

@@ -25,6 +25,8 @@ interface TypeProtocol : Serial, Serializable, AnyPrintable {
         = printer.apply(name, PrintableKey.Bold, PrintableKey.Italics)
 }
 
+object SelfType : Entity("Self", equalitySemantics = NominalEquality)
+
 typealias TypeProtocolPair = Pair<TypeProtocol, TypeProtocol>
 
 fun TypeProtocolPair.isSatisfied(context: ContextProtocol) : Boolean {

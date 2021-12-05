@@ -5,7 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.core.getPath
 import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.types.phase.TypeSystem
-import org.orbit.types.util.TraitMonomorphisation
+import org.orbit.types.util.TraitConstructorMonomorphisation
 import org.orbit.types.util.TypeMonomorphisation
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
@@ -41,7 +41,7 @@ object MetaTypeInference : TypeInference<MetaTypeNode>, KoinComponent {
 
         val specialiser = when (entityConstructor) {
             is TypeConstructor -> TypeMonomorphisation(entityConstructor, typeParameters)
-            is TraitConstructor -> TraitMonomorphisation(entityConstructor, typeParameters)
+            is TraitConstructor -> TraitConstructorMonomorphisation(entityConstructor, typeParameters)
             else -> TODO("UNREACHABLE -- MetaTypeInference:45")
         }
 

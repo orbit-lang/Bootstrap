@@ -7,10 +7,7 @@ import org.orbit.core.injectResult
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.graph.components.Binding
 import org.orbit.graph.phase.NameResolverResult
-import org.orbit.types.components.Context
-import org.orbit.types.components.Trait
-import org.orbit.types.components.Type
-import org.orbit.types.components.TypeSignature
+import org.orbit.types.components.*
 import org.orbit.types.typeresolvers.MethodSignatureTypeResolver
 import org.orbit.util.Printer
 
@@ -27,7 +24,7 @@ class ResolveTraitSignatures(private val node: TraitDefNode) : TypeAction {
 
         val localContext = Context(context)
 
-        localContext.add(Type("Self"))
+        localContext.add(SelfType)
 
         signatures = node.signatures
             .map {

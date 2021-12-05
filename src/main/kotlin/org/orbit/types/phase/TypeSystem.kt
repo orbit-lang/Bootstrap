@@ -61,6 +61,29 @@ data class StructuralEqualityConstraint(override val target: Trait) : EqualityCo
     private fun checkConformance(universe: ContextProtocol, input: Entity) : Boolean {
         val traitPropertyConstraints = target.buildPropertyConstraints()
 
+        // TODO - move typeParameters into Entity
+        if (target.typeParameters.isNotEmpty() && input is Type) {
+            if (input.typeParameters.count() < target.typeParameters.count()) {
+                throw Exception("TODO - NOT ENOUGH TYPE PARAMETERS")
+            }
+
+            // The input type must satisfy all of the target's type parameters
+            var count = 0
+            for (typeParameter1 in target.typeParameters) {
+                for (typeParameter2 in input.typeParameters) {
+                    val equalityConstraint = AnyEqualityConstraint(typeParameter1)
+
+                    if (equalityConstraint.checkConformance(universe, typeParameter2)) {
+                        count += 1
+                    }
+                }
+            }
+
+            if (count != target.typeParameters.count()) {
+                throw Exception("TODO - Type ${input.name} does not satisfy Trait ${target.name}'s required type parameters")
+            }
+        }
+
         var count = 0
         for (constraint in traitPropertyConstraints) {
             if (constraint.checkConformance(universe, input)) {
@@ -100,7 +123,8 @@ data class PropertyConstraint(override val target: Property) : Constraint<Proper
 data class SignatureConstraint(override val target: SignatureProtocol<*>) : Constraint<SignatureProtocol<*>, Entity> {
     override fun checkConformance(universe: ContextProtocol, input: Entity): Boolean = universe.universe
         .asSequence()
-        .filterIsInstance<TypeSignature>()
+        .filterIsInstance<Module>()
+        .flatMap { it.signatures }
         .filter { it.isReceiverSatisfied(target.receiver as Entity, universe) }
         .filter { it.isParameterListSatisfied(target.parameters, universe) }
         .filter { it.isReturnTypeSatisfied(target.returnType as Entity, universe) }

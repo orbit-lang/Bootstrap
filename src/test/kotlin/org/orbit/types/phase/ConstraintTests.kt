@@ -3,6 +3,7 @@ package org.orbit.types.phase
 import junit.framework.TestCase
 import org.junit.jupiter.api.Test
 import org.orbit.types.components.*
+import org.orbit.types.util.*
 
 internal class ConstraintTests : TestCase() {
     @Test
@@ -18,6 +19,7 @@ internal class ConstraintTests : TestCase() {
         val constraint2 = PropertyConstraint(p2)
 
         val universe = object : ContextProtocol {
+            override val monomorphisedTypes: Map<String, Type> = emptyMap()
             override val universe: List<TypeProtocol> = listOf(x, sut)
         }
 
@@ -38,6 +40,7 @@ internal class ConstraintTests : TestCase() {
         val constraint2 = PropertyConstraint(p2)
 
         val universe = object : ContextProtocol {
+            override val monomorphisedTypes: Map<String, Type> = emptyMap()
             override val universe: List<TypeProtocol> = listOf(x, sut)
         }
 
@@ -62,6 +65,7 @@ internal class ConstraintTests : TestCase() {
         val constraint2 = PropertyConstraint(p2)
 
         val universe = object : ContextProtocol {
+            override val monomorphisedTypes: Map<String, Type> = emptyMap()
             override val universe: List<TypeProtocol> = listOf(x, sut, sut2)
         }
 
@@ -81,6 +85,7 @@ internal class ConstraintTests : TestCase() {
         val sut = Type("sut")
 
         val universe = object : ContextProtocol {
+            override val monomorphisedTypes: Map<String, Type> = emptyMap()
             override val universe: List<TypeProtocol> = listOf(x, sut, TypeSignature("id", sut, listOf(p1), x))
         }
 

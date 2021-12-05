@@ -4,6 +4,7 @@ import org.orbit.core.nodes.Node
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.getAnnotation
 import org.orbit.types.components.Parameter
+import org.orbit.types.components.Type
 import org.orbit.types.components.TypeProtocol
 import org.orbit.types.components.TypeSignature
 
@@ -39,6 +40,12 @@ fun Node.getType() : TypeProtocol {
 		?: throw RuntimeException("HERE")
 
 	return type!!.value
+}
+
+fun Type.getFullyQualifiedPath() : Path {
+	return properties.fold(OrbitMangler.unmangle(name)) { acc, next ->
+		acc + OrbitMangler.unmangle(next.type.name)
+	}
 }
 
 interface Mangler {

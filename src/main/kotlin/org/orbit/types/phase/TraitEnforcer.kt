@@ -4,6 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.phase.AdaptablePhase
 import org.orbit.types.components.*
+import org.orbit.types.util.SignatureSelfSpecialisation
 import org.orbit.util.*
 
 class TraitConstraintEnforcer<T: TypeProtocol>(private val trait: Trait, private val type: Entity, private val componentGenerator: () -> List<T>, private val constraintGenerator: () -> List<Constraint<T, Entity>>) {
@@ -31,7 +32,7 @@ class TraitEnforcer(private val isImplicitConformance: Boolean = false) : Adapta
     override val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    fun enforce(context: Context, type: Type) {
+    fun enforce(context: ContextProtocol, type: Type) {
         var propertiesResult: TraitEnforcementResult<Property> = TraitEnforcementResult.None()
         for (trait in type.traitConformance) {
             val enforcer = TraitConstraintEnforcer(trait, type, trait::properties, trait::buildPropertyConstraints)
@@ -45,7 +46,12 @@ class TraitEnforcer(private val isImplicitConformance: Boolean = false) : Adapta
 
         var signaturesResult: TraitEnforcementResult<SignatureProtocol<*>> = TraitEnforcementResult.None()
         for (trait in type.traitConformance) {
-            val enforcer = TraitConstraintEnforcer(trait, type, trait::signatures, trait::buildSignatureConstraints)
+            val enforcer = TraitConstraintEnforcer(trait, type, trait::signatures) {
+                val sigs = (trait.signatures as List<TypeSignature>)
+                    .map { SignatureSelfSpecialisation(it, type).specialise(context) }
+
+                sigs.map(::SignatureConstraint)
+            }
 
             signaturesResult += enforcer.enforce(context)
         }
@@ -54,7 +60,12 @@ class TraitEnforcer(private val isImplicitConformance: Boolean = false) : Adapta
             // TODO - Proper error message
             val sigs = signaturesResult.results.map {
                 when (it) {
-                    is TraitEnforcementResult.Missing -> it.value.toString(printer)
+                    is TraitEnforcementResult.Missing -> {
+                        val specialiser = SignatureSelfSpecialisation(it.value as TypeSignature, type)
+                        val mono = specialiser.specialise(context)
+
+                        mono.toString(printer)
+                    }
                     else -> ""
                 }
             }

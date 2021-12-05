@@ -1,12 +1,22 @@
 @Main
-module Algebra with Orb::Types::Intrinsics with Orb::Core::Main {
-    trait Semigroup {
-        (Self) combine (a Self, b Self) (Self)
-    }
+module M with Orb::Types::Intrinsics with Orb::Core::Main {
+    type X
+    trait constructor Tree<T>()
 
-    type Foo : Semigroup
+    type constructor Leaf<L>(value L) : Tree<L>
+    type constructor Branch<B>(lhs Tree<B>, rhs Tree<B>) : Tree<B>
 
     (self Main) main () () {
+        l = Leaf<X>(X())
+        r = Leaf<X>(X())
 
+        # There are 2 monomorphised types here that get mangled with the same name,
+        # and therefore only one gets codegen'd
+        # Branch<X>(lhs Leaf<X>, rhs Leaf<X>) and Branch<X>(lhs Branch<X>, rhs Branch<X>)
+        # We might have to codegen protocols
+        b = Branch<X>(Branch<X>(l, r), Branch<X>(l, r))
+
+        print b.lhs
+        print b.rhs
     }
 }

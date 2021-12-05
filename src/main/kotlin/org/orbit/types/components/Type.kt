@@ -12,10 +12,11 @@ data class Type(
     override val traitConformance: List<Trait> = emptyList(),
     override val equalitySemantics: Equality<Entity, Entity> = NominalEquality,
     val isRequired: Boolean = false,
-    override val isEphemeral: Boolean = false
+    override val isEphemeral: Boolean = false,
+    val typeConstructor: TypeConstructor? = null
 ) : Entity(name, properties, traitConformance, equalitySemantics) {
-    constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), equalitySemantics: Equality<Entity, Entity> = NominalEquality, isRequired: Boolean = false, isEphemeral: Boolean = false)
-        : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, equalitySemantics, isRequired, isEphemeral)
+    constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), equalitySemantics: Equality<Entity, Entity> = NominalEquality, isRequired: Boolean = false, isEphemeral: Boolean = false, typeConstructor: TypeConstructor? = null)
+        : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, equalitySemantics, isRequired, isEphemeral, typeConstructor)
 
     constructor(node: TypeDefNode)
         : this(node.getPath())

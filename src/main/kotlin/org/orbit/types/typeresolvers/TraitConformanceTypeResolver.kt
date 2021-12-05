@@ -39,7 +39,7 @@ class TypeProjectionTypeResolver(override val node: TypeProjectionNode, override
             throw invocation.error<TypeSystem>(DuplicateTraitConformance(trait, type))
         }
 
-        val nType = Type(type.name, type.typeParameters, type.properties, type.traitConformance + trait, type.equalitySemantics, type.isRequired)
+        val nType = Type(type.name, type.typeParameters, type.properties, type.traitConformance + trait, type.equalitySemantics, type.isRequired, typeConstructor = type.typeConstructor)
 
         context.remove(type.name)
         context.add(nType)

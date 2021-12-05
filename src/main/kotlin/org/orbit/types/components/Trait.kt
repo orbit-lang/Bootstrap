@@ -15,10 +15,11 @@ data class Trait(
     val signatures: List<SignatureProtocol<*>> = emptyList(),
     override val equalitySemantics: Equality<Trait, Type> = TraitConformanceEquality,
     val implicit: Boolean = false,
-    override val isEphemeral: Boolean = false
+    override val isEphemeral: Boolean = false,
+    val traitConstructor: TraitConstructor? = null
 ) : Entity(name, properties, traitConformance, equalitySemantics) {
-    constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Trait, Type> = StructuralEquality, implicit: Boolean = false, isEphemeral: Boolean = false)
-        : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, signatures, equalitySemantics, implicit, isEphemeral)
+    constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Trait, Type> = StructuralEquality, implicit: Boolean = false, isEphemeral: Boolean = false, traitConstructor: TraitConstructor? = null)
+        : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, signatures, equalitySemantics, implicit, isEphemeral, traitConstructor)
 
     constructor(node: TraitDefNode) : this(node.getPath())
 

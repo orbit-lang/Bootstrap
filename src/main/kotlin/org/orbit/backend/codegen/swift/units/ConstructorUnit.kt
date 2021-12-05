@@ -10,6 +10,7 @@ import org.orbit.core.*
 import org.orbit.core.nodes.ConstructorNode
 import org.orbit.types.components.Entity
 import org.orbit.types.components.Property
+import org.orbit.types.components.Type
 import org.orbit.util.Invocation
 import org.orbit.util.partial
 
@@ -19,7 +20,7 @@ class ConstructorUnit(override val node: ConstructorNode, override val depth: In
     private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
-        val targetType = node.typeExpressionNode.getType()
+        val targetType = node.typeExpressionNode.getType() as Type
 
         if (targetType !is Entity) {
             throw invocation.make<CodeWriter>("Only types may be initialised via a constructor call. Found $targetType", node.typeExpressionNode)
@@ -46,7 +47,7 @@ class ConstructorUnit(override val node: ConstructorNode, override val depth: In
             "${it.first}: ${it.second}"
         }
 
-        val targetTypeName = (OrbitMangler + mangler).invoke(targetType.name)
+        val targetTypeName = targetType.getFullyQualifiedPath().toString(mangler)
 
         return """ 
             |$targetTypeName($properties)

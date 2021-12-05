@@ -3,14 +3,11 @@ package org.orbit.types.typeactions
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
-import org.orbit.core.components.SourcePosition
 import org.orbit.core.getPath
-import org.orbit.core.getType
 import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
-import org.orbit.types.util.TraitMonomorphisation
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 

@@ -16,7 +16,7 @@ abstract class Entity(
 
     override val kind: TypeKind = NullaryType
 
-    override fun evaluate(context: Context): TypeProtocol = this
+    override fun evaluate(context: ContextProtocol): TypeProtocol = this
 
     override fun equals(other: Any?): Boolean = when (other) {
         is Entity -> name == other.name
