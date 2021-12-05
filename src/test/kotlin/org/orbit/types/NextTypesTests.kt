@@ -1,6 +1,7 @@
 package org.orbit.types
 
 import org.junit.jupiter.api.Test
+import org.orbit.types.Type.Companion.IntType
 import org.orbit.types.util.*
 import kotlin.test.assertEquals
 
@@ -453,8 +454,10 @@ fun <K: Obj> Map.Entry<Var<K>, Obj>.pretty() : String
 fun <K: Obj> Map<Var<K>, Obj>.pretty() : String
     = entries.joinToString(" ", transform = Map.Entry<Var<K>, Obj>::pretty)
 
-interface Value : Obj {
+interface Value : Term<Value> {
     val type: IType
+
+    override fun evaluate(ctx: Ctx): Value = this
 }
 
 data class IntValue(val value: Int) : Value {
@@ -470,9 +473,12 @@ sealed class BoolValue(val value: Boolean) : Value {
     override val name: String = "$value:${type.name}"
 }
 
+typealias TypeVar = Var<IType>
+typealias TermVar = Var<Term<Value>>
+
 @Suppress("UNCHECKED_CAST")
-data class Ctx(val types: Map<Var<IType>, IType> = emptyMap(), val terms: Map<Var<Value>, Term<Value>> = emptyMap()) : Obj {
-    constructor(vararg types: String) : this(types.map { Var<IType>(it) to NominalType(it) }.toMap())
+data class Ctx(val types: Map<TypeVar, IType> = emptyMap(), val terms: Map<TermVar, Term<Value>> = emptyMap()) : Obj {
+    constructor(vararg types: String) : this(types.map { TypeVar(it) to NominalType(it) }.toMap())
 
     override val name: String
         get() = "ψ(${types.pretty()})"
@@ -485,15 +491,21 @@ data class Ctx(val types: Map<Var<IType>, IType> = emptyMap(), val terms: Map<Va
         return terms[Var(v.symbol)] as? O
     }
 
-    operator fun get(v: Var<IType>) : IType? = types[v]
-    operator fun get(v: Var<Value>) : Value? = null
+    operator fun get(v: TypeVar) : IType? = types[v]
+    operator fun get(v: TermVar) : Value? = null
     operator fun <O: Obj> get(v: String) : O? = get(Var<O>(v))
 
-    fun with(v: Var<IType>, type: IType) : Ctx
+    fun with(v: TypeVar, type: IType) : Ctx
         = Ctx(types + (v to type))
 
     fun with(v: String, type: IType) : Ctx
-        = Ctx(types + (Var<IType>(v) to type))
+        = Ctx(types + (TypeVar(v) to type))
+
+    fun with(v: TermVar, term: Term<Value>) : Ctx
+        = Ctx(types, terms + (v to term))
+
+    fun with(v: String, term: Term<Value>) : Ctx
+        = Ctx(types, terms + (TermVar(v) to term))
 }
 
 data class TypeInstance(override val head: Term<IType>, override val tail: List<Term<IType>>) : CompoundType {
@@ -536,7 +548,7 @@ data class TypeInstance(override val head: Term<IType>, override val tail: List<
     }
 }
 
-data class TypeCheck(val template: Term<IType>, val scrutinee: Term<IType>) : Term<Type> {
+data class TypeCheck(val template: Term<out Obj>, val scrutinee: Term<out Obj>) : Term<Type> {
     constructor(pair: Pair<Term<IType>, Term<IType>>) : this(pair.first, pair.second)
 
     override val name: String = "(${template.name} ⟸ ${scrutinee.name})"
@@ -560,8 +572,15 @@ data class TypeCheck(val template: Term<IType>, val scrutinee: Term<IType>) : Te
     }
 
     override fun evaluate(ctx: Ctx): Type {
-        val templateType = template.evaluate(ctx)
-        val scrutineeType = scrutinee.evaluate(ctx)
+        val templateType = when (val t = template.evaluate(ctx)) {
+            is Value -> t.type
+            else -> t
+        }
+
+        val scrutineeType = when (val s = scrutinee.evaluate(ctx)) {
+            is Value -> s.type
+            else -> s
+        }
 
         if (templateType == Type.Never || scrutineeType == Type.Never) return Type.Never
         if (templateType == Type.AnyType) return Type.AnyType
@@ -572,7 +591,10 @@ data class TypeCheck(val template: Term<IType>, val scrutinee: Term<IType>) : Te
                 else -> Type.Never
             }
 
-            is TypeHole -> TypeCheck(templateType.headType, scrutineeType).evaluate(ctx)
+            is TypeHole -> when (scrutineeType) {
+                is IType -> TypeCheck(templateType.headType, scrutineeType).evaluate(ctx)
+                else -> Type.Never
+            }
 
             is NominalType -> when (scrutineeType) {
                 is NominalType -> Type.bool(templateType.tag == scrutineeType.tag)
@@ -599,7 +621,7 @@ data class TypeCheck(val template: Term<IType>, val scrutinee: Term<IType>) : Te
     }
 }
 
-fun typeCheck(ctx: Ctx, a: Term<IType>, b: Term<IType>, expectation: Type) {
+fun typeCheck(ctx: Ctx, a: Term<out Obj>, b: Term<out Obj>, expectation: Type) {
     val check = TypeCheck(a, b)
     val result = check.evaluate(ctx)
     println("-------TYPE CHECK ${a.name} ⟸ ${b.name}-------")
@@ -609,11 +631,11 @@ fun typeCheck(ctx: Ctx, a: Term<IType>, b: Term<IType>, expectation: Type) {
     assertEquals(expectation, result)
 }
 
-fun typeCheckT(ctx: Ctx, a: Term<IType>, b: Term<IType>)
+fun typeCheckT(ctx: Ctx, a: Term<out Obj>, b: Term<out Obj>)
     = typeCheck(ctx, a, b, Type.AnyType)
 
-fun typeCheckF(ctx: Ctx, a: Term<IType>, b: Term<IType>)
-        = typeCheck(ctx, a, b, Type.Never)
+fun typeCheckF(ctx: Ctx, a: Term<out Obj>, b: Term<out Obj>)
+    = typeCheck(ctx, a, b, Type.Never)
 
 class NextTypesTests {
     @Test
@@ -681,5 +703,26 @@ class NextTypesTests {
         typeCheckF(ctx, tcABBoolBool, tcABIntInt)
 
         typeCheckT(ctx, tcABInt, tcABIntInt)
+
+        val z = TermVar("z")
+        val s = TermVar("s")
+
+        ctx = ctx.with(z, IntValue(0))
+        ctx = ctx.with(s, IntValue(1))
+
+        println(z.name)
+        println(s.name)
+
+        val zVal = z.evaluate(ctx)
+        val sVal = s.evaluate(ctx)
+
+        println(zVal.name)
+        println(sVal.name)
+
+        typeCheckT(ctx, z, IntType)
+        typeCheckT(ctx, IntType, z)
+
+        typeCheckT(ctx, zVal, IntType)
+        typeCheckT(ctx, zVal, z)
     }
 }
