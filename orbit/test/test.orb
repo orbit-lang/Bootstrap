@@ -1,3 +1,38 @@
+module RedBlackTrees {
+    @Alias(Scopes::Module, :RBT)
+    type RedBlackTree<E> where E : Comparable {
+        type Color { Red, Black }
+
+        constructor Empty
+        constructor Tree<E>(color Color, left RedBlackTree<E>, element E, right RedBlackTree<E>)
+        constructor BlackTree<E>(left RedBlackTree<E>, element E, right RedBlackTree<E>)
+            by Tree(Color::Black, left, element, right)
+    }
+
+    (Tree<E>) black (other Tree<E>) (Tree<E>)
+
+    type BalanceTuple<E> = (left RBT<E>, element E, right RBT<E>)
+
+    (RedBlackTree<E>) buildBalancedTree <E> (left BalanceTuple<E>, mid E, right BalanceTuple<E>) (Tree<E>)
+        = Tree(Color::Red, BlackTree(left), mid, Tree(Color::Black, ))
+
+    (self RedBlackTree<E>) balance <E> () (Tree<E>) {
+
+    }
+}
+
+module Stages {
+    type Nat {
+        case Zero
+        case Succ(n Nat)
+    }
+
+    eliminator Nat(zCase Case<Nat::Zero>, sCase Case<Nat::Succ>) by select n {
+        case Nat::Zero = zCase(n)
+        case Nat::Succ(p) = sCase(sCase(p))
+    }
+}
+
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main {
     type X

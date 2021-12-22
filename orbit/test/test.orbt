@@ -1,23 +1,32 @@
 int : (:int *)
-bool : (:bool" *)
+bool : (:bool *)
 
-Tree A : (* a)
-Leaf A : ((Tree A) A)
-Branch A : ((Tree A) A A)
-mapTree A B : Λ t:(Tree A) f:(A -> B) -> Tree f(t@A)
-mapTree int int (x -> x)
+tree a : (* a)
 
-Foo A B : (* A B)
-f1 = Foo int // (* int (B:*)) OR (* int int)
-f2 = f2 int // (* int int) OR _
+inductive : (:inductive *)
+inductive.base : (:base inductive)
 
-{
-    i : Int
-    j : Int
-    B ⟸ Branch i j // B = (Branch Int Int)
+∀ ψ:Γ I:inductive :
+    ∃ ψ J:(*) Λ J ⟸ (inductive.base I)
 
-    ⟹ B Int Bool // Type check fails because Bool != Int
-}
+nat :: (inductive :nat)
+nat.zero : (inductive.base nat)
+nat.succ (N:nat) : (:succ N)
 
+add (n:nat m:nat) :: Λ(n m) : nat
+add (zero zero) : zero
+add (zero succ) : m
+add (succ zero) : n
+add (succ succ) : add(n.N m.N)
 
-⟹λΛΣΦΨΩΠωπϕψφϴ
+let t = 0 in select t
+    (nat.succ N) ⟹ print N
+    _ ⟹ print nat.zero
+
+select (
+
+∀(N:nat M:nat) :
+
+add (3 4) : succ add (2 3)
+
+⟹λΛΣΦΨΩΠωπϕψφϴ∀Γ∧∨⟸∃
