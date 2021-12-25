@@ -1,12 +1,17 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main {
-    (Int) foo () (Int) = 123
+    trait Show
 
-    (self Int) bar () () {
-        print self
+    extension Show {
+        (self Self) show () () {
+            print self
+        }
     }
 
+    type projection AnyType : Show
+
     (self Main) main () () {
-        Int.foo().bar()
+        a = AnyType()
+        a.show()
     }
 }

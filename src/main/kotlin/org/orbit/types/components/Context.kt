@@ -171,7 +171,7 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
                 is TypeAlias -> type.targetType
                 else -> type
             }
-            else -> throw RuntimeException("TODO - Multiple types named '$name'")
+            else -> throw RuntimeException("TODO - Multiple types named '$name'\n\t${matches.map { it.name }.joinToString("\n\t")}")
         }
     }
 

@@ -16,6 +16,10 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 			LiteralRule()
 		)
 
+		val singleExpressionBodyRule = ExpressionRule(
+			ConstructorRule(), LiteralRule(), CallRule, UnaryExpressionRule
+		)
+
 		val returnValue = ExpressionRule(
 
 		)
@@ -32,7 +36,7 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 		}
 	
 		val expr = context.attemptAny(*valueRules) as? ExpressionNode
-			?: TODO("@ExpressionRule:30")
+			?: TODO("@ExpressionRule:39")
 
 		val next = context.peek()
 
