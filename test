@@ -1,4 +1,4 @@
 #!/bin/sh
-cd Test1/
-rm Test1
+cd Test1/ 2>/dev/null
+rm Test1 2>/dev/null
 orbc ./Test1

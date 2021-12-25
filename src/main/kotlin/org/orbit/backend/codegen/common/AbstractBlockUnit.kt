@@ -37,6 +37,7 @@ class BlockUnit(override val node: BlockNode, override val depth: Int, private v
 
                 is PrintNode -> codeGenFactory.getPrintStatementUnit(it, depth)
                 is DeferNode -> codeGenFactory.getDeferStatementUnit(it, depth)
+                is CallNode -> codeGenFactory.getCallUnit(it, depth)
 
                 else -> TODO("Generate code for statement in block: $it")
             }

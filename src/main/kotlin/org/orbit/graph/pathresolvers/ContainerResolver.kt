@@ -8,6 +8,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 import org.orbit.util.partial
@@ -152,6 +153,7 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 			}
 
 			for (methodDef in input.methodDefs) {
+				methodDef.annotate(input.getGraphID(), Annotations.GraphID)
 				pathResolverUtil.resolve(methodDef, PathResolver.Pass.Initial, environment, graph)
 			}
 		}

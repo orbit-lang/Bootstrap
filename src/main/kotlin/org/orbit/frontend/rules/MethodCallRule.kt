@@ -11,13 +11,19 @@ object CallRule : ValueRule<CallNode> {
         val receiverExpression = context.attempt(ExpressionRule.defaultValue)
             ?: throw context.invocation.make<Parser>("TODO", context.peek())
 
+        var next = context.peek()
+
+        if (receiverExpression is CallNode && next.type != TokenTypes.Dot) {
+            return +receiverExpression
+        }
+
         context.expectOrNull(TokenTypes.Dot)
             ?: return ParseRule.Result.Failure.Rewind(listOf(receiverExpression.firstToken))
 
         val methodIdentifier = context.attempt(IdentifierRule)
             ?: throw context.invocation.make<Parser>("Expected method name", context.peek())
 
-        var next = context.peek()
+        next = context.peek()
 
         if (next.type != TokenTypes.LParen) {
             // This looks like a parameter-less call, which is property access

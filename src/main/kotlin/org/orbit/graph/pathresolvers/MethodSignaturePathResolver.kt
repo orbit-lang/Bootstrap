@@ -49,8 +49,12 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		val ret = input.returnTypeNode?.value ?: IntrinsicTypes.Unit.type.name
 
 		if (input.returnTypeNode?.value != null) {
-			input.returnTypeNode.annotate(input.getGraphID(), Annotations.GraphID)
-			TypeExpressionPathResolver.resolve(input.returnTypeNode, pass, environment, graph)
+			try {
+				input.returnTypeNode.annotate(input.getGraphID(), Annotations.GraphID)
+				TypeExpressionPathResolver.resolve(input.returnTypeNode, pass, environment, graph)
+			} catch (e: Exception) {
+				println("HERE")
+			}
 		}
 
 		val retResult = environment.getBinding(ret, Binding.Kind.Union.entityMethodOrConstructor, graph, input.getGraphIDOrNull())

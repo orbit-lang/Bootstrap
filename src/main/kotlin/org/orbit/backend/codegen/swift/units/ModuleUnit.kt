@@ -12,12 +12,6 @@ import org.orbit.types.components.IntrinsicTypes
 import org.orbit.types.components.Type
 import org.orbit.util.partial
 
-//class ApiUnit(override val node: ApiDefNode, override val depth: Int) : CodeUnit<ApiDefNode> {
-//    override fun generate(mangler: Mangler): String {
-//        val traitConstructors
-//    }
-//}
-
 object SwiftHeader : AbstractHeader {
     override fun generate(): String = ""
 }
@@ -45,7 +39,7 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
             return ""
         }
 
-        if (node.entityDefs.isEmpty() && node.typeAliasNodes.isEmpty() && context.monomorphisedTypes.isEmpty()) {
+        if (node.isEmpty && context.monomorphisedTypes.isEmpty()) {
             return ""
         }
 

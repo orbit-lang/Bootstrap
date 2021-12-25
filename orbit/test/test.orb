@@ -1,24 +1,12 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main {
-    trait constructor Tree<T> {
-        (self Self) show () ()
+    (Int) foo () (Int) = 123
+
+    (self Int) bar () () {
+        print self
     }
 
-    type constructor Leaf<T>(name T) : Tree<T>
-    type constructor Branch<T>(lhs Tree<T>, rhs Tree<T>) : Tree<T>
-
-    type IntLeaf = Leaf<Int>
-
     (self Main) main () () {
-        x = Leaf<Int>(1)
-        y = Leaf<Int>(2)
-        s = Leaf<Symbol>(:abc)
-        b = Branch<Int>(x, y)
-        b2 = Branch<Symbol>(s, s)
-
-        i = IntLeaf(1)
-
-        print b.rhs
-        print b.rhs
+        Int.foo().bar()
     }
 }

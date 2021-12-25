@@ -33,6 +33,8 @@ class BlockPathResolver : PathResolver<BlockNode> {
 					is DeferNode -> result =
 						pathResolverUtil.resolve(node.blockNode, pass, environment, graph)
 
+					is CallNode -> result = pathResolverUtil.resolve(node, pass, environment, graph)
+
 					else -> throw invocation.make<CanonicalNameResolver>("Unsupported statement in block", node)
 				}
 			}
