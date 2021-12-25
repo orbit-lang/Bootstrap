@@ -57,10 +57,12 @@ class ProgramUnit(override val node: ProgramNode, override val depth: Int = 0) :
                 null -> ""
                 else -> {
                     val sig = main.mainSignature!!
-                    val rec = (OrbitMangler + mangler)(sig.receiver.name)
-                    val ret = (OrbitMangler + mangler)(sig.returnType.name)
+                    val recPath = sig.receiver.getFullyQualifiedPath()
+                    val recName = mangler.mangle(recPath)
+                    val retPath = sig.returnType.getFullyQualifiedPath()
+                    val retName = mangler.mangle(retPath)
 
-                    "${rec}_main_${rec}_$ret(self: ${rec}(argc: 0, argv: []))"
+                    "${recName}_main_${recName}_$retName(self: ${recName}(argc: 0, argv: []))"
                 }
             }
         } catch (_: Exception) {

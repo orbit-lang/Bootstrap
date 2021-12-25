@@ -1,57 +1,23 @@
-module RedBlackTrees {
-    @Alias(Scopes::Module, :RBT)
-    type RedBlackTree<E> where E : Comparable {
-        type Color { Red, Black }
-
-        constructor Empty
-        constructor Tree<E>(color Color, left RedBlackTree<E>, element E, right RedBlackTree<E>)
-        constructor BlackTree<E>(left RedBlackTree<E>, element E, right RedBlackTree<E>)
-            by Tree(Color::Black, left, element, right)
-    }
-
-    (Tree<E>) black (other Tree<E>) (Tree<E>)
-
-    type BalanceTuple<E> = (left RBT<E>, element E, right RBT<E>)
-
-    (RedBlackTree<E>) buildBalancedTree <E> (left BalanceTuple<E>, mid E, right BalanceTuple<E>) (Tree<E>)
-        = Tree(Color::Red, BlackTree(left), mid, Tree(Color::Black, ))
-
-    (self RedBlackTree<E>) balance <E> () (Tree<E>) {
-
-    }
-}
-
-module Stages {
-    type Nat {
-        case Zero
-        case Succ(n Nat)
-    }
-
-    eliminator Nat(zCase Case<Nat::Zero>, sCase Case<Nat::Succ>) by select n {
-        case Nat::Zero = zCase(n)
-        case Nat::Succ(p) = sCase(sCase(p))
-    }
-}
-
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main {
-    type X
-    trait constructor Tree<T>()
+    trait constructor Expr<T> {
+        (self Self) evaluate () (T)
+    }
 
-    type constructor Leaf<L>(value L) : Tree<L>
-    type constructor Branch<B>(lhs Tree<B>, rhs Tree<B>) : Tree<B>
+    type constructor Var<V>(name V) : Expr<V>
+    type constructor Bin<B>(lhs Var<B>, rhs Var<B>, op Symbol) : Expr<B>
+
+    (self Expr<Symbol>) evaluate () (Symbol) {
+        return :a
+    }
 
     (self Main) main () () {
-        l = Leaf<X>(X())
-        r = Leaf<X>(X())
+        x = Var<Symbol>(:x)
+        y = Var<Symbol>(:y)
+        z = Bin<Symbol>(x, y, :plus)
 
-        # There are 2 monomorphised types here that get mangled with the same name,
-        # and therefore only one gets codegen'd
-        # Branch<X>(lhs Leaf<X>, rhs Leaf<X>) and Branch<X>(lhs Branch<X>, rhs Branch<X>)
-        # We might have to codegen protocols
-        b = Branch<X>(Branch<X>(l, r), Branch<X>(l, r))
-
-        print b.lhs
-        print b.rhs
+        print x.symbol()
+        print y.symbol()
+        print z.symbol()
     }
 }

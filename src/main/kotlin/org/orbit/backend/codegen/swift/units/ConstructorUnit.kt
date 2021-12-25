@@ -21,6 +21,7 @@ class ConstructorUnit(override val node: ConstructorNode, override val depth: In
 
     override fun generate(mangler: Mangler): String {
         val targetType = node.typeExpressionNode.getType() as Type
+        val targetPath = targetType.getFullyQualifiedPath()
 
         if (targetType !is Entity) {
             throw invocation.make<CodeWriter>("Only types may be initialised via a constructor call. Found $targetType", node.typeExpressionNode)

@@ -3,10 +3,7 @@ package org.orbit.core
 import org.orbit.core.nodes.Node
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.getAnnotation
-import org.orbit.types.components.Parameter
-import org.orbit.types.components.Type
-import org.orbit.types.components.TypeProtocol
-import org.orbit.types.components.TypeSignature
+import org.orbit.types.components.*
 
 class FullyQualifiedPath(relativeNames: List<String>) : Path(relativeNames) {
 	constructor(path: Path) : this(path.relativeNames)
@@ -42,10 +39,12 @@ fun Node.getType() : TypeProtocol {
 	return type!!.value
 }
 
-fun Type.getFullyQualifiedPath() : Path {
-	return properties.fold(OrbitMangler.unmangle(name)) { acc, next ->
+fun TypeProtocol.getFullyQualifiedPath() : Path = when (this) {
+	is Entity -> properties.fold(OrbitMangler.unmangle(name)) { acc, next ->
 		acc + OrbitMangler.unmangle(next.type.name)
 	}
+
+	else -> OrbitMangler.unmangle(name)
 }
 
 interface Mangler {

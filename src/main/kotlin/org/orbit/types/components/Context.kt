@@ -88,12 +88,9 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
 
         if (previouslyMonomorphised.isNotEmpty()) {
             var path = OrbitMangler.unmangle(type.name)
-            path += Path("﹙")
             for (p in type.properties) {
                 path += OrbitMangler.unmangle(p.type.name)
             }
-
-            path += Path("﹚")
 
             val nType = Type(path, type.typeParameters, type.properties, type.traitConformance, type.equalitySemantics, type.isRequired, type.isEphemeral, type.typeConstructor)
 

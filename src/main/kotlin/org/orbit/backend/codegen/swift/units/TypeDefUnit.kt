@@ -43,20 +43,24 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Abs
     }
 
     private fun generateProperty(property: Property, mangler: Mangler) : String {
-        val propertyType = (OrbitMangler + mangler).invoke(property.type.name)
+        val propertyPath = property.type.getFullyQualifiedPath()
+        val swiftName = mangler.mangle(propertyPath)
+
         val defaultValue = when (property.defaultValue) {
             null -> ""
             else -> " = " + codeGenFactory.getExpressionUnit(property.defaultValue!!, depth).generate(mangler)
         }
 
-        return "${property.name}: $propertyType$defaultValue"
+        return "${property.name}: $swiftName$defaultValue"
     }
 
     private fun generatePropertyLet(property: Property, mangler: Mangler) : String {
-        val propertyType = (OrbitMangler + mangler).invoke(property.type.name)
+        val propertyPath = property.type.getFullyQualifiedPath()
+        val orbName = OrbitMangler.mangle(propertyPath)
+        val swiftName = mangler.mangle(propertyPath)
 
-        val header = "/* ${property.name} $propertyType */"
-        val prop = "let ${property.name}: $propertyType"
+        val header = "/* ${property.name} $orbName */"
+        val prop = "let ${property.name}: $swiftName"
 
         return """
             |$header
@@ -81,8 +85,10 @@ class TypeDefUnit(override val node: TypeDefNode, override val depth: Int) : Abs
     }
 
     override fun generate(mangler: Mangler) : String {
-        val typePath = node.getPath()
+        var typePath = node.getPath()
         val type = context.getTypeByPath(typePath) as Type
+
+        typePath = type.getFullyQualifiedPath()
 
         // TODO - Lookup value semantics for this type (i.e. class or struct)
         val header = "/* type ${typePath.toString(OrbitMangler)} */"

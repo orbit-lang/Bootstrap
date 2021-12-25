@@ -26,9 +26,10 @@ class TypeExpressionUnit(override val node: TypeExpressionNode, override val dep
     private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler) : String {
-        val path = node.getPath()
+        var path = node.getPath()
         val type = context.getTypeByPath(path)
-        val typeName = (OrbitMangler + mangler).invoke(type.name)
+        path = type.getFullyQualifiedPath()
+        val typeName = mangler.mangle(path)
 
         return when (node) {
             is TypeIdentifierNode -> {
