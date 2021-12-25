@@ -62,6 +62,20 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
 //            .map(partial(::TypeProjectionUnit, depth))
 //            .joinToString(newline(2), transform = partial(TypeProjectionUnit::generate, mangler))
 
+        val monoMethods = context.specialisedMethods.values.map { spec ->
+            val nSignature = spec.signature.toNode(context)
+            val sig = codeGenFactory.getMethodSignatureUnit(nSignature, depth)
+                .generate(mangler)
+
+            val body = codeGenFactory.getBlockUnit(spec.body, depth, false, true)
+                .generate(mangler)
+
+            """
+                |$sig
+                |$body
+            """.trimMargin()
+        }.joinToString("\n")
+
         val methodDefs = node.methodDefs
             .map(partial(codeGenFactory::getMethodDefUnit, depth))
             .joinToString(newline(2), transform = partial(AbstractMethodDefUnit::generate, mangler))
@@ -72,6 +86,7 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
             |$typeAliases
             |$monos
             |$methodDefs
+            |$monoMethods
         """.trimMargin().trim()
     }
 }

@@ -18,7 +18,7 @@ class ResolveTraitConformance(private val node: TypeDefNode) : TypeAction {
             TypeInferenceUtil.infer(context, it) as Trait
         }
 
-        val nType = Type(node.getPath(), type.typeParameters, type.properties, traits, type.equalitySemantics, false, typeConstructor = type.typeConstructor)
+        val nType = Type(node.getPath(), type.typeParameters, type.properties, type.traitConformance + traits, type.equalitySemantics, false, typeConstructor = type.typeConstructor)
 
         context.remove(type.name)
         context.add(nType)

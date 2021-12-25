@@ -153,7 +153,8 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
 
     private fun createMethodSignatures(nodes: List<ModuleNode>) {
         for (node in nodes) {
-            val signatures = node.search(MethodDefNode::class.java)
+            // NOTE - We search this way to avoid capturing nested method defs inside extensions
+            val signatures = node.methodDefs
                 .map { it.signature }
 
             for (sig in signatures) {
@@ -165,7 +166,7 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
 
     private fun checkMethodReturnTypes(nodes: List<ModuleNode>) {
         for (node in nodes) {
-            val methodNodes = node.search(MethodDefNode::class.java)
+            val methodNodes = node.methodDefs
 
             methodNodes.map(::MethodReturnTypeCheck)
                 .forEach(typeAssistant::perform)
@@ -219,12 +220,30 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             performTypeAction(traitDefs) { ResolveEntityProperties<TraitDefNode, Trait>(it) }
 
             performTypeAction(traitDefs, ::ResolveTraitSignatures)
-
             performTypeAction(typeAliases, ::CreateTypeAlias)
+
+            for (module in moduleDefs) {
+                val extensions = module.search<ExtensionNode>()
+
+                for (ext in extensions) {
+                    performTypeAction(extensions) { ExtendEntity(ext, module) }
+                }
+            }
+
             assembleTypeProjections(typeProjections)
             refineEntityConstructorTypeParameters(typeConstructors)
 
             performTypeAction(typeDefs, ::ResolveTraitConformance)
+
+            for (module in moduleDefs) {
+                val tds = module.search<TypeDefNode>()
+
+                for (td in tds) {
+                    val assembler = AssembleExtensions(td, module)
+
+                    assembler.execute(context)
+                }
+            }
 
             createMethodSignatures(moduleDefs)
             checkMethodReturnTypes(moduleDefs)

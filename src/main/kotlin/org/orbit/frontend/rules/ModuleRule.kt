@@ -88,6 +88,7 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
         val entityConstructorNodes = mutableListOf<EntityConstructorNode>()
         val methodDefNodes = mutableListOf<MethodDefNode>()
         val typeProjectionNodes = mutableListOf<TypeProjectionNode>()
+        val extensionNodes = mutableListOf<ExtensionNode>()
 
         next = context.peek()
 
@@ -111,6 +112,13 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                     }
                 }
 
+                TokenTypes.Extension -> {
+                    val extension = context.attempt(ExtensionRule, true)
+                        ?: TODO("@ModuleRule:117")
+
+                    extensionNodes.add(extension)
+                }
+
                 else -> TODO("@ModuleRule:107")
             }
 
@@ -119,6 +127,6 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
 
         val end = context.expect(TokenTypes.RBrace)
 
-        return +ModuleNode(start, end, implements, typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes, typeAliasNodes, entityConstructorNodes, typeProjectionNodes)
+        return +ModuleNode(start, end, implements, typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes, typeAliasNodes, entityConstructorNodes, typeProjectionNodes, extensionNodes)
     }
 }

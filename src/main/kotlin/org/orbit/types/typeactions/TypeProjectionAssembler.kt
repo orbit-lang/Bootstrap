@@ -109,11 +109,7 @@ class TypeProjectionAssembler(private val node: TypeProjectionNode) : TypeAction
         enforcer.execute(context)
 
         context.replace(type)
-
-        //if (node.typeIdentifier is MetaTypeNode) {
-            // NOTE - This feels dirty!!
-            context.replaceMonomorphisedType(type)
-        //}
+        context.replaceMonomorphisedType(type)
 
         val typeProjection = TypeProjection(type, trait)
 

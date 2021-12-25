@@ -122,11 +122,13 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 			val traitResolver = TraitDefPathResolver(containerPath)
 			val typeConstructorResolver = TypeConstructorPathResolver(containerPath)
 			val traitConstructorResolver = TraitConstructorPathResolver(containerPath)
+			val extensionResolver = ExtensionPathResolver(containerPath)
 
 			val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
 			val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
 			val typeConstructors = input.entityConstructors.filterIsInstance<TypeConstructorNode>()
 			val traitConstructors = input.entityConstructors.filterIsInstance<TraitConstructorNode>()
+			val extensions = input.search<ExtensionNode>()
 
 			// Run a first pass over all types & traits that resolves just their own paths
 			// (ignoring properties and trait conformance etc)
@@ -156,6 +158,8 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 				methodDef.annotate(input.getGraphID(), Annotations.GraphID)
 				pathResolverUtil.resolve(methodDef, PathResolver.Pass.Initial, environment, graph)
 			}
+
+			resolveAll(extensionResolver, extensions, PathResolver.Pass.Initial)
 		}
 
 		return PathResolver.Result.Success(containerPath)

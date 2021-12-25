@@ -9,6 +9,7 @@ import org.orbit.core.components.CompilationEvent
 import org.orbit.core.components.CompilationEventBusAware
 import org.orbit.core.components.CompilationEventBusAwareImpl
 import org.orbit.core.getPath
+import org.orbit.core.nodes.BlockNode
 import org.orbit.core.nodes.Node
 import org.orbit.serial.Serial
 import org.orbit.serial.Serialiser
@@ -19,11 +20,15 @@ import java.lang.NullPointerException
 
 data class MissingTypeException(val typeName: String) : Exception("Missing type: $typeName")
 
+data class MethodTemplate(val trait: Trait, val signature: TypeSignature, val body: BlockNode) : Serializable
+
 interface ContextProtocol {
     val universe: List<TypeProtocol>
     val monomorphisedTypes: Map<String, Type>
+    val monomorphisedMethods: Map<String, MethodTemplate>
 
     fun registerMonomorphisation(type: Type) {}
+    fun registerMonomorphisation(method: MethodTemplate) {}
 }
 
 fun ContextProtocol.refresh(type: TypeProtocol) : TypeProtocol {
@@ -63,6 +68,11 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     override var monomorphisedTypes = mutableMapOf<String, Type>()
         private set
 
+    override var monomorphisedMethods = mutableMapOf<String, MethodTemplate>()
+        private set
+
+    val specialisedMethods = mutableMapOf<String, MethodTemplate>()
+
     private var next = 0
 
     init {
@@ -80,8 +90,6 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     fun <T> withSubContext(block: (Context) -> T) : T = block(Context(this))
 
     override fun registerMonomorphisation(type: Type) {
-        // HERE - Checking name is not enough for type constructors!
-
         val previouslyMonomorphised = monomorphisedTypes.filter {
             it.key.startsWith(type.name)
         }
@@ -98,6 +106,18 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         } else if (!monomorphisedTypes.containsKey(type.name)) {
             monomorphisedTypes[type.name] = type
         }
+    }
+
+    override fun registerMonomorphisation(method: MethodTemplate) {
+        val path = OrbitMangler.mangle(method.signature)
+
+        monomorphisedMethods[path] = method
+    }
+
+    fun registerSpecialisedMethod(method: MethodTemplate) {
+        val path = OrbitMangler.mangle(method.signature)
+
+        specialisedMethods[path] = method
     }
 
     fun bind(name: String, type: TypeProtocol) {
@@ -189,7 +209,9 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     }
 
     fun replaceMonomorphisedType(type: Type) {
-        monomorphisedTypes[type.name] = type
+        if (monomorphisedTypes.containsKey(type.name)) {
+            monomorphisedTypes[type.name] = type
+        }
     }
 
     override fun describe(json: JSONObject) {
