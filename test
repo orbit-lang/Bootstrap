@@ -1,3 +1,4 @@
 #!/bin/sh
 cd Test1/
+rm Test1
 orbc ./Test1

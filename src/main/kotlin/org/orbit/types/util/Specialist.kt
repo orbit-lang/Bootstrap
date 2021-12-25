@@ -38,9 +38,6 @@ class SignatureSelfSpecialisation(private val signatureTemplate: TypeSignature, 
 
         val nSignature = TypeSignature(signatureTemplate.name, receiverType, parameters, returnType, signatureTemplate.typeParameters)
 
-        // TODO
-//        context.registerMonomorphisation()
-
         return nSignature
     }
 }

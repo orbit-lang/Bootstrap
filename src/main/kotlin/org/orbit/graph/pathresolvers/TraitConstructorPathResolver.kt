@@ -62,6 +62,7 @@ class TraitConstructorPathResolver(
 
 			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
 
+			input.signatureNodes.forEach { it.annotate(parentGraphID, Annotations.GraphID) }
 			input.signatureNodes.forEach(-partial(methodSignaturePathResolver::resolve, pass, environment, graph))
 
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))

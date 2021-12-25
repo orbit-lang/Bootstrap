@@ -1,23 +1,24 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main {
-    trait constructor Expr<T> {
-        (self Self) evaluate () (T)
+    trait constructor Tree<T> {
+        (self Self) show () ()
     }
 
-    type constructor Var<V>(name V) : Expr<V>
-    type constructor Bin<B>(lhs Var<B>, rhs Var<B>, op Symbol) : Expr<B>
+    type constructor Leaf<T>(name T) : Tree<T>
+    type constructor Branch<T>(lhs Tree<T>, rhs Tree<T>) : Tree<T>
 
-    (self Expr<Symbol>) evaluate () (Symbol) {
-        return :a
-    }
+    type IntLeaf = Leaf<Int>
 
     (self Main) main () () {
-        x = Var<Symbol>(:x)
-        y = Var<Symbol>(:y)
-        z = Bin<Symbol>(x, y, :plus)
+        x = Leaf<Int>(1)
+        y = Leaf<Int>(2)
+        s = Leaf<Symbol>(:abc)
+        b = Branch<Int>(x, y)
+        b2 = Branch<Symbol>(s, s)
 
-        print x.symbol()
-        print y.symbol()
-        print z.symbol()
+        i = IntLeaf(1)
+
+        print b.rhs
+        print b.rhs
     }
 }

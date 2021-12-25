@@ -6,6 +6,8 @@ import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphID
+import org.orbit.graph.extensions.getGraphIDOrNull
 import org.orbit.util.Invocation
 
 object MetaTypePathResolver : PathResolver<MetaTypeNode> {
@@ -17,7 +19,14 @@ object MetaTypePathResolver : PathResolver<MetaTypeNode> {
             pass, environment, graph
         ).asSuccess()
 
-		input.typeParameters.forEach { TypeExpressionPathResolver.resolve(it, pass, environment, graph) }
+		input.typeParameters.forEach {
+			val pid = input.getGraphIDOrNull()
+			if (pid != null) {
+				it.annotate(pid, Annotations.GraphID)
+			}
+
+			TypeExpressionPathResolver.resolve(it, pass, environment, graph)
+		}
 
 		input.annotate(typeConstructorResult.path, Annotations.Path)
 		input.typeConstructorIdentifier.annotate(typeConstructorResult.path, Annotations.Path)

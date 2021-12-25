@@ -9,6 +9,8 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphID
+import org.orbit.graph.extensions.getGraphIDOrNull
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.Invocation
 import org.orbit.util.dispose
@@ -47,10 +49,11 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		val ret = input.returnTypeNode?.value ?: IntrinsicTypes.Unit.type.name
 
 		if (input.returnTypeNode?.value != null) {
+			input.returnTypeNode.annotate(input.getGraphID(), Annotations.GraphID)
 			TypeExpressionPathResolver.resolve(input.returnTypeNode, pass, environment, graph)
 		}
 
-		val retResult = environment.getBinding(ret, Binding.Kind.Union.entityMethodOrConstructor)
+		val retResult = environment.getBinding(ret, Binding.Kind.Union.entityMethodOrConstructor, graph, input.getGraphIDOrNull())
 		val retPath = retResult.unwrap(this, input.returnTypeNode?.firstToken?.position ?: SourcePosition.unknown)
 		// TODO - Should method names contain parameter names as well as/instead of types?
 		// i.e. Are parameter names important/overloadable?

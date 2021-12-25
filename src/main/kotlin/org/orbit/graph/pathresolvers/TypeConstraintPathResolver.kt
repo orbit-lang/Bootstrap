@@ -14,7 +14,7 @@ object TypeConstraintPathResolver : PathResolver<TraitConformanceTypeConstraintN
 
 	override fun resolve(input: TraitConformanceTypeConstraintNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
 		val constrainedTypePath = environment.getBinding(input.constrainedTypeNode.value, Binding.Kind.Type).unwrap(this, input.constrainedTypeNode.firstToken.position)
-		val constraintTraitPath = environment.getBinding(input.constraintTraitNode.value, Binding.Kind.Trait).unwrap(this, input.constraintTraitNode.firstToken.position)
+		val constraintTraitPath = environment.getBinding(input.constraintTraitNode.value, Binding.Kind.Union(Binding.Kind.Trait, Binding.Kind.TraitConstructor)).unwrap(this, input.constraintTraitNode.firstToken.position)
 
 		input.constrainedTypeNode.annotate(constrainedTypePath.path, Annotations.Path)
 		input.constraintTraitNode.annotate(constraintTraitPath.path, Annotations.Path)

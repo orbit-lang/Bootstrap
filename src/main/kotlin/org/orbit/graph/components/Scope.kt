@@ -137,11 +137,6 @@ class Scope(
 	fun get2(name: String, context: Binding.Kind? = null, graph: Graph? = null, parentVertexID: GraphEntity.Vertex.ID? = null) : BindingSearchResult {
 		if (name == "Self") return BindingSearchResult.Success(Binding.Self)
 
-		// Collect together all visible bindings
-//		val imported = imports.map { environment.getScope(it) }
-//			.flatMap { it.bindings }
-//		val all = (bindings + imported).distinct()
-
 		val path = OrbitMangler.unmangle(name)
 
 		// Get all bindings whose Path ends with name

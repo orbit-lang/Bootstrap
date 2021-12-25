@@ -44,8 +44,16 @@ open class Path(val relativeNames: List<String>) : Serial, Serializable, AnyPrin
 		return toString(mangler).startsWith(other.toString(mangler))
 	}
 
+	fun dropFirst(n: Int) : Path {
+		return Path(relativeNames.drop(n))
+	}
+
 	fun dropLast(n: Int) : Path {
 		return Path(relativeNames.dropLast(n))
+	}
+
+	fun drop(other: Path) : Path {
+		return dropFirst(other.size)
 	}
 
 	fun isAncestor(of: Path) : Boolean {

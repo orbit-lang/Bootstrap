@@ -7,13 +7,11 @@ import org.orbit.core.nodes.CallNode
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.phase.TypeSystem
-import org.orbit.util.Invocation
-import org.orbit.util.partial
-import org.orbit.util.partialReverse
-import org.orbit.util.pluralise
+import org.orbit.util.*
 
 object CallInference : TypeInference<CallNode>, KoinComponent {
     private val invocation: Invocation by inject()
+    private val printer: Printer by inject()
 
     override fun infer(context: Context, node: CallNode, typeAnnotation: TypeProtocol?): TypeProtocol {
         val receiverType = TypeInferenceUtil.infer(context, node.receiverExpression)
@@ -69,7 +67,7 @@ object CallInference : TypeInference<CallNode>, KoinComponent {
             if (matches.isEmpty()) {
                 val params = if (parameterTypes.isEmpty()) "" else "(" + parameterTypes.joinToString(", ") { it.name } + ")"
                 throw invocation.make<TypeSystem>(
-                    "Receiver type '${receiverType.name}' does not respond to message '${node.messageIdentifier.identifier}' with parameter types $params",
+                    "Receiver type ${printer.apply(receiverType.name, PrintableKey.Italics, PrintableKey.Bold)} does not respond to message '${node.messageIdentifier.identifier}' with parameter types $params",
                     node.messageIdentifier
                 )
             } else if (matches.size > 1) {
