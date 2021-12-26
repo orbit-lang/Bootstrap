@@ -1,7 +1,11 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Main {
-    trait Show
+    trait Show {
+        (self Self) display () ()
+    }
+
     type Foo
+    type Bar
 
     extension Show {
         (self Self) show () () {
@@ -10,9 +14,21 @@ module M with Orb::Types::Intrinsics with Orb::Core::Main {
     }
 
     type projection Foo : Show
+    type projection Bar : Show
+
+    (self Foo) display () () {
+        print self.show()
+    }
+
+    (self Bar) display () () {
+        print self.show()
+    }
 
     (self Main) main () () {
         f = Foo()
         f.show()
+
+        b = Bar()
+        b.show()
     }
 }

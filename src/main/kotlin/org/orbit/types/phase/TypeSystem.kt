@@ -125,6 +125,7 @@ data class SignatureConstraint(override val target: SignatureProtocol<*>) : Cons
         .asSequence()
         .filterIsInstance<Module>()
         .flatMap { it.signatures }
+        .filter { it.name == target.name }
         .filter { it.isReceiverSatisfied(target.receiver as Entity, universe) }
         .filter { it.isParameterListSatisfied(target.parameters, universe) }
         .filter { it.isReturnTypeSatisfied(target.returnType as Entity, universe) }
