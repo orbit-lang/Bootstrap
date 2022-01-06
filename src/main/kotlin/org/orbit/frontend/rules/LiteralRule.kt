@@ -15,7 +15,8 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRul
 			TypeIdentifierRule.Naked,
 			IdentifierRule,
 			IntLiteralRule,
-			SymbolRule
+			SymbolRule,
+			CollectionLiteralRule
 		)
 	}
 

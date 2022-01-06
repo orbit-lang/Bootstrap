@@ -856,7 +856,7 @@ interface Eval : Expr {
     override fun evaluate(universe: Universe): TypeLike = expr.evaluate(universe)
 }
 
-class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private val concreteParameters: List<ValuePositionType>) : Specialisation<Type> {
+class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private val concreteParameters: List<ValuePositionType>, private val producesEphemeralInstances: Boolean = false) : Specialisation<Type> {
     private companion object : KoinComponent {
         private val invocation: Invocation by inject()
         private val printer: Printer by inject()
@@ -934,7 +934,7 @@ class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private
         val metaTraits = typeConstructor.partiallyResolvedTraitConstructors
             .map { specialiseTrait(context, it, abstractParameters, concreteParameters) }
 
-        val monomorphisedType = MetaType(typeConstructor, concreteParameters, concreteProperties, metaTraits)
+        val monomorphisedType = MetaType(typeConstructor, concreteParameters, concreteProperties, metaTraits, producesEphemeralInstances)
             .evaluate(context) as Type
 
         // We need to save a record of these specialised types to that we can code gen for them later on

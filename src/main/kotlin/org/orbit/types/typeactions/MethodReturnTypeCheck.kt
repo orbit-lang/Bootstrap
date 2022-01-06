@@ -43,15 +43,15 @@ class MethodReturnTypeCheck(private val node: MethodDefNode) : TypeAction, KoinC
 
     private lateinit var signature: TypeSignature
 
-    override fun execute(context: Context) = context.withSubContext { ctx ->
+    override fun execute(context: Context) {
         signature = node.signature.getType() as TypeSignature
-        signature.parameters.forEach { ctx.bind(it.name, it.type) }
+        signature.parameters.forEach { context.bind(it.name, it.type) }
 
         val resolver = MethodBodyTypeResolver(node.body, Binding(Binding.Kind.Method, signature.name, node.signature.getPath()), signature.returnType)
 
-        resolver.resolve(nameResolverResult.environment, ctx)
+        resolver.resolve(nameResolverResult.environment, context)
 
-        return@withSubContext
+        return
     }
 
     override fun describe(printer: Printer): String {

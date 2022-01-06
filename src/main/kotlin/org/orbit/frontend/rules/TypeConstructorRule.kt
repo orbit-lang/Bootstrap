@@ -49,6 +49,13 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
             val typeParameter = context.attempt(TypeIdentifierRule.Naked)
                 ?: throw invocation.make<Parser>("", context.peek())
 
+//            val nToken = context.peek()
+//
+//            if (nToken.type == TokenTypes.TypeIdentifier) {
+//                // This is a dependent pair
+//                val
+//            }
+
             typeParameters.add(typeParameter)
 
             next = context.peek()

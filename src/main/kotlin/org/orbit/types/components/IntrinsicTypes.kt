@@ -4,15 +4,16 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.util.toPath
 
-enum class IntrinsicTypes(val type: ValuePositionType) {
+enum class IntrinsicTypes(val type: TypeProtocol) {
     AnyType(Type(name = "Orb::Core::Types::AnyType", isRequired = false, equalitySemantics = AnyTypeEquality)),
     Unit(Type("Orb::Types::Intrinsics::Unit", isRequired = false)),
     Int(Type("Orb::Types::Intrinsics::Int", isRequired = false)),
+    Collection(Type("Orb::Core::Collections::Collection", isRequired = false)),
     Symbol(Type("Orb::Types::Intrinsics::Symbol", isRequired = false)),
     Main(Type("Orb::Core::Main::Main", properties = listOf(Property("argc", Int.type)), isRequired = false)),
     CodeGenOmit(Type("Orb::Compiler::CodeGen::Omit", isRequired = false)),
     Bool(Type("Orb::Types::Intrinsics::Bool", isRequired = false)),
-    Array(Type("Orb::Types::Intrinsics::Array", isRequired = false)),
+    Array(TypeConstructor("Orb::Core::Collections::Array", typeParameters = listOf(TypeParameter("T")))),
     Type(Type("Orb::Meta::Entities::Type", isRequired = false));
 
     companion object {

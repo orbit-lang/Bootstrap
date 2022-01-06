@@ -28,7 +28,7 @@ object ConstructorInference : TypeInference<ConstructorNode>, KoinComponent {
             )
         }
 
-        var parameterTypes = receiverType.properties.mapNotNull {
+        val parameterTypes = receiverType.properties.mapNotNull {
              when (it.defaultValue) {
                  null -> it
                  else -> null

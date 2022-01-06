@@ -71,6 +71,8 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     override var monomorphisedMethods = mutableMapOf<String, MethodTemplate>()
         private set
 
+    val intrinsicTypeAliases = mutableMapOf<TypeProtocol, TypeProtocol>()
+
     val specialisedMethods = mutableMapOf<String, MethodTemplate>()
 
     private var next = 0
@@ -112,6 +114,10 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         val path = OrbitMangler.mangle(method.signature)
 
         monomorphisedMethods[path] = method
+    }
+
+    fun registerIntrinsicTypeAlias(source: TypeProtocol, target: TypeProtocol) {
+        intrinsicTypeAliases[source] = target
     }
 
     fun registerSpecialisedMethod(method: MethodTemplate) {

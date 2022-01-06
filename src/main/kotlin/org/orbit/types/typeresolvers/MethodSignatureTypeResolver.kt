@@ -45,7 +45,7 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
         }
 
         val returnType: ValuePositionType = if (node.returnTypeNode == null) {
-            IntrinsicTypes.Unit.type
+            IntrinsicTypes.Unit.type as ValuePositionType
         } else {
             TypeExpressionTypeResolver(node.returnTypeNode, binding)
                 .resolve(environment, context)

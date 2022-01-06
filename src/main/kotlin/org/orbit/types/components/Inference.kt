@@ -16,6 +16,8 @@ object TypeInferenceUtil {
         is SymbolLiteralNode -> IntrinsicTypes.Symbol.type
         is CallNode -> CallInference.infer(context, expressionNode, typeAnnotation)
         is ConstructorNode -> ConstructorInference.infer(context, expressionNode, typeAnnotation)
+        // TODO - `by` expressions to bind collection literals to a collection type
+        is CollectionLiteralNode -> CollectionLiteralInference.infer(context, expressionNode, typeAnnotation)
 
         else -> throw RuntimeException("FATAL - Cannot determine type of expression '${expressionNode::class.java}'")
     }

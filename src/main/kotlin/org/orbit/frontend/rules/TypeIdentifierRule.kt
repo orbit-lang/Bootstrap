@@ -12,7 +12,7 @@ import org.orbit.frontend.extensions.unaryPlus
 
 object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
-		val node = context.attemptAny(listOf(MetaTypeRule, TypeIdentifierRule.Naked, CollectionTypeLiteralRule))
+		val node = context.attemptAny(listOf(MetaTypeRule, TypeIdentifierRule.Naked))
 			as? TypeExpressionNode
 			?: return ParseRule.Result.Failure.Abort
 
@@ -53,8 +53,9 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 object CollectionTypeLiteralRule : ValueRule<CollectionTypeLiteralNode> {
 	override fun parse(context: Parser): ParseRule.Result {
 		val start = context.expect(TokenTypes.LBracket)
+
 		val typeExpression = context.attempt(TypeExpressionRule)
-			?: TODO("TypeIdentifierRule.kt:57")
+			?: return ParseRule.Result.Failure.Rewind(listOf(start))
 
 		val end = context.expect(TokenTypes.RBracket)
 

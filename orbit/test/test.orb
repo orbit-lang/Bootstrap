@@ -1,34 +1,9 @@
 @Main
-module M with Orb::Types::Intrinsics with Orb::Core::Main {
-    trait Show {
-        (self Self) display () ()
-    }
-
-    type Foo
-    type Bar
-
-    extension Show {
-        (self Self) show () () {
-            print self
-        }
-    }
-
-    type projection Foo : Show
-    type projection Bar : Show
-
-    (self Foo) display () () {
-        print self.show()
-    }
-
-    (self Bar) display () () {
-        print self.show()
-    }
+module M with Orb::Types::Intrinsics with Orb::Core::Types::PI with Orb::Core::Main {
+    type constructor Vector<T>(elements Array<T>)
 
     (self Main) main () () {
-        f = Foo()
-        f.show()
-
-        b = Bar()
-        b.show()
+        xs = [1, 2, 3]
+        v = Vector<Int>(xs)
     }
 }

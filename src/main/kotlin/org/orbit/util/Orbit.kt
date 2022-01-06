@@ -47,6 +47,7 @@ val mainModule = module {
 		util.registerPathResolver(MetaTypePathResolver, MetaTypeNode::class.java)
 		util.registerPathResolver(TypeProjectionPathResolver, TypeProjectionNode::class.java)
 		util.registerPathResolver(TypeExpressionPathResolver, TypeExpressionNode::class.java)
+		util.registerPathResolver(CollectionLiteralPathResolver, CollectionLiteralNode::class.java)
 
 		util
 	}

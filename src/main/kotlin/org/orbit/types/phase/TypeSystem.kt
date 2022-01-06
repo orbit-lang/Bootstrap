@@ -75,6 +75,8 @@ data class StructuralEqualityConstraint(override val target: Trait) : EqualityCo
 
                     if (equalityConstraint.checkConformance(universe, typeParameter2)) {
                         count += 1
+                    } else {
+                        println("HERE")
                     }
                 }
             }

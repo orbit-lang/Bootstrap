@@ -58,9 +58,13 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
             .filterNot(Type::isEphemeral)
             .joinToString("\n", transform = partial(TypeDefUnit.Companion::generateMonomorphisedType, mangler))
 
-//        val typeProjections = node.typeProjections
-//            .map(partial(::TypeProjectionUnit, depth))
-//            .joinToString(newline(2), transform = partial(TypeProjectionUnit::generate, mangler))
+        val intrinsicTypeAliases = context.intrinsicTypeAliases
+            .map {
+                val sType = (OrbitMangler + mangler).invoke(it.key.name)
+                val eType = (OrbitMangler + mangler).invoke(it.value.name)
+
+                "typealias $sType = [$eType]"
+            }.joinToString("\n")
 
         val monoMethods = context.specialisedMethods.values.map { spec ->
             val nSignature = spec.signature.toNode(context)
@@ -84,6 +88,7 @@ class ModuleUnit(override val node: ModuleNode, override val depth: Int) : Abstr
             |$header
             |$typeDefs
             |$typeAliases
+            |$intrinsicTypeAliases
             |$monos
             |$methodDefs
             |$monoMethods

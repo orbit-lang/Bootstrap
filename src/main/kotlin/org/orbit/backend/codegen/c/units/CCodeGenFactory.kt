@@ -10,6 +10,10 @@ object CCodeGenFactory : CodeGenFactory<CHeader> {
     override fun getProgramUnit(node: ProgramNode, depth: Int): AbstractProgramUnit<CHeader>
         = ProgramUnit(node, depth)
 
+    override fun getCollectionLiteralUnit(node: CollectionLiteralNode, depth: Int): AbstractCollectionLiteralUnit {
+        TODO("Not yet implemented")
+    }
+
     override fun getModuleUnit(node: ModuleNode, depth: Int, header: CHeader): AbstractModuleUnit
         = ModuleUnit(node, depth, header)
 

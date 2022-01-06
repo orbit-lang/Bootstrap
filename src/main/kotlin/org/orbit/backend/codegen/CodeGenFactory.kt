@@ -23,6 +23,7 @@ interface CodeGenFactory<H: AbstractHeader> {
     fun getIntLiteralUnit(node: LiteralNode<Pair<Int, BigInteger>>, depth: Int) : AbstractLiteralUnit<Pair<Int, BigInteger>>
     fun getSymbolLiteralUnit(node: SymbolLiteralNode, depth: Int) : AbstractLiteralUnit<Pair<Int, String>>
     fun getTypeLiteralUnit(node: LiteralNode<String>, depth: Int) : AbstractLiteralUnit<String>
+    fun getCollectionLiteralUnit(node: CollectionLiteralNode, depth: Int) : AbstractCollectionLiteralUnit
 
     fun getUnaryExpressionUnit(node: UnaryExpressionNode, depth: Int) : AbstractUnaryExpressionUnit = UnaryExpressionUnit(node, depth)
     fun getBinaryExpressionUnit(node: BinaryExpressionNode, depth: Int) : AbstractBinaryExpressionUnit = BinaryExpressionUnit(node, depth)

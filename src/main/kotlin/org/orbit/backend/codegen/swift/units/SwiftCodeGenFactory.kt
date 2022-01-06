@@ -60,4 +60,7 @@ object SwiftCodeGenFactory : CodeGenFactory<SwiftHeader> {
 
     override fun getPropertyProjectionUnit(node: AssignmentStatementNode, depth: Int): AbstractPropertyProjectionUnit
         = PropertyProjectionUnit(node, depth)
+
+    override fun getCollectionLiteralUnit(node: CollectionLiteralNode, depth: Int): AbstractCollectionLiteralUnit
+        = CollectionLiteralUnit(node, depth)
 }

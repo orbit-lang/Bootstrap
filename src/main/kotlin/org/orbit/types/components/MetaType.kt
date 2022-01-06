@@ -7,7 +7,7 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 
-data class MetaType(val entityConstructor: EntityConstructor, val concreteTypeParameters: List<ValuePositionType>, val properties: List<Property>, val traitConformance: List<Trait> = emptyList()) : ValuePositionType, TypeExpression {
+data class MetaType(val entityConstructor: EntityConstructor, val concreteTypeParameters: List<ValuePositionType>, val properties: List<Property>, val traitConformance: List<Trait> = emptyList(), private val producesEphemeralInstances: Boolean = false) : ValuePositionType, TypeExpression {
     companion object : KoinComponent {
         val invocation: Invocation by inject()
     }
@@ -34,7 +34,7 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
             val diff = eCount - cCount
 
             for (i in IntRange(0, diff - 1)) {
-                typeParams.add(IntrinsicTypes.AnyType.type)
+                typeParams.add(IntrinsicTypes.AnyType.type as ValuePositionType)
             }
 
             val typeParamsString = typeParams.joinToString(", ") { it.name }
@@ -48,9 +48,9 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
         val paramsPath = Path(entityConstructor.name) + typeParams.map { Path(it.name) }
 
         // NOTE - Ephemerality propagates upwards
-        // i.e. if a Type Constructor has at least one ephemeral Type Parameters, it too is ephemeral
-        // NOTE - Ephemeral means compiler-generated in this context
-        val isEphemeral = concreteTypeParameters.any(ValuePositionType::isEphemeral)
+        //  i.e. if a Type Constructor has at least one ephemeral Type Parameters, it too is ephemeral
+        // NOTE - Ephemeral means erased at runtime
+        val isEphemeral = producesEphemeralInstances || concreteTypeParameters.any(ValuePositionType::isEphemeral)
 
         return when (entityConstructor) {
             is TypeConstructor -> Type(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral, traitConformance = traitConformance, typeConstructor = entityConstructor)

@@ -30,6 +30,8 @@ class ExpressionUnit(override val node: ExpressionNode, override val depth: Int)
             codeGenFactory.getBinaryExpressionUnit(node, depth).generate(mangler)
         is UnaryExpressionNode ->
             codeGenFactory.getUnaryExpressionUnit(node, depth).generate(mangler)
+        is CollectionLiteralNode ->
+                codeGenFactory.getCollectionLiteralUnit(node, depth).generate(mangler)
 
         else -> TODO("@ExpressionUnit:32")
     }
