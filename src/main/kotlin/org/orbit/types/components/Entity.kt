@@ -4,13 +4,17 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.util.Printer
 
+interface PropertyProvidingType : TypeProtocol {
+    val properties: List<Property>
+}
+
 abstract class Entity(
     override val name: String,
-    open val properties: List<Property> = emptyList(),
+    override val properties: List<Property> = emptyList(),
     open val traitConformance: List<Trait> = emptyList(),
     override val equalitySemantics: Equality<out Entity, out Entity>,
     override val isEphemeral: Boolean = false,
-) : ValuePositionType, TypeExpression {
+) : ValuePositionType, PropertyProvidingType, TypeExpression {
     constructor(path: Path, properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), equalitySemantics: Equality<out Entity, out Entity>, isEphemeral: Boolean = false)
         : this(path.toString(OrbitMangler), properties, traitConformance, equalitySemantics, isEphemeral)
 

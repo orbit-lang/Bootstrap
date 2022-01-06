@@ -3,9 +3,9 @@ package org.orbit.types.components
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 
-interface EntityConstructor : TypeProtocol {
+interface EntityConstructor : PropertyProvidingType {
     val typeParameters: List<TypeParameter>
-    val properties: List<Property>
+    override val properties: List<Property>
     val partiallyResolvedTraitConstructors: List<PartiallyResolvedTraitConstructor>
 
     fun getTypeParameterOrNull(path: Path) : TypeParameter? {

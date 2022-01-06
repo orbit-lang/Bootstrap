@@ -1,9 +1,9 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Types::PI with Orb::Core::Main {
-    type constructor Vector<T>(elements Array<T>)
+    type constructor Box<T>(value T)
 
     (self Main) main () () {
-        xs = [1, 2, 3]
-        v = Vector<Int>(xs)
+        b = Box(1)
+        b2 = Box(:abc)
     }
 }
