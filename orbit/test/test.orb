@@ -1,9 +1,6 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Types::PI with Orb::Core::Main {
-    type constructor Box<T>(value T)
-
     (self Main) main () () {
-        b = Box(1)
-        b2 = Box(:abc)
+        f = { print 1 }
     }
 }

@@ -35,13 +35,12 @@ class TraitDefPathResolver(
 			graph.link(parentGraphID, graphID)
 			graph.alias(path.toString(OrbitMangler), graphID)
 
-			//environment.openScope(input)
-
 			input.typeIdentifierNode.typeParametersNode.typeParameters.forEach {
 				environment.bind(Binding.Kind.Ephemeral, it.name.value, path + Path(it.name.value))
 			}
 
-			//environment.closeScope()
+			input.signatures.forEach { it.annotate(graphID, Annotations.GraphID) }
+
 			path
 		} else {
 			val path = input.getPath()

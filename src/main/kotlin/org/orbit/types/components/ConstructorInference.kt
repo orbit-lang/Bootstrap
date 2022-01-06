@@ -103,6 +103,6 @@ object ConstructorInference : TypeInference<ConstructorNode>, KoinComponent {
             return nType
         }
 
-        return receiverType
+        return fReceiverType
     }
 }
