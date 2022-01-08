@@ -188,7 +188,11 @@ class Parser(
 			return Pair(result1, null)
 		}
 
-		tokens = backup
+		if (backup.count() > tokens.count()) {
+			// NOTE - The first attempt may have been able to rewind, so only reset
+			//  here if we stand to gain tokens
+			tokens = backup
+		}
 
 		val result2 = attempt(of2)
 

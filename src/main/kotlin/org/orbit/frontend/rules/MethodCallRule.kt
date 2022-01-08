@@ -16,7 +16,9 @@ object ReferenceCallRule : CallRule<ReferenceCallNode> {
 
         val next = context.peek()
 
-        if (next.type != TokenTypes.LParen) return ParseRule.Result.Failure.Rewind()
+        if (next.type != TokenTypes.LParen) {
+            return +ReferenceCallNode(referenceExpression.firstToken, referenceExpression.lastToken, emptyList(), referenceExpression)
+        }
 
         val delimitedRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)
         val delimitedNode = context.attempt(delimitedRule)

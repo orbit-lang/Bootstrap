@@ -10,8 +10,8 @@ interface ValueRule<E: ExpressionNode> : ParseRule<E>
 class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<ExpressionNode> {
 	companion object {
 		val defaultValue = ExpressionRule(
-			ReferenceCallRule,
 			LambdaLiteralRule,
+			ReferenceCallRule,
 			UnaryExpressionRule,
 			ConstructorRule(),
 			LiteralRule()
@@ -33,7 +33,7 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 		}
 	
 		val expr = context.attemptAny(*valueRules) as? ExpressionNode
-			?: TODO("@ExpressionRule:39")
+			?: return ParseRule.Result.Failure.Rewind(listOf(start))
 
 		val next = context.peek()
 

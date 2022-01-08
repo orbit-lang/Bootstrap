@@ -19,7 +19,7 @@ object PairRule : ParseRule<PairNode> {
 			?: throw context.invocation.make(Errors.MissingIdentifier(start.position))
 		
 		val typeIdentifierNode = context.attempt(TypeExpressionRule)
-			?: throw context.invocation.make(Errors.MissingType(start.position))
+			?: return ParseRule.Result.Failure.Rewind(listOf(identifierNode.firstToken))
 
 		return +PairNode(start, typeIdentifierNode.lastToken, identifierNode, typeIdentifierNode)
 	}
