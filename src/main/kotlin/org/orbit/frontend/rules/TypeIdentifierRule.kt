@@ -14,7 +14,7 @@ object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
 		val node = context.attemptAny(listOf(MetaTypeRule, TypeIdentifierRule.Naked))
 			as? TypeExpressionNode
-			?: return ParseRule.Result.Failure.Abort
+			?: return ParseRule.Result.Failure.Rewind()
 
 		return +node
 	}
@@ -42,11 +42,17 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 	}
 
 	override fun parse(context: Parser) : ParseRule.Result {
-		val start = context.expect(TokenTypes.TypeIdentifier)
+		val start = context.peek()
 
-		if (!context.hasMore) return +TypeIdentifierNode(start, start, start.text)
+		if (start.type != TokenTypes.TypeIdentifier) {
+			return ParseRule.Result.Failure.Rewind()
+		}
 
-		return +TypeIdentifierNode(start, start, start.text)
+		val typeId = context.expect(TokenTypes.TypeIdentifier)
+
+		if (!context.hasMore) return +TypeIdentifierNode(start, start, typeId.text)
+
+		return +TypeIdentifierNode(start, start, typeId.text)
 	}
 }
 

@@ -1,7 +1,9 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Types::PI with Orb::Core::Main {
+    (AnyType) id (x AnyType) (AnyType) = (invoke { x })
+
     (self Main) main () () {
         x = 1
-        invoke { x }
+        print invoke { x }
     }
 }
