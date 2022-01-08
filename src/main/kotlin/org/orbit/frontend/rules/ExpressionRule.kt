@@ -18,7 +18,7 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 		)
 
 		val singleExpressionBodyRule = ExpressionRule(
-			ConstructorRule(), ReferenceCallRule, LiteralRule(), MethodCallRule, UnaryExpressionRule
+			LambdaLiteralRule, ConstructorRule(), ReferenceCallRule, LiteralRule(), MethodCallRule, UnaryExpressionRule
 		)
 	}
 

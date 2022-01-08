@@ -16,7 +16,7 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
     override val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    override fun resolve(environment: Environment, context: Context) : TypeProtocol {
+    override fun resolve(environment: Environment, context: Context) : TypeProtocol = context.withSubContext { ctx ->
         // Ensure we have at least one return statement if the method declares an explicit return type
         if (returnType !== IntrinsicTypes.Unit.type) {
             val returnStatements = node.search(ReturnStatementNode::class.java)
@@ -30,20 +30,20 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
             when (statementNode) {
                 is ExpressionNode -> {
                     // TODO - Raise a warning about unused expression value
-                    TypeInferenceUtil.infer(context, statementNode)
+                    TypeInferenceUtil.infer(ctx, statementNode)
                 }
 
-                is AssignmentStatementNode -> AssignmentTypeResolver(statementNode, binding).resolve(environment, context)
+                is AssignmentStatementNode -> AssignmentTypeResolver(statementNode, binding).resolve(environment, ctx)
 
                 is PrintNode ->
-                    TypeInferenceUtil.infer(context, statementNode.expressionNode)
+                    TypeInferenceUtil.infer(ctx, statementNode.expressionNode)
 
                 is ReturnStatementNode -> {
                     val varExpr = statementNode.valueNode.expressionNode
-                    val varType = TypeInferenceUtil.infer(context, varExpr, returnType)
+                    val varType = TypeInferenceUtil.infer(ctx, varExpr, returnType)
                     val equalitySemantics = returnType.equalitySemantics as AnyEquality
 
-                    if (!equalitySemantics.isSatisfied(context, returnType, varType)) {
+                    if (!equalitySemantics.isSatisfied(ctx, returnType, varType)) {
                         throw invocation.make<TypeSystem>("Method '${binding.simpleName}' declares a return type of '${returnType.toString(printer)}', found '${varType.toString(printer)}'", statementNode)
                     }
 
@@ -52,7 +52,7 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
 
                 is DeferNode -> {
                     // Create a new lexical scope derived from (i.e. inheriting existing bindings) the current scope
-                    val localContext = Context(context)
+                    val localContext = Context(ctx)
 
                     statementNode.annotate(returnType, Annotations.Type, true)
 
@@ -80,6 +80,6 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
 
         // All return paths have been evaluated at this point. No conflicts were found,
         // which means its safe to just return the expected return type
-        return returnType
+        returnType
     }
 }
