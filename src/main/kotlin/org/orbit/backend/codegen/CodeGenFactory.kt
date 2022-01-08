@@ -24,13 +24,14 @@ interface CodeGenFactory<H: AbstractHeader> {
     fun getSymbolLiteralUnit(node: SymbolLiteralNode, depth: Int) : AbstractLiteralUnit<Pair<Int, String>>
     fun getTypeLiteralUnit(node: LiteralNode<String>, depth: Int) : AbstractLiteralUnit<String>
     fun getCollectionLiteralUnit(node: CollectionLiteralNode, depth: Int) : AbstractCollectionLiteralUnit
+    fun getLambdaLiteralUnit(node: LambdaLiteralNode, depth: Int) : AbstractLambdaLiteralUnit
 
     fun getUnaryExpressionUnit(node: UnaryExpressionNode, depth: Int) : AbstractUnaryExpressionUnit = UnaryExpressionUnit(node, depth)
     fun getBinaryExpressionUnit(node: BinaryExpressionNode, depth: Int) : AbstractBinaryExpressionUnit = BinaryExpressionUnit(node, depth)
     fun getIdentifierUnit(node: IdentifierNode, depth: Int) : AbstractIdentifierUnit = IdentifierUnit(node, depth)
     fun getRValueUnit(node: RValueNode, depth: Int) : AbstractRValueUnit = RValueUnit(node, depth)
     fun getConstructorUnit(node: ConstructorNode, depth: Int) : AbstractConstructorUnit
-    fun getCallUnit(node: CallNode, depth: Int) : AbstractCallUnit
+    fun getCallUnit(node: InvokableNode, depth: Int) : AbstractCallUnit<*>
     fun getTypeExpressionUnit(node: TypeExpressionNode, depth: Int) : AbstractTypeExpressionUnit = TypeExpressionUnit(node, depth)
 
     fun getTypeDefUnit(node: TypeDefNode, depth: Int) : AbstractTypeDefUnit

@@ -9,7 +9,7 @@ import org.orbit.frontend.phase.Parser
 object DeferRule : ParseRule<DeferNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.Defer)
-        var next = context.peek()
+        val next = context.peek()
 
         var returnValueIdentifier: IdentifierNode? = null
         if (next.type == TokenTypes.LParen) {

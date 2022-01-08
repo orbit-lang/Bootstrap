@@ -2,7 +2,7 @@ package org.orbit.types.typeresolvers
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.nodes.CallNode
+import org.orbit.core.nodes.MethodCallNode
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.types.components.Function
@@ -12,7 +12,7 @@ import org.orbit.types.components.TypeInferenceUtil
 import org.orbit.types.components.TypeProtocol
 import org.orbit.util.Invocation
 
-class CallTypeResolver(override val node: CallNode, override val binding: Binding, private val expectedType: TypeProtocol? = null) : TypeResolver<CallNode, TypeProtocol>, KoinComponent {
+class CallTypeResolver(override val node: MethodCallNode, override val binding: Binding, private val expectedType: TypeProtocol? = null) : TypeResolver<MethodCallNode, TypeProtocol>, KoinComponent {
     override val invocation: Invocation by inject()
 
     override fun resolve(environment: Environment, context: Context): TypeProtocol {

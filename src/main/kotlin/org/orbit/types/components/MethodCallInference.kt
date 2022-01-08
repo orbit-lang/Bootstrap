@@ -3,25 +3,58 @@ package org.orbit.types.components
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
-import org.orbit.core.nodes.CallNode
+import org.orbit.core.nodes.MethodCallNode
+import org.orbit.core.nodes.ReferenceCallNode
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.*
 
-object CallInference : TypeInference<CallNode>, KoinComponent {
+object ReferenceCallInference : TypeInference<ReferenceCallNode>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    override fun infer(context: Context, node: CallNode, typeAnnotation: TypeProtocol?): TypeProtocol {
+    override fun infer(context: Context, node: ReferenceCallNode, typeAnnotation: TypeProtocol?): TypeProtocol {
+        val referenceType = TypeInferenceUtil.infer(context, node.referenceNode)
+
+        if (referenceType !is Function) {
+            // TODO - Other types of invokable reference
+            throw invocation.make<TypeSystem>("Cannot invoke something that is not invokable: ${referenceType.toString(printer)}", node.referenceNode)
+        }
+
+        val argTypes = node.parameterNodes.map { TypeInferenceUtil.infer(context, it) }
+
+        val pCount = referenceType.inputTypes.count()
+        val aCount = argTypes.count()
+
+        // TODO - Partial application
+        if (aCount != pCount) {
+            throw invocation.make<TypeSystem>("Lambda invocation expects $pCount arguments, found $aCount", node.referenceNode)
+        }
+
+        referenceType.inputTypes.zip(argTypes).withIndex().forEach {
+            if (!it.value.first.isSatisfied(context, it.value.second)) {
+                throw invocation.make<TypeSystem>("Invokable expects argument of type ${it.value.first.toString(printer)} at index ${it.index}, found ${it.value.second.toString(printer)}", node.referenceNode)
+            }
+        }
+
+        return referenceType.outputType
+    }
+}
+
+object MethodCallInference : TypeInference<MethodCallNode>, KoinComponent {
+    private val invocation: Invocation by inject()
+    private val printer: Printer by inject()
+
+    override fun infer(context: Context, node: MethodCallNode, typeAnnotation: TypeProtocol?): TypeProtocol {
         val receiverType = TypeInferenceUtil.infer(context, node.receiverExpression)
-            as? Entity
+            as? InvokableType
             // TODO - Allow for signatures, potentially other types too
-            ?: throw invocation.make<TypeSystem>("Only entity types may appear on the left-hand side of a call expression", node.receiverExpression)
+            ?: throw invocation.make<TypeSystem>("Only Invokable Types (Entity, Lambda, Method) may appear on the left-hand side of a call expression", node.receiverExpression)
 
         // TODO - There is way too much happening here.
         //  This should be simpler, or at least split up a bit
-        if (node.isPropertyAccess) {
+        if (node.isPropertyAccess && receiverType is PropertyProvidingType) {
             val matches = receiverType.properties.filter { it.name == node.messageIdentifier.identifier }
 
             if (matches.isEmpty()) {

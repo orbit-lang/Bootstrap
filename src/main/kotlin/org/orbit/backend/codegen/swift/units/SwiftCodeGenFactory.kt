@@ -46,9 +46,6 @@ object SwiftCodeGenFactory : CodeGenFactory<SwiftHeader> {
     override fun getConstructorUnit(node: ConstructorNode, depth: Int): AbstractConstructorUnit
         = ConstructorUnit(node, depth)
 
-    override fun getCallUnit(node: CallNode, depth: Int): AbstractCallUnit
-        = CallUnit(node, depth)
-
     override fun getTypeDefUnit(node: TypeDefNode, depth: Int): AbstractTypeDefUnit
         = TypeDefUnit(node, depth)
 
@@ -63,4 +60,13 @@ object SwiftCodeGenFactory : CodeGenFactory<SwiftHeader> {
 
     override fun getCollectionLiteralUnit(node: CollectionLiteralNode, depth: Int): AbstractCollectionLiteralUnit
         = CollectionLiteralUnit(node, depth)
+
+    override fun getLambdaLiteralUnit(node: LambdaLiteralNode, depth: Int): AbstractLambdaLiteralUnit
+        = LambdaLiteralUnit(node, depth)
+
+    override fun getCallUnit(node: InvokableNode, depth: Int): AbstractCallUnit<*> = when (node) {
+        is ReferenceCallNode -> ReferenceCallUnit(node, depth)
+        is MethodCallNode -> MethodCallUnit(node, depth)
+        else -> TODO("@SwiftCodeGenFactory:73")
+    }
 }

@@ -50,9 +50,6 @@ object CCodeGenFactory : CodeGenFactory<CHeader> {
     override fun getConstructorUnit(node: ConstructorNode, depth: Int): AbstractConstructorUnit
         = ConstructorUnit(node, depth)
 
-    override fun getCallUnit(node: CallNode, depth: Int): AbstractCallUnit
-        = CallUnit(node, depth)
-
     override fun getTypeDefUnit(node: TypeDefNode, depth: Int): AbstractTypeDefUnit
         = TypeDefUnit(node, depth)
 
@@ -64,4 +61,12 @@ object CCodeGenFactory : CodeGenFactory<CHeader> {
 
     override fun getPropertyProjectionUnit(node: AssignmentStatementNode, depth: Int): AbstractPropertyProjectionUnit
         = PropertyProjectionUnit(node, depth)
+
+    override fun getLambdaLiteralUnit(node: LambdaLiteralNode, depth: Int): AbstractLambdaLiteralUnit {
+        TODO("Not yet implemented")
+    }
+
+    override fun getCallUnit(node: InvokableNode, depth: Int): AbstractCallUnit<*> {
+        TODO("Not yet implemented")
+    }
 }

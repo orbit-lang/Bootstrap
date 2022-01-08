@@ -24,14 +24,19 @@ class ExpressionUnit(override val node: ExpressionNode, override val depth: Int)
             codeGenFactory.getConstructorUnit(node, depth).generate(mangler)
         is IdentifierNode ->
             codeGenFactory.getIdentifierUnit(node, depth).generate(mangler)
-        is CallNode ->
+        is MethodCallNode ->
             codeGenFactory.getCallUnit(node, depth).generate(mangler)
         is BinaryExpressionNode ->
             codeGenFactory.getBinaryExpressionUnit(node, depth).generate(mangler)
         is UnaryExpressionNode ->
             codeGenFactory.getUnaryExpressionUnit(node, depth).generate(mangler)
         is CollectionLiteralNode ->
-                codeGenFactory.getCollectionLiteralUnit(node, depth).generate(mangler)
+            codeGenFactory.getCollectionLiteralUnit(node, depth).generate(mangler)
+        is LambdaLiteralNode ->
+            codeGenFactory.getLambdaLiteralUnit(node, depth).generate(mangler)
+
+        is InvokableNode ->
+            codeGenFactory.getCallUnit(node, depth).generate(mangler)
 
         else -> TODO("@ExpressionUnit:32")
     }

@@ -30,3 +30,13 @@ object None : TypeProtocol {
         override fun isSatisfied(context: ContextProtocol, source: None, target: TypeProtocol): Boolean = false
     }
 }
+
+// TODO - Constraints
+object TypeHole : TypeProtocol {
+    override val name: String = "?"
+    override val kind: TypeKind = NullaryType
+
+    override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = object : Equality<None, TypeProtocol> {
+        override fun isSatisfied(context: ContextProtocol, source: None, target: TypeProtocol): Boolean = true
+    }
+}

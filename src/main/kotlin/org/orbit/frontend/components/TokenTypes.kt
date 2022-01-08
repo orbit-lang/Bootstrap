@@ -43,6 +43,9 @@ object TokenTypes : TokenTypeProvider {
     // avoid recognising them in regular identifiers, e.g. a variable named "observeSomething"
     object Observe : TokenType("Observer", "observe ", true, false, Family.Keyword)
     object Where : TokenType("Where", "where", true, false, Family.Keyword)
+    object Let : TokenType("Let", "let", true, false, Family.Keyword)
+    object In : TokenType("In", "\\bin\\b", true, false, Family.Keyword)
+    object Invoke : TokenType("Invoke", "invoke", true, false, Family.Keyword)
 
     // Literals
     object Int : TokenType("Int", "[0-9]+", true, false, Family.Num)
@@ -57,6 +60,7 @@ object TokenTypes : TokenTypeProvider {
         // Generally, the order of this list matters!
         return listOf(
             Int, Real, Api, Module, Define, Defer, Observe, Where, Print, Required, Projection, Extension, Constructor,
+            Let, Invoke, In,
             TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,

@@ -31,6 +31,8 @@ interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.
 			return this as Success
 		}
 
+		fun asSuccessOrNull() : Success? = this as? Success
+
 		fun withSuccess(fn: (Path) -> Unit) {
 			(this as? Success)?.let {
 				fn(path)

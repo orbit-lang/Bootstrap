@@ -2,7 +2,7 @@ package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
 import org.orbit.core.Path
-import org.orbit.core.nodes.CallNode
+import org.orbit.core.nodes.MethodCallNode
 import org.orbit.core.nodes.ConstructorNode
 import org.orbit.core.nodes.ExpressionNode
 import org.orbit.core.nodes.TypeIdentifierNode
@@ -18,7 +18,7 @@ class ExpressionPathResolver : PathResolver<ExpressionNode> {
 	override fun resolve(input: ExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		return when (input) {
 			is ConstructorNode -> pathResolverUtil.resolve(input, pass, environment, graph)
-			is CallNode -> TODO("HERE")
+			is MethodCallNode -> TODO("HERE")
 			is TypeIdentifierNode -> pathResolverUtil.resolve(input, pass, environment, graph)
 			else -> PathResolver.Result.Success(Path.empty)
 		}

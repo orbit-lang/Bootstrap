@@ -14,7 +14,7 @@ abstract class Entity(
     open val traitConformance: List<Trait> = emptyList(),
     override val equalitySemantics: Equality<out Entity, out Entity>,
     override val isEphemeral: Boolean = false,
-) : ValuePositionType, PropertyProvidingType, TypeExpression {
+) : ValuePositionType, InvokableType, PropertyProvidingType, TypeExpression {
     constructor(path: Path, properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), equalitySemantics: Equality<out Entity, out Entity>, isEphemeral: Boolean = false)
         : this(path.toString(OrbitMangler), properties, traitConformance, equalitySemantics, isEphemeral)
 

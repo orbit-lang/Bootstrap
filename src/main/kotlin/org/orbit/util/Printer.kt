@@ -3,6 +3,7 @@ package org.orbit.util
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.frontend.components.TokenTypes
+import org.orbit.types.components.TypeProtocol
 import java.awt.print.Printable
 
 enum class PrintableKey(val generator: (PrintableFactory) -> String) {

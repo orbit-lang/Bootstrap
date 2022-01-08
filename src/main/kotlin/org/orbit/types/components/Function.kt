@@ -21,6 +21,12 @@ class Function(val canonicalName: String, val inputTypes: List<TypeProtocol>, va
         return Function(canonicalName, inputTypes.dropLast(1), rhs)
             .curry()
     }
+
+    fun uncurry() : Function = Function("->", inputTypes.map { when (it) {
+        is Lambda -> it.uncurry()
+        is Function -> it.uncurry()
+        else -> it
+    }}, outputType)
 }
 
 interface Operator : TypeProtocol {

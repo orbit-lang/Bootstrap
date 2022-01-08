@@ -6,7 +6,6 @@ import org.orbit.core.nodes.*
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.util.Invocation
 
@@ -33,7 +32,7 @@ class BlockPathResolver : PathResolver<BlockNode> {
 					is DeferNode -> result =
 						pathResolverUtil.resolve(node.blockNode, pass, environment, graph)
 
-					is CallNode -> result = pathResolverUtil.resolve(node, pass, environment, graph)
+					is MethodCallNode -> result = pathResolverUtil.resolve(node, pass, environment, graph)
 
 					else -> result = pathResolverUtil.resolve(node, pass, environment, graph)
 

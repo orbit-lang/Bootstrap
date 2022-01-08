@@ -3,16 +3,16 @@ package org.orbit.backend.codegen.c.units
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeGenFactory
-import org.orbit.backend.codegen.common.AbstractCallUnit
+import org.orbit.backend.codegen.common.AbstractMethodCallUnit
 import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
 import org.orbit.core.injectQualified
-import org.orbit.core.nodes.CallNode
+import org.orbit.core.nodes.MethodCallNode
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.getAnnotation
 import org.orbit.types.components.SignatureProtocol
 
-class CallUnit(override val node: CallNode, override val depth: Int) : AbstractCallUnit, KoinComponent {
+class CallUnit(override val node: MethodCallNode, override val depth: Int) : AbstractMethodCallUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
     private val codeGenFactory: CodeGenFactory<CHeader> by injectQualified(codeGeneratorQualifier)
 
