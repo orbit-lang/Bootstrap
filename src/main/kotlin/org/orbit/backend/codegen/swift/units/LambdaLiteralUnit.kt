@@ -23,6 +23,6 @@ class LambdaLiteralUnit(override val node: LambdaLiteralNode, override val depth
         val body = codeGenFactory.getBlockUnit(node.body, depth, true, false)
             .generate(mangler)
 
-        return "{ ($bindings) in $body }"
+        return "({ ($bindings) in $body })"
     }
 }

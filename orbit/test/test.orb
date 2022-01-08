@@ -1,8 +1,7 @@
 @Main
 module M with Orb::Types::Intrinsics with Orb::Core::Types::PI with Orb::Core::Main {
-    (AnyType) capture (x Int) () = { x }
-
     (self Main) main () () {
-        print AnyType.capture(1)
+        x = 1
+        invoke { x }
     }
 }

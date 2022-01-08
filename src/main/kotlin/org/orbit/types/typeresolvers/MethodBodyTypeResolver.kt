@@ -44,7 +44,7 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
                     val equalitySemantics = returnType.equalitySemantics as AnyEquality
 
                     if (!equalitySemantics.isSatisfied(ctx, returnType, varType)) {
-                        throw invocation.make<TypeSystem>("Method '${binding.simpleName}' declares a return type of '${returnType.toString(printer)}', found '${varType.toString(printer)}'", statementNode)
+                        throw invocation.make<TypeSystem>("Method '${binding.simpleName}' declares a return type of ${returnType.toString(printer)}, found ${varType.toString(printer)}", statementNode)
                     }
 
                     statementNode.valueNode.expressionNode.annotate(varType, Annotations.Type)
@@ -59,7 +59,7 @@ class MethodBodyTypeResolver(override val node: BlockNode, override val binding:
                     if (statementNode.returnValueIdentifier != null) {
                         if (!node.containsReturn) {
                             // Defer statement is declared a return capture variable, but method does not return
-                            throw invocation.make<TypeSystem>("Defer blocks cannot capture return value in a method that returns implicit Unit type: 'defer(${statementNode.returnValueIdentifier!!.identifier})'", statementNode)
+                            throw invocation.make<TypeSystem>("Defer blocks cannot capture return value in a method that returns implicit Unit type: `defer(${statementNode.returnValueIdentifier!!.identifier})`", statementNode)
                         }
 
                         // Given a `defer(i) {}` statement inside method known to return type Int,
