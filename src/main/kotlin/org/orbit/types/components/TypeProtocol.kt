@@ -33,7 +33,7 @@ fun TypeProtocolPair.isSatisfied(context: ContextProtocol) : Boolean {
     return first.isSatisfied(context, second)
 }
 
-interface ValuePositionType : TypeProtocol {
+interface ValuePositionType : TypeProtocol, TypeExpression {
     val isEphemeral: Boolean
 }
 

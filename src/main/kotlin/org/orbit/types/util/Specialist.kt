@@ -896,11 +896,11 @@ class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private
                 is TypeParameter -> {
                     val aIdx = abstractParameters.indexOfFirst { t -> t.name == it.type.name }
                     val abstractType = typeConstructor.typeParameters[aIdx]
-                    var concreteType = concreteParameters[aIdx]
-
-                    concreteType = concreteType
-                        as? Type
-                        ?: throw invocation.make<TypeSystem>("Type Constructors must be specialised on concrete Types, found ${concreteType::class.java.simpleName} ${concreteType.toString(printer)}", SourcePosition.unknown)
+                    val concreteType = when (val t = concreteParameters[aIdx]) {
+                        is Type -> t
+                        is TypeParameter -> t.synthesise()
+                        else -> throw invocation.make<TypeSystem>("Type Constructors must be specialised on concrete Types, found ${t::class.java.simpleName} ${t.toString(printer)}", SourcePosition.unknown)
+                    }
 
                     // Easiest way to do this is to construct an ephemeral subtype of concreteType + the constraint Traits
                     val ephemeralType = Type(concreteType.name, concreteType.typeParameters, concreteType.properties, abstractType.constraints, concreteType.equalitySemantics, isEphemeral = concreteType.isEphemeral, typeConstructor = (concreteType as? Type)?.typeConstructor)

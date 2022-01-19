@@ -133,7 +133,7 @@ object MethodCallInference : TypeInference<MethodCallNode>, KoinComponent {
 
             node.annotate(signature, Annotations.Type)
 
-            return receiverType
+            return signature.returnType
         }
     }
 }

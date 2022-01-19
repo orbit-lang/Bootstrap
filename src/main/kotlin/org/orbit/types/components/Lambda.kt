@@ -15,4 +15,6 @@ class Lambda(val inputType: TypeProtocol, val outputType: TypeProtocol) : Invoka
         is Function -> Function("->", inputType.inputTypes, outputType).uncurry()
         else -> Function("->", listOf(inputType), outputType)
     }
+
+    override fun evaluate(context: ContextProtocol): TypeProtocol = this
 }

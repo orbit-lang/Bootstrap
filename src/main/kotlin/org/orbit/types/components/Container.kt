@@ -32,6 +32,8 @@ data class Api(override val name: String, val requiredTypes: List<Type> = emptyL
     fun monomorphise(substitutions: (Type) -> TypeAlias) : ConcreteApi {
         return ConcreteApi(this, requiredTypes.map(substitutions))
     }
+
+    override fun evaluate(context: ContextProtocol): TypeProtocol = this
 }
 
 data class ConcreteApi(private val virtualApi: Api, private val typeAliases: List<TypeAlias>) : Container {
@@ -54,6 +56,8 @@ data class ConcreteApi(private val virtualApi: Api, private val typeAliases: Lis
     fun getType(requiredType: Type) : Type {
         return typeAliases.first { it.name == requiredType.name }.targetType
     }
+
+    override fun evaluate(context: ContextProtocol): TypeProtocol = this
 }
 
 data class Module(override val name: String, val typeAliases: List<TypeAlias> = emptyList(), val entities: List<Entity> = emptyList(), val signatures: List<SignatureProtocol<*>> = emptyList()) : Container {
@@ -76,6 +80,8 @@ data class Module(override val name: String, val typeAliases: List<TypeAlias> = 
             |        Signatures: ($sigs)
         """.trimMargin()
     }
+
+    override fun evaluate(context: ContextProtocol): TypeProtocol = this
 }
 
 fun Type.conforms(to: Trait, module: Module) : Boolean {

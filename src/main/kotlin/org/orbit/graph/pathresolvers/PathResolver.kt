@@ -10,9 +10,11 @@ import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.isAnnotated
 import org.orbit.graph.phase.GraphErrors
+import org.orbit.serial.Serial
+import java.io.Serializable
 
 interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.Result>, KoinComponent {
-	sealed class Pass {
+	sealed class Pass : Serializable {
 		object Initial : Pass()
 		data class Subsequent(val index: Int) : Pass()
 		object Last : Pass()

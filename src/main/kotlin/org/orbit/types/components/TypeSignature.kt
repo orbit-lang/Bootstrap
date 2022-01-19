@@ -59,4 +59,6 @@ data class TypeSignature(
 
     override fun isReceiverSatisfied(by: Entity, context: ContextProtocol): Boolean
         = AnyEqualityConstraint(receiver).checkConformance(context, by)
+
+    override fun evaluate(context: ContextProtocol): TypeProtocol = this
 }

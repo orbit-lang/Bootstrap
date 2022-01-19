@@ -24,6 +24,9 @@ class SpecialisedMethodReturnTypeCheck(private val signature: TypeSignature, pri
 
     override fun execute(context: Context) = context.withSubContext { ctx ->
         signature.parameters.forEach { ctx.bind(it.name, it.type) }
+//        signature.typeParameters.forEach {
+//            ctx.add(it.asSelfType())
+//        }
 
         val path = OrbitMangler.unmangle(OrbitMangler.mangle(signature))
         val resolver = MethodBodyTypeResolver(body, Binding(Binding.Kind.Method, signature.name, path), signature.returnType)

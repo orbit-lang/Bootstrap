@@ -27,18 +27,19 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 			val mPath = Path(input.identifierNode.identifier)
 			tp.typeParameters.forEach {
 				val nPath = mPath + it.value
+				val nGraphID = graph.insert(nPath.toString(OrbitMangler))
 
 				it.annotate(nPath, Annotations.Path)
 				// TODO - Recursively resolve nested type parameters
-				environment.bind(Binding.Kind.Type, it.value, nPath)
+				environment.bind(Binding.Kind.Type, it.value, nPath, nGraphID)
+				graph.link(graphID, nGraphID)
 			}
 		}
 
-		// A method's canonical path is `<ReceiverType>::<MethodName>[::ArgType1, ::ArgType2, ...]::<ReturnType>`
-		val receiver = input.receiverTypeNode.value
-
-		val receiverBinding = environment.getBinding(receiver, Binding.Kind.Union.receiver)
+		val receiverBinding = environment.getBinding(receiver, Binding.Kind.Union.receiver, graph, graphID)
 			.unwrap(this, input.receiverTypeNode.firstToken.position)
+
+		input.receiverTypeNode.annotate(graphID, Annotations.GraphID)
 
 		TypeExpressionPathResolver.resolve(input.receiverTypeNode, pass, environment, graph)
 			.asSuccess()
@@ -50,7 +51,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 
 		if (input.returnTypeNode?.value != null) {
 			try {
-				input.returnTypeNode.annotate(input.getGraphID(), Annotations.GraphID)
+				input.returnTypeNode.annotate(graphID, Annotations.GraphID)
 				TypeExpressionPathResolver.resolve(input.returnTypeNode, pass, environment, graph)
 			} catch (e: Exception) {
 				println("HERE")

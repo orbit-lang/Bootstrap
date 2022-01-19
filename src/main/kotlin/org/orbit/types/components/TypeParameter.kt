@@ -13,4 +13,15 @@ data class TypeParameter(override val name: String, val constraints: List<Trait>
     constructor(path: Path, constraints: List<Trait> = emptyList()) : this(path.toString(OrbitMangler), constraints)
     // TODO - Complex Type Parameter Expressions
     constructor(node: TypeIdentifierNode) : this(node.getPath())
+
+    override fun evaluate(context: ContextProtocol): TypeProtocol = this
+
+    fun asSelfType() : TypeParameter
+        = TypeParameter("Self::$name", constraints)
+
+    fun synthesise() : Type {
+        val properties = constraints.flatMap(Trait::properties)
+
+        return Type(name, properties = properties, traitConformance = constraints)
+    }
 }
