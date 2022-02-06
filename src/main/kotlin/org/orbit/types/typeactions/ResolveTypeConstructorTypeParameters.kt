@@ -6,7 +6,7 @@ import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.types.components.*
 import org.orbit.util.Printer
 
-class ResolveEntityConstructorTypeParameters<EN: EntityConstructorNode, EC: EntityConstructor>(private val node: EN, private val generator: (String, List<TypeParameter>, List<PartiallyResolvedTraitConstructor>) -> EntityConstructor) : TypeAction {
+class ResolveEntityConstructorTypeParameters<EN: EntityConstructorNode, EC: EntityConstructor>(private val node: EN, private val generator: (String, List<TypeParameter>, List<PartiallyResolvedTraitConstructor>, List<TypeSignature>) -> EntityConstructor) : TypeAction {
     private lateinit var entityConstructor: EntityConstructor
 
     override fun execute(context: Context) {
@@ -15,7 +15,12 @@ class ResolveEntityConstructorTypeParameters<EN: EntityConstructorNode, EC: Enti
         val typeParameters = node.typeParameterNodes
             .map(::TypeParameter)
 
-        entityConstructor = generator(entityConstructor.name, typeParameters, entityConstructor.partiallyResolvedTraitConstructors)
+        val signatures = when (entityConstructor) {
+            is TraitConstructor -> (entityConstructor as TraitConstructor).signatures
+            else -> emptyList()
+        }
+
+        entityConstructor = generator(entityConstructor.name, typeParameters, entityConstructor.partiallyResolvedTraitConstructors, signatures)
 
         context.remove(entityConstructor.name)
         context.add(entityConstructor)

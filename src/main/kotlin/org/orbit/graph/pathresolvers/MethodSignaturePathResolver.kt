@@ -1,6 +1,7 @@
 package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
+import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.MethodSignatureNode
@@ -21,7 +22,9 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 
 	override fun resolve(input: MethodSignatureNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		// We need to resolve any type parameters before we can look at the rest of the signature
+		val graphID = input.getGraphID()
 		val tp = input.typeParameters
+		val receiver = input.receiverTypeNode.value
 
 		if (tp != null) {
 			val mPath = Path(input.identifierNode.identifier)

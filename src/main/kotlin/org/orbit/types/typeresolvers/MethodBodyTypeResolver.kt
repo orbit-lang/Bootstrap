@@ -12,7 +12,7 @@ import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
-class MethodBodyTypeResolver(override val node: BlockNode, override val binding: Binding, private val returnType: TypeProtocol) : TypeResolver<BlockNode, TypeProtocol>, KoinComponent {
+class MethodBodyTypeResolver(val signature: TypeSignature, override val node: BlockNode, override val binding: Binding, private val returnType: TypeProtocol) : TypeResolver<BlockNode, TypeProtocol>, KoinComponent {
     override val invocation: Invocation by inject()
     private val printer: Printer by inject()
 

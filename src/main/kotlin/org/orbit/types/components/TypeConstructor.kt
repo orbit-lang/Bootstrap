@@ -8,7 +8,7 @@ import java.io.Serializable
 
 data class PartiallyResolvedTraitConstructor(val traitConstructor: TraitConstructor, val typeParameterMap: Map<TypeParameter, TypeParameter>) : Serializable
 
-data class TypeConstructor(override val name: String, override val typeParameters: List<TypeParameter>, override val properties: List<Property> = emptyList(), override val partiallyResolvedTraitConstructors: List<PartiallyResolvedTraitConstructor> = emptyList()) : EntityConstructor {
+data class TypeConstructor(override val name: String, override val typeParameters: List<TypeParameter>, override val properties: List<Property> = emptyList(), override val partiallyResolvedTraitConstructors: List<PartiallyResolvedTraitConstructor> = emptyList(), private val signatures: List<TypeSignature> = emptyList()) : EntityConstructor {
     override val equalitySemantics: Equality<out TypeProtocol, out TypeProtocol> = TypeConstructorEquality
     override val kind: TypeKind = EntityConstructorKind
 

@@ -20,8 +20,9 @@ data class TypeParameter(override val name: String, val constraints: List<Trait>
         = TypeParameter("Self::$name", constraints)
 
     fun synthesise() : Type {
+        // TODO - Type constraints
         val properties = constraints.flatMap(Trait::properties)
 
-        return Type(name, properties = properties, traitConformance = constraints)
+        return Type(name, properties = properties, traitConformance = constraints, isEphemeral = true)
     }
 }

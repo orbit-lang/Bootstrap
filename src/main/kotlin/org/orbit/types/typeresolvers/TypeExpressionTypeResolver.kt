@@ -24,6 +24,7 @@ class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override
 
             val type = when (abstractType) {
                 is TypeConstructor -> MetaType(abstractType, emptyList(), abstractType.properties)
+                is TypeParameter -> abstractType.synthesise()
                 else -> abstractType as Entity
             }
 

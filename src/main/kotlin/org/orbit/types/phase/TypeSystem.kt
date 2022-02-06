@@ -53,7 +53,10 @@ interface EqualityConstraint<Domain: TypeProtocol> : Constraint<Domain, Domain>
 
 data class NominalEqualityConstraint(override val target: TypeProtocol) : EqualityConstraint<TypeProtocol> {
     override fun checkConformance(universe: ContextProtocol, input: TypeProtocol): Boolean {
-        return target.name == input.name
+        val lType = universe.refresh(target, true)
+        val rType = universe.refresh(input, true)
+
+        return lType.name == rType.name
     }
 }
 
@@ -122,16 +125,23 @@ data class PropertyConstraint(override val target: Property) : Constraint<Proper
     }
 }
 
-data class SignatureConstraint(override val target: SignatureProtocol<*>) : Constraint<SignatureProtocol<*>, Entity> {
-    override fun checkConformance(universe: ContextProtocol, input: Entity): Boolean = universe.universe
-        .asSequence()
-        .filterIsInstance<Module>()
-        .flatMap { it.signatures }
-        .filter { it.name == target.name }
-        .filter { it.isReceiverSatisfied(target.receiver as Entity, universe) }
-        .filter { it.isParameterListSatisfied(target.parameters, universe) }
-        .filter { it.isReturnTypeSatisfied(target.returnType as Entity, universe) }
-        .count() == 1
+data class SignatureConstraint(private val trait: Trait, override val target: SignatureProtocol<*>) : Constraint<SignatureProtocol<*>, Entity> {
+    override fun checkConformance(universe: ContextProtocol, input: Entity): Boolean = (universe as Context).withSubContext { ctx ->
+        if (trait.traitConstructor != null) {
+            trait.typeParameters.zip(trait.traitConstructor.typeParameters).forEach {
+                ctx.add(TypeAlias(it.second.name, it.first as Type))
+            }
+        }
+
+        return@withSubContext ctx.types.asSequence()
+            .filterIsInstance<Module>()
+            .flatMap { it.signatures }
+            .filter { it.name == target.name }
+            .filter { it.isReceiverSatisfied(target.receiver as Entity, ctx) }
+            .filter { it.isParameterListSatisfied(target.parameters, ctx) }
+            .filter { it.isReturnTypeSatisfied(target.returnType as Entity, ctx) }
+            .count() == 1
+    }
 }
 
 class TypeSystem(override val invocation: Invocation, private val context: Context = Context()) : AdaptablePhase<NameResolverResult, Context>() {
@@ -145,10 +155,10 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             .forEach(typeAssistant::perform)
     }
 
-    private fun <N: EntityConstructorNode, C: EntityConstructor> resolveEntityConstructorParameters(nodes: List<N>, generator: (String, List<TypeParameter>) -> C)
-        = performTypeAction(nodes) { ResolveEntityConstructorTypeParameters<N, C>(it) { s, tps, _ -> generator(s, tps) } }
+    private fun <N: EntityConstructorNode, C: EntityConstructor> resolveEntityConstructorParameters(nodes: List<N>, generator: (String, List<TypeParameter>, List<TypeSignature>) -> C)
+        = performTypeAction(nodes) { ResolveEntityConstructorTypeParameters<N, C>(it) { s, tps, _, sigs -> generator(s, tps, sigs) } }
 
-    private fun <N: EntityConstructorNode, C: EntityConstructor> resolveEntityConstructorProperties(nodes: List<N>, generator: (String, List<TypeParameter>, List<Property>, List<PartiallyResolvedTraitConstructor>) -> C)
+    private fun <N: EntityConstructorNode, C: EntityConstructor> resolveEntityConstructorProperties(nodes: List<N>, generator: (String, List<TypeParameter>, List<Property>, List<PartiallyResolvedTraitConstructor>, List<TypeSignature>) -> C)
         = performTypeAction(nodes) { ResolveEntityConstructorProperties(it, generator) }
 
     private fun refineEntityConstructorTypeParameters(nodes: List<EntityConstructorNode>)
@@ -210,8 +220,10 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             performTypeAction(typeConstructors, ::CreateTypeConstructorStub)
             performTypeAction(traitConstructors, ::CreateTraitConstructorStub)
 
-            resolveEntityConstructorParameters(typeConstructors) { s, tps -> TypeConstructor(s, tps) }
-            resolveEntityConstructorParameters(traitConstructors) { s, tps -> TraitConstructor(s, tps) }
+            performTypeAction(traitConstructors, ::ResolveTraitConstructorSignatures)
+
+            resolveEntityConstructorParameters(typeConstructors) { s, tps, _ -> TypeConstructor(s, tps, emptyList()) }
+            resolveEntityConstructorParameters(traitConstructors) { s, tps, sigs -> TraitConstructor(s, tps, signatures = sigs) }
 
             resolveEntityConstructorProperties(typeConstructors, ::TypeConstructor)
             resolveEntityConstructorProperties(traitConstructors, ::TraitConstructor)
@@ -239,6 +251,11 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             performTypeAction(typeDefs, ::ResolveTraitConformance)
 
             for (module in moduleDefs) {
+                for (mono in context.monomorphisedTypes.values) {
+                    val assembler = AssembleMonoExtensions(mono, module)
+                    assembler.execute(context)
+                }
+
                 val tds = module.search<TypeDefNode>()
 
                 for (td in tds) {

@@ -18,6 +18,8 @@ data class Trait(
     override val isEphemeral: Boolean = false,
     val traitConstructor: TraitConstructor? = null
 ) : Entity(name, properties, traitConformance, equalitySemantics) {
+    private var synthCounter = 0
+
     constructor(path: Path, typeParameters: List<ValuePositionType> = emptyList(), properties: List<Property> = emptyList(), traitConformance: List<Trait> = emptyList(), signatures: List<SignatureProtocol<*>> = emptyList(), equalitySemantics: Equality<Trait, Type> = StructuralEquality, implicit: Boolean = false, isEphemeral: Boolean = false, traitConstructor: TraitConstructor? = null)
         : this(path.toString(OrbitMangler), typeParameters, properties, traitConformance, signatures, equalitySemantics, implicit, isEphemeral, traitConstructor)
 
@@ -32,5 +34,9 @@ data class Trait(
         = properties.map(::PropertyConstraint)
 
     fun buildSignatureConstraints() : List<SignatureConstraint>
-        = signatures.map(::SignatureConstraint)
+        = signatures.map { SignatureConstraint(this, it) }
+
+    fun synthesise() : Type {
+        return Type(name + "\$${synthCounter++}", equalitySemantics = HybridEquality as Equality<Entity, Entity>, properties = properties, typeParameters = typeParameters, traitConformance = listOf(this), isEphemeral = true)
+    }
 }

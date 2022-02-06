@@ -42,33 +42,20 @@ object NominalEquality : Equality<Entity, Entity> {
     }
 }
 
-object StructuralEquality : Equality<Trait, Type>, KoinComponent {
-    private val invocation: Invocation by inject()
-
+object StructuralEquality : Equality<Trait, Type> {
     override fun isSatisfied(context: ContextProtocol, source: Trait, target: Type): Boolean {
-        // Ensure we have the latest version of this type
-//        val trait = context.refresh(source) as Trait
-//
-//        val explicitDeclaration = when (source.implicit) {
-//            true -> true
-//            else -> {
-//                if (target.traitConformance.contains(trait)) {
-//                    true
-//                } else {
-//                    val projection = context.getTypeProjectionOrNull(target, trait)
-//
-//                    when (projection) {
-//                        null -> throw invocation.error<TypeChecker>(MissingTypeProjection(trait, target))
-//                        else -> true
-//                    }
-//                }
-//            }
-//        }
-
         // TODO - Signatures
         val propertyContracts = source.drawPropertyContracts()
 
-        return /*explicitDeclaration &&*/ target.executeContracts(context, propertyContracts)
+        return target.executeContracts(context, propertyContracts)
+    }
+}
+
+object HybridEquality : Equality<Type, Type> {
+    override fun isSatisfied(context: ContextProtocol, source: Type, target: Type): Boolean {
+        val propertyContracts = source.drawPropertyContracts()
+
+        return target.executeContracts(context, propertyContracts)
     }
 }
 

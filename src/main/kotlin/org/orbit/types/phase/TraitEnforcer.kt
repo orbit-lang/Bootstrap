@@ -50,7 +50,7 @@ class TraitEnforcer(private val isImplicitConformance: Boolean = false) : Adapta
                 val sigs = (trait.signatures as List<TypeSignature>)
                     .map { SignatureSelfSpecialisation(it, type).specialise(context) }
 
-                sigs.map(::SignatureConstraint)
+                sigs.map { SignatureConstraint(trait, it) }
             }
 
             signaturesResult += enforcer.enforce(context)

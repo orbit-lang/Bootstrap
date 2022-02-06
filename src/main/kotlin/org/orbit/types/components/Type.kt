@@ -20,6 +20,10 @@ data class Type(
 
     constructor(node: TypeDefNode)
         : this(node.getPath())
+
+    fun synthesiseTrait() : Trait {
+        return Trait("$name\$Interface", equalitySemantics = StructuralEquality, properties = properties, isEphemeral = true)
+    }
 }
 
 object None : TypeProtocol {

@@ -61,11 +61,11 @@ class TraitConstructorMonomorphisation(private val traitConstructor: TraitConstr
                 is TypeParameter -> {
                     val aIdx = abstractParameters.indexOfFirst { t -> t.name == it.type.name }
                     val abstractType = traitConstructor.typeParameters[aIdx]
-                    var concreteType = concreteParameters[aIdx]
-
-                    concreteType = concreteType
-                            as? Type
-                        ?: throw invocation.make<TypeSystem>("Type Constructors must be specialised on concrete Types, found ${concreteType::class.java.simpleName} ${concreteType.toString(printer)}", SourcePosition.unknown)
+                    var concreteType = when (val c = concreteParameters[aIdx]) {
+                        is Type -> c
+                        is Trait -> c.synthesise()
+                        else -> throw invocation.make<TypeSystem>("Type Constructors must be specialised on concrete Types, found ${c::class.java.simpleName} ${c.toString(printer)}", SourcePosition.unknown)
+                    }
 
                     // Easiest way to do this is to construct an ephemeral subtype of concreteType + the constraint Traits
                     val ephemeralType = Type(concreteType.name, concreteType.typeParameters, concreteType.properties, abstractType.constraints, concreteType.equalitySemantics, isEphemeral = concreteType.isEphemeral, typeConstructor = (concreteType as? Type)?.typeConstructor)
@@ -96,8 +96,12 @@ class TraitConstructorMonomorphisation(private val traitConstructor: TraitConstr
         }
 
         val monomorphisedType = MetaType(traitConstructor, concreteParameters, concreteProperties, emptyList())
+        val trait = monomorphisedType.evaluate(context) as Trait
+        val nContext = Context(context as Context)
 
-        return monomorphisedType.evaluate(context) as Trait
+        nContext.add(SelfType)
+
+        return trait
     }
 }
 
@@ -890,6 +894,7 @@ class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private
             throw invocation.make<TypeSystem>("Incorrect number of type parameters passed to Type Constructor ${typeConstructor.toString(printer)}. Expected $aPCount, found $cPCount", SourcePosition.unknown)
 
         var isComplete = true
+        var monomorphisedType = Type(nTypePath)
 
         val concreteProperties = typeConstructor.properties.map {
             when (it.type) {
@@ -899,6 +904,7 @@ class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private
                     val concreteType = when (val t = concreteParameters[aIdx]) {
                         is Type -> t
                         is TypeParameter -> t.synthesise()
+                        is SelfType -> monomorphisedType
                         else -> throw invocation.make<TypeSystem>("Type Constructors must be specialised on concrete Types, found ${t::class.java.simpleName} ${t.toString(printer)}", SourcePosition.unknown)
                     }
 
@@ -934,7 +940,7 @@ class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private
         val metaTraits = typeConstructor.partiallyResolvedTraitConstructors
             .map { specialiseTrait(context, it, abstractParameters, concreteParameters) }
 
-        val monomorphisedType = MetaType(typeConstructor, concreteParameters, concreteProperties, metaTraits, producesEphemeralInstances)
+        monomorphisedType = MetaType(typeConstructor, concreteParameters, concreteProperties, metaTraits, producesEphemeralInstances)
             .evaluate(context) as Type
 
         // We need to save a record of these specialised types to that we can code gen for them later on

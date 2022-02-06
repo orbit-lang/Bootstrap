@@ -1,6 +1,7 @@
 package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
+import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.ExtensionNode
 import org.orbit.graph.components.Annotations
@@ -16,9 +17,10 @@ class ExtensionPathResolver(private val parentPath: Path) : PathResolver<Extensi
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: ExtensionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        val targetTypePath = environment.getBinding(input.targetTypeNode.value, Binding.Kind.Union.entity, graph)
-            .unwrap(this, input.firstToken.position)
-        val graphID = graph.find(targetTypePath)
+        val targetTypePath = pathResolverUtil.resolve(input.targetTypeNode, pass, environment, graph)
+            .asSuccess()
+
+        val graphID = graph.find(targetTypePath.path.toString(OrbitMangler))
 
         input.annotate(graphID, Annotations.GraphID)
         input.annotate(targetTypePath.path, Annotations.Path)

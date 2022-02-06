@@ -13,6 +13,7 @@ import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
 import org.orbit.types.typeresolvers.MethodSignatureTypeResolver
+import org.orbit.types.util.TraitConstructorMonomorphisation
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
@@ -25,8 +26,13 @@ class ExtendEntity(private val node: ExtensionNode, private val moduleNode: Modu
 
     override fun execute(context: Context) {
         // TODO - Entity Constructors/Meta Types
-        entity = context.getTypeByPath(node.getPath()) as? Entity
-            ?: throw invocation.make<TypeSystem>("Only Entity types may be extended, found ${printer.apply(node.getPath().toString(OrbitMangler), PrintableKey.Italics, PrintableKey.Bold)}", node)
+        entity = when (val e = context.getTypeByPath(node.getPath())) {
+            is Entity -> e
+            is EntityConstructor -> {
+                TypeInferenceUtil.infer(context, node.targetTypeNode) as Entity
+            }
+            else -> throw invocation.make<TypeSystem>("Only Entity types may be extended, found ${printer.apply(node.getPath().toString(OrbitMangler), PrintableKey.Italics, PrintableKey.Bold)}", node)
+        }
 
         val localContext = Context(context)
 
@@ -45,6 +51,21 @@ class ExtendEntity(private val node: ExtensionNode, private val moduleNode: Modu
                 val result = typeResolver.resolve(nameResolverResult.environment, localContext)
 
                 context.registerMonomorphisation(MethodTemplate(entity as Trait, result, methodDef.body))
+            }
+        } else if (entity is Type) {
+            val trait = (entity as Type).synthesiseTrait()
+
+            for (methodDef in node.methodDefNodes) {
+                val receiverPath = methodDef.signature.receiverTypeNode.getPath()
+
+                if (receiverPath != Binding.Self.path) {
+                    throw invocation.make<TypeSystem>("Trait Extensions may only define methods on receiver type Self", methodDef.signature.receiverTypeNode)
+                }
+
+                val typeResolver = MethodSignatureTypeResolver(methodDef.signature, Binding.Self, null)
+                val result = typeResolver.resolve(nameResolverResult.environment, localContext)
+
+                context.registerMonomorphisation(MethodTemplate(trait, result, methodDef.body))
             }
         }
     }

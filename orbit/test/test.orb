@@ -1,9 +1,19 @@
 @Main
-module M with Orb::Types::Intrinsics with Orb::Core::Types::PI with Orb::Core::Main {
-    (AnyType) id (x AnyType) (AnyType) = (invoke { x })
+module M with Orb::Types::Intrinsics with Orb::Core::Main {
+    trait constructor Phase<I, O> {
+        (self Self) execute (input I) (O)
+    }
+
+    type String
+    type Token
+    type constructor List<Element>
+    type Lexer : Phase<String, List<Token>>
+
+    (self Lexer) execute (input String) (List<Token>) {
+        return List<Token>()
+    }
 
     (self Main) main () () {
-        x = 1
-        print invoke { x }
+
     }
 }

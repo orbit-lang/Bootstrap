@@ -29,7 +29,7 @@ class SpecialisedMethodReturnTypeCheck(private val signature: TypeSignature, pri
 //        }
 
         val path = OrbitMangler.unmangle(OrbitMangler.mangle(signature))
-        val resolver = MethodBodyTypeResolver(body, Binding(Binding.Kind.Method, signature.name, path), signature.returnType)
+        val resolver = MethodBodyTypeResolver(signature, body, Binding(Binding.Kind.Method, signature.name, path), signature.returnType)
 
         resolver.resolve(nameResolverResult.environment, ctx)
 
@@ -50,7 +50,7 @@ class MethodReturnTypeCheck(private val node: MethodDefNode) : TypeAction, KoinC
         signature = node.signature.getType() as TypeSignature
         signature.parameters.forEach { ctx.bind(it.name, it.type) }
 
-        val resolver = MethodBodyTypeResolver(node.body, Binding(Binding.Kind.Method, signature.name, node.signature.getPath()), signature.returnType)
+        val resolver = MethodBodyTypeResolver(signature, node.body, Binding(Binding.Kind.Method, signature.name, node.signature.getPath()), signature.returnType)
 
         resolver.resolve(nameResolverResult.environment, ctx)
 

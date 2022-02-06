@@ -14,7 +14,7 @@ import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
-class ResolveEntityConstructorProperties<N: EntityConstructorNode, C: EntityConstructor>(private val node: N, private val generator: (String, List<TypeParameter>, List<Property>, List<PartiallyResolvedTraitConstructor>) -> C) : TypeAction {
+class ResolveEntityConstructorProperties<N: EntityConstructorNode, C: EntityConstructor>(private val node: N, private val generator: (String, List<TypeParameter>, List<Property>, List<PartiallyResolvedTraitConstructor>, List<TypeSignature>) -> C) : TypeAction {
     private companion object : KoinComponent {
         private val invocation: Invocation by inject()
     }
@@ -33,7 +33,12 @@ class ResolveEntityConstructorProperties<N: EntityConstructorNode, C: EntityCons
             Property(it.identifierNode.identifier, pType)
         }
 
-        entityConstructor = generator(entityConstructor.name, entityConstructor.typeParameters, properties, entityConstructor.partiallyResolvedTraitConstructors)
+        val signatures = when (entityConstructor) {
+            is TraitConstructor -> (entityConstructor as TraitConstructor).signatures
+            else -> emptyList()
+        }
+
+        entityConstructor = generator(entityConstructor.name, entityConstructor.typeParameters, properties, entityConstructor.partiallyResolvedTraitConstructors, signatures)
 
         node.annotate(entityConstructor, Annotations.Type, true)
 

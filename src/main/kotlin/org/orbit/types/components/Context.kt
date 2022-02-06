@@ -31,8 +31,18 @@ interface ContextProtocol {
     fun registerMonomorphisation(method: MethodTemplate) {}
 }
 
-fun ContextProtocol.refresh(type: TypeProtocol) : TypeProtocol {
-    return universe.find { it.name == type.name }!!
+fun ContextProtocol.refresh(type: TypeProtocol, resolveTypeAliases: Boolean = false) : TypeProtocol {
+    val result = universe.find { it.name == type.name }
+        ?: monomorphisedTypes.values.find { it.name == type.name }!!
+
+    return when (result) {
+        is TypeAlias -> when (resolveTypeAliases) {
+            true -> result.targetType
+            else -> result
+        }
+
+        else -> result
+    }
 }
 
 class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperators.all()) : Serial, Serializable, CompilationEventBusAware by CompilationEventBusAwareImpl, ContextProtocol {
@@ -113,7 +123,7 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     override fun registerMonomorphisation(method: MethodTemplate) {
         val path = OrbitMangler.mangle(method.signature)
 
-        monomorphisedMethods[path] = method
+        monomorphisedMethods[path + method.trait.name] = method
     }
 
     fun registerIntrinsicTypeAlias(source: TypeProtocol, target: TypeProtocol) {
@@ -189,7 +199,10 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     fun getType(node: Node) = getTypeByPath(node.getPath())
 
     fun getTypeOrNull(name: String) : TypeProtocol? {
-        val matches = types.filter { it.name == name }
+        val matches = types.filter { it.name == name } +
+            monomorphisedTypes
+                .filter { it.key == name }
+                .map { it.value }
 
         return when (matches.size) {
             0 -> null

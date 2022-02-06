@@ -54,7 +54,7 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
 
         return when (entityConstructor) {
             is TypeConstructor -> Type(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral, traitConformance = traitConformance, typeConstructor = entityConstructor)
-            is TraitConstructor -> Trait(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral, traitConformance = traitConformance, traitConstructor = entityConstructor)
+            is TraitConstructor -> Trait(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral, traitConformance = traitConformance, traitConstructor = entityConstructor, signatures = entityConstructor.signatures)
             else -> TODO("???")
         }
     }

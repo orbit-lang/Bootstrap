@@ -22,7 +22,7 @@ class MethodTypeResolver(override val node: MethodDefNode, override val binding:
         val localContext = Context(context)
 
         try {
-            val signature = node.signature.getType() as SignatureProtocol<TypeProtocol>
+            val signature = node.signature.getType() as TypeSignature
             val body = node.body
 
             signature.parameters.forEach { localContext.bind(it.name, it.type) }
@@ -34,7 +34,7 @@ class MethodTypeResolver(override val node: MethodDefNode, override val binding:
                     throw invocation.make<TypeSystem>("Method '${signature.name}' declares a return type of ${signature.returnType.toString(printer)}, found ${IntrinsicTypes.Unit.type.toString(printer)}", node)
                 }
             } else {
-                val methodBodyTypeResolver = MethodBodyTypeResolver(body, binding, signature.returnType)
+                val methodBodyTypeResolver = MethodBodyTypeResolver(signature, body, binding, signature.returnType)
 
                 methodBodyTypeResolver.resolve(environment, localContext)
             }
