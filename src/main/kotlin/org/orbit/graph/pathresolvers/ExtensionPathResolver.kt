@@ -4,13 +4,15 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.ExtensionNode
+import org.orbit.core.nodes.WhereClauseExpressionNode
 import org.orbit.graph.components.Annotations
-import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
+
+interface WhereClauseExpressionResolver<N: WhereClauseExpressionNode> : PathResolver<N>
 
 class ExtensionPathResolver(private val parentPath: Path) : PathResolver<ExtensionNode> {
     override val invocation: Invocation by inject()
@@ -24,6 +26,11 @@ class ExtensionPathResolver(private val parentPath: Path) : PathResolver<Extensi
 
         input.annotate(graphID, Annotations.GraphID)
         input.annotate(targetTypePath.path, Annotations.Path)
+
+        input.whereClauses.forEach {
+            it.annotate(graphID, Annotations.GraphID)
+            pathResolverUtil.resolve(it, pass, environment, graph)
+        }
 
         input.methodDefNodes.forEach {
             it.annotate(graphID, Annotations.GraphID)

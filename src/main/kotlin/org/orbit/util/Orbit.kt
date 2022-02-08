@@ -50,6 +50,9 @@ val mainModule = module {
 		util.registerPathResolver(CollectionLiteralPathResolver, CollectionLiteralNode::class.java)
 		util.registerPathResolver(LambdaLiteralPathResolver, LambdaLiteralNode::class.java)
 		util.registerPathResolver(ReferenceCallPathResolver, ReferenceCallNode::class.java)
+		util.registerPathResolver(WhereClausePathResolver, WhereClauseNode::class.java)
+		util.registerPathResolver(WhereClauseTypeBoundsExpressionResolver, WhereClauseTypeBoundsExpressionNode::class.java)
+		util.registerPathResolver(TypeIndexResolver, TypeIndexNode::class.java)
 
 		util
 	}

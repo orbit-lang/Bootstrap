@@ -3,6 +3,9 @@ package org.orbit.types.components
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
+import org.orbit.core.components.CompilationSchemeEntry
+import org.orbit.core.getFullyQualifiedPath
+import org.orbit.core.injectResult
 import org.orbit.core.nodes.MethodCallNode
 import org.orbit.core.nodes.ReferenceCallNode
 import org.orbit.graph.components.Annotations
@@ -45,6 +48,7 @@ object ReferenceCallInference : TypeInference<ReferenceCallNode>, KoinComponent 
 object MethodCallInference : TypeInference<MethodCallNode>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
+    private val globalContext: Context by injectResult(CompilationSchemeEntry.typeSystem)
 
     override fun infer(context: Context, node: MethodCallNode, typeAnnotation: TypeProtocol?): TypeProtocol {
         val receiverType = TypeInferenceUtil.infer(context, node.receiverExpression)
@@ -74,8 +78,12 @@ object MethodCallInference : TypeInference<MethodCallNode>, KoinComponent {
                 partialReverse(TypeInferenceUtil::infer, context)
             )
 
+            val uniqueBindings = (context.bindings.values + globalContext.bindings.values)
+                .filterIsInstance<TypeSignature>()
+                .distinctBy(OrbitMangler::mangle)
+
             val matches = mutableListOf<SignatureProtocol<*>>()
-            for (binding in context.bindings.values) {
+            for (binding in uniqueBindings) {
                 if (binding.name != node.messageIdentifier.identifier) continue
 
                 if (binding is TypeSignature) {
@@ -100,7 +108,7 @@ object MethodCallInference : TypeInference<MethodCallNode>, KoinComponent {
             if (matches.isEmpty()) {
                 val params = if (parameterTypes.isEmpty()) "" else "(" + parameterTypes.joinToString(", ") { it.name } + ")"
                 throw invocation.make<TypeSystem>(
-                    "Receiver type ${printer.apply(receiverType.name, PrintableKey.Italics, PrintableKey.Bold)} does not respond to message '${node.messageIdentifier.identifier}' with parameter types $params",
+                    "Receiver type ${receiverType.toString(printer)} does not respond to message '${node.messageIdentifier.identifier}' with parameter types $params",
                     node.messageIdentifier
                 )
             } else if (matches.size > 1) {
@@ -108,11 +116,11 @@ object MethodCallInference : TypeInference<MethodCallNode>, KoinComponent {
                 //  where 2 or more methods exist with the same name, same receiver & same parameters, but differ in the return type
                 val candidates = matches.joinToString(
                     "\n\t\t",
-                    transform = partial(SignatureProtocol<*>::toString, OrbitMangler)
+                    transform = { it.toString(printer) }
                 )
 
                 throw invocation.make<TypeSystem>(
-                    "Ambiguous method call '${node.messageIdentifier.identifier}' on receiver type '${receiverType.name}'. Found multiple candidates: \n\t\t${candidates}",
+                    "Ambiguous method call '${node.messageIdentifier.identifier}' on receiver type ${receiverType.toString(printer)}. Found multiple candidates: \n\t\t${candidates}",
                     node.messageIdentifier
                 )
             }

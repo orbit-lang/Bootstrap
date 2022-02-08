@@ -27,7 +27,7 @@ object TypeProjectionPathResolver : PathResolver<TypeProjectionNode> {
 
 		// TODO - Resolve where clauses
 		input.whereNodes
-			.forEach { pathResolverUtil.resolve(it.whereStatement, pass, environment, graph) }
+			.forEach { pathResolverUtil.resolve(it.whereExpression, pass, environment, graph) }
 
 		return typeResult
 	}

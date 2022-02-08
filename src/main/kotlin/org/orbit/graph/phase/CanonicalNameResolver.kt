@@ -139,6 +139,24 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 
 				if (nextContainer.with.isNotEmpty()) {
 					for (withNode in nextContainer.with) {
+						if (withNode.isWildcard) {
+							val wildcardPath = OrbitMangler.unmangle(withNode.value)
+							val fullyQualifiedPart = wildcardPath.dropLast(1)
+							val matches = allContainers.filter { it.identifier.value.startsWith(fullyQualifiedPart.toString(OrbitMangler)) }
+
+							for (match in matches) {
+								if (!match.isResolved()) {
+									containerStack.push(nextContainer)
+									containerStack.remove(match)
+									containerStack.push(match)
+
+									continue@outer
+								}
+							}
+
+							continue
+						}
+
 						val importLookupResult = importManager.findSymbol(withNode.value)
 
 						if (importLookupResult is Scope.BindingSearchResult.Success) {
@@ -164,15 +182,24 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 				pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Initial, input.environment, input.graph)
 
 				val importedScopes = nextContainer.with
-					.map {
-						val result = containerIndex[it.value]
+					.flatMap {
+						when (it.isWildcard) {
+							true -> {
+								val res = importManager.findEnclosingScopes(OrbitMangler.unmangle(it.value).dropLast(1))
 
-						if (result != null) {
-							return@map result.getScopeIdentifier()
+								res
+							}
+							else -> {
+								val result = containerIndex[it.value]
+
+								if (result != null) {
+									return@flatMap listOf(result.getScopeIdentifier())
+								}
+
+								listOf(importManager.findEnclosingScope(it.value)
+									?: throw invocation.make<CanonicalNameResolver>("Unknown container '${it.value}'. Containers currently in scope:\n\t${containerIndex.keys.joinToString("\n\t")}", it.firstToken))
+							}
 						}
-
-						importManager.findEnclosingScope(it.value)
-							?: throw invocation.make<CanonicalNameResolver>("Unknown container '${it.value}'. Containers currently in scope:\n\t${containerIndex.keys.joinToString("\n\t")}", it.firstToken)
 					}
 
 				val thisScope = input.environment.getScope(nextContainer.getScopeIdentifier())

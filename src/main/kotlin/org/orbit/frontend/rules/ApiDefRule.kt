@@ -22,11 +22,12 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		val withinNode = context.attempt(WithinRule)
 		var with = context.attempt(WithRule)
 		val withNodes = mutableListOf<TypeIdentifierNode>()
-		
-		while (with != null) {
-			withNodes.add(with)
-			with = context.attempt(WithRule)
-		}
+
+		// TODO
+//		while (with != null) {
+//			withNodes.add(with)
+//			with = context.attempt(WithRule)
+//		}
 		
 		context.expect(TokenTypes.LBrace)
 		

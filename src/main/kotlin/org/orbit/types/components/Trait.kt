@@ -36,7 +36,12 @@ data class Trait(
     fun buildSignatureConstraints() : List<SignatureConstraint>
         = signatures.map { SignatureConstraint(this, it) }
 
-    fun synthesise() : Type {
-        return Type(name + "\$${synthCounter++}", equalitySemantics = HybridEquality as Equality<Entity, Entity>, properties = properties, typeParameters = typeParameters, traitConformance = listOf(this), isEphemeral = true)
+    fun synthesise(omitCounter: Boolean = false) : Type {
+        val counter = when (omitCounter) {
+            true -> ""
+            else -> "\$${synthCounter++}"
+        }
+
+        return Type(name + counter, equalitySemantics = HybridEquality as Equality<Entity, Entity>, properties = properties, traitConformance = listOf(this), isEphemeral = true)
     }
 }

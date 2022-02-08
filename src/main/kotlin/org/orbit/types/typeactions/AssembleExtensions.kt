@@ -38,7 +38,6 @@ class AssembleMonoExtensions(private val type: Entity, private val moduleNode: M
             checkReturnType.execute(context)
 
             context.bind(OrbitMangler.mangle(signature), signature)
-
             context.registerSpecialisedMethod(MethodTemplate(it.trait, signature, it.body))
 
             signature
@@ -89,7 +88,6 @@ class AssembleExtensions(private val typeDefNode: TypeDefNode, private val modul
             checkReturnType.execute(context)
 
             context.bind(OrbitMangler.mangle(signature), signature)
-
             context.registerSpecialisedMethod(MethodTemplate(it.trait, signature, it.body))
 
             signature

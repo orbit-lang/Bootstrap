@@ -1,19 +1,21 @@
 @Main
-module M with Orb::Types::Intrinsics with Orb::Core::Main {
-    trait constructor Phase<I, O> {
-        (self Self) execute (input I) (O)
+module M with Orb::Core::* with Orb::Compiler::* {
+    type constructor Box<T>(value T)
+    trait A(value Int)
+
+    extension Box where Self[T] : A {
+        (self Self) getValue() (AnyType) = self.value
     }
 
-    type String
-    type Token
-    type constructor List<Element>
-    type Lexer : Phase<String, List<Token>>
-
-    (self Lexer) execute (input String) (List<Token>) {
-        return List<Token>()
+    extension Box where Self[T] = Symbol {
+        (self Self) getValue() (Symbol) = self.value
     }
 
     (self Main) main () () {
+        b = Box(:symbol)
+        print b.getValue()
 
+        c = Box(1)
+        print c.getValue()
     }
 }

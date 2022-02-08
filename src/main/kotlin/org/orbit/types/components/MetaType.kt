@@ -7,7 +7,7 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 
-data class MetaType(val entityConstructor: EntityConstructor, val concreteTypeParameters: List<ValuePositionType>, val properties: List<Property>, val traitConformance: List<Trait> = emptyList(), private val producesEphemeralInstances: Boolean = false) : ValuePositionType, TypeExpression {
+data class MetaType(val entityConstructor: EntityConstructor, val concreteTypeParameters: List<ValuePositionType>, val properties: List<Property>, val traitConformance: List<Trait> = emptyList(), private val producesEphemeralInstances: Boolean = false, private val omitTypeParameters: Boolean = false) : ValuePositionType, TypeExpression {
     companion object : KoinComponent {
         val invocation: Invocation by inject()
     }
@@ -51,10 +51,22 @@ data class MetaType(val entityConstructor: EntityConstructor, val concreteTypePa
         //  i.e. if a Type Constructor has at least one ephemeral Type Parameters, it too is ephemeral
         // NOTE - Ephemeral means erased at runtime
         val isEphemeral = producesEphemeralInstances || concreteTypeParameters.any(ValuePositionType::isEphemeral)
+        val equalitySemantics = when (entityConstructor) {
+            is TraitConstructor -> StructuralEquality
+            else -> when (concreteTypeParameters.map(ValuePositionType::equalitySemantics).contains(HybridEquality)) {
+                true -> HybridEquality
+                else -> NominalEquality
+            }
+        }
+
+        val typeParameters = when (omitTypeParameters) {
+            true -> emptyList<TypeParameter>()
+            else -> concreteTypeParameters
+        }
 
         return when (entityConstructor) {
-            is TypeConstructor -> Type(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral, traitConformance = traitConformance, typeConstructor = entityConstructor)
-            is TraitConstructor -> Trait(paramsPath, concreteTypeParameters, properties, isEphemeral = isEphemeral, traitConformance = traitConformance, traitConstructor = entityConstructor, signatures = entityConstructor.signatures)
+            is TypeConstructor -> Type(paramsPath, typeParameters, properties, equalitySemantics = equalitySemantics as Equality<Entity, Entity>, isEphemeral = isEphemeral, traitConformance = traitConformance, typeConstructor = entityConstructor)
+            is TraitConstructor -> Trait(paramsPath, typeParameters, properties, isEphemeral = isEphemeral, traitConformance = traitConformance, traitConstructor = entityConstructor, signatures = entityConstructor.signatures)
             else -> TODO("???")
         }
     }

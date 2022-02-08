@@ -21,6 +21,7 @@ import java.lang.NullPointerException
 data class MissingTypeException(val typeName: String) : Exception("Missing type: $typeName")
 
 data class MethodTemplate(val trait: Trait, val signature: TypeSignature, val body: BlockNode) : Serializable
+data class ExtensionTemplate(val entityConstructor: EntityConstructor, val signature: TypeSignature, val body: BlockNode) : Serializable
 
 interface ContextProtocol {
     val universe: List<TypeProtocol>
@@ -81,9 +82,19 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     override var monomorphisedMethods = mutableMapOf<String, MethodTemplate>()
         private set
 
+    var extensionMethods = mutableMapOf<String, ExtensionTemplate>()
+        private set
+
+    var syntheticTraits = mutableListOf<Trait>()
+        private set
+
+    var syntheticTypes = mutableListOf<Type>()
+        private set
+
     val intrinsicTypeAliases = mutableMapOf<TypeProtocol, TypeProtocol>()
 
     val specialisedMethods = mutableMapOf<String, MethodTemplate>()
+    val specialisedExtensionMethods = mutableMapOf<String, ExtensionTemplate>()
 
     private var next = 0
 
@@ -100,6 +111,18 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
     }
 
     fun <T> withSubContext(block: (Context) -> T) : T = block(Context(this))
+
+    fun registerSyntheticTrait(trait: Trait) {
+        if (syntheticTraits.none { it.name == trait.name }) {
+            syntheticTraits.add(trait)
+        }
+    }
+
+    fun registerSyntheticType(type: Type) {
+        if (syntheticTypes.none { it.name == type.name }) {
+            syntheticTypes.add(type)
+        }
+    }
 
     override fun registerMonomorphisation(type: Type) {
         val previouslyMonomorphised = monomorphisedTypes.filter {
@@ -120,6 +143,12 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         }
     }
 
+    fun registerExtension(template: ExtensionTemplate) {
+        val path = OrbitMangler.mangle(template.signature)
+
+        extensionMethods[path + template.entityConstructor.name] = template
+    }
+
     override fun registerMonomorphisation(method: MethodTemplate) {
         val path = OrbitMangler.mangle(method.signature)
 
@@ -134,6 +163,12 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         val path = OrbitMangler.mangle(method.signature)
 
         specialisedMethods[path] = method
+    }
+
+    fun registerSpecialisedExtensionMethod(method: ExtensionTemplate) {
+        val path = OrbitMangler.mangle(method.signature)
+
+        specialisedExtensionMethods[path] = method
     }
 
     fun bind(name: String, type: TypeProtocol) {

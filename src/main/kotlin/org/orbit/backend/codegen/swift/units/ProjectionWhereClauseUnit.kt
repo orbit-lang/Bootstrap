@@ -15,8 +15,8 @@ class ProjectionWhereClauseUnit(override val node: WhereClauseNode, override val
     private val codeGenFactory: CodeGenFactory<SwiftHeader> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String {
-        val clauseUnit = when (node.whereStatement) {
-            is AssignmentStatementNode -> codeGenFactory.getPropertyProjectionUnit(node.whereStatement, depth)
+        val clauseUnit = when (node.whereExpression) {
+            is AssignmentStatementNode -> codeGenFactory.getPropertyProjectionUnit(node.whereExpression, depth)
             else -> TODO("ProjectionWhereClause")
         }
 

@@ -7,7 +7,7 @@ data class AssignmentStatementNode(
     override val lastToken: Token,
     val identifier: IdentifierNode,
     val value: ExpressionNode
-) : Node(firstToken, lastToken) {
+) : WhereClauseExpressionNode(firstToken, lastToken) {
     override fun getChildren(): List<Node> {
         return emptyList()
     }

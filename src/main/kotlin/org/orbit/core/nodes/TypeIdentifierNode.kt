@@ -19,6 +19,9 @@ data class TypeIdentifierNode(
 
 	override val name: TypeIdentifierNode = this
 
+	val isWildcard: Boolean
+		get() = value.endsWith("*")
+
 	override fun equals(other: Any?): Boolean = when (other) {
 		// TODO - Revisit equality when we get to implementing generics
 		is TypeIdentifierNode -> value == other.value

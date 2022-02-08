@@ -1,6 +1,8 @@
 package org.orbit.util
 
 import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
+import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Scope
 import org.orbit.graph.components.ScopeIdentifier
 
@@ -20,6 +22,12 @@ class ImportManager(private val libraries: List<OrbitLibrary>) {
 			1 -> Scope.BindingSearchResult.Success(matches[0])
 			else -> Scope.BindingSearchResult.Multiple(matches)
 		}
+	}
+
+	fun findEnclosingScopes(wildcard: Path) : List<ScopeIdentifier> {
+		return allScopes.flatPairMap { it.bindings }
+			.filter { it.second.kind is Binding.Kind.Module && it.second.path.containsSubPath(wildcard) }
+			.map { it.first.identifier }
 	}
 
 	fun findEnclosingScope(symbol: String) : ScopeIdentifier? {

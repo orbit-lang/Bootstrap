@@ -1,6 +1,7 @@
 package org.orbit.types.components
 
 import org.orbit.core.nodes.*
+import org.orbit.types.typeactions.TypeIndexTypeInference
 
 object TypeInferenceUtil {
     fun infer(context: Context, expression: Expression, typeAnnotation: TypeProtocol?): TypeProtocol

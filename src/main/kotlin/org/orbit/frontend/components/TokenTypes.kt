@@ -51,7 +51,7 @@ object TokenTypes : TokenTypeProvider {
     object Int : TokenType("Int", "[0-9]+", true, false, Family.Num)
     object Real : TokenType("Real", "[0-9]+\\\\.[0-9]+", true, false, Family.Num)
     object Identifier : TokenType("Identifier", "[a-z_]+[a-zA-Z0-9_]*", true, false, Family.Id)
-    object TypeIdentifier : TokenType("TypeIdentifier", "([A-Z]+[a-zA-Z0-9_]*)(::[A-Z]+[a-zA-Z0-9_]*)*", true, false, Family.Id)
+    object TypeIdentifier : TokenType("TypeIdentifier", "([A-Z]+[a-zA-Z0-9_]*)(::[A-Z]+[a-zA-Z0-9_]*)*(::\\*)?", true, false, Family.Id)
 	object Symbol : TokenType("Symbol", "\\:[a-zA-Z_]+[a-zA-Z0-9_]*", false, false, Family.Id)
 	object EOS : TokenType("", "", true, false, Family.White)
 

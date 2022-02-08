@@ -12,8 +12,6 @@ import org.orbit.types.components.*
 import org.orbit.types.typeactions.*
 import org.orbit.types.util.TypeAssistant
 import org.orbit.util.Invocation
-import org.orbit.util.partial
-import org.orbit.util.partialReverse
 import kotlin.contracts.ExperimentalContracts
 import kotlin.time.ExperimentalTime
 
@@ -150,21 +148,21 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
 
     private val typeAssistant = TypeAssistant(context)
 
-    private fun <N: Node, T: TypeAction> performTypeAction(nodes: List<N>, typeActionGenerator: (N) -> T) {
+    private fun <N: Node, T: TypeAction> performTypeAction(assistant: TypeAssistant = typeAssistant, nodes: List<N>, typeActionGenerator: (N) -> T) {
         nodes.map(typeActionGenerator)
-            .forEach(typeAssistant::perform)
+            .forEach(assistant::perform)
     }
 
-    private fun <N: EntityConstructorNode, C: EntityConstructor> resolveEntityConstructorParameters(nodes: List<N>, generator: (String, List<TypeParameter>, List<TypeSignature>) -> C)
-        = performTypeAction(nodes) { ResolveEntityConstructorTypeParameters<N, C>(it) { s, tps, _, sigs -> generator(s, tps, sigs) } }
+    private fun <N: EntityConstructorNode, C: EntityConstructor> resolveEntityConstructorParameters(assistant: TypeAssistant = typeAssistant, nodes: List<N>, generator: (String, List<TypeParameter>, List<TypeSignature>) -> C)
+        = performTypeAction(assistant, nodes) { ResolveEntityConstructorTypeParameters<N, C>(it) { s, tps, _, sigs -> generator(s, tps, sigs) } }
 
-    private fun <N: EntityConstructorNode, C: EntityConstructor> resolveEntityConstructorProperties(nodes: List<N>, generator: (String, List<TypeParameter>, List<Property>, List<PartiallyResolvedTraitConstructor>, List<TypeSignature>) -> C)
-        = performTypeAction(nodes) { ResolveEntityConstructorProperties(it, generator) }
+    private fun <N: EntityConstructorNode, C: EntityConstructor> resolveEntityConstructorProperties(assistant: TypeAssistant = typeAssistant, nodes: List<N>, generator: (String, List<TypeParameter>, List<Property>, List<PartiallyResolvedTraitConstructor>, List<TypeSignature>) -> C)
+        = performTypeAction(assistant, nodes) { ResolveEntityConstructorProperties(it, generator) }
 
-    private fun refineEntityConstructorTypeParameters(nodes: List<EntityConstructorNode>)
-        = performTypeAction(nodes, ::RefineEntityConstructorTypeParameters)
+    private fun refineEntityConstructorTypeParameters(assistant: TypeAssistant = typeAssistant, nodes: List<EntityConstructorNode>)
+        = performTypeAction(assistant, nodes, ::RefineEntityConstructorTypeParameters)
 
-    private fun createMethodSignatures(nodes: List<ModuleNode>) {
+    private fun createMethodSignatures(assistant: TypeAssistant = typeAssistant, nodes: List<ModuleNode>) {
         for (node in nodes) {
             // NOTE - We search this way to avoid capturing nested method defs inside extensions
             val signatures = node.methodDefs
@@ -172,40 +170,104 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
 
             for (sig in signatures) {
                 val typeAction = CreateMethodSignature(sig, node)
-                typeAssistant.perform(typeAction)
+                assistant.perform(typeAction)
             }
         }
     }
 
-    private fun checkMethodReturnTypes(nodes: List<ModuleNode>) {
+    private fun checkMethodReturnTypes(assistant: TypeAssistant = typeAssistant, nodes: List<ModuleNode>) {
         for (node in nodes) {
             val methodNodes = node.methodDefs
 
             methodNodes.map(::MethodReturnTypeCheck)
-                .forEach(typeAssistant::perform)
+                .forEach(assistant::perform)
         }
     }
 
-    private fun assembleTypeProjections(nodes: List<TypeProjectionNode>) {
+    private fun assembleTypeProjections(assistant: TypeAssistant = typeAssistant, nodes: List<TypeProjectionNode>) {
         nodes.map(::TypeProjectionAssembler)
-            .forEach(typeAssistant::perform)
+            .forEach(assistant::perform)
     }
 
-    private fun finaliseModules(nodes: List<ModuleNode>) {
+    private fun finaliseModules(assistant: TypeAssistant = typeAssistant, nodes: List<ModuleNode>) {
         nodes.map(::FinaliseModule)
-            .forEach(typeAssistant::perform)
+            .forEach(assistant::perform)
+    }
+
+    private fun processModule(moduleNode: ModuleNode) {
+        val nContext = Context(context)
+        val assistant = TypeAssistant(nContext)
+
+        performTypeAction(assistant, listOf(moduleNode), ::CreateModuleStub)
+
+        val typeDefs = moduleNode.entityDefs.filterIsInstance<TypeDefNode>()
+        val traitDefs = moduleNode.entityDefs.filterIsInstance<TraitDefNode>()
+        val typeProjections = moduleNode.typeProjections
+        val typeAliases = moduleNode.typeAliasNodes
+        val typeConstructors = moduleNode.entityConstructors.filterIsInstance<TypeConstructorNode>()
+        val traitConstructors = moduleNode.entityConstructors.filterIsInstance<TraitConstructorNode>()
+
+        performTypeAction(assistant, typeDefs, ::CreateTypeStub)
+        performTypeAction(assistant, traitDefs, ::CreateTraitStub)
+        performTypeAction(assistant, typeConstructors, ::CreateTypeConstructorStub)
+        performTypeAction(assistant, traitConstructors, ::CreateTraitConstructorStub)
+        performTypeAction(assistant, traitConstructors, ::ResolveTraitConstructorSignatures)
+
+        resolveEntityConstructorParameters(assistant, typeConstructors) { s, tps, _ -> TypeConstructor(s, tps, emptyList()) }
+        resolveEntityConstructorParameters(assistant, traitConstructors) { s, tps, sigs -> TraitConstructor(s, tps, signatures = sigs) }
+
+        resolveEntityConstructorProperties(assistant, typeConstructors, ::TypeConstructor)
+        resolveEntityConstructorProperties(assistant, traitConstructors, ::TraitConstructor)
+
+        performTypeAction(assistant, typeConstructors, ::ResolveTypeConstructorTraitConformance)
+
+        // We now have enough information to resolve the types of properties for each type & trait
+        performTypeAction(assistant, typeDefs) { ResolveEntityProperties<TypeDefNode, Type>(it) }
+        performTypeAction(assistant, traitDefs) { ResolveEntityProperties<TraitDefNode, Trait>(it) }
+
+        performTypeAction(assistant, traitDefs, ::ResolveTraitSignatures)
+        performTypeAction(assistant, typeAliases, ::CreateTypeAlias)
+
+        val extensions = moduleNode.extensions
+
+        for (ext in extensions) {
+            performTypeAction(assistant, extensions) { ExtendEntity(ext, moduleNode) }
+        }
+
+        assembleTypeProjections(assistant, typeProjections)
+        refineEntityConstructorTypeParameters(assistant, typeConstructors)
+
+        performTypeAction(assistant, typeDefs, ::ResolveTraitConformance)
+
+        for (mono in nContext.monomorphisedTypes.values) {
+            val assembler = AssembleMonoExtensions(mono, moduleNode)
+            assembler.execute(context)
+        }
+
+        for (td in typeDefs) {
+            val assembler = AssembleExtensions(td, moduleNode)
+
+            assembler.execute(context)
+        }
+
+        createMethodSignatures(assistant, listOf(moduleNode))
+        checkMethodReturnTypes(assistant, listOf(moduleNode))
+
+        finaliseModules(assistant, listOf(moduleNode))
     }
 
     @ExperimentalContracts
     @ExperimentalTime
     override fun execute(input: NameResolverResult) : Context {
+        invocation.storeResult(CompilationSchemeEntry.typeSystem, context)
+
         val timed = measureTimeWithResult {
             val ast = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser).ast
 
             // Start by creating type "stubs" for all modules
             val moduleDefs = ast.search(ModuleNode::class.java)
 
-            performTypeAction(moduleDefs, ::CreateModuleStub)
+            performTypeAction(typeAssistant, moduleDefs, ::CreateModuleStub)
 
             // Next, create "stubs" for all types & traits
             val typeDefs = ast.search(TypeDefNode::class.java)
@@ -215,40 +277,40 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
             val typeConstructors = ast.search(TypeConstructorNode::class.java)
             val traitConstructors = ast.search(TraitConstructorNode::class.java)
 
-            performTypeAction(typeDefs, ::CreateTypeStub)
-            performTypeAction(traitDefs, ::CreateTraitStub)
-            performTypeAction(typeConstructors, ::CreateTypeConstructorStub)
-            performTypeAction(traitConstructors, ::CreateTraitConstructorStub)
+            performTypeAction(typeAssistant, typeDefs, ::CreateTypeStub)
+            performTypeAction(typeAssistant, traitDefs, ::CreateTraitStub)
+            performTypeAction(typeAssistant, typeConstructors, ::CreateTypeConstructorStub)
+            performTypeAction(typeAssistant, traitConstructors, ::CreateTraitConstructorStub)
 
-            performTypeAction(traitConstructors, ::ResolveTraitConstructorSignatures)
+            performTypeAction(typeAssistant, traitConstructors, ::ResolveTraitConstructorSignatures)
 
-            resolveEntityConstructorParameters(typeConstructors) { s, tps, _ -> TypeConstructor(s, tps, emptyList()) }
-            resolveEntityConstructorParameters(traitConstructors) { s, tps, sigs -> TraitConstructor(s, tps, signatures = sigs) }
+            resolveEntityConstructorParameters(typeAssistant, typeConstructors) { s, tps, _ -> TypeConstructor(s, tps, emptyList()) }
+            resolveEntityConstructorParameters(typeAssistant, traitConstructors) { s, tps, sigs -> TraitConstructor(s, tps, signatures = sigs) }
 
-            resolveEntityConstructorProperties(typeConstructors, ::TypeConstructor)
-            resolveEntityConstructorProperties(traitConstructors, ::TraitConstructor)
+            resolveEntityConstructorProperties(typeAssistant, typeConstructors, ::TypeConstructor)
+            resolveEntityConstructorProperties(typeAssistant, traitConstructors, ::TraitConstructor)
 
-            performTypeAction(typeConstructors, ::ResolveTypeConstructorTraitConformance)
+            performTypeAction(typeAssistant, typeConstructors, ::ResolveTypeConstructorTraitConformance)
 
             // We now have enough information to resolve the types of properties for each type & trait
-            performTypeAction(typeDefs) { ResolveEntityProperties<TypeDefNode, Type>(it) }
-            performTypeAction(traitDefs) { ResolveEntityProperties<TraitDefNode, Trait>(it) }
+            performTypeAction(typeAssistant, typeDefs) { ResolveEntityProperties<TypeDefNode, Type>(it) }
+            performTypeAction(typeAssistant, traitDefs) { ResolveEntityProperties<TraitDefNode, Trait>(it) }
 
-            performTypeAction(traitDefs, ::ResolveTraitSignatures)
-            performTypeAction(typeAliases, ::CreateTypeAlias)
+            performTypeAction(typeAssistant, traitDefs, ::ResolveTraitSignatures)
+            performTypeAction(typeAssistant, typeAliases, ::CreateTypeAlias)
 
             for (module in moduleDefs) {
                 val extensions = module.search<ExtensionNode>()
 
                 for (ext in extensions) {
-                    performTypeAction(extensions) { ExtendEntity(ext, module) }
+                    performTypeAction(typeAssistant, extensions) { ExtendEntity(ext, module) }
                 }
             }
 
-            assembleTypeProjections(typeProjections)
-            refineEntityConstructorTypeParameters(typeConstructors)
+            assembleTypeProjections(typeAssistant, typeProjections)
+            refineEntityConstructorTypeParameters(typeAssistant, typeConstructors)
 
-            performTypeAction(typeDefs, ::ResolveTraitConformance)
+            performTypeAction(typeAssistant, typeDefs, ::ResolveTraitConformance)
 
             for (module in moduleDefs) {
                 for (mono in context.monomorphisedTypes.values) {
@@ -265,10 +327,12 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
                 }
             }
 
-            createMethodSignatures(moduleDefs)
-            checkMethodReturnTypes(moduleDefs)
+            createMethodSignatures(typeAssistant, moduleDefs)
+            checkMethodReturnTypes(typeAssistant, moduleDefs)
 
-            finaliseModules(moduleDefs)
+            finaliseModules(typeAssistant, moduleDefs)
+
+//            moduleDefs.forEach(::processModule)
 
             invocation.storeResult(CompilationSchemeEntry.typeSystem, context)
             invocation.storeResult("__type_assistant__", typeAssistant)

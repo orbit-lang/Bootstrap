@@ -72,8 +72,8 @@ class TypeProjectionAssembler(private val node: TypeProjectionNode) : TypeAction
     }
 
     private fun verifyWhereClause(clause: WhereClauseNode) {
-        when (clause.whereStatement) {
-            is AssignmentStatementNode -> verifyWherePropertyAssignment(clause.whereStatement)
+        when (clause.whereExpression) {
+            is AssignmentStatementNode -> verifyWherePropertyAssignment(clause.whereExpression)
             else -> TODO("???")
         }
     }

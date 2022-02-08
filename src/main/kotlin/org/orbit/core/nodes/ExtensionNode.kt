@@ -6,7 +6,8 @@ data class ExtensionNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val targetTypeNode: TypeExpressionNode,
-    val methodDefNodes: List<MethodDefNode>
+    val methodDefNodes: List<MethodDefNode>,
+    val whereClauses: List<WhereClauseNode>
 ) : Node(firstToken, lastToken) {
-    override fun getChildren(): List<Node> = listOf(targetTypeNode) + methodDefNodes
+    override fun getChildren(): List<Node> = listOf(targetTypeNode) + methodDefNodes + whereClauses
 }

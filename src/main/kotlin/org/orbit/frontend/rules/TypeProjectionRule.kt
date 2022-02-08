@@ -8,20 +8,6 @@ import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
-import org.orbit.util.error
-
-object WhereClauseRule : ParseRule<WhereClauseNode>, KoinComponent {
-    private val invocation: Invocation by inject()
-    private val whereStatementRules = listOf(AssignmentRule)
-
-    override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect(TokenTypes.Where)
-        val statement = context.attemptAny(whereStatementRules)
-            ?: throw invocation.make<Parser>("Expected where statement after `where`", start)
-
-        return +WhereClauseNode(start, statement.lastToken, statement)
-    }
-}
 
 object TypeProjectionRule : ParseRule<TypeProjectionNode>, KoinComponent {
     private val invocation: Invocation by inject()
@@ -45,7 +31,7 @@ object TypeProjectionRule : ParseRule<TypeProjectionNode>, KoinComponent {
         next = context.peek()
         val whereClauses = mutableListOf<WhereClauseNode>()
         while (next.type == TokenTypes.Where) {
-            val whereClause = context.attempt(WhereClauseRule)
+            val whereClause = context.attempt(WhereClauseRule.typeProjection)
                 ?: throw invocation.make<Parser>("Expected where clause", context.peek())
 
             whereClauses += whereClause
