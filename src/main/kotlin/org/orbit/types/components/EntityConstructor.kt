@@ -100,7 +100,7 @@ data class ConstrainedEntityConstructor(val entityConstructor: EntityConstructor
         }}
 
         val specialist = when (entityConstructor) {
-            is TypeConstructor -> TypeMonomorphisation(entityConstructor, nTypes, omitTypeParameters = true)
+            is TypeConstructor -> TypeMonomorphisation(entityConstructor, nTypes, omitTypeParameters = false)
             is TraitConstructor -> TraitConstructorMonomorphisation(entityConstructor, nTypes)
             else -> TODO("@EntityConstructor:98")
         }

@@ -138,7 +138,13 @@ class ExtendEntity(private val node: ExtensionNode, private val moduleNode: Modu
                 val result = typeResolver.resolve(nameResolverResult.environment, localContext)
 
                 if (type is EntityConstructor && entity.shouldRegisterExtensionTemplate) {
-                    globalContext.registerExtension(ExtensionTemplate(type, result, methodDef.body))
+                    // TODO - Trait Constructors
+                    val nEntityConstructor = TypeConstructor(name = type.name, typeParameters = (entity as Type).typeParameters.zip(type.typeParameters).map {
+                        TypeParameter(it.second.name, constraints = (it.first as Type).traitConformance)
+                    }, properties = type.properties)
+
+                    // TODO - EntityConstructor needs to capture constrained type parameters here
+                    globalContext.registerExtension(ExtensionTemplate(nEntityConstructor, result, methodDef.body))
                 } else {
                     context.registerMonomorphisation(MethodTemplate(trait, result, methodDef.body))
                 }

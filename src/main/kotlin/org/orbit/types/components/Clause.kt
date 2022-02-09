@@ -63,8 +63,7 @@ object TypeConstructorEquality : Equality<TypeConstructor, TypeConstructor> {
     override fun isSatisfied(context: ContextProtocol, source: TypeConstructor, target: TypeConstructor): Boolean {
         return source.typeParameters.count() == target.typeParameters.count()
             && source.typeParameters.zip(target.typeParameters).all {
-                (source.equalitySemantics as AnyEquality)
-                    .isSatisfied(context, it.first, it.second)
+                HybridEquality.isSatisfied(context, it.first.synthesise(), it.second.synthesise())
             }
     }
 }

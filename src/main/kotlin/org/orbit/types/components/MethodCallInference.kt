@@ -86,21 +86,19 @@ object MethodCallInference : TypeInference<MethodCallNode>, KoinComponent {
             for (binding in uniqueBindings) {
                 if (binding.name != node.messageIdentifier.identifier) continue
 
-                if (binding is TypeSignature) {
-                    val receiverSemantics = binding.receiver.equalitySemantics as AnyEquality
+                val receiverSemantics = binding.receiver.equalitySemantics as AnyEquality
 
-                    if (receiverSemantics.isSatisfied(context, binding.receiver, receiverType)) {
-                        val all = binding.parameters
-                            .map(Parameter::type)
-                            .zip(parameterTypes)
-                            .all {
-                                val semantics = it.first.equalitySemantics as AnyEquality
-                                semantics.isSatisfied(context, it.first, it.second)
-                            }
-
-                        if (all) {
-                            matches.add(binding)
+                if (receiverSemantics.isSatisfied(context, binding.receiver, receiverType)) {
+                    val all = binding.parameters
+                        .map(Parameter::type)
+                        .zip(parameterTypes)
+                        .all {
+                            val semantics = it.first.equalitySemantics as AnyEquality
+                            semantics.isSatisfied(context, it.first, it.second)
                         }
+
+                    if (all) {
+                        matches.add(binding)
                     }
                 }
             }

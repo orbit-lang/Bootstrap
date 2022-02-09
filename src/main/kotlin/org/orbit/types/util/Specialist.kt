@@ -195,7 +195,13 @@ class TypeMonomorphisation(private val typeConstructor: TypeConstructor, private
 
         // NOTE - This is terrifying!
         val associatedExtensionMethods = globalContext.extensionMethods
-            .filter { it.value.entityConstructor == monomorphisedType.typeConstructor }
+            .filter {
+                val ec = it.value.entityConstructor
+                val eq = ec.equalitySemantics as AnyEquality
+                val tc = monomorphisedType.typeConstructor ?: return@filter false
+
+                eq.isSatisfied(context, ec, tc)
+            }
 
         for (ext in associatedExtensionMethods) {
             val specialist = SignatureSelfSpecialisation(ext.value.signature, monomorphisedType)

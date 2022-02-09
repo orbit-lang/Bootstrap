@@ -2,20 +2,14 @@
 module M with Orb::Core::* with Orb::Compiler::* {
     type constructor Box<T>(value T)
     trait A(value Int)
+    type B(value Int) : A
 
     extension Box where Self[T] : A {
         (self Self) getValue() (AnyType) = self.value
     }
 
-    extension Box where Self[T] = Symbol {
-        (self Self) getValue() (Symbol) = self.value
-    }
-
     (self Main) main () () {
-        b = Box(:symbol)
+        b = Box(B(2))
         print b.getValue()
-
-        c = Box(1)
-        print c.getValue()
     }
 }
