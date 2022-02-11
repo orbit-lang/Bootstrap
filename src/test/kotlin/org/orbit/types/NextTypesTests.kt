@@ -3,6 +3,7 @@ package org.orbit.types
 import junit.framework.TestCase
 import org.junit.jupiter.api.Test
 import org.orbit.core.Mangler
+import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 
 class Next {
@@ -238,10 +239,189 @@ class Next {
         }
     }
 
-    data class Signature(override val fullyQualifiedName: String, val relativeName: String, val receiver: IType, val parameters: List<IType>, val returns: IType, override val isSynthetic: Boolean = false) : IType {
+    data class Signature(val relativeName: String, val receiver: IType, val parameters: List<IType>, val returns: IType, override val isSynthetic: Boolean = false) : IType {
+        override val fullyQualifiedName: String
+            get() = (Path(receiver.fullyQualifiedName, relativeName) + Path(relativeName) + parameters.map { Path(it.fullyQualifiedName) } + OrbitMangler.unmangle(returns.fullyQualifiedName))
+                .toString(OrbitMangler)
+
         override fun compare(ctx: Ctx, other: IType): TypeRelation = when (NominalEq.eq(ctx, this, other)) {
             true -> TypeRelation.Same(this, other)
             else -> TypeRelation.Unrelated(this, other)
+        }
+    }
+
+    data class Block(val returns: IType, override val isSynthetic: Boolean = false) : IType {
+        override val fullyQualifiedName: String = returns.fullyQualifiedName
+
+        override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
+            is Block -> returns.compare(ctx, other.returns)
+            else -> TypeRelation.Unrelated(this, other)
+        }
+    }
+
+    data class Parameter(override val fullyQualifiedName: String) : IType {
+        override val isSynthetic: Boolean = false
+
+        override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
+            is Parameter -> when (NominalEq.eq(ctx, this, other)) {
+                true -> TypeRelation.Same(this, other)
+                else -> TypeRelation.Unrelated(this, other)
+            }
+
+            else -> TypeRelation.Unrelated(this, other)
+        }
+    }
+
+    data class MonomorphicType<T: IType>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<IType>, val isTotal: Boolean) : IType {
+        override val fullyQualifiedName: String = specialisedType.fullyQualifiedName
+        override val isSynthetic: Boolean = true
+
+        override fun compare(ctx: Ctx, other: IType): TypeRelation
+            = specialisedType.compare(ctx, other)
+    }
+
+    sealed interface MonomorphisationResult<T: IType> {
+        data class Failure<T: IType>(val input: T) : MonomorphisationResult<T>
+        data class Total<T: IType, R: IType>(val result: R) : MonomorphisationResult<T>
+        data class Partial<T: IType>(val result: PolymorphicType<T>) : MonomorphisationResult<T>
+    }
+
+    interface Monomorphiser<T: IType, U: IType> {
+        fun monomorphise(ctx: Ctx, input: T, over: List<IType>) : MonomorphisationResult<U>
+    }
+
+    object FieldMonomorphiser : Monomorphiser<Field, Field> {
+        override fun monomorphise(ctx: Ctx, input: Field, over: List<IType>) : MonomorphisationResult<Field> {
+            if (over.count() != 1) return MonomorphisationResult.Failure(input)
+
+            return MonomorphisationResult.Total(Field(input.fullyQualifiedName, over[0]))
+        }
+    }
+
+    object TypeMonomorphiser : Monomorphiser<PolymorphicType<Type>, Type> {
+        override fun monomorphise(ctx: Ctx, input: PolymorphicType<Type>, over: List<IType>): MonomorphisationResult<Type> {
+            if (over.count() > input.parameters.count()) return MonomorphisationResult.Failure(input.baseType)
+
+            val nFields = input.baseType.fields.map {
+                val idx = input.parameters.indexOf(it.type)
+                when (it.type is Parameter) {
+                    true -> when (val e = over.elementAtOrNull(idx)) {
+                        null -> it
+                        else -> Field(it.fullyQualifiedName, e)
+                    }
+                    else -> it
+                }
+            }
+
+            val nPath = OrbitMangler.unmangle(input.fullyQualifiedName).plus(
+                over.map { OrbitMangler.unmangle(it.fullyQualifiedName) })
+
+            val nType = Type(nPath.toString(OrbitMangler), nFields, true)
+
+            return when (input.parameters.count() == over.count()) {
+                true -> MonomorphisationResult.Total(MonomorphicType(input, nType, over, true))
+                else -> {
+                    val delta = input.parameters.count() - over.count()
+                    val unresolvedParameters = input.parameters.dropLast(delta)
+                    val nPoly = PolymorphicType(input.baseType, unresolvedParameters)
+
+                    MonomorphisationResult.Partial(nPoly)
+                }
+            }
+        }
+    }
+
+    object Self : IType {
+        override val fullyQualifiedName: String = "Self"
+        override val isSynthetic: Boolean = true
+
+        override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
+            is Self -> TypeRelation.Same(this, other)
+            else -> TypeRelation.Unrelated(this, other)
+        }
+    }
+
+    object SignatureSelfMonomorphiser : Monomorphiser<Signature, Signature> {
+        // `over` is always a single-element list, representing the type of `Self` in this context
+        override fun monomorphise(ctx: Ctx, input: Signature, over: List<IType>): MonomorphisationResult<Signature> {
+            if (over.count() != 1) return MonomorphisationResult.Failure(input)
+
+            val nReceiver = when (input.receiver) {
+                is Self -> over[0]
+                else -> input.receiver
+            }
+
+            val nParameters = input.parameters.map {
+                when (it) {
+                    is Self -> over[0]
+                    else -> it
+                }
+            }
+
+            val nReturns = when (input.returns) {
+                is Self -> over[0]
+                else -> input.returns
+            }
+
+            val nSignature = Signature(input.relativeName, nReceiver, nParameters, nReturns, true)
+
+            return MonomorphisationResult.Total(nSignature)
+        }
+    }
+
+    object SignatureMonomorphiser : Monomorphiser<PolymorphicType<Signature>, Signature> {
+        override fun monomorphise(ctx: Ctx, input: PolymorphicType<Signature>, over: List<IType>): MonomorphisationResult<Signature> {
+            if (input.parameters.count() != over.count()) return MonomorphisationResult.Failure(input.baseType)
+
+            val receiverIdx = input.parameters.indexOf(input.baseType.receiver)
+            val nReceiver = when (receiverIdx) {
+                -1 -> input.baseType.receiver
+                else -> over[receiverIdx]
+            }
+
+            val nParams = input.baseType.parameters.map {
+                val idx = input.parameters.indexOf(it)
+                when (idx) {
+                    -1 -> it
+                    else -> over[idx]
+                }
+            }
+
+            val returnsIdx = input.parameters.indexOf(input.baseType.returns)
+            val nReturns = when (returnsIdx) {
+                -1 -> input.baseType.returns
+                else -> over[returnsIdx]
+            }
+
+            val nSignature = Signature(input.baseType.relativeName, nReceiver, nParams, nReturns, true)
+
+            return MonomorphisationResult.Total(MonomorphicType<Signature>(input, nSignature, over, true))
+        }
+    }
+
+    data class PolymorphicType<T: IType>(val baseType: T, val parameters: List<Parameter>, override val isSynthetic: Boolean = false) : IType {
+        override val fullyQualifiedName: String = baseType.fullyQualifiedName
+
+        override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
+            is PolymorphicType<*> -> when (NominalEq.eq(ctx, this, other)) {
+                true -> TypeRelation.Same(this, other)
+                else -> TypeRelation.Unrelated(this, other)
+            }
+
+            else -> TypeRelation.Unrelated(this, other)
+        }
+    }
+
+    interface Extension<T: IType> {
+        val baseType: T
+        val signatures: List<Signature>
+
+        fun extend(ctx: Ctx)
+    }
+
+    data class TypeExtension(override val baseType: Type, override val signatures: List<Signature>) : Extension<Type> {
+        override fun extend(ctx: Ctx) {
+            signatures.forEach { ctx.map(baseType, it) }
         }
     }
 }
@@ -300,7 +480,7 @@ class NextTypesTests : TestCase() {
         assertTrue(ctx.getSignatureMap().isEmpty())
 
         val type = Next.Type("Foo")
-        val sig = Next.Signature("Sig", "sig", type, listOf(type), type)
+        val sig = Next.Signature("sig", type, listOf(type), type)
 
         ctx.map(type, sig)
 
@@ -312,7 +492,7 @@ class NextTypesTests : TestCase() {
         assertEquals(1, ctx.getSignatureMap().count())
         assertEquals(1, ctx.getSignatures(type).count())
 
-        val sig2 = Next.Signature("Sig2", "sig2", type, listOf(type), type)
+        val sig2 = Next.Signature("sig2", type, listOf(type), type)
 
         ctx.map(type, sig2)
 
@@ -342,7 +522,7 @@ class NextTypesTests : TestCase() {
     fun testGetSignatures() {
         val ctx = Next.Ctx()
         val foo = Next.Type("Foo")
-        val sig = Next.Signature("Sig", "sig", foo, listOf(foo), foo)
+        val sig = Next.Signature("sig", foo, listOf(foo), foo)
 
         ctx.map(foo, sig)
 
@@ -414,7 +594,7 @@ class NextTypesTests : TestCase() {
     fun testSignatureIsImplemented() {
         val ctx = Next.Ctx()
         val t = Next.Type("T")
-        val s = Next.Signature("S", "s", t, listOf(t), t, false)
+        val s = Next.Signature("s", t, listOf(t), t, false)
 
         ctx.map(t, s)
 
@@ -441,7 +621,7 @@ class NextTypesTests : TestCase() {
         val t1 = Next.Type("T1")
         val field1 = Next.Field("f1", t1)
         val t2 = Next.Type("T2", listOf(field1))
-        val s = Next.Signature("S", "s", t1, listOf(t1, t2), t1)
+        val s = Next.Signature("s", t1, listOf(t1, t2), t1)
 
         ctx.map(t2, s)
 
@@ -491,5 +671,55 @@ class NextTypesTests : TestCase() {
 
         assertEquals(Next.TypeRelation.Related(tr3, t3), t3.compare(ctx, tr3))
         assertEquals(Next.TypeRelation.Related(tr3, t3), tr3.compare(ctx, t3))
+    }
+
+    @Test
+    fun testMonomorphiseField() {
+        val ctx = Next.Ctx()
+        val t = Next.Type("T")
+        val p = Next.Parameter("P")
+        val f = Next.Field("F", p)
+
+        val failure = Next.FieldMonomorphiser.monomorphise(ctx, f, emptyList())
+
+        assertTrue(failure is Next.MonomorphisationResult.Failure)
+
+        val result = Next.FieldMonomorphiser.monomorphise(ctx, f, listOf(t))
+            as Next.MonomorphisationResult.Total<Next.Field, Next.Field>
+
+        assertNotNull(result)
+        assertTrue(result!!.result.type is Next.Type)
+        assertEquals("T", result.result.type.fullyQualifiedName)
+    }
+
+    @Test
+    fun testMonomorphiseType() {
+        val ctx = Next.Ctx()
+        val t2 = Next.Type("T2")
+        val t3 = Next.Type("T3")
+        val p1 = Next.Parameter("P1")
+        val p2 = Next.Parameter("P2")
+
+        val f1 = Next.Field("f1", p1)
+        val f2 = Next.Field("f2", p2)
+
+        val t = Next.Type("T", listOf(f1, f2))
+
+        val poly = Next.PolymorphicType(t, listOf(p1, p2))
+        val failure = Next.TypeMonomorphiser.monomorphise(ctx, poly, listOf(t2, t2, t3))
+
+        assertTrue(failure is Next.MonomorphisationResult.Failure)
+
+        val partial = Next.TypeMonomorphiser.monomorphise(ctx, poly, listOf(t2))
+
+        assertTrue(partial is Next.MonomorphisationResult.Partial)
+
+        val result = Next.TypeMonomorphiser.monomorphise(ctx, poly, listOf(t2, t3))
+            as Next.MonomorphisationResult.Total<Next.Type, Next.MonomorphicType<Next.Type>>
+
+        assertNotNull(result)
+        assertEquals("T::T2::T3", result!!.result.fullyQualifiedName)
+        assertEquals(t2, result.result.specialisedType.fields[0].type)
+        assertEquals(t3, result.result.specialisedType.fields[1].type)
     }
 }
