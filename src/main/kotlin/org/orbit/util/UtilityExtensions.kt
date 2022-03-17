@@ -156,3 +156,9 @@ fun Collection<String>.concatenate() : String {
 
     return str
 }
+
+fun <A, B> List<Pair<A, B>>.firsts() : List<A>
+    = map { it.first }
+
+fun <A, B> List<Pair<A, B>>.seconds() : List<B>
+    = map { it.second }

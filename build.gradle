@@ -33,6 +33,7 @@ dependencies {
     implementation "io.insert-koin:koin-core:$koin_version"
     testImplementation "io.insert-koin:koin-test:$koin_version"
     testImplementation "io.insert-koin:koin-test-junit5:$koin_version"
+    implementation 'com.google.code.gson:gson:2.9.0'
 }
 
 compileKotlin {
