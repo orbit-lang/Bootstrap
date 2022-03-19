@@ -4,14 +4,11 @@ package org.orbit.types
 
 import com.google.gson.Gson
 import junit.framework.TestCase
-import org.json.JSONObject
 import org.junit.jupiter.api.Test
 import org.orbit.types.next.components.*
 import org.orbit.types.next.constraints.EqualityConstraint
 import org.orbit.types.next.constraints.EqualityConstraintApplication
 import org.orbit.util.assertIs
-import java.io.ByteArrayOutputStream
-import java.io.StringReader
 
 class NextTypesTests : TestCase() {
     @Test
@@ -460,5 +457,38 @@ class NextTypesTests : TestCase() {
         val ctx2 = gson.fromJson(json, Ctx::class.java)
 
         assertEquals(3, ctx2.getTypes().count())
+    }
+
+    @Test
+    fun testCurrySimpleFunc() {
+        val t1 = Type("T1")
+        val t2 = Type("T2")
+        val f = Func(ListType(listOf(t1, t2)), t1)
+        val l = f.curry()
+        val result = l.fullyQualifiedName
+
+        assertEquals("(T1) -> (T2) -> T1", result)
+    }
+
+    @Test
+    fun testCurryComplexFunc() {
+        val t1 = Type("T1")
+        val t2 = Type("T2")
+        val f1 = Func(ListType(listOf(t1, t2)), t1)
+        val f2 = Func(ListType(listOf(t1, t2, f1)), f1)
+        val l = f2.curry()
+        val result = l.fullyQualifiedName
+
+        assertEquals("(T1) -> (T2) -> ((T1) -> (T2) -> T1) -> (T1) -> (T2) -> T1", result)
+    }
+
+    @Test
+    fun testFuncPartial() {
+        val t1 = Type("T1")
+        val t2 = Type("T2")
+        val f1 = Func(ListType(listOf(t1, t2, t1)), t1)
+        val result = f1.partial(listOf(Pair(0, t1)))
+
+        assertEquals("(T2, T1) -> T1", result.fullyQualifiedName)
     }
 }

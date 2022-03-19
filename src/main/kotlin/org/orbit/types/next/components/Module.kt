@@ -25,7 +25,3 @@ class Module(override val fullyQualifiedName: String, imports: List<Module>) : I
         else -> TypeRelation.Unrelated(this, other)
     }
 }
-
-object ModuleSerialiser {
-
-}

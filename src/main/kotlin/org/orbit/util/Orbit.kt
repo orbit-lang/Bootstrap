@@ -17,6 +17,9 @@ import org.orbit.core.phase.CompilerGenerator
 import org.orbit.core.single
 import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
+import org.orbit.types.next.inference.*
+import org.orbit.util.next.BindingScope
+import org.orbit.util.next.TypeMap
 
 val mainModule = module {
 	single { Invocation(Unix) }
@@ -53,6 +56,18 @@ val mainModule = module {
 		util.registerPathResolver(WhereClausePathResolver, WhereClauseNode::class.java)
 		util.registerPathResolver(WhereClauseTypeBoundsExpressionResolver, WhereClauseTypeBoundsExpressionNode::class.java)
 		util.registerPathResolver(TypeIndexResolver, TypeIndexNode::class.java)
+
+		util
+	}
+
+	single<InferenceUtil> {
+		val util = InferenceUtil(TypeMap(), BindingScope.Root)
+
+		util.registerPathResolver(IntLiteralInference, IntLiteralNode::class.java)
+		util.registerPathResolver(SymbolLiteralInference, SymbolLiteralNode::class.java)
+		util.registerPathResolver(LambdaLiteralInference, LambdaLiteralNode::class.java)
+		util.registerPathResolver(VariableInference, IdentifierNode::class.java)
+		util.registerPathResolver(BlockInference, BlockNode::class.java)
 
 		util
 	}

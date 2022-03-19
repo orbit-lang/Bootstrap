@@ -56,6 +56,11 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 		fun map(node: Node) : List<N>
 	}
 
+	// No two Nodes should ever share the same source position, so this should be unique
+	// TODO - This needs to be verified!
+	val id: String
+		get() = "@${firstToken.position.line}:${lastToken.position.character}"
+
 	var annotations: MutableSet<NodeAnnotation<*>> = mutableSetOf()
 	var phaseAnnotationNodes = mutableListOf<PhaseAnnotationNode>()
 
@@ -149,3 +154,4 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 }
 
 abstract class AnnotatedNode(firstToken: Token, lastToken: Token, open val annotationPass: PathResolver.Pass) : Node(firstToken, lastToken)
+abstract class BoundNode(firstToken: Token, lastToken: Token) : Node(firstToken, lastToken)
