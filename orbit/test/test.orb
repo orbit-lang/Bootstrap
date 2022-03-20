@@ -1,6 +1,5 @@
 module Test {
-    type constructor List<Element>(a Element)
+    trait constructor Printable<T>(value T)
     type T
-
-    type TList = List<T>
+    type Foo : Printable<Test::T>
 }

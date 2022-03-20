@@ -13,7 +13,7 @@ interface ITypeMapInterface
 interface ITypeMapRead : ITypeMapInterface {
     fun find(name: String) : TypeComponent?
     fun get(node: Node) : TypeComponent?
-    fun getConformance(type: Type) : List<Trait>
+    fun getConformance(type: Type) : List<ITrait>
     fun toCtx() : Ctx
     fun getTypeErrors() : List<Never>
 }
@@ -21,7 +21,7 @@ interface ITypeMapRead : ITypeMapInterface {
 interface ITypeMapWrite : ITypeMapInterface {
     fun declare(type: DeclType)
     fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean = false)
-    fun addConformance(type: Type, trait: Trait)
+    fun addConformance(type: Type, trait: ITrait)
 }
 
 interface ITypeMap : ITypeMapRead, ITypeMapWrite
@@ -60,7 +60,7 @@ class TypeMap : ITypeMap {
         visibleTypes.values.map(::extend)
         conformanceMap.forEach {
             val type = findAs<Type>(it.key) ?: return@forEach
-            val traits = it.value.mapNotNull { s -> findAs<Trait>(s) }
+            val traits = it.value.mapNotNull { s -> findAs<ITrait>(s) }
 
             traits.forEach { tr -> map(type, tr) }
         }
@@ -69,7 +69,7 @@ class TypeMap : ITypeMap {
     override fun getTypeErrors(): List<Never>
         = visibleTypes.values.filterIsInstance<Never>()
 
-    override fun addConformance(type: Type, trait: Trait) {
+    override fun addConformance(type: Type, trait: ITrait) {
         val conformance = conformanceMap[type.fullyQualifiedName]
             ?: emptyList()
 

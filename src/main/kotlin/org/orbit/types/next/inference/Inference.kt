@@ -2,6 +2,8 @@ package org.orbit.types.next.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
 import org.orbit.core.nodes.Node
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
@@ -23,6 +25,8 @@ fun TypeComponent.inferenceResult() : InferenceResult = when (this) {
 interface ITypeRef : ValueType, ITrait, IType
 
 data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
+    constructor(path: Path) : this(path.toString(OrbitMangler))
+
     companion object : ITypeRef {
         override val fullyQualifiedName: String
             get() = throw RuntimeException("FATAL - Naked Type Reference")

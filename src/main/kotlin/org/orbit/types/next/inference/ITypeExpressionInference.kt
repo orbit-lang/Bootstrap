@@ -35,11 +35,18 @@ object MetaTypeInference : ITypeExpressionInference<MetaTypeNode, MonomorphicTyp
     private val printer: Printer by inject()
 
     override fun infer(inferenceUtil: InferenceUtil, node: MetaTypeNode): InferenceResult {
-        val polyType = inferenceUtil.inferAs<TypeIdentifierNode, PolymorphicType<Type>>(node.typeConstructorIdentifier)
+        val polyType = inferenceUtil.inferAs<TypeIdentifierNode, PolymorphicType<TypeComponent>>(node.typeConstructorIdentifier)
         val parameters = inferenceUtil.inferAllAs<TypeExpressionNode, TypeComponent>(node.typeParameters, AnyInferenceContext(TypeExpressionNode::class.java))
             .mapIndexed { idx, type -> Pair(idx, type) }
 
-        return TypeMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType, parameters)
-            .toInferenceResult(printer)
+        return when (polyType.baseType) {
+            is Type -> TypeMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<Type>, parameters)
+                .toInferenceResult(printer)
+
+            is Trait -> TraitMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<Trait>, parameters)
+                .toInferenceResult(printer)
+
+            else -> InferenceResult.Failure(Never("Cannot specialise Polymorphic Type ${polyType.toString(printer)}"))
+        }
     }
 }

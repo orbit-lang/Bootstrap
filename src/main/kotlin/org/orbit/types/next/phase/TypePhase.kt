@@ -39,11 +39,13 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         val traitDefs = input.node.search<TraitDefNode>()
         val typeAliasDefs = input.node.search<TypeAliasNode>()
         val typeConstructorDefs = input.node.search<TypeConstructorNode>()
+        val traitConstructorDefs = input.node.search<TraitConstructorNode>()
 
         var types = TypeStubPhase.executeAll(input.inferenceUtil, typeDefs)
         var traits = TraitStubPhase.executeAll(input.inferenceUtil, traitDefs)
 
         TypeConstructorStubPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
+        TraitConstructorStubPhase.executeAll(input.inferenceUtil, traitConstructorDefs)
 
         TypeAliasPhase.executeAll(input.inferenceUtil, typeAliasDefs)
 
