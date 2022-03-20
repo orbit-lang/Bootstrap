@@ -145,7 +145,7 @@ class Build : CliktCommand(), KoinComponent {
                 compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
                 compilerGenerator[CompilationSchemeEntry.observers] = ObserverPhase(invocation)
                 compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
-                compilerGenerator[CompilationSchemeEntry.typeSystem] = TypeSystem(invocation)
+                compilerGenerator[CompilationSchemeEntry.typeSystem] = org.orbit.types.next.phase.TypeSystem //TypeSystem(invocation)
                 compilerGenerator[CompilationSchemeEntry.traitEnforcer] = TraitEnforcer()
                 compilerGenerator[CompilationSchemeEntry.mainResolver] = MainResolver
 

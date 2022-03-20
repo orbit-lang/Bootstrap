@@ -1,22 +1,30 @@
 package org.orbit.types.next.components
 
-data class SignatureContract(val signature: Signature) : Contract {
-    private fun isMatchingSignature(ctx: Ctx, other: Signature) : Boolean {
-        if (signature.relativeName != other.relativeName) return false
+import org.orbit.util.Printer
 
-        val isReceiverEq = AnyEq.eq(ctx, signature.receiver, other.receiver)
-        val areParametersEq = signature.parameters.count() == other.parameters.count()
-            && signature.parameters.zip(other.parameters).allEq(ctx)
-        val isReturnEq = AnyEq.eq(ctx, signature.returns, other.returns)
+data class SignatureContract(override val trait: Trait, override val input: Signature) : Contract<Signature> {
+    private fun isMatchingSignature(ctx: Ctx, other: Signature) : Boolean {
+        if (input.relativeName != other.relativeName) return false
+
+        val isReceiverEq = AnyEq.eq(ctx, input.receiver, other.receiver)
+        val areParametersEq = input.parameters.count() == other.parameters.count()
+            && input.parameters.zip(other.parameters).allEq(ctx)
+        val isReturnEq = AnyEq.eq(ctx, input.returns, other.returns)
 
         return isReceiverEq && areParametersEq && isReturnEq
     }
 
-    override fun isImplemented(ctx: Ctx, by: IType): Boolean {
-        if (by !is Type) return false
+    override fun isImplemented(ctx: Ctx, by: IType): ContractResult {
+        if (by !is Type) return ContractResult.Failure(by, this)
 
         val allSignatures = ctx.getSignatures(by)
 
-        return allSignatures.any { isMatchingSignature(ctx, it) }
+        return when (allSignatures.any { isMatchingSignature(ctx, it) }) {
+            true -> ContractResult.Success(by, this)
+            else -> ContractResult.Failure(by, this)
+        }
     }
+
+    override fun getErrorMessage(printer: Printer, type: IType): String
+        = "Type ${type.toString(printer)} does not implement Signature ${input.toString(printer)} of Trait ${trait.toString(printer)}"
 }

@@ -28,7 +28,7 @@ data class Func(override val takes: VectorType, override val returns: IType) : E
      */
     fun partial(args: List<Pair<Int, IType>>) : ExecutableType<*> = when {
         args.isEmpty() -> this
-        args.count() > takes.count() -> IType.Never.never("Cannot partially apply executable type ${fullyQualifiedName} with more arguments than it declares (${args.count()} vs ${takes.count()})")
+        args.count() > takes.count() -> Never("Cannot partially apply executable type $fullyQualifiedName with more arguments than it declares (${args.count()} vs ${takes.count()})")
         else -> {
             val givenIndices = args.map(Pair<Int, IType>::first)
             val missing = takes.filterIndexed { idx, _ -> !givenIndices.contains(idx) }
@@ -38,7 +38,7 @@ data class Func(override val takes: VectorType, override val returns: IType) : E
     }
 
     fun curry() : Lambda = when (takes.count()) {
-        0 -> Lambda(IType.Never, returns.tryCurry())
+        0 -> Lambda(Never, returns.tryCurry())
         1 -> Lambda(takes.nth(0).tryCurry(), returns.tryCurry())
         else -> Lambda(takes.nth(0).tryCurry(), Func(takes.drop(1).map(IType::tryCurry), returns.tryCurry()).curry())
     }

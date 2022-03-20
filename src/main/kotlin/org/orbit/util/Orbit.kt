@@ -60,14 +60,18 @@ val mainModule = module {
 		util
 	}
 
-	single<InferenceUtil> {
+	single {
 		val util = InferenceUtil(TypeMap(), BindingScope.Root)
 
 		util.registerPathResolver(IntLiteralInference, IntLiteralNode::class.java)
 		util.registerPathResolver(SymbolLiteralInference, SymbolLiteralNode::class.java)
 		util.registerPathResolver(LambdaLiteralInference, LambdaLiteralNode::class.java)
 		util.registerPathResolver(VariableInference, IdentifierNode::class.java)
+		util.registerPathResolver(TypeLiteralInference, TypeIdentifierNode::class.java)
 		util.registerPathResolver(BlockInference, BlockNode::class.java)
+		util.registerPathResolver(TypeDefInference, TypeDefNode::class.java)
+		util.registerPathResolver(ModuleInference, ModuleNode::class.java)
+		util.registerPathResolver(FieldInference, PairNode::class.java)
 
 		util
 	}

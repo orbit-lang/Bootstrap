@@ -1,21 +1,6 @@
-@Main
-module M with Orb::Core::* with Orb::Compiler::* {
-    type constructor Box<T>(value T)
-
-    trait A(value Int) {
-        (self Self) double () (Int)
-    }
-
-    type B(value Int) : A
-
-    (self B) double () (Int) = value * 2
-
-    extension Box where Self[T] : A {
-        (self Self) getValue() (AnyType) = self.value
-    }
-
-    (self Main) main () () {
-        b = Box(B(2))
-        print b.getValue()
-    }
+module Test {
+    trait T(a A)
+    trait U(t T)
+    type A
+    type B(a A) : T, U
 }

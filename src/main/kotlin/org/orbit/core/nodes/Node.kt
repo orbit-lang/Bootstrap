@@ -9,6 +9,8 @@ import org.orbit.serial.Serialiser
 import org.orbit.util.PriorityComparator
 import org.orbit.util.prioritise
 import java.io.Serializable
+import java.security.SecureRandom
+import kotlin.random.Random
 
 interface NodeAnnotationTag<T: Serial> : Serial {
 	override fun describe(json: JSONObject) {
@@ -56,10 +58,7 @@ abstract class Node(open val firstToken: Token, open val lastToken: Token) : Ser
 		fun map(node: Node) : List<N>
 	}
 
-	// No two Nodes should ever share the same source position, so this should be unique
-	// TODO - This needs to be verified!
-	val id: String
-		get() = "@${firstToken.position.line}:${lastToken.position.character}"
+	val id: String = "${javaClass.simpleName}@${java.util.UUID.randomUUID()}"
 
 	var annotations: MutableSet<NodeAnnotation<*>> = mutableSetOf()
 	var phaseAnnotationNodes = mutableListOf<PhaseAnnotationNode>()

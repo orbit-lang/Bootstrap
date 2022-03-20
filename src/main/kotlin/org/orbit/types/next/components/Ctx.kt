@@ -1,5 +1,8 @@
 package org.orbit.types.next.components
 
+import com.sun.xml.internal.bind.v2.model.core.TypeRef
+import org.orbit.types.next.inference.TypeReference
+
 interface IContextRead {
     fun getTypes() : List<Type>
     fun getTraits() : List<Trait>
@@ -32,6 +35,17 @@ class Ctx constructor() : IContext {
     override fun getTraits() : List<Trait> = traits
     override fun getSignatureMap() : Map<Type, List<Signature>> = signatureMap
     override fun getConformanceMap() : Map<IType, List<Trait>> = conformanceMap
+
+    fun <R> dereferencing(ref: IType, block: (IType) -> R) : R = when (ref) {
+        is TypeReference -> {
+            val type = types.find { it.fullyQualifiedName == ref.fullyQualifiedName }
+                ?: traits.find { it.fullyQualifiedName == ref.fullyQualifiedName }!!
+
+            block(type)
+        }
+
+        else -> block(ref)
+    }
 
     fun merge(other: Ctx) : Ctx {
         val distinctTypes = (types + other.types).distinctBy { it.fullyQualifiedName }

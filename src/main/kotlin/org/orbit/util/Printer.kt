@@ -2,6 +2,8 @@ package org.orbit.util
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.types.components.TypeProtocol
 import java.awt.print.Printable
@@ -61,6 +63,9 @@ class Printer(private val factory: PrintableFactory) {
 		
 		return "$headers$text${factory.getTerminator()}"
 	}
+
+	fun apply(path: Path, vararg keys: PrintableKey) : String
+		= apply(path.toString(OrbitMangler), *keys)
 
 	fun apply(text: String, keys: List<PrintableKey>) : String {
 		return apply(text, *keys.toTypedArray())

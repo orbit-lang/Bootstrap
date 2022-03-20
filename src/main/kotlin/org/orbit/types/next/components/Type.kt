@@ -1,6 +1,19 @@
 package org.orbit.types.next.components
 
-data class Type(override val fullyQualifiedName: String, val fields: List<Field> = emptyList(), override val isSynthetic: Boolean = false) : IType {
+import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
+
+interface Entity : DeclType
+
+data class Type(override val fullyQualifiedName: String, val fields: List<Field> = emptyList(), override val isSynthetic: Boolean = false) : Entity {
+    constructor(path: Path, fields: List<Field> = emptyList(), isSynthetic: Boolean = false)
+        : this(OrbitMangler.mangle(path), fields, isSynthetic)
+
+    override fun equals(other: Any?): Boolean = when (other) {
+        is Type -> fullyQualifiedName == other.fullyQualifiedName
+        else -> false
+    }
+
     override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
         is Trait -> other.compare(ctx, this)
 

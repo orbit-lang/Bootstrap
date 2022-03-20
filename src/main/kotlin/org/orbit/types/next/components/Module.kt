@@ -1,6 +1,12 @@
 package org.orbit.types.next.components
 
-class Module(override val fullyQualifiedName: String, imports: List<Module>) : IType, IContext {
+import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
+
+class Module(override val fullyQualifiedName: String, imports: List<Module> = emptyList()) : DeclType, IContext {
+    constructor(path: Path, imports: List<Module> = emptyList())
+        : this(OrbitMangler.mangle(path), imports)
+
     override val isSynthetic: Boolean = false
     private val context: Ctx = imports.map { it.context }
         .fold(Ctx()) { acc, next -> acc.merge(next) }
@@ -12,6 +18,12 @@ class Module(override val fullyQualifiedName: String, imports: List<Module>) : I
     override fun extend(type: IType) = context.extend(type)
     override fun map(key: Type, value: Signature) = context.map(key, value)
     override fun map(key: IType, value: Trait) = context.map(key, value)
+
+    fun extendAll(types: List<IType>) : Module {
+        types.forEach(::extend)
+
+        return this
+    }
 
     // NOTE - To avoid outsiders modifying `context`, expose only its read-only interface
     fun getContext() : IContextRead = context
