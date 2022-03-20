@@ -1,7 +1,7 @@
 package org.orbit.types.next.components
 
-object SignatureMonomorphiser : Monomorphiser<PolymorphicType<Signature>, List<IType>, Signature> {
-    override fun monomorphise(ctx: Ctx, input: PolymorphicType<Signature>, over: List<IType>): MonomorphisationResult<Signature> {
+object SignatureMonomorphiser : Monomorphiser<PolymorphicType<Signature>, List<TypeComponent>, Signature> {
+    override fun monomorphise(ctx: Ctx, input: PolymorphicType<Signature>, over: List<TypeComponent>): MonomorphisationResult<Signature> {
         if (input.parameters.count() != over.count()) return MonomorphisationResult.Failure(input.baseType)
 
         val receiverIdx = input.parameters.indexOf(input.baseType.receiver)

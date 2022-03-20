@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.orbit.types.next.components.*
 import org.orbit.types.next.constraints.EqualityConstraint
 import org.orbit.types.next.constraints.EqualityConstraintApplication
+import org.orbit.types.next.inference.TypeReference
 import org.orbit.util.assertIs
 
 class NextTypesTests : TestCase() {
@@ -123,7 +124,7 @@ class NextTypesTests : TestCase() {
         val t = Type("T")
         val f = Field("f", t)
         val t2 = Type("T2", listOf(f))
-        val tr = Trait("Tr", listOf(FieldContract(f)))
+        val tr = Trait("Tr", listOf(FieldContract(TypeReference("Tr"), f)))
         val tr2 = Trait("Tr2")
 
         assertFalse(StructuralEq.eq(ctx, tr, t))
@@ -140,8 +141,8 @@ class NextTypesTests : TestCase() {
         val t = Type("T")
         val f = Field("f", t)
         val t2 = Type("T2", listOf(f))
-        val tr1 = Trait("Tr1", listOf(FieldContract(f)))
-        val tr2 = Trait("Tr2", listOf(FieldContract(f)))
+        val tr1 = Trait("Tr1", listOf(FieldContract(TypeReference("Tr1"), f)))
+        val tr2 = Trait("Tr2", listOf(FieldContract(TypeReference("Tr2"), f)))
 
         // Trait -> Trait equality is Nominal
         assertFalse(AnyEq.eq(ctx, tr1, tr2))
@@ -156,10 +157,10 @@ class NextTypesTests : TestCase() {
         val field1 = Field("f1", t1)
 
         val t2 = Type("T2", listOf(field1))
-        val sut = FieldContract(field1)
+        val sut = FieldContract(TypeReference, field1)
 
-        assertTrue(sut.isImplemented(ctx, t2))
-        assertFalse(sut.isImplemented(ctx, t1))
+        assertTrue(sut.isImplemented(ctx, t2) is ContractResult.Success)
+        assertFalse(sut.isImplemented(ctx, t1) is ContractResult.Success)
     }
 
     @Test
@@ -170,9 +171,9 @@ class NextTypesTests : TestCase() {
 
         ctx.map(t, s)
 
-        val sut = SignatureContract(s)
+        val sut = SignatureContract(TypeReference, s)
 
-        assertTrue(sut.isImplemented(ctx, t))
+        assertTrue(sut.isImplemented(ctx, t) is ContractResult.Success)
     }
 
     @Test
@@ -181,10 +182,10 @@ class NextTypesTests : TestCase() {
         val t1 = Type("T1")
         val field1 = Field("f1", t1)
         val t2 = Type("T2", listOf(field1))
-        val contract1 = FieldContract(field1)
+        val contract1 = FieldContract(TypeReference("Trait1"), field1)
         val sut = Trait("Trait1", listOf(contract1))
 
-        assertTrue(sut.isImplemented(ctx, t2))
+        assertTrue(sut.isImplemented(ctx, t2) is ContractResult.Success)
     }
 
     @Test
@@ -239,7 +240,7 @@ class NextTypesTests : TestCase() {
 
         val f = Field("f", t1)
         val t3 = Type("T3", listOf(f))
-        val tr3 = Trait("Tr3", listOf(FieldContract(f)))
+        val tr3 = Trait("Tr3", listOf(FieldContract(TypeReference("Tr3"), f)))
 
         assertEquals(TypeRelation.Related(tr3, t3), t3.compare(ctx, tr3))
         assertEquals(TypeRelation.Related(tr3, t3), tr3.compare(ctx, t3))
@@ -416,47 +417,6 @@ class NextTypesTests : TestCase() {
         assertEquals(2, result.getSignatures(t1).count())
         assertEquals(1, result.getSignatures(t2).count())
         assertEquals(1, result.getSignatures(t3).count())
-    }
-
-    @Test
-    fun testSerialiseType() {
-        val t = Type("T")
-        val gson = Gson()
-        val json = gson.toJson(t)
-
-        println(json)
-    }
-
-    @Test
-    fun testSerialiseField() {
-        val t = Type("T")
-        val f = Field("f", t)
-        val gson = Gson()
-        val json = gson.toJson(f)
-
-        println(json)
-    }
-
-    @Test
-    fun testSerialiseContext() {
-        val ctx = Ctx()
-
-        val t1 = Type("T1")
-        val t2 = Type("T2")
-        val t3 = Type("T3")
-
-        ctx.extend(t1)
-        ctx.extend(t2)
-        ctx.extend(t3)
-
-        val gson = Gson()
-        val json = gson.toJson(ctx)
-
-        println(json)
-
-        val ctx2 = gson.fromJson(json, Ctx::class.java)
-
-        assertEquals(3, ctx2.getTypes().count())
     }
 
     @Test

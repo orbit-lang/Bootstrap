@@ -2,7 +2,7 @@ package org.orbit.types.next.components
 
 import org.orbit.util.Printer
 
-data class SignatureContract(override val trait: Trait, override val input: Signature) : Contract<Signature> {
+data class SignatureContract(override val trait: ITrait, override val input: Signature) : Contract<Signature> {
     private fun isMatchingSignature(ctx: Ctx, other: Signature) : Boolean {
         if (input.relativeName != other.relativeName) return false
 
@@ -14,7 +14,7 @@ data class SignatureContract(override val trait: Trait, override val input: Sign
         return isReceiverEq && areParametersEq && isReturnEq
     }
 
-    override fun isImplemented(ctx: Ctx, by: IType): ContractResult {
+    override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult {
         if (by !is Type) return ContractResult.Failure(by, this)
 
         val allSignatures = ctx.getSignatures(by)
@@ -25,6 +25,6 @@ data class SignatureContract(override val trait: Trait, override val input: Sign
         }
     }
 
-    override fun getErrorMessage(printer: Printer, type: IType): String
+    override fun getErrorMessage(printer: Printer, type: TypeComponent): String
         = "Type ${type.toString(printer)} does not implement Signature ${input.toString(printer)} of Trait ${trait.toString(printer)}"
 }

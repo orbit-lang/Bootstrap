@@ -4,22 +4,15 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.util.Printer
 
-data class Trait(override val fullyQualifiedName: String, val contracts: List<Contract<*>> = emptyList(), override val isSynthetic: Boolean = false) : Entity, Contract<Trait> {
+interface ITrait : Entity, Contract<ITrait>
+
+data class Trait(override val fullyQualifiedName: String, val contracts: List<Contract<*>> = emptyList(), override val isSynthetic: Boolean = false) : ITrait {
     constructor(path: Path, contracts: List<Contract<*>> = emptyList(), isSynthetic: Boolean = false) : this(path.toString(OrbitMangler), contracts, isSynthetic)
 
     override val trait: Trait = this
     override val input: Trait = this
 
-//    override fun isImplemented(ctx: Ctx, by: IType): ContractResult = when (by) {
-//        is Type -> when (StructuralEq.eq(ctx, this, by)) {
-//            true -> ContractResult.Success(by, this)
-//            else -> ContractResult.Failure(by, this)
-//        }
-//
-//        else -> ContractResult.Failure(by, this)
-//    }
-
-    override fun isImplemented(ctx: Ctx, by: IType): ContractResult {
+    override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult {
         val start: ContractResult = ContractResult.None
 
         return contracts.fold(start) { acc, next ->
@@ -27,7 +20,7 @@ data class Trait(override val fullyQualifiedName: String, val contracts: List<Co
         }
     }
 
-    override fun getErrorMessage(printer: Printer, type: IType): String
+    override fun getErrorMessage(printer: Printer, type: TypeComponent): String
         = "Type ${type.toString(printer)} does not implement Trait ${toString(printer)}"
 
     inline fun <reified C: Contract<*>> getTypedContracts() : List<C> = contracts.filterIsInstance<C>()
@@ -62,7 +55,7 @@ data class Trait(override val fullyQualifiedName: String, val contracts: List<Co
         return Trait(fullyQualifiedName + "_" + other.fullyQualifiedName, nFieldContracts, true)
     }
 
-    override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
         is Trait -> when (NominalEq.eq(ctx, this, other)) {
             true -> TypeRelation.Same(this, other)
             else -> TypeRelation.Unrelated(this, other)

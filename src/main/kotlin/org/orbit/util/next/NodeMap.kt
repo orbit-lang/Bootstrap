@@ -11,24 +11,24 @@ import org.orbit.util.Printer
 interface ITypeMapInterface
 
 interface ITypeMapRead : ITypeMapInterface {
-    fun find(name: String) : IType?
-    fun get(node: Node) : IType?
+    fun find(name: String) : TypeComponent?
+    fun get(node: Node) : TypeComponent?
     fun getConformance(type: Type) : List<Trait>
     fun toCtx() : Ctx
 }
 
 interface ITypeMapWrite : ITypeMapInterface {
     fun declare(type: DeclType)
-    fun set(node: Node, value: IType, mergeOnCollision: Boolean = false)
+    fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean = false)
     fun addConformance(type: Type, trait: Trait)
 }
 
 interface ITypeMap : ITypeMapRead, ITypeMapWrite
 
-fun ITypeMapRead.find(path: Path) : IType?
+fun ITypeMapRead.find(path: Path) : TypeComponent?
     = find(path.toString(OrbitMangler))
 
-inline fun <reified P: Phase<*, *>> ITypeMapRead.find(path: Path, invocation: Invocation, node: Node) : IType {
+inline fun <reified P: Phase<*, *>> ITypeMapRead.find(path: Path, invocation: Invocation, node: Node) : TypeComponent {
     val printer = Printer(invocation.platform.getPrintableFactory())
 
     return find(path)
@@ -37,7 +37,7 @@ inline fun <reified P: Phase<*, *>> ITypeMapRead.find(path: Path, invocation: In
 
 class TypeMap : ITypeMap {
     private val map = mutableMapOf<String, String>()
-    private val visibleTypes = mutableMapOf<String, IType>()
+    private val visibleTypes = mutableMapOf<String, TypeComponent>()
     private val conformanceMap = mutableMapOf<String, List<String>>()
 
     override fun declare(type: DeclType) {
@@ -68,16 +68,16 @@ class TypeMap : ITypeMap {
         return conformance.mapNotNull(::findAs)
     }
 
-    fun <T: IType> findAs(name: String) : T?
+    fun <T: TypeComponent> findAs(name: String) : T?
         = visibleTypes[name] as? T
 
-    override fun find(name: String): IType?
+    override fun find(name: String): TypeComponent?
         = visibleTypes[name]
 
-    fun find(path: Path) : IType?
+    fun find(path: Path) : TypeComponent?
         = find(OrbitMangler.mangle(path))
 
-    override fun set(node: Node, value: IType, mergeOnCollision: Boolean) {
+    override fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean) {
         if (!mergeOnCollision && map.containsKey(node.id))
             throw RuntimeException("FATAL - Node ID Collision: ${node.id}")
 
@@ -86,7 +86,7 @@ class TypeMap : ITypeMap {
         map[node.id] = value.inferenceKey()
     }
 
-    override fun get(node: Node): IType? {
+    override fun get(node: Node): TypeComponent? {
         val key = map[node.id] ?: return null
 
         return find(key)
@@ -94,24 +94,24 @@ class TypeMap : ITypeMap {
 }
 
 interface IBindingScope {
-    fun bind(name: String, type: IType)
-    fun getType(name: String) : IType?
+    fun bind(name: String, type: TypeComponent)
+    fun getType(name: String) : TypeComponent?
 }
 
 sealed class BindingScope : IBindingScope {
     object Root : BindingScope()
     class Leaf(val parent: IBindingScope) : BindingScope()
 
-    private val bindings = mutableMapOf<String, IType>()
+    private val bindings = mutableMapOf<String, TypeComponent>()
 
-    override fun bind(name: String, type: IType) {
+    override fun bind(name: String, type: TypeComponent) {
         bindings[name] = type
     }
 
-    override fun getType(name: String) : IType? = bindings[name]
+    override fun getType(name: String) : TypeComponent? = bindings[name]
 }
 
-fun IBindingScope.getTypeOrNever(name: String) : IType = when (val type = getType(name)) {
+fun IBindingScope.getTypeOrNever(name: String) : TypeComponent = when (val type = getType(name)) {
     null -> Never("Could not infer type of $name")
     else -> type
 }

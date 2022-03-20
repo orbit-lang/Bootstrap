@@ -1,7 +1,7 @@
 package org.orbit.types.next.components
 
-object AnyEq : ITypeEq<IType, IType> {
-    override fun eq(ctx: Ctx, a: IType, b: IType): Boolean = ctx.dereferencing(a) { a ->
+object AnyEq : ITypeEq<TypeComponent, TypeComponent> {
+    override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereferencing(a) { a ->
         ctx.dereferencing(b) { b ->
             when (a) {
                 is Type -> NominalEq.eq(ctx, a, b)

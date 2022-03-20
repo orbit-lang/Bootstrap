@@ -1,9 +1,9 @@
 package org.orbit.types.next.components
 
-object SignatureSelfMonomorphiser : Monomorphiser<Signature, IType, Signature> {
+object SignatureSelfMonomorphiser : Monomorphiser<Signature, TypeComponent, Signature> {
     // `over` is always a single-element list, representing the type of `Self` in this context
     // TODO - It might be better to make the type of `over` generic as well
-    override fun monomorphise(ctx: Ctx, input: Signature, over: IType): MonomorphisationResult<Signature> {
+    override fun monomorphise(ctx: Ctx, input: Signature, over: TypeComponent): MonomorphisationResult<Signature> {
         val nReceiver = when (input.receiver) {
             is Self -> over
             else -> input.receiver

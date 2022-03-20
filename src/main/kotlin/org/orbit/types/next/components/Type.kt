@@ -5,7 +5,9 @@ import org.orbit.core.Path
 
 interface Entity : DeclType
 
-data class Type(override val fullyQualifiedName: String, val fields: List<Field> = emptyList(), override val isSynthetic: Boolean = false) : Entity {
+interface IType : Entity
+
+data class Type(override val fullyQualifiedName: String, val fields: List<Field> = emptyList(), override val isSynthetic: Boolean = false) : IType {
     constructor(path: Path, fields: List<Field> = emptyList(), isSynthetic: Boolean = false)
         : this(OrbitMangler.mangle(path), fields, isSynthetic)
 
@@ -14,7 +16,7 @@ data class Type(override val fullyQualifiedName: String, val fields: List<Field>
         else -> false
     }
 
-    override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
         is Trait -> other.compare(ctx, this)
 
         is Type -> when (NominalEq.eq(ctx, this, other)) {

@@ -1,9 +1,9 @@
 package org.orbit.types.next.components
 
-data class MonomorphicType<T: IType>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<IType>, val isTotal: Boolean) : IType {
+data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<TypeComponent>, val isTotal: Boolean) : TypeComponent {
     override val fullyQualifiedName: String = specialisedType.fullyQualifiedName
     override val isSynthetic: Boolean = true
 
-    override fun compare(ctx: Ctx, other: IType): TypeRelation
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation
         = specialisedType.compare(ctx, other)
 }

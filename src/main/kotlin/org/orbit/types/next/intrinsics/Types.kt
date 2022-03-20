@@ -2,7 +2,6 @@ package org.orbit.types.next.intrinsics
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.types.next.components.IType
 import org.orbit.types.next.components.Module
 import org.orbit.types.next.components.Type
 

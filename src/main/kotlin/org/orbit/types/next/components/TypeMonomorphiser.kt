@@ -3,8 +3,8 @@ package org.orbit.types.next.components
 import org.orbit.core.OrbitMangler
 import org.orbit.util.seconds
 
-object TypeMonomorphiser : Monomorphiser<PolymorphicType<Type>, List<Pair<Int, IType>>, Type> {
-    override fun monomorphise(ctx: Ctx, input: PolymorphicType<Type>, over: List<Pair<Int, IType>>): MonomorphisationResult<Type> {
+object TypeMonomorphiser : Monomorphiser<PolymorphicType<Type>, List<Pair<Int, TypeComponent>>, Type> {
+    override fun monomorphise(ctx: Ctx, input: PolymorphicType<Type>, over: List<Pair<Int, TypeComponent>>): MonomorphisationResult<Type> {
         if (over.count() > input.parameters.count()) return MonomorphisationResult.Failure(input.baseType)
 
         val nFields = input.baseType.fields.map {

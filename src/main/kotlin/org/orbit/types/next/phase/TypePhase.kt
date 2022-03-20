@@ -11,14 +11,15 @@ import org.orbit.core.phase.PhaseAdapter
 import org.orbit.core.phase.getInputType
 import org.orbit.core.storeResult
 import org.orbit.graph.phase.NameResolverResult
-import org.orbit.types.next.components.*
+import org.orbit.types.next.components.TypeComponent
+import org.orbit.types.next.components.Module
+import org.orbit.types.next.components.Trait
+import org.orbit.types.next.components.Type
 import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
-import org.orbit.util.Printer
-import org.orbit.util.containsInstances
 import org.orbit.util.next.ITypeMapRead
 
-interface TypePhase<N: Node, T: IType> : Phase<TypePhaseData<N>, T> {
+interface TypePhase<N: Node, T: TypeComponent> : Phase<TypePhaseData<N>, T> {
     fun run(input: TypePhaseData<N>) : T
 
     override fun execute(input: TypePhaseData<N>): T = run(input).apply {
@@ -26,7 +27,7 @@ interface TypePhase<N: Node, T: IType> : Phase<TypePhaseData<N>, T> {
     }
 }
 
-fun <N: Node, T: IType> TypePhase<N, T>.executeAll(inferenceUtil: InferenceUtil, nodes: List<N>) : List<T>
+fun <N: Node, T: TypeComponent> TypePhase<N, T>.executeAll(inferenceUtil: InferenceUtil, nodes: List<N>) : List<T>
     = nodes.map { execute(TypePhaseData(inferenceUtil, it)) }
 
 object TraitConformancePhase : TypePhase<TypeDefNode, Type>, KoinComponent {
@@ -40,33 +41,6 @@ object TraitConformancePhase : TypePhase<TypeDefNode, Type>, KoinComponent {
         traits.forEach { input.inferenceUtil.addConformance(type, it) }
 
         return type
-    }
-}
-
-object TraitConformanceVerification : TypePhase<TypeDefNode, Type>, KoinComponent {
-    override val invocation: Invocation by inject()
-    private val printer: Printer by inject()
-
-    override fun run(input: TypePhaseData<TypeDefNode>): Type {
-        val type = input.inferenceUtil.inferAs<TypeDefNode, Type>(input.node)
-        val traits = input.inferenceUtil.getConformance(type)
-
-        if (traits.isEmpty()) return type
-
-        val ctx = input.inferenceUtil.toCtx()
-        val start: ContractResult = ContractResult.None
-        val result = traits.fold(start) { acc, next ->
-            acc + (next.isImplemented(ctx, type))
-        }
-
-        return when (result) {
-            is ContractResult.None, is ContractResult.Success -> type
-            is ContractResult.Failure -> throw invocation.make<TypeSystem>(result.getErrorMessage(printer, type), input.node)
-            is ContractResult.Group -> when (result.results.containsInstances<ContractResult.Failure>()) {
-                true -> throw invocation.make<TypeSystem>(result.getErrorMessage(printer, type), input.node)
-                else -> type
-            }
-        }
     }
 }
 

@@ -14,12 +14,16 @@ class Module(override val fullyQualifiedName: String, imports: List<Module> = em
     override fun getTypes(): List<Type> = context.getTypes()
     override fun getTraits(): List<Trait> = context.getTraits()
     override fun getSignatureMap(): Map<Type, List<Signature>> = context.getSignatureMap()
-    override fun getConformanceMap(): Map<IType, List<Trait>> = context.getConformanceMap()
-    override fun extend(type: IType) = context.extend(type)
-    override fun map(key: Type, value: Signature) = context.map(key, value)
-    override fun map(key: IType, value: Trait) = context.map(key, value)
+    override fun getConformanceMap(): Map<TypeComponent, List<Trait>> = context.getConformanceMap()
 
-    fun extendAll(types: List<IType>) : Module {
+    override fun getType(name: String): Type? = context.getType(name)
+    override fun getTrait(name: String): Trait? = context.getTrait(name)
+
+    override fun extend(type: TypeComponent) = context.extend(type)
+    override fun map(key: Type, value: Signature) = context.map(key, value)
+    override fun map(key: TypeComponent, value: Trait) = context.map(key, value)
+
+    fun extendAll(types: List<TypeComponent>) : Module {
         types.forEach(::extend)
 
         return this
@@ -28,7 +32,7 @@ class Module(override val fullyQualifiedName: String, imports: List<Module> = em
     // NOTE - To avoid outsiders modifying `context`, expose only its read-only interface
     fun getContext() : IContextRead = context
 
-    override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
         is Module -> when (NominalEq.eq(ctx, this, other)) {
             true -> TypeRelation.Same(this, other)
             else -> TypeRelation.Unrelated(this, other)

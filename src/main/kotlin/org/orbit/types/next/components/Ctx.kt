@@ -1,19 +1,21 @@
 package org.orbit.types.next.components
 
-import com.sun.xml.internal.bind.v2.model.core.TypeRef
 import org.orbit.types.next.inference.TypeReference
 
 interface IContextRead {
     fun getTypes() : List<Type>
     fun getTraits() : List<Trait>
     fun getSignatureMap() : Map<Type, List<Signature>>
-    fun getConformanceMap() : Map<IType, List<Trait>>
+    fun getConformanceMap() : Map<TypeComponent, List<Trait>>
+
+    fun getType(name: String) : Type?
+    fun getTrait(name: String) : Trait?
 }
 
 interface IContextWrite {
-    fun extend(type: IType)
+    fun extend(type: TypeComponent)
     fun map(key: Type, value: Signature)
-    fun map(key: IType, value: Trait)
+    fun map(key: TypeComponent, value: Trait)
 }
 
 interface IContext : IContextRead, IContextWrite
@@ -22,9 +24,9 @@ class Ctx constructor() : IContext {
     private val types = mutableListOf<Type>()
     private val traits = mutableListOf<Trait>()
     private val signatureMap = mutableMapOf<Type, List<Signature>>()
-    private val conformanceMap = mutableMapOf<IType, List<Trait>>()
+    private val conformanceMap = mutableMapOf<TypeComponent, List<Trait>>()
 
-    private constructor(types: List<Type>, traits: List<Trait>, signatureMap: Map<Type, List<Signature>>, conformanceMap: Map<IType, List<Trait>>) : this() {
+    private constructor(types: List<Type>, traits: List<Trait>, signatureMap: Map<Type, List<Signature>>, conformanceMap: Map<TypeComponent, List<Trait>>) : this() {
         this.types.addAll(types)
         this.traits.addAll(traits)
         this.signatureMap.putAll(signatureMap)
@@ -34,9 +36,17 @@ class Ctx constructor() : IContext {
     override fun getTypes() : List<Type> = types
     override fun getTraits() : List<Trait> = traits
     override fun getSignatureMap() : Map<Type, List<Signature>> = signatureMap
-    override fun getConformanceMap() : Map<IType, List<Trait>> = conformanceMap
+    override fun getConformanceMap() : Map<TypeComponent, List<Trait>> = conformanceMap
 
-    fun <R> dereferencing(ref: IType, block: (IType) -> R) : R = when (ref) {
+    override fun getType(name: String): Type? {
+        return types.find { it.fullyQualifiedName == name }
+    }
+
+    override fun getTrait(name: String): Trait? {
+        return traits.find { it.fullyQualifiedName == name }
+    }
+
+    fun <R> dereferencing(ref: TypeComponent, block: (TypeComponent) -> R) : R = when (ref) {
         is TypeReference -> {
             val type = types.find { it.fullyQualifiedName == ref.fullyQualifiedName }
                 ?: traits.find { it.fullyQualifiedName == ref.fullyQualifiedName }!!
@@ -66,7 +76,7 @@ class Ctx constructor() : IContext {
         val distinctConformanceKeys = (conformanceMap.keys + other.conformanceMap.keys)
             .distinctBy { it.fullyQualifiedName }
 
-        val distinctConformance = mutableMapOf<IType, List<Trait>>()
+        val distinctConformance = mutableMapOf<TypeComponent, List<Trait>>()
         for (key in distinctConformanceKeys) {
             val values1 = getConformance(key)
             val values2 = other.getConformance(key)
@@ -82,7 +92,7 @@ class Ctx constructor() : IContext {
         = signatureMap.filter { it.key == type }
             .values.firstOrNull() ?: emptyList()
 
-    fun getConformance(type: IType) : List<Trait>
+    fun getConformance(type: TypeComponent) : List<Trait>
         = conformanceMap.filter { it.key == type }
             .values.firstOrNull() ?: emptyList()
 
@@ -98,7 +108,7 @@ class Ctx constructor() : IContext {
         }
     }
 
-    override fun extend(type: IType) = when (type) {
+    override fun extend(type: TypeComponent) = when (type) {
         is Type -> extend(type)
         is Trait -> extend(type)
         else -> TODO("???")
@@ -109,7 +119,7 @@ class Ctx constructor() : IContext {
         else -> signatureMap[key] = (sigs + value).distinctBy { it.fullyQualifiedName }
     }
 
-    override fun map(key: IType, value: Trait) = when (val conf = conformanceMap[key]) {
+    override fun map(key: TypeComponent, value: Trait) = when (val conf = conformanceMap[key]) {
         null -> conformanceMap[key] = listOf(value)
         else -> conformanceMap[key] = (conf + value).distinctBy { it.fullyQualifiedName }
     }

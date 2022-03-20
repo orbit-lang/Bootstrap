@@ -8,21 +8,30 @@ import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import java.lang.Exception
 
-interface IType {
+interface TypeComponent {
     val fullyQualifiedName: String
     val isSynthetic: Boolean
 
-    fun compare(ctx: Ctx, other: IType) : TypeRelation
+    fun compare(ctx: Ctx, other: TypeComponent) : TypeRelation
     fun inferenceKey() : String = fullyQualifiedName
 }
 
-sealed interface InternalControlType : IType
+sealed interface InternalControlType : TypeComponent, ITrait, IType
 
 object Anything : InternalControlType {
     override val fullyQualifiedName: String = "*"
     override val isSynthetic: Boolean = true
+    override val trait: ITrait = this
+    override val input: ITrait = this
 
-    override fun compare(ctx: Ctx, other: IType): TypeRelation = TypeRelation.Unrelated(this, other)
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = TypeRelation.Unrelated(this, other)
+
+    override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult
+        = ContractResult.Success(by, this)
+
+    override fun getErrorMessage(printer: Printer, type: TypeComponent): String {
+        TODO("Not yet implemented")
+    }
 }
 
 interface NeverType : InternalControlType {
@@ -37,7 +46,17 @@ data class Never(override val message: String = "", override val position: Sourc
         override val position: SourcePosition = SourcePosition.unknown
         override val message: String = "Encountered Never type"
 
-        override fun compare(ctx: Ctx, other: IType): TypeRelation
+        override val trait: ITrait = this
+        override val input: ITrait = this
+
+        override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult
+                = ContractResult.Failure(by, this)
+
+        override fun getErrorMessage(printer: Printer, type: TypeComponent): String {
+            TODO("Not yet implemented")
+        }
+
+        override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation
                 = TypeRelation.Unrelated(this, other)
     }
 
@@ -47,26 +66,35 @@ data class Never(override val message: String = "", override val position: Sourc
     override val isSynthetic: Boolean = true
 
     override val takes: NeverType = Never
-    override val returns: IType = Never
+    override val returns: TypeComponent = Never
+    override val trait: ITrait = this
+    override val input: ITrait = this
 
-    override fun compare(ctx: Ctx, other: IType): TypeRelation = TypeRelation.Unrelated(this, other)
+    override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult
+            = ContractResult.Failure(by, this)
+
+    override fun getErrorMessage(printer: Printer, type: TypeComponent): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = TypeRelation.Unrelated(this, other)
 }
 
-interface DeclType : IType
-interface ValueType : IType
+interface DeclType : TypeComponent
+interface ValueType : TypeComponent
 
-fun IType.toString(printer: Printer) : String
+fun TypeComponent.toString(printer: Printer) : String
     = printer.apply(fullyQualifiedName, PrintableKey.Bold)
 
-interface VectorType : ValueType, Collection<IType> {
-    val elements: List<IType>
+interface VectorType : ValueType, Collection<TypeComponent> {
+    val elements: List<TypeComponent>
 
     override val isSynthetic: Boolean
         get() = true
 
-    fun nth(n: Int) : IType
+    fun nth(n: Int) : TypeComponent
 
-    override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
         is VectorType -> when (other.elements.count()) {
             elements.count() -> {
                 val allSame = elements.zip(other.elements).all {
@@ -84,18 +112,18 @@ interface VectorType : ValueType, Collection<IType> {
     }
 }
 
-data class PairType(val first: IType, val second: IType) : VectorType, Collection<IType> by listOf(first, second) {
+data class PairType(val first: TypeComponent, val second: TypeComponent) : VectorType, Collection<TypeComponent> by listOf(first, second) {
     override val fullyQualifiedName: String = "(0: ${first.fullyQualifiedName}, 1: ${second.fullyQualifiedName})"
-    override val elements: List<IType> = listOf(first, second)
+    override val elements: List<TypeComponent> = listOf(first, second)
 
-    override fun nth(n: Int): IType = when (n) {
+    override fun nth(n: Int): TypeComponent = when (n) {
         0 -> first
         1 -> second
         else -> Never("Pair index out of bounds: $fullyQualifiedName[$n]")
     }
 }
 
-data class TupleType(override val elements: List<IType>) : VectorType, Collection<IType> by elements {
+data class TupleType(override val elements: List<TypeComponent>) : VectorType, Collection<TypeComponent> by elements {
     override val fullyQualifiedName: String get() {
         val elems = elements.mapIndexed { idx, t ->
             "$idx: ${t.fullyQualifiedName}"
@@ -104,16 +132,16 @@ data class TupleType(override val elements: List<IType>) : VectorType, Collectio
         return "($elems)"
     }
 
-    override fun nth(n: Int) : IType = when {
+    override fun nth(n: Int) : TypeComponent = when {
         n > -1 && n < elements.count() -> elements[n]
         else -> Never("Tuple index out of bounds: ${fullyQualifiedName}[$n]")
     }
 }
 
-data class ListType(override val elements: List<IType>) : VectorType, Collection<IType> by elements {
+data class ListType(override val elements: List<TypeComponent>) : VectorType, Collection<TypeComponent> by elements {
     override val fullyQualifiedName: String = "(${elements.join()})"
 
-    override fun nth(n: Int): IType = when {
+    override fun nth(n: Int): TypeComponent = when {
         n > -1 && n < elements.count() -> elements[n]
         else -> Never("List index out of bounds: ${fullyQualifiedName}[$n]")
     }

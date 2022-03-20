@@ -1,11 +1,11 @@
 package org.orbit.types.next.components
 
-interface ExecutableType<T: IType> : IType {
+interface ExecutableType<T: TypeComponent> : TypeComponent {
     val takes: T
-    val returns: IType
+    val returns: TypeComponent
 }
 
-data class Lambda(override val takes: IType, override val returns: IType, override val isSynthetic: Boolean = false) : ExecutableType<IType> {
+data class Lambda(override val takes: TypeComponent, override val returns: TypeComponent, override val isSynthetic: Boolean = false) : ExecutableType<TypeComponent> {
     override val fullyQualifiedName: String
         = "(${takes.fullyQualifiedName}) -> ${returns.fullyQualifiedName}"
 
@@ -19,7 +19,7 @@ data class Lambda(override val takes: IType, override val returns: IType, overri
         }
     }
 
-    override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
         is Lambda -> compare(ctx, other)
         else -> TypeRelation.Unrelated(this, other)
     }

@@ -1,35 +1,77 @@
 package org.orbit.types.next.inference
 
-import com.sun.xml.internal.bind.v2.model.core.TypeRef
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.Node
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
-import org.orbit.util.Result
+import org.orbit.util.Printer
 import org.orbit.util.next.*
+import java.lang.RuntimeException
 
 sealed interface InferenceResult {
-    data class Success<T: IType>(val type: T) : InferenceResult
+    data class Success<T: TypeComponent>(val type: T) : InferenceResult
     data class Failure(val never: NeverType) : InferenceResult
 }
 
-fun IType.inferenceResult() : InferenceResult = when (this) {
+fun TypeComponent.inferenceResult() : InferenceResult = when (this) {
     is Never -> InferenceResult.Failure(this)
     else -> InferenceResult.Success(this)
 }
 
-data class TypeReference(override val fullyQualifiedName: String) : ValueType {
+interface ITypeRef : ValueType, ITrait, IType
+
+data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
+    companion object : ITypeRef {
+        override val fullyQualifiedName: String
+            get() = throw RuntimeException("FATAL - Naked Type Reference")
+        override val isSynthetic: Boolean
+            get() = throw RuntimeException("FATAL - Naked Type Reference")
+
+        override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation {
+            throw RuntimeException("FATAL - Naked Type Reference")
+        }
+
+        override val trait: ITrait
+            get() = throw RuntimeException("FATAL - Naked Type Reference")
+        override val input: ITrait
+            get() = throw RuntimeException("FATAL - Naked Type Reference")
+
+        override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult {
+            throw RuntimeException("FATAL - Naked Type Reference")
+        }
+
+        override fun getErrorMessage(printer: Printer, type: TypeComponent): String {
+            throw RuntimeException("FATAL - Naked Type Reference")
+        }
+    }
+
     override val isSynthetic: Boolean = true
 
-    override fun compare(ctx: Ctx, other: IType): TypeRelation = when (fullyQualifiedName) {
+    override val trait: ITrait
+        get() = throw RuntimeException("FATAL- Naked Type Reference")
+
+    override val input: ITrait
+        get() = throw RuntimeException("FATAL - Naked Type Reference")
+
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (fullyQualifiedName) {
         other.fullyQualifiedName -> TypeRelation.Same(this, other)
         else -> TypeRelation.Unrelated(this, other)
     }
+
+    override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult {
+        val trait = ctx.getTrait(fullyQualifiedName) ?: return ContractResult.Failure(by, this)
+
+        return trait.isImplemented(ctx, by)
+    }
+
+    override fun getErrorMessage(printer: Printer, type: TypeComponent): String {
+        throw RuntimeException("FATAL - Naked Type Reference")
+    }
 }
 
-interface Inference<N: Node, T: IType> {
+interface Inference<N: Node, T: TypeComponent> {
     fun infer(inferenceUtil: InferenceUtil, node: N) : InferenceResult
 }
 
@@ -65,7 +107,7 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         return nInferenceUtil
     }
 
-    fun <N: Node> infer(node: N, autoCaptureType: Boolean = true) : IType {
+    fun <N: Node> infer(node: N, autoCaptureType: Boolean = true) : TypeComponent {
         val t = typeMap.get(node)
 
         if (t != null) {
@@ -84,14 +126,14 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         }
     }
 
-    inline fun <N: Node, reified T: IType> inferAsOrNull(node: N) : T?
+    inline fun <N: Node, reified T: TypeComponent> inferAsOrNull(node: N) : T?
         = infer(node) as? T
 
-    inline fun <N: Node, reified T: IType> inferAs(node: N) : T
+    inline fun <N: Node, reified T: TypeComponent> inferAs(node: N) : T
         = inferAsOrNull(node)!!
 
-    fun inferAll(nodes: List<Node>) : List<IType> = nodes.map(::infer)
+    fun inferAll(nodes: List<Node>) : List<TypeComponent> = nodes.map(::infer)
 
-    inline fun <N: Node, reified T: IType> inferAllAs(nodes: List<N>) : List<T>
+    inline fun <N: Node, reified T: TypeComponent> inferAllAs(nodes: List<N>) : List<T>
         = nodes.map { inferAs(it) }
 }

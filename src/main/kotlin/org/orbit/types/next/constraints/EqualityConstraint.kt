@@ -2,12 +2,12 @@ package org.orbit.types.next.constraints
 
 import org.orbit.types.next.components.*
 
-sealed interface EqualityConstraintApplication<T: IType> : ConstraintApplication<PolymorphicType<T>> {
-    data class Total<T: IType>(override val initialValue: PolymorphicType<T>, val result: MonomorphicType<T>) : EqualityConstraintApplication<T>
-    data class Partial<T: IType>(override val initialValue: PolymorphicType<T>, val result: PolymorphicType<T>) : EqualityConstraintApplication<T>
+sealed interface EqualityConstraintApplication<T: TypeComponent> : ConstraintApplication<PolymorphicType<T>> {
+    data class Total<T: TypeComponent>(override val initialValue: PolymorphicType<T>, val result: MonomorphicType<T>) : EqualityConstraintApplication<T>
+    data class Partial<T: TypeComponent>(override val initialValue: PolymorphicType<T>, val result: PolymorphicType<T>) : EqualityConstraintApplication<T>
 }
 
-data class EqualityConstraint<T: IType>(private val left: SelfIndex, private val right: IType) : Constraint<PolymorphicType<T>, EqualityConstraintApplication<T>> {
+data class EqualityConstraint<T: TypeComponent>(private val left: SelfIndex, private val right: TypeComponent) : Constraint<PolymorphicType<T>, EqualityConstraintApplication<T>> {
     /**
      * Creates a more specific version of the given PolymorphicType, e.g:
      *

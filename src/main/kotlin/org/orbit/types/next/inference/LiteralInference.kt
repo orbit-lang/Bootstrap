@@ -5,7 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.core.getPath
 import org.orbit.core.nodes.*
 import org.orbit.types.next.components.Func
-import org.orbit.types.next.components.IType
+import org.orbit.types.next.components.TypeComponent
 import org.orbit.types.next.components.Type
 import org.orbit.types.next.intrinsics.Native
 import org.orbit.types.next.phase.TypeSystem
@@ -23,7 +23,7 @@ object SymbolLiteralInference : Inference<SymbolLiteralNode, Type> {
         = Native.Types.Symbol.type.inferenceResult()
 }
 
-object BlockInference : Inference<BlockNode, IType>, KoinComponent {
+object BlockInference : Inference<BlockNode, TypeComponent>, KoinComponent {
     override fun infer(inferenceUtil: InferenceUtil, node: BlockNode): InferenceResult {
         val bodyTypes = node.body.map { inferenceUtil.infer(it) }
 
@@ -32,7 +32,7 @@ object BlockInference : Inference<BlockNode, IType>, KoinComponent {
     }
 }
 
-object LambdaLiteralInference : Inference<LambdaLiteralNode, IType>, KoinComponent {
+object LambdaLiteralInference : Inference<LambdaLiteralNode, TypeComponent>, KoinComponent {
     override fun infer(inferenceUtil: InferenceUtil, node: LambdaLiteralNode): InferenceResult {
         val parameterTypes = node.bindings.map {
             val type = inferenceUtil.infer(it)
@@ -53,12 +53,12 @@ object LambdaLiteralInference : Inference<LambdaLiteralNode, IType>, KoinCompone
     }
 }
 
-object VariableInference : Inference<IdentifierNode, IType>, KoinComponent {
+object VariableInference : Inference<IdentifierNode, TypeComponent>, KoinComponent {
     override fun infer(inferenceUtil: InferenceUtil, node: IdentifierNode): InferenceResult
         = inferenceUtil.getTypeOrNever(node.identifier).inferenceResult()
 }
 
-object TypeLiteralInference : Inference<TypeIdentifierNode, IType>, KoinComponent {
+object TypeLiteralInference : Inference<TypeIdentifierNode, TypeComponent>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(inferenceUtil: InferenceUtil, node: TypeIdentifierNode): InferenceResult {

@@ -1,9 +1,9 @@
 package org.orbit.types.next.components
 
-data class Block(val returns: IType, override val isSynthetic: Boolean = false) : IType {
+data class Block(val returns: TypeComponent, override val isSynthetic: Boolean = false) : TypeComponent {
     override val fullyQualifiedName: String = returns.fullyQualifiedName
 
-    override fun compare(ctx: Ctx, other: IType): TypeRelation = when (other) {
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
         is Block -> returns.compare(ctx, other.returns)
         else -> TypeRelation.Unrelated(this, other)
     }

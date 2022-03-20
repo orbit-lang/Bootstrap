@@ -1,6 +1,6 @@
 package org.orbit.types.next.components
 
-interface Extension<T: IType> {
+interface Extension<T: TypeComponent> {
     val baseType: T
     val signatures: List<Signature>
 

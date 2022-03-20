@@ -2,8 +2,8 @@ package org.orbit.types.next.components
 
 import org.orbit.util.Printer
 
-data class FieldContract(override val trait: Trait, override val input: Field) : Contract<Field> {
-    override fun isImplemented(ctx: Ctx, by: IType): ContractResult {
+data class FieldContract(override val trait: ITrait, override val input: Field) : Contract<Field> {
+    override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult {
         if (by !is Type) return ContractResult.Failure(by, this)
         if (by.fields.none { it.name == input.name }) return ContractResult.Failure(by, this)
 
@@ -13,6 +13,6 @@ data class FieldContract(override val trait: Trait, override val input: Field) :
         }
     }
 
-    override fun getErrorMessage(printer: Printer, type: IType): String
+    override fun getErrorMessage(printer: Printer, type: TypeComponent): String
         = "Type ${type.toString(printer)} does not implement Field ${input.toString(printer)} of Trait ${trait.toString(printer)}"
 }
