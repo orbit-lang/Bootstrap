@@ -1,6 +1,6 @@
 module Test {
-    trait T(a A)
-    trait U(t T)
-    type A
-    type B(a A) : T, U
+    type constructor List<Element>(a Element)
+    type T
+
+    type TList = List<T>
 }

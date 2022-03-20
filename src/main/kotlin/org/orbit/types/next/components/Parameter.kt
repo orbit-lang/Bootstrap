@@ -1,6 +1,11 @@
 package org.orbit.types.next.components
 
-data class Parameter(override val fullyQualifiedName: String) : TypeComponent {
+import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
+
+data class Parameter(override val fullyQualifiedName: String) : DeclType {
+    constructor(path: Path) : this(path.toString(OrbitMangler))
+
     override val isSynthetic: Boolean = false
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {

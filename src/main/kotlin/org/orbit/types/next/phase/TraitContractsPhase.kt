@@ -7,6 +7,7 @@ import org.orbit.core.nodes.TraitDefNode
 import org.orbit.types.next.components.Field
 import org.orbit.types.next.components.FieldContract
 import org.orbit.types.next.components.Trait
+import org.orbit.types.next.inference.AnyInferenceContext
 import org.orbit.util.Invocation
 
 object TraitContractsPhase : TypePhase<TraitDefNode, Trait>, KoinComponent {
@@ -14,7 +15,7 @@ object TraitContractsPhase : TypePhase<TraitDefNode, Trait>, KoinComponent {
 
     override fun run(input: TypePhaseData<TraitDefNode>): Trait {
         val trait = input.inferenceUtil.inferAs<TraitDefNode, Trait>(input.node)
-        val fields = input.inferenceUtil.inferAllAs<PairNode, Field>(input.node.propertyPairs)
+        val fields = input.inferenceUtil.inferAllAs<PairNode, Field>(input.node.propertyPairs, AnyInferenceContext(PairNode::class.java))
         val fieldContracts = fields.map { FieldContract(trait, it) }
 
         // TODO - Signatures

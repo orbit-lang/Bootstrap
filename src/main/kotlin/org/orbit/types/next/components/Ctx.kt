@@ -3,13 +3,12 @@ package org.orbit.types.next.components
 import org.orbit.types.next.inference.TypeReference
 
 interface IContextRead {
-    fun getTypes() : List<Type>
-    fun getTraits() : List<Trait>
+    fun getTypes() : List<TypeComponent>
     fun getSignatureMap() : Map<Type, List<Signature>>
     fun getConformanceMap() : Map<TypeComponent, List<Trait>>
 
-    fun getType(name: String) : Type?
-    fun getTrait(name: String) : Trait?
+    fun getType(name: String) : TypeComponent?
+    fun <T: TypeComponent> getTypeAs(name: String) : T?
 }
 
 interface IContextWrite {
@@ -21,35 +20,30 @@ interface IContextWrite {
 interface IContext : IContextRead, IContextWrite
 
 class Ctx constructor() : IContext {
-    private val types = mutableListOf<Type>()
-    private val traits = mutableListOf<Trait>()
+    private val types = mutableListOf<TypeComponent>()
     private val signatureMap = mutableMapOf<Type, List<Signature>>()
     private val conformanceMap = mutableMapOf<TypeComponent, List<Trait>>()
 
-    private constructor(types: List<Type>, traits: List<Trait>, signatureMap: Map<Type, List<Signature>>, conformanceMap: Map<TypeComponent, List<Trait>>) : this() {
+    private constructor(types: List<TypeComponent>, signatureMap: Map<Type, List<Signature>>, conformanceMap: Map<TypeComponent, List<Trait>>) : this() {
         this.types.addAll(types)
-        this.traits.addAll(traits)
         this.signatureMap.putAll(signatureMap)
         this.conformanceMap.putAll(conformanceMap)
     }
 
-    override fun getTypes() : List<Type> = types
-    override fun getTraits() : List<Trait> = traits
+    override fun getTypes() : List<TypeComponent> = types
     override fun getSignatureMap() : Map<Type, List<Signature>> = signatureMap
     override fun getConformanceMap() : Map<TypeComponent, List<Trait>> = conformanceMap
 
-    override fun getType(name: String): Type? {
-        return types.find { it.fullyQualifiedName == name }
-    }
+    override fun <T : TypeComponent> getTypeAs(name: String): T?
+        = getType(name) as? T
 
-    override fun getTrait(name: String): Trait? {
-        return traits.find { it.fullyQualifiedName == name }
+    override fun getType(name: String): TypeComponent? {
+        return types.find { it.fullyQualifiedName == name }
     }
 
     fun <R> dereferencing(ref: TypeComponent, block: (TypeComponent) -> R) : R = when (ref) {
         is TypeReference -> {
-            val type = types.find { it.fullyQualifiedName == ref.fullyQualifiedName }
-                ?: traits.find { it.fullyQualifiedName == ref.fullyQualifiedName }!!
+            val type = types.find { it.fullyQualifiedName == ref.fullyQualifiedName }!!
 
             block(type)
         }
@@ -59,7 +53,6 @@ class Ctx constructor() : IContext {
 
     fun merge(other: Ctx) : Ctx {
         val distinctTypes = (types + other.types).distinctBy { it.fullyQualifiedName }
-        val distinctTraits = (traits + other.traits).distinctBy { it.fullyQualifiedName }
 
         val distinctSignatureKeys = (signatureMap.keys + other.signatureMap.keys)
             .distinctBy { it.fullyQualifiedName }
@@ -85,7 +78,7 @@ class Ctx constructor() : IContext {
             distinctConformance[key] = merged
         }
 
-        return Ctx(distinctTypes, distinctTraits, distinctSignatures, distinctConformance)
+        return Ctx(distinctTypes, distinctSignatures, distinctConformance)
     }
 
     fun getSignatures(type: Type) : List<Signature>
@@ -96,22 +89,10 @@ class Ctx constructor() : IContext {
         = conformanceMap.filter { it.key == type }
             .values.firstOrNull() ?: emptyList()
 
-    private fun extend(type: Type) {
+    override fun extend(type: TypeComponent) {
         if (types.none { it.fullyQualifiedName == type.fullyQualifiedName }) {
             types.add(type)
         }
-    }
-
-    private fun extend(trait: Trait) {
-        if (traits.none { it.fullyQualifiedName == trait.fullyQualifiedName }) {
-            traits.add(trait)
-        }
-    }
-
-    override fun extend(type: TypeComponent) = when (type) {
-        is Type -> extend(type)
-        is Trait -> extend(type)
-        else -> TODO("???")
     }
 
     override fun map(key: Type, value: Signature) = when (val sigs = signatureMap[key]) {

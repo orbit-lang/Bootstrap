@@ -6,7 +6,7 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
-import java.lang.Exception
+import org.orbit.util.next.IAlias
 
 interface TypeComponent {
     val fullyQualifiedName: String
@@ -16,13 +16,14 @@ interface TypeComponent {
     fun inferenceKey() : String = fullyQualifiedName
 }
 
-sealed interface InternalControlType : TypeComponent, ITrait, IType
+sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias
 
 object Anything : InternalControlType {
     override val fullyQualifiedName: String = "*"
     override val isSynthetic: Boolean = true
     override val trait: ITrait = this
     override val input: ITrait = this
+    override val target: TypeComponent = this
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = TypeRelation.Unrelated(this, other)
 
@@ -45,6 +46,7 @@ data class Never(override val message: String = "", override val position: Sourc
         override val isSynthetic: Boolean = true
         override val position: SourcePosition = SourcePosition.unknown
         override val message: String = "Encountered Never type"
+        override val target: TypeComponent = this
 
         override val trait: ITrait = this
         override val input: ITrait = this
@@ -69,6 +71,7 @@ data class Never(override val message: String = "", override val position: Sourc
     override val returns: TypeComponent = Never
     override val trait: ITrait = this
     override val input: ITrait = this
+    override val target: TypeComponent = this
 
     override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult
             = ContractResult.Failure(by, this)

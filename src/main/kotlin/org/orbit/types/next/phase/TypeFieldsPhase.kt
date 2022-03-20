@@ -6,6 +6,7 @@ import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.types.next.components.Field
 import org.orbit.types.next.components.Type
+import org.orbit.types.next.inference.AnyInferenceContext
 import org.orbit.util.Invocation
 
 object TypeFieldsPhase : TypePhase<TypeDefNode, Type>, KoinComponent {
@@ -13,7 +14,7 @@ object TypeFieldsPhase : TypePhase<TypeDefNode, Type>, KoinComponent {
 
     override fun run(input: TypePhaseData<TypeDefNode>): Type {
         val typeStub = input.inferenceUtil.inferAs<TypeDefNode, Type>(input.node)
-        val fields = input.inferenceUtil.inferAllAs<PairNode, Field>(input.node.propertyPairs)
+        val fields = input.inferenceUtil.inferAllAs<PairNode, Field>(input.node.propertyPairs, AnyInferenceContext(PairNode::class.java))
 
         return Type(typeStub.fullyQualifiedName, fields)
     }

@@ -61,7 +61,7 @@ data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
     }
 
     override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult {
-        val trait = ctx.getTrait(fullyQualifiedName) ?: return ContractResult.Failure(by, this)
+        val trait = ctx.getTypeAs<Trait>(fullyQualifiedName) ?: return ContractResult.Failure(by, this)
 
         return trait.isImplemented(ctx, by)
     }
@@ -75,15 +75,32 @@ interface Inference<N: Node, T: TypeComponent> {
     fun infer(inferenceUtil: InferenceUtil, node: N) : InferenceResult
 }
 
-class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBindingScope) : KoinComponent, ITypeMap by typeMap, IBindingScope by bindingScope {
-    private val inferences = mutableMapOf<Class<out Node>, Inference<*, *>>()
-    private val invocation: Invocation by inject()
+interface InferenceContext {
+    val nodeType: Class<out Node>
+}
 
-    fun <N: Node> registerPathResolver(inference: Inference<N, *>, nodeType: Class<N>) {
-        inferences[nodeType] = inference
+data class AnyInferenceContext(override val nodeType: Class<out Node>) : InferenceContext {
+    override fun equals(other: Any?): Boolean = when (other) {
+        is AnyInferenceContext -> nodeType == other.nodeType
+        else -> false
     }
 
-    private fun registerAllPathResolvers(from: InferenceUtil) {
+    override fun hashCode(): Int = nodeType.hashCode()
+}
+
+class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBindingScope) : KoinComponent, ITypeMap by typeMap, IBindingScope by bindingScope {
+    private val inferences = mutableMapOf<InferenceContext, Inference<*, *>>()
+    private val invocation: Invocation by inject()
+
+    fun <N: Node> registerInference(inference: Inference<N, *>, context: InferenceContext) {
+        inferences[context] = inference
+    }
+
+    fun <N: Node> registerInference(inference: Inference<N, *>, nodeType: Class<N>) {
+        inferences[AnyInferenceContext(nodeType)] = inference
+    }
+
+    private fun registerAllInferences(from: InferenceUtil) {
         inferences.putAll(from.inferences)
     }
 
@@ -102,19 +119,19 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
 
         val nInferenceUtil = InferenceUtil(nTypeMap, nBindingScope)
 
-        nInferenceUtil.registerAllPathResolvers(this)
+        nInferenceUtil.registerAllInferences(this)
 
         return nInferenceUtil
     }
 
-    fun <N: Node> infer(node: N, autoCaptureType: Boolean = true) : TypeComponent {
+    fun <N: Node> infer(node: N, context: InferenceContext = AnyInferenceContext(node::class.java), autoCaptureType: Boolean = true) : TypeComponent {
         val t = typeMap.get(node)
 
         if (t != null) {
             return t
         }
 
-        val inference = inferences[node::class.java] as? Inference<N, *>
+        val inference = inferences[context] as? Inference<N, *>
             ?: throw invocation.make<TypeSystem>("Inference class not registered for node: $node", node)
 
         return when (val result = inference.infer(this, node)) {
@@ -126,14 +143,14 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         }
     }
 
-    inline fun <N: Node, reified T: TypeComponent> inferAsOrNull(node: N) : T?
-        = infer(node) as? T
+    inline fun <N: Node, reified T: TypeComponent> inferAsOrNull(node: N, context: InferenceContext = AnyInferenceContext(node::class.java)) : T?
+        = infer(node, context) as? T
 
-    inline fun <N: Node, reified T: TypeComponent> inferAs(node: N) : T
-        = inferAsOrNull(node)!!
+    inline fun <N: Node, reified T: TypeComponent> inferAs(node: N, context: InferenceContext = AnyInferenceContext(node::class.java)) : T
+        = inferAsOrNull(node, context)!!
 
-    fun inferAll(nodes: List<Node>) : List<TypeComponent> = nodes.map(::infer)
+    fun inferAll(nodes: List<Node>, context: InferenceContext) : List<TypeComponent> = nodes.map { infer(it, context) }
 
-    inline fun <N: Node, reified T: TypeComponent> inferAllAs(nodes: List<N>) : List<T>
-        = nodes.map { inferAs(it) }
+    inline fun <N: Node, reified T: TypeComponent> inferAllAs(nodes: List<N>, context: InferenceContext) : List<T>
+        = nodes.map { inferAs(it, context) }
 }

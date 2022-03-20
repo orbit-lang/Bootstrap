@@ -11,13 +11,14 @@ import org.orbit.core.phase.PhaseAdapter
 import org.orbit.core.phase.getInputType
 import org.orbit.core.storeResult
 import org.orbit.graph.phase.NameResolverResult
-import org.orbit.types.next.components.TypeComponent
+import org.orbit.graph.phase.measureTimeWithResult
 import org.orbit.types.next.components.Module
-import org.orbit.types.next.components.Trait
-import org.orbit.types.next.components.Type
+import org.orbit.types.next.components.TypeComponent
 import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
 import org.orbit.util.next.ITypeMapRead
+import kotlin.contracts.ExperimentalContracts
+import kotlin.time.ExperimentalTime
 
 interface TypePhase<N: Node, T: TypeComponent> : Phase<TypePhaseData<N>, T> {
     fun run(input: TypePhaseData<N>) : T
@@ -30,29 +31,21 @@ interface TypePhase<N: Node, T: TypeComponent> : Phase<TypePhaseData<N>, T> {
 fun <N: Node, T: TypeComponent> TypePhase<N, T>.executeAll(inferenceUtil: InferenceUtil, nodes: List<N>) : List<T>
     = nodes.map { execute(TypePhaseData(inferenceUtil, it)) }
 
-object TraitConformancePhase : TypePhase<TypeDefNode, Type>, KoinComponent {
-    override val invocation: Invocation by inject()
-
-    override fun run(input: TypePhaseData<TypeDefNode>): Type {
-        val type = input.inferenceUtil.inferAs<TypeDefNode, Type>(input.node)
-        // TODO - evaluate type expressions
-        val traits = input.inferenceUtil.inferAllAs<TypeExpressionNode, Trait>(input.node.traitConformances)
-
-        traits.forEach { input.inferenceUtil.addConformance(type, it) }
-
-        return type
-    }
-}
-
 object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
     override val invocation: Invocation by inject()
 
     override fun run(input: TypePhaseData<ModuleNode>): Module {
         val typeDefs = input.node.search<TypeDefNode>()
         val traitDefs = input.node.search<TraitDefNode>()
+        val typeAliasDefs = input.node.search<TypeAliasNode>()
+        val typeConstructorDefs = input.node.search<TypeConstructorNode>()
 
         var types = TypeStubPhase.executeAll(input.inferenceUtil, typeDefs)
         var traits = TraitStubPhase.executeAll(input.inferenceUtil, traitDefs)
+
+        TypeConstructorStubPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
+
+        TypeAliasPhase.executeAll(input.inferenceUtil, typeAliasDefs)
 
         types = TypeFieldsPhase.executeAll(input.inferenceUtil, typeDefs)
         traits = TraitContractsPhase.executeAll(input.inferenceUtil, traitDefs)
@@ -86,14 +79,29 @@ object TypeSystem : AdaptablePhase<TypePhaseData<ProgramNode>, TypeSystem.Result
         registerAdapter(NameResolverAdapter)
     }
 
+    @ExperimentalTime
+    @ExperimentalContracts
     override fun execute(input: TypePhaseData<ProgramNode>): Result {
-        val moduleNodes = input.node.search(ModuleNode::class.java)
-        val modules = ModulePhase.executeAll(input.inferenceUtil, moduleNodes)
-        val result = Result(modules, input.inferenceUtil.getTypeMap())
+        val timedResult = measureTimeWithResult {
+            val moduleNodes = input.node.search(ModuleNode::class.java)
+            val modules = ModulePhase.executeAll(input.inferenceUtil, moduleNodes)
+            val result = Result(modules, input.inferenceUtil.getTypeMap())
+            val typeErrors = input.inferenceUtil.getTypeErrors()
 
-        invocation.storeResult(CompilationSchemeEntry.typeSystem, result)
-//        invocation.storeResult("__type_assistant__", typeAssistant)
+            if (typeErrors.isNotEmpty()) {
+                val fullMessage = typeErrors.joinToString("\n") { it.message }
 
-        return result
+                throw invocation.make<TypeSystem>(fullMessage, input.node)
+            }
+
+            invocation.storeResult(CompilationSchemeEntry.typeSystem, result)
+//          invocation.storeResult("__type_assistant__", typeAssistant)
+
+            result
+        }
+
+        println("Completed type checking in ${timedResult.first}")
+
+        return timedResult.second
     }
 }

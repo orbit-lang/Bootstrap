@@ -63,15 +63,18 @@ val mainModule = module {
 	single {
 		val util = InferenceUtil(TypeMap(), BindingScope.Root)
 
-		util.registerPathResolver(IntLiteralInference, IntLiteralNode::class.java)
-		util.registerPathResolver(SymbolLiteralInference, SymbolLiteralNode::class.java)
-		util.registerPathResolver(LambdaLiteralInference, LambdaLiteralNode::class.java)
-		util.registerPathResolver(VariableInference, IdentifierNode::class.java)
-		util.registerPathResolver(TypeLiteralInference, TypeIdentifierNode::class.java)
-		util.registerPathResolver(BlockInference, BlockNode::class.java)
-		util.registerPathResolver(TypeDefInference, TypeDefNode::class.java)
-		util.registerPathResolver(ModuleInference, ModuleNode::class.java)
-		util.registerPathResolver(FieldInference, PairNode::class.java)
+		util.registerInference(IntLiteralInference, IntLiteralNode::class.java)
+		util.registerInference(SymbolLiteralInference, SymbolLiteralNode::class.java)
+		util.registerInference(LambdaLiteralInference, LambdaLiteralNode::class.java)
+		util.registerInference(VariableInference, IdentifierNode::class.java)
+		util.registerInference(TypeLiteralInference, TypeIdentifierNode::class.java)
+		util.registerInference(BlockInference, BlockNode::class.java)
+		util.registerInference(TypeDefInference, TypeDefNode::class.java)
+		util.registerInference(ModuleInference, ModuleNode::class.java)
+		util.registerInference(FieldInference, PairNode::class.java)
+		util.registerInference(TypeParameterInference, TypeLiteralInferenceContext.TypeParameterContext)
+		util.registerInference(MetaTypeInference, MetaTypeNode::class.java)
+		util.registerInference(AnyTypeExpressionInference, TypeExpressionNode::class.java)
 
 		util
 	}

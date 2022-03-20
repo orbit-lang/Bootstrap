@@ -58,11 +58,6 @@ object VariableInference : Inference<IdentifierNode, TypeComponent>, KoinCompone
         = inferenceUtil.getTypeOrNever(node.identifier).inferenceResult()
 }
 
-object TypeLiteralInference : Inference<TypeIdentifierNode, TypeComponent>, KoinComponent {
-    private val invocation: Invocation by inject()
-
-    override fun infer(inferenceUtil: InferenceUtil, node: TypeIdentifierNode): InferenceResult {
-        return inferenceUtil.find<TypeSystem>(node.getPath(), invocation, node)
-            .inferenceResult()
-    }
+sealed class TypeLiteralInferenceContext(override val nodeType: Class<out Node>) : InferenceContext {
+    object TypeParameterContext : TypeLiteralInferenceContext(TypeIdentifierNode::class.java)
 }

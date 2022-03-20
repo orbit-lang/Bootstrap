@@ -15,6 +15,7 @@ interface ITypeMapRead : ITypeMapInterface {
     fun get(node: Node) : TypeComponent?
     fun getConformance(type: Type) : List<Trait>
     fun toCtx() : Ctx
+    fun getTypeErrors() : List<Never>
 }
 
 interface ITypeMapWrite : ITypeMapInterface {
@@ -33,6 +34,17 @@ inline fun <reified P: Phase<*, *>> ITypeMapRead.find(path: Path, invocation: In
 
     return find(path)
         ?: Never("Unknown Type ${path.toString(printer)}", node.firstToken.position)
+}
+
+interface IAlias : TypeComponent {
+    val target: TypeComponent
+}
+
+data class Alias(override val fullyQualifiedName: String, override val target: TypeComponent) : IAlias {
+    override val isSynthetic: Boolean = true
+
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation
+        = target.compare(ctx, other)
 }
 
 class TypeMap : ITypeMap {
@@ -54,6 +66,9 @@ class TypeMap : ITypeMap {
         }
     }
 
+    override fun getTypeErrors(): List<Never>
+        = visibleTypes.values.filterIsInstance<Never>()
+
     override fun addConformance(type: Type, trait: Trait) {
         val conformance = conformanceMap[type.fullyQualifiedName]
             ?: emptyList()
@@ -68,11 +83,15 @@ class TypeMap : ITypeMap {
         return conformance.mapNotNull(::findAs)
     }
 
-    fun <T: TypeComponent> findAs(name: String) : T?
-        = visibleTypes[name] as? T
+    fun <T: TypeComponent> findAs(name: String) : T? = when (val type = visibleTypes[name]) {
+        is Alias -> type.target as? T
+        else -> type as? T
+    }
 
-    override fun find(name: String): TypeComponent?
-        = visibleTypes[name]
+    override fun find(name: String): TypeComponent? = when (val type = visibleTypes[name]) {
+        is Alias -> type.target
+        else -> type
+    }
 
     fun find(path: Path) : TypeComponent?
         = find(OrbitMangler.mangle(path))

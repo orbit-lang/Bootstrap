@@ -1,6 +1,6 @@
 package org.orbit.types.next.components
 
-data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: List<Parameter>, override val isSynthetic: Boolean = false) : TypeComponent {
+data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: List<Parameter>, override val isSynthetic: Boolean = false) : DeclType {
     override val fullyQualifiedName: String = baseType.fullyQualifiedName
 
     fun indexOf(parameter: Parameter) : Int
