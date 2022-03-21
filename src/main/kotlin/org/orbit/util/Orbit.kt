@@ -18,6 +18,7 @@ import org.orbit.core.single
 import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.types.next.inference.*
+import org.orbit.types.next.phase.TypeProjectionPhase
 import org.orbit.util.next.BindingScope
 import org.orbit.util.next.TypeMap
 
@@ -76,6 +77,10 @@ val mainModule = module {
 		util.registerInference(MetaTypeInference, MetaTypeNode::class.java)
 		util.registerInference(TypeIndexInference, TypeIndexNode::class.java)
 		util.registerInference(AnyTypeExpressionInference, TypeExpressionNode::class.java)
+		util.registerInference(AnyExpressionInference, AnyExpressionContext)
+		util.registerInference(WhereClauseInference, WhereClauseNode::class.java)
+		util.registerInference(WhereAssignmentInference, WhereClauseExpressionInferenceContext.AssignmentContext)
+		util.registerInference(RValueInference, RValueNode::class.java)
 
 		util
 	}

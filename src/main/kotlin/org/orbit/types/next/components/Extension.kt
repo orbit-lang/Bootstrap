@@ -1,8 +1,10 @@
 package org.orbit.types.next.components
 
+import org.orbit.types.next.inference.InferenceUtil
+
 interface Extension<T: TypeComponent> {
     val baseType: T
-    val signatures: List<Signature>
 
     fun extend(ctx: Ctx)
+    fun extend(inferenceUtil: InferenceUtil)
 }

@@ -99,8 +99,11 @@ class TypeMap : ITypeMap {
         = find(OrbitMangler.mangle(path))
 
     override fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean) {
-        if (!mergeOnCollision && map.containsKey(node.id))
-            throw RuntimeException("FATAL - Node ID Collision: ${node.id}")
+//        println("ID: ${node.id} -- $node")
+//        if (!mergeOnCollision && map.containsKey(node.id)) {
+//            val other = map
+//            throw RuntimeException("FATAL - Node ID Collision: ${node.id}")
+//        }
 
         if (value is DeclType) declare(value)
 

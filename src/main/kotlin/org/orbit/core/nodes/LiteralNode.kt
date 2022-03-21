@@ -5,13 +5,15 @@ import org.orbit.core.components.Token
 import org.orbit.serial.Serial
 import java.math.BigInteger
 
+interface ValueRepresentableNode
+
 // NOTE: Literals might work better as annotations controlled
 // and owned by a phase, rather than baked in like this
 abstract class LiteralNode<T>(
     override val firstToken: Token,
     override val lastToken: Token,
     open val value: T
-) : ExpressionNode(firstToken, lastToken), Serial {
+) : ExpressionNode(firstToken, lastToken), Serial, ValueRepresentableNode {
 	override fun getChildren() : List<Node> {
 		return emptyList()
 	}

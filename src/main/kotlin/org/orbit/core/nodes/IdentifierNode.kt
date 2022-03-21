@@ -6,7 +6,7 @@ data class IdentifierNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val identifier: String
-) : ExpressionNode(firstToken, lastToken) {
+) : ExpressionNode(firstToken, lastToken), ValueRepresentableNode {
 	override fun getChildren() : List<Node> {
 		return emptyList()
 	}

@@ -7,7 +7,7 @@ data class BlockNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val body: List<Node>
-) : ExpressionNode(firstToken, lastToken) {
+) : ExpressionNode(firstToken, lastToken), ValueRepresentableNode {
 	val isEmpty: Boolean get() = body.isEmpty()
 
 	val containsDefer: Boolean get() = body.containsInstances<DeferNode>()
