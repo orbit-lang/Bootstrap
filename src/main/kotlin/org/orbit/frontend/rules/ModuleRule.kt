@@ -119,6 +119,13 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                     extensionNodes.add(extension)
                 }
 
+                TokenTypes.Alias -> {
+                    val typeAlias = context.attempt(TypeAliasRule)
+                        ?: TODO("@ModuleRule:124")
+
+                    typeAliasNodes.add(typeAlias)
+                }
+
                 else -> TODO("@ModuleRule:107")
             }
 

@@ -4,8 +4,8 @@ module Test {
     trait constructor Printable<T, U>(value Self[T], other Self[U])
     type Foo(value T, other A) : Printable<T, A>
 
-    type Bar = Printable<T, T>
-    type Baz = Bar
+    alias Bar = Printable<T, T>
+    alias Baz = Bar
 
     type Quux(value T, other T) : Bar
 }
