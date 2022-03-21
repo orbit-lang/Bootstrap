@@ -18,6 +18,6 @@ object TypeAliasPhase : TypePhase<TypeAliasNode, IAlias>, KoinComponent {
     override fun run(input: TypePhaseData<TypeAliasNode>): IAlias {
         val target = input.inferenceUtil.infer(input.node.targetTypeIdentifier)
 
-        return Alias(input.node.sourceTypeIdentifier.value, target)
+        return Alias(input.node.getPath(), target)
     }
 }

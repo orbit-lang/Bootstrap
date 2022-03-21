@@ -138,17 +138,19 @@ class ContainerResolver<C: ContainerNode> : PathResolver<C> {
 			resolveAll(typeConstructorResolver, typeConstructors, PathResolver.Pass.Initial)
 			resolveAll(traitConstructorResolver, traitConstructors, PathResolver.Pass.Initial)
 
+			if (input is ModuleNode) {
+				val typeAliasResolver = TypeAliasPathResolver(containerPath)
+				for (typeAlias in input.typeAliasNodes) {
+					typeAliasResolver.resolve(typeAlias, PathResolver.Pass.Initial, environment, graph)
+				}
+			}
+
 			resolveAll(traitResolver, traitDefs, PathResolver.Pass.Last)
 			resolveAll(typeResolver, typeDefs, PathResolver.Pass.Last)
 			resolveAll(typeConstructorResolver, typeConstructors, PathResolver.Pass.Last)
 			resolveAll(traitConstructorResolver, traitConstructors, PathResolver.Pass.Last)
 
 			if (input is ModuleNode) {
-				val typeAliasResolver = TypeAliasPathResolver(containerPath)
-				for (typeAlias in input.typeAliasNodes) {
-					typeAliasResolver.resolve(typeAlias, PathResolver.Pass.Initial, environment, graph)
-				}
-
 				for (typeProjection in input.typeProjections) {
 					TypeProjectionPathResolver.resolve(typeProjection, PathResolver.Pass.Initial, environment, graph)
 				}

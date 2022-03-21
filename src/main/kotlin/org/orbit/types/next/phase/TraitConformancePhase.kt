@@ -5,7 +5,6 @@ import org.koin.core.component.inject
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.types.next.components.ITrait
-import org.orbit.types.next.components.Trait
 import org.orbit.types.next.components.Type
 import org.orbit.types.next.inference.AnyInferenceContext
 import org.orbit.util.Invocation

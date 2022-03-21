@@ -33,6 +33,8 @@ data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
         override val isSynthetic: Boolean
             get() = throw RuntimeException("FATAL - Naked Type Reference")
 
+        override val contracts: List<Contract<*>> = emptyList()
+
         override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation {
             throw RuntimeException("FATAL - Naked Type Reference")
         }
@@ -58,6 +60,8 @@ data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
 
     override val input: ITrait
         get() = throw RuntimeException("FATAL - Naked Type Reference")
+
+    override val contracts: List<Contract<*>> = emptyList()
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (fullyQualifiedName) {
         other.fullyQualifiedName -> TypeRelation.Same(this, other)
@@ -92,7 +96,7 @@ data class AnyInferenceContext(override val nodeType: Class<out Node>) : Inferen
     override fun hashCode(): Int = nodeType.hashCode()
 }
 
-class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBindingScope) : KoinComponent, ITypeMap by typeMap, IBindingScope by bindingScope {
+class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBindingScope, val self: TypeComponent? = null) : KoinComponent, ITypeMap by typeMap, IBindingScope by bindingScope {
     private val inferences = mutableMapOf<InferenceContext, Inference<*, *>>()
     private val invocation: Invocation by inject()
 
@@ -110,7 +114,7 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
 
     fun getTypeMap() : ITypeMapRead = typeMap
 
-    fun derive(retainsTypeMap: Boolean, retainsBindingScope: Boolean) : InferenceUtil {
+    fun derive(retainsTypeMap: Boolean, retainsBindingScope: Boolean, self: TypeComponent? = null) : InferenceUtil {
         val nTypeMap = when (retainsTypeMap) {
             true -> typeMap
             else -> TypeMap()
@@ -121,7 +125,7 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
             else -> BindingScope.Leaf(BindingScope.Root)
         }
 
-        val nInferenceUtil = InferenceUtil(nTypeMap, nBindingScope)
+        val nInferenceUtil = InferenceUtil(nTypeMap, nBindingScope, self)
 
         nInferenceUtil.registerAllInferences(this)
 

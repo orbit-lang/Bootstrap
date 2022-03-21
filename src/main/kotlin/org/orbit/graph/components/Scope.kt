@@ -166,11 +166,20 @@ class Scope(
 
 		if (finalAttempt.count() == 1) return BindingSearchResult.Success(finalAttempt.first())
 
+//		if (context!!.contains(Binding.Kind.TypeParameter) && parentVertexID != null) {
+//			// A cheeky hack to allow for using relative names for of Type Parameters
+//			val tp = finalAttempt.filter { it.kind is Binding.Kind.TypeParameter }
+//
+//			if (tp.count() == 1) {
+////				val tpPath = OrbitMangler.unmangle(t)
+//			}
+//		}
+
 		// If bindings have associated records in the graph, we can try to order by "distance"
 		if (parentVertexID == null || graph == null) return BindingSearchResult.Multiple(matches)
 		val graphedMatches = matches.filter { it.vertexID != null }
 
-		if (graphedMatches.count() > 1) {
+		if (graphedMatches.count() > 0) {
 			val connectedMatches = graphedMatches.filter { graph!!.isConnected(it.vertexID!!, parentVertexID!!) }
 
 			if (connectedMatches.count() == 1) return BindingSearchResult.Success(connectedMatches[0])

@@ -37,6 +37,12 @@ class TypeDefPathResolver(
 
 			graph.link(parentGraphID, graphID)
 
+			input.annotate(graphID, Annotations.GraphID)
+			input.propertyPairs.forEach {
+				it.annotate(graphID, Annotations.GraphID)
+				it.typeExpressionNode.annotate(graphID, Annotations.GraphID)
+			}
+
 			path
 		} else {
 			val path = input.getPath()

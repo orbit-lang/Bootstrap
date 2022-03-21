@@ -4,11 +4,29 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.util.Printer
 
-data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<TypeComponent>, val isTotal: Boolean) : IType, ITrait, KoinComponent {
+data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<TypeComponent>, val isTotal: Boolean) : IType, ITrait, ParameterisedType, KoinComponent {
     private val printer: Printer by inject()
 
     override val fullyQualifiedName: String = specialisedType.fullyQualifiedName
     override val isSynthetic: Boolean = true
+
+    override val contracts: List<Contract<*>> = emptyList()
+
+    override fun indexOf(parameter: Parameter): Int
+        = polymorphicType.indexOf(parameter)
+
+    override fun indexOfRelative(parameter: Parameter): Int
+        = polymorphicType.indexOfRelative(parameter)
+
+    override fun typeOf(parameter: Parameter): TypeComponent? = when (val idx = indexOf(parameter)) {
+        -1 -> null
+        else -> concreteParameters[idx]
+    }
+
+    override fun typeOfRelative(parameter: Parameter): TypeComponent? = when (val idx = indexOfRelative(parameter)) {
+        -1 -> null
+        else -> concreteParameters[idx]
+    }
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation
         = specialisedType.compare(ctx, other)

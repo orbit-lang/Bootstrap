@@ -29,7 +29,7 @@ data class EqualityConstraint<T: TypeComponent>(private val left: SelfIndex, pri
         if (idx == -1) return null
 
         val result = when (input.baseType) {
-            is Type -> TypeMonomorphiser.monomorphise(ctx, input as PolymorphicType<Type>, listOf(idx + right))
+            is Type -> TypeMonomorphiser.monomorphise(ctx, input as PolymorphicType<Type>, listOf(idx + right), MonomorphisationContext.Any)
             else -> TODO("@EqualityConstraint:33")
         }
 

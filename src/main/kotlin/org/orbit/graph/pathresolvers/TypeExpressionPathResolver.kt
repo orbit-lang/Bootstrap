@@ -18,7 +18,7 @@ object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
 
 	override fun resolve(input: TypeExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result = when (input) {
 		is TypeIdentifierNode -> {
-			val binding = environment.getBinding(input.value, Binding.Kind.Union.entityOrConstructor, graph, input.getGraphIDOrNull())
+			val binding = environment.getBinding(input.value, Binding.Kind.Union.entityOrConstructorOrParameter, graph, input.getGraphIDOrNull())
 				.unwrap(this, input.firstToken.position)
 
 			input.annotate(binding.path, Annotations.Path)

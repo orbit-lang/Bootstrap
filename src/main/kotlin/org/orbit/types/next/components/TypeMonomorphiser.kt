@@ -1,22 +1,33 @@
 package org.orbit.types.next.components
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
+import org.orbit.core.components.SourcePosition
 import org.orbit.types.next.inference.TypeReference
+import org.orbit.types.next.phase.TypeSystem
+import org.orbit.util.Invocation
+import org.orbit.util.Printer
 import org.orbit.util.seconds
 
-object TraitMonomorphiser : Monomorphiser<PolymorphicType<Trait>, List<Pair<Int, TypeComponent>>, Trait> {
-    override fun monomorphise(ctx: Ctx, input: PolymorphicType<Trait>, over: List<Pair<Int, TypeComponent>>): MonomorphisationResult<Trait> {
+object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int, TypeComponent>>, ITrait>, KoinComponent {
+    private val invocation: Invocation by inject()
+    private val printer: Printer by inject()
+
+    override fun monomorphise(ctx: Ctx, input: PolymorphicType<ITrait>, over: List<Pair<Int, TypeComponent>>, context: MonomorphisationContext): MonomorphisationResult<ITrait> {
         if (over.count() > input.parameters.count()) return MonomorphisationResult.Failure(input.baseType)
 
         val nPath = OrbitMangler.unmangle(input.fullyQualifiedName).plus(
             over.map { OrbitMangler.unmangle(it.second.fullyQualifiedName) })
 
         val nFieldContracts = input.baseType.contracts.filterIsInstance<FieldContract>().map {
-            val idx = input.parameters.indexOf(it.input.type)
-            when (it.input.type is Parameter) {
+            val fullyResolvedType = it.input.type.resolve(ctx)
+                ?: TODO("@TypeMonomorphiser:16")
+            val idx = input.parameters.indexOf(fullyResolvedType)
+            when (fullyResolvedType is Parameter) {
                 true -> when (val e = over.firstOrNull { o -> o.first == idx }) {
                     null -> it
-                    else -> FieldContract(TypeReference(nPath), Field(it.input.type.fullyQualifiedName, e.second))
+                    else -> FieldContract(TypeReference(nPath), Field(it.input.name, e.second))
                 }
                 else -> it
             }
@@ -29,6 +40,11 @@ object TraitMonomorphiser : Monomorphiser<PolymorphicType<Trait>, List<Pair<Int,
         return when (input.parameters.count() == over.count()) {
             true -> MonomorphisationResult.Total(MonomorphicType(input, nTrait, over.seconds(), true))
             else -> {
+                if (context == MonomorphisationContext.TraitConformance) {
+                    val pretty = input.parameters.joinToString(", ") { it.toString(printer) }
+                    throw invocation.make<TypeSystem>("Partial monomorphisation of Trait Constructor ${input.baseType.toString(printer)} not allowed in Trait Conformance declarations.\n${input.baseType.toString(printer)} expects ${input.parameters.count()} type parameters ($pretty), found ${over.count()}", SourcePosition.unknown)
+                }
+
                 val delta = input.parameters.count() - over.count()
                 val unresolvedParameters = input.parameters.slice(IntRange(delta, input.parameters.count() - 1))
                 val nPoly = PolymorphicType(input.baseType, unresolvedParameters)
@@ -40,7 +56,7 @@ object TraitMonomorphiser : Monomorphiser<PolymorphicType<Trait>, List<Pair<Int,
 }
 
 object TypeMonomorphiser : Monomorphiser<PolymorphicType<Type>, List<Pair<Int, TypeComponent>>, Type> {
-    override fun monomorphise(ctx: Ctx, input: PolymorphicType<Type>, over: List<Pair<Int, TypeComponent>>): MonomorphisationResult<Type> {
+    override fun monomorphise(ctx: Ctx, input: PolymorphicType<Type>, over: List<Pair<Int, TypeComponent>>, context: MonomorphisationContext): MonomorphisationResult<Type> {
         if (over.count() > input.parameters.count()) return MonomorphisationResult.Failure(input.baseType)
 
         val nFields = input.baseType.fields.map {

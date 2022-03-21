@@ -1,5 +1,11 @@
 module Test {
-    trait constructor Printable<T>(value T)
     type T
-    type Foo : Printable<Test::T>
+    type A
+    trait constructor Printable<T, U>(value Self[T], other Self[U])
+    type Foo(value T, other A) : Printable<T, A>
+
+    type Bar = Printable<T, T>
+    type Baz = Bar
+
+    type Quux(value T, other T) : Bar
 }

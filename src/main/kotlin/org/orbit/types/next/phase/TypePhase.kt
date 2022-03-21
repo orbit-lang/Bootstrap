@@ -49,10 +49,9 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
 
         TypeAliasPhase.executeAll(input.inferenceUtil, typeAliasDefs)
 
+        types = TraitConformancePhase.executeAll(input.inferenceUtil, typeDefs)
         types = TypeFieldsPhase.executeAll(input.inferenceUtil, typeDefs)
         traits = TraitContractsPhase.executeAll(input.inferenceUtil, traitDefs)
-
-        types = TraitConformancePhase.executeAll(input.inferenceUtil, typeDefs)
         types = TraitConformanceVerification.executeAll(input.inferenceUtil, typeDefs)
 
         return Module(input.node.getPath()).apply {

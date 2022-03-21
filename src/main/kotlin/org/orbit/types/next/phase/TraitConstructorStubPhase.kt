@@ -8,6 +8,7 @@ import org.orbit.core.nodes.TraitConstructorNode
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.AnyInferenceContext
+import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.types.next.inference.TypeLiteralInferenceContext
 import org.orbit.types.next.inference.TypeReference
 import org.orbit.util.Invocation
@@ -22,7 +23,11 @@ object TraitConstructorStubPhase : EntityConstructorStubPhase<TraitConstructorNo
 
         parameters.forEach { input.inferenceUtil.declare(it) }
 
-        val fields = input.inferenceUtil.inferAllAs<PairNode, Field>(input.node.properties,
+        val protoTrait = Trait(input.node.getPath())
+        val protoPoly = PolymorphicType(protoTrait, parameters)
+        val nInferenceUtil = input.inferenceUtil.derive(retainsTypeMap = true, retainsBindingScope = true, protoPoly)
+
+        val fields = nInferenceUtil.inferAllAs<PairNode, Field>(input.node.properties,
             AnyInferenceContext(PairNode::class.java)
         )
 

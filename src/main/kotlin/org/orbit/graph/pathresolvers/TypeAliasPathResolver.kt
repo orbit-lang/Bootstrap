@@ -23,12 +23,6 @@ class TypeAliasPathResolver(private val parentPath: Path) : PathResolver<TypeAli
 
 		val targetBinding = pathResolverUtil.resolve(input.targetTypeIdentifier, pass, environment, graph)
 			.asSuccess()
-			//environment.getBinding(input.targetTypeIdentifier.value, Binding.Kind.Union.entityOrConstructor)
-			//.unwrap(this, input.targetTypeIdentifier.firstToken.position)
-
-		//val targetVertexID = graph.find(targetBinding)
-
-		//graph.alias(sourcePath.toString(OrbitMangler), targetVertexID)
 
 		input.annotate(sourcePath, Annotations.Path)
 		input.sourceTypeIdentifier.annotate(sourcePath, Annotations.Path)

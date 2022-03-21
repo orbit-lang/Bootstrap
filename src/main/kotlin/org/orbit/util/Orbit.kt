@@ -74,6 +74,7 @@ val mainModule = module {
 		util.registerInference(FieldInference, PairNode::class.java)
 		util.registerInference(TypeParameterInference, TypeLiteralInferenceContext.TypeParameterContext)
 		util.registerInference(MetaTypeInference, MetaTypeNode::class.java)
+		util.registerInference(TypeIndexInference, TypeIndexNode::class.java)
 		util.registerInference(AnyTypeExpressionInference, TypeExpressionNode::class.java)
 
 		util

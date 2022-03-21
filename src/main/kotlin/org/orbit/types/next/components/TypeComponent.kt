@@ -16,6 +16,9 @@ interface TypeComponent {
     fun inferenceKey() : String = fullyQualifiedName
 }
 
+fun TypeComponent.resolve(ctx: Ctx) : TypeComponent?
+    = ctx.getType(fullyQualifiedName)
+
 sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias
 
 object Anything : InternalControlType {
@@ -24,6 +27,7 @@ object Anything : InternalControlType {
     override val trait: ITrait = this
     override val input: ITrait = this
     override val target: TypeComponent = this
+    override val contracts: List<Contract<*>> = emptyList()
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = TypeRelation.Unrelated(this, other)
 
@@ -38,6 +42,8 @@ object Anything : InternalControlType {
 interface NeverType : InternalControlType {
     val message: String
     val position: SourcePosition
+
+    override val contracts: List<Contract<*>> get() = emptyList()
 }
 
 data class Never(override val message: String = "", override val position: SourcePosition = SourcePosition.unknown) : Exception(message), NeverType, ExecutableType<NeverType>, KoinComponent {

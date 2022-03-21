@@ -33,6 +33,10 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 			return this::class.java == other::class.java
 		}
 
+		fun contains(kind: Kind) : Boolean {
+			return this == kind
+		}
+
 		data class Union(val left: Kind, val right: Kind) : Kind {
 			companion object {
 				val anyEntityConstructor = Union(Kind.TypeConstructor, Kind.TraitConstructor)
@@ -42,6 +46,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 				val receiver = Union(entityOrMethod,anyEntityConstructor)
 				val entityOrConstructor = Union(entity, anyEntityConstructor)
 				val entityMethodOrConstructor = Union(entityOrMethod, anyEntityConstructor)
+				val entityOrConstructorOrParameter = Union(entityOrConstructor, TypeParameter)
 			}
 
 			override fun getName(): String {
@@ -50,6 +55,10 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 
 			override fun same(other: Kind): Boolean {
 				return left.same(other) || right.same(other)
+			}
+
+			override fun contains(kind: Kind): Boolean {
+				return left.contains(kind) || right.contains(kind)
 			}
 		}
 	}

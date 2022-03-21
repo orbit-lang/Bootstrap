@@ -13,7 +13,7 @@ interface ITypeMapInterface
 interface ITypeMapRead : ITypeMapInterface {
     fun find(name: String) : TypeComponent?
     fun get(node: Node) : TypeComponent?
-    fun getConformance(type: Type) : List<ITrait>
+    fun getConformance(type: TypeComponent) : List<ITrait>
     fun toCtx() : Ctx
     fun getTypeErrors() : List<Never>
 }
@@ -21,7 +21,7 @@ interface ITypeMapRead : ITypeMapInterface {
 interface ITypeMapWrite : ITypeMapInterface {
     fun declare(type: DeclType)
     fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean = false)
-    fun addConformance(type: Type, trait: ITrait)
+    fun addConformance(type: TypeComponent, trait: ITrait)
 }
 
 interface ITypeMap : ITypeMapRead, ITypeMapWrite
@@ -36,11 +36,13 @@ inline fun <reified P: Phase<*, *>> ITypeMapRead.find(path: Path, invocation: In
         ?: Never("Unknown Type ${path.toString(printer)}", node.firstToken.position)
 }
 
-interface IAlias : TypeComponent {
+interface IAlias : DeclType {
     val target: TypeComponent
 }
 
 data class Alias(override val fullyQualifiedName: String, override val target: TypeComponent) : IAlias {
+    constructor(path: Path, target: TypeComponent) : this(path.toString(OrbitMangler), target)
+
     override val isSynthetic: Boolean = true
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation
@@ -69,14 +71,14 @@ class TypeMap : ITypeMap {
     override fun getTypeErrors(): List<Never>
         = visibleTypes.values.filterIsInstance<Never>()
 
-    override fun addConformance(type: Type, trait: ITrait) {
+    override fun addConformance(type: TypeComponent, trait: ITrait) {
         val conformance = conformanceMap[type.fullyQualifiedName]
             ?: emptyList()
 
         conformanceMap[type.fullyQualifiedName] = conformance + trait.fullyQualifiedName
     }
 
-    override fun getConformance(type: Type): List<Trait> {
+    override fun getConformance(type: TypeComponent): List<Trait> {
         val conformance = conformanceMap[type.fullyQualifiedName]
             ?: return emptyList()
 

@@ -17,9 +17,7 @@ import org.orbit.util.dispose
 import org.orbit.util.partial
 import org.orbit.util.unaryMinus
 
-class TraitConstructorPathResolver(
-	private val parentPath: Path
-) : PathResolver<TraitConstructorNode> {
+class TraitConstructorPathResolver(private val parentPath: Path) : PathResolver<TraitConstructorNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
@@ -49,13 +47,13 @@ class TraitConstructorPathResolver(
 
 				graph.link(graphID, vertexID)
 
-				environment.bind(Binding.Kind.Type, typeParameter.value, nPath, vertexID)
+				//environment.bind(Binding.Kind.TypeParameter, typeParameter.value, nPath, vertexID)
 			}
 		} else {
 			val parentGraphID = input.getGraphID()
 
 			input.typeParameterNodes.forEach { t ->
-				environment.bind(Binding.Kind.Type, t.value, path + Path(t.value))
+				//environment.bind(Binding.Kind.TypeParameter, t.value, path + Path(t.value))
 			}
 
 			val methodSignaturePathResolver = MethodSignaturePathResolver()

@@ -4,9 +4,11 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.util.Printer
 
-interface ITrait : Entity, Contract<ITrait>
+interface ITrait : Entity, Contract<ITrait> {
+    val contracts: List<Contract<*>>
+}
 
-data class Trait(override val fullyQualifiedName: String, val contracts: List<Contract<*>> = emptyList(), override val isSynthetic: Boolean = false) : ITrait {
+data class Trait(override val fullyQualifiedName: String, override val contracts: List<Contract<*>> = emptyList(), override val isSynthetic: Boolean = false) : ITrait {
     constructor(path: Path, contracts: List<Contract<*>> = emptyList(), isSynthetic: Boolean = false) : this(path.toString(OrbitMangler), contracts, isSynthetic)
 
     override val trait: Trait = this
