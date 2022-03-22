@@ -5,9 +5,9 @@ import org.orbit.util.Printer
 data class FieldContract(override val trait: ITrait, override val input: Field) : Contract<Field> {
     override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult {
         if (by !is Type) return ContractResult.Failure(by, this)
-        if (by.fields.none { it.name == input.name }) return ContractResult.Failure(by, this)
+        if (by.getFields().none { it.name == input.name }) return ContractResult.Failure(by, this)
 
-        return when (by.fields.any { AnyEq.eq(ctx, input.type, it.type) }) {
+        return when (by.getFields().any { AnyEq.eq(ctx, input.type, it.type) }) {
             true -> ContractResult.Success(by, this)
             else -> ContractResult.Failure(by, this)
         }

@@ -19,7 +19,9 @@ interface TypeComponent {
 fun TypeComponent.resolve(ctx: Ctx) : TypeComponent?
     = ctx.getType(fullyQualifiedName)
 
-sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias
+sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias {
+    override fun getFields(): List<Field> = emptyList()
+}
 
 object Anything : InternalControlType {
     override val fullyQualifiedName: String = "*"
@@ -28,6 +30,8 @@ object Anything : InternalControlType {
     override val input: ITrait = this
     override val target: TypeComponent = this
     override val contracts: List<Contract<*>> = emptyList()
+
+    override fun deriveTrait(ctx: Ctx): ITrait = Anything
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = TypeRelation.Unrelated(this, other)
 
@@ -57,6 +61,8 @@ data class Never(override val message: String = "", override val position: Sourc
         override val trait: ITrait = this
         override val input: ITrait = this
 
+        override fun deriveTrait(ctx: Ctx): ITrait = Never
+
         override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult
                 = ContractResult.Failure(by, this)
 
@@ -78,6 +84,8 @@ data class Never(override val message: String = "", override val position: Sourc
     override val trait: ITrait = this
     override val input: ITrait = this
     override val target: TypeComponent = this
+
+    override fun deriveTrait(ctx: Ctx): ITrait = Never
 
     override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult
             = ContractResult.Failure(by, this)

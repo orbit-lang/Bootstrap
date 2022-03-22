@@ -81,6 +81,7 @@ val mainModule = module {
 		util.registerInference(WhereClauseInference, WhereClauseNode::class.java)
 		util.registerInference(WhereAssignmentInference, WhereClauseExpressionInferenceContext.AssignmentContext)
 		util.registerInference(RValueInference, RValueNode::class.java)
+		util.registerInference(ConstructorInference, ConstructorNode::class.java)
 
 		util
 	}

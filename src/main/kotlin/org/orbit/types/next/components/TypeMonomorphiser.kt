@@ -59,7 +59,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<Type>, List<Pair<Int, T
     override fun monomorphise(ctx: Ctx, input: PolymorphicType<Type>, over: List<Pair<Int, TypeComponent>>, context: MonomorphisationContext): MonomorphisationResult<Type> {
         if (over.count() > input.parameters.count()) return MonomorphisationResult.Failure(input.baseType)
 
-        val nFields = input.baseType.fields.map {
+        val nFields = input.baseType.getFields().map {
             val idx = input.parameters.indexOf(it.type)
             when (it.type is Parameter) {
                 true -> when (val e = over.firstOrNull { o -> o.first == idx }) {

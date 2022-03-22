@@ -39,12 +39,12 @@ object TypeProjectionPhase : TypePhase<TypeProjectionNode, TypeComponent>, KoinC
 
     override fun run(input: TypePhaseData<TypeProjectionNode>): TypeComponent {
         // TODO - Extend other things: Traits, PolymorphicTypes, etc
-        val source = input.inferenceUtil.inferAs<TypeExpressionNode, Type>(input.node.typeIdentifier)
+        val source = input.inferenceUtil.inferAs<TypeExpressionNode, IType>(input.node.typeIdentifier)
         val target = input.inferenceUtil.inferAs<TypeExpressionNode, ITrait>(input.node.traitIdentifier)
         val wheres = input.inferenceUtil.inferAllAs<WhereClauseNode, Field>(input.node.whereNodes, AnyInferenceContext(WhereClauseNode::class.java))
 
         val ctx = input.inferenceUtil.toCtx()
-        val nType = Type(source.fullyQualifiedName, source.fields + wheres)
+        val nType = Type(source.fullyQualifiedName, source.getFields() + wheres)
         val result = target.isImplemented(ctx, nType)
 
         return when (result) {

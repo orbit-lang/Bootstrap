@@ -1,9 +1,13 @@
 module Test {
     type A
-    trait T(a A)
-
+    trait Thing1(a A)
+    trait Thing2(thing Thing1)
     type B
+    type C
 
-    type projection B : T
+    type projection B : Thing1
         where a = A()
+
+    type projection C : Thing2
+        where thing = B()
 }

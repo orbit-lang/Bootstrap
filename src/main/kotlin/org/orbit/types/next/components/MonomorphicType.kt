@@ -12,6 +12,17 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
 
     override val contracts: List<Contract<*>> = emptyList()
 
+    override fun getFields(): List<Field> = when (specialisedType) {
+        is IType -> specialisedType.getFields()
+        else -> emptyList()
+    }
+
+    override fun deriveTrait(ctx: Ctx): ITrait {
+        if (specialisedType !is Type) return Never("Cannot synthesise Trait fro Type ${specialisedType.toString(printer)}")
+
+        return InterfaceSynthesiser.synthesise(ctx, specialisedType)
+    }
+
     override fun indexOf(parameter: Parameter): Int
         = polymorphicType.indexOf(parameter)
 

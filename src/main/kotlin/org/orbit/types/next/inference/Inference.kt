@@ -22,7 +22,14 @@ fun TypeComponent.inferenceResult() : InferenceResult = when (this) {
     else -> InferenceResult.Success(this)
 }
 
-interface ITypeRef : ValueType, ITrait, IType
+interface ITypeRef : ValueType, ITrait, IType {
+    override fun deriveTrait(ctx: Ctx): ITrait = when (val type = ctx.getTypeAs<IType>(fullyQualifiedName)) {
+        null -> Never
+        else -> type.deriveTrait(ctx)
+    }
+
+    override fun getFields(): List<Field> = emptyList()
+}
 
 data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
     constructor(path: Path) : this(path.toString(OrbitMangler))
