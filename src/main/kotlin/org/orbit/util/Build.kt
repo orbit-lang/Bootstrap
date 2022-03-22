@@ -185,9 +185,8 @@ class Build : CliktCommand(), KoinComponent {
                 val codeWriter = CodeWriter(completeLibraryOutputDirectoryPath)
 
                 codeWriter.execute(parserResult.ast as ProgramNode)
-
-                println(invocation.dumpWarnings())
             } catch (ex: Exception) {
+                println(invocation.dumpWarnings())
                 println(ex.message)
             }
         })

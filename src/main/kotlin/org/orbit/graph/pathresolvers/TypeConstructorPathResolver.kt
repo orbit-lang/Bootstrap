@@ -49,7 +49,7 @@ class TypeConstructorPathResolver(
 
 				graph.link(graphID, vertexID)
 
-				environment.bind(Binding.Kind.Type, typeParameter.value, nPath, vertexID)
+				environment.bind(Binding.Kind.TypeParameter, typeParameter.value, nPath, vertexID)
 			}
 		} else {
 			val parentGraphID = input.getGraphID()

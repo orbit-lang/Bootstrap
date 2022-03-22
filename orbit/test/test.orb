@@ -1,13 +1,9 @@
 module Test {
     type A
-    trait Thing1(a A)
-    trait Thing2(thing Thing1)
     type B
-    type C
+    trait T1(a A)
+    trait T2(b B)
+    type constructor Merge<A, B>
 
-    type projection B : Thing1
-        where a = A()
-
-    type projection C : Thing2
-        where thing = B()
+    alias T3 = Merge<T1, T2>
 }

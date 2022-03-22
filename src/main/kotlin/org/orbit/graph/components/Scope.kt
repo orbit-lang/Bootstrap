@@ -2,17 +2,11 @@ package org.orbit.graph.components
 
 import org.json.JSONObject
 import org.orbit.core.*
-import org.orbit.core.components.SourcePosition
-import org.orbit.core.components.CompilationEvent
-import org.orbit.core.components.CompilationEventBusAware
-import org.orbit.core.components.CompilationEventBusAwareImpl
+import org.orbit.core.components.*
 import org.orbit.core.phase.Phase
 import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.serial.Serial
-import org.orbit.util.Fatal
-import org.orbit.util.Monoid
-import org.orbit.util.endsWith
-import org.orbit.util.partial
+import org.orbit.util.*
 import java.io.Serializable
 
 class Scope(
@@ -166,14 +160,20 @@ class Scope(
 
 		if (finalAttempt.count() == 1) return BindingSearchResult.Success(finalAttempt.first())
 
-//		if (context!!.contains(Binding.Kind.TypeParameter) && parentVertexID != null) {
-//			// A cheeky hack to allow for using relative names for of Type Parameters
-//			val tp = finalAttempt.filter { it.kind is Binding.Kind.TypeParameter }
-//
-//			if (tp.count() == 1) {
-////				val tpPath = OrbitMangler.unmangle(t)
-//			}
-//		}
+		if (context!!.contains(Binding.Kind.TypeParameter)) {
+			// A cheeky hack to allow for using relative names for of Type Parameters
+			val tp = matches.filter { it.kind is Binding.Kind.TypeParameter }
+
+			if (tp.count() == 1) {
+				val invocation = getKoinInstance<Invocation>()
+				val printer = getKoinInstance<Printer>()
+
+				val options = matches.joinToString(", ") { it.path.toString(OrbitMangler) }
+				invocation.warn(Warning("The name $name is bound to multiple components. Proceeding with the assumption that $name = ${tp[0].path.toString(OrbitMangler)} in this context.\n\tIf this is not correct, please use the fully qualified name instead. Possible options in this context:\n\t\t$options", SourcePosition.unknown))
+
+				return BindingSearchResult.Success(tp[0])
+			}
+		}
 
 		// If bindings have associated records in the graph, we can try to order by "distance"
 		if (parentVertexID == null || graph == null) return BindingSearchResult.Multiple(matches)
