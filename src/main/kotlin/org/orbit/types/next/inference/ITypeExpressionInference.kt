@@ -4,15 +4,16 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
-import org.orbit.core.nodes.MetaTypeNode
-import org.orbit.core.nodes.TypeExpressionNode
-import org.orbit.core.nodes.TypeIdentifierNode
-import org.orbit.core.nodes.TypeIndexNode
+import org.orbit.core.nodes.*
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 import org.orbit.util.next.find
+
+object AnyTypeExpressionInferenceContext : InferenceContext {
+    override val nodeType: Class<out Node> = TypeExpressionNode::class.java
+}
 
 interface ITypeExpressionInference<N: TypeExpressionNode, T: TypeComponent> : Inference<N, T>
 
@@ -82,5 +83,17 @@ object TypeIndexInference : Inference<TypeIndexNode, TypeComponent>, KoinCompone
                 InferenceResult.Failure(Never("Type ${self.toString(printer)} cannot be indexed by Parameter ${relativeIdx.toString(printer)}", node.index.firstToken.position))
             }
         }
+    }
+}
+
+object TypeSynthesisInference : Inference<TypeSynthesisNode, ITrait>, KoinComponent  {
+     private val invocation: Invocation by inject()
+
+    override fun infer(inferenceUtil: InferenceUtil, node: TypeSynthesisNode): InferenceResult {
+        if (node.kind != IntrinsicKinds.Trait) throw invocation.compilerError<TypeSystem>("Only Trait synthesis is currently supported, found ${node.kind.keyword.identifier}", node)
+
+        val target = inferenceUtil.inferAs<TypeExpressionNode, IType>(node.targetNode)
+
+        return target.deriveTrait(inferenceUtil.toCtx()).inferenceResult()
     }
 }

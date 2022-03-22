@@ -5,6 +5,6 @@ data class Warning(
 	val position: SourcePosition
 ) {
 	override fun toString(): String {
-		return "WARNING @ $position:\n\t$message"
+		return "WARNING @ $position:\n\t$message\n"
 	}
 }

@@ -25,6 +25,12 @@ class Invocation(val platform: Platform) {
 	private val warnings: MutableList<Warning> = mutableListOf()
 	private val errors: MutableList<OrbitError<*>> = mutableListOf()
 
+	val compilerErrorHeader: String get() {
+		val printer = Printer(platform.getPrintableFactory())
+
+		return printer.apply("***INTERNAL ERROR***", PrintableKey.Bold, PrintableKey.Italics, PrintableKey.Error)
+	}
+
 	val phaseResults = mutableMapOf<String, Any>()
 
 	fun storeResult(key: String, result: Any) {
@@ -162,5 +168,17 @@ class Invocation(val platform: Platform) {
 
 	inline fun<reified P: Phase<*, *>> make(message: String, sourcePosition: SourcePosition) : Exception {
 		return Exception(makeString<P>(message, sourcePosition))
+	}
+
+	inline fun<reified P: Phase<*, *>> compilerError(message: String, node: Node) : Exception {
+		return compilerError<P>(message, node.firstToken)
+	}
+
+	inline fun<reified P: Phase<*, *>> compilerError(message: String, token: Token) : Exception {
+		return compilerError<P>(message, token.position)
+	}
+
+	inline fun<reified P: Phase<*, *>> compilerError(message: String, sourcePosition: SourcePosition) : Exception {
+		return Exception(compilerErrorHeader + "\n" + makeString<P>(message, sourcePosition))
 	}
 }

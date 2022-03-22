@@ -133,6 +133,15 @@ class Parser(
 			?: throw invocation.make(Errors.UnexpectedToken(next))
 	}
 
+	fun expect(family: TokenType.Family) : Token {
+		val next = peek()
+
+		return when (next.type.family.contains(family)) {
+			true -> consume()
+			else -> throw invocation.make(Errors.UnexpectedToken(next))
+		}
+	}
+
 	fun expectAny(vararg types: TokenType, consumes: Boolean) : Token {
 		if (!hasMore) throw Errors.NoMoreTokens
 		val next = peek()

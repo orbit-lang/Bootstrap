@@ -26,8 +26,8 @@ object TokenTypes : TokenTypeProvider {
 	
     // Keywords
     object Api : TokenType("API", "api", true, false, Family.Keyword)
-    object Type : TokenType("Type", "type", true, false, Family.Keyword)
-    object Trait : TokenType("Trait", "trait", true, false, Family.Keyword)
+    object Type : TokenType("Type", "type", true, false, Family.Keyword + Family.Kind)
+    object Trait : TokenType("Trait", "trait", true, false, Family.Keyword + Family.Kind)
     object With : TokenType("With", "with", true, false, Family.Keyword)
     object Within : TokenType("Within", "within", true, false, Family.Keyword)
 	object Return : TokenType("Return", "return", true, false, Family.Keyword)
@@ -48,6 +48,9 @@ object TokenTypes : TokenTypeProvider {
     object In : TokenType("In", "\\bin\\b", true, false, Family.Keyword)
     object Invoke : TokenType("Invoke", "invoke", true, false, Family.Keyword)
 
+    // Compile-time functions
+    object Synthesise : TokenType("Synthesise", "synthesise", true, false, Family.CompileTime)
+
     // Literals
     object Int : TokenType("Int", "[0-9]+", true, false, Family.Num)
     object Real : TokenType("Real", "[0-9]+\\\\.[0-9]+", true, false, Family.Num)
@@ -62,6 +65,7 @@ object TokenTypes : TokenTypeProvider {
         return listOf(
             Int, Real, Api, Module, Define, Defer, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias,
+            Synthesise,
             Let, Invoke, In,
             TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,

@@ -18,6 +18,10 @@ class TypeAliasPathResolver(private val parentPath: Path) : PathResolver<TypeAli
 
 	override fun resolve(input: TypeAliasNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
 		val sourcePath = parentPath + Path(input.sourceTypeIdentifier.value)
+		val graphID = graph.insert(sourcePath.toString(OrbitMangler))
+
+		input.annotate(graphID, Annotations.GraphID)
+		input.targetTypeIdentifier.annotate(graphID, Annotations.GraphID)
 
 		TypeExpressionPathResolver.execute(PathResolver.InputType(input.targetTypeIdentifier, pass))
 

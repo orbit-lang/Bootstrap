@@ -15,7 +15,8 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
     override fun infer(inferenceUtil: InferenceUtil, node: ConstructorNode): InferenceResult {
         val source = inferenceUtil.infer(node.typeExpressionNode)
 
-        if (source !is Type) return Never("Attempting to instantiate non-Type ${source.toString(printer)}").inferenceResult()
+        if (source !is IType)
+            return Never("Attempting to instantiate non-Type ${source.toString(printer)}").inferenceResult()
 
         val args = inferenceUtil.inferAllAs<ExpressionNode, IType>(node.parameterNodes, AnyExpressionContext)
             .toMutableList()

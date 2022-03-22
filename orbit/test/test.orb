@@ -5,5 +5,10 @@ module Test {
     trait T2(b B)
     type constructor Merge<A, B>
 
-    alias T3 = Merge<T1, T2>
+    alias T3 = synthesise(trait, A)
+
+    trait Foo(a A)
+    type Bar(a A) : T3
+
+    type projection Bar : Foo
 }

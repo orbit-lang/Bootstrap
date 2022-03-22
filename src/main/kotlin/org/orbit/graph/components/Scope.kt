@@ -160,30 +160,41 @@ class Scope(
 
 		if (finalAttempt.count() == 1) return BindingSearchResult.Success(finalAttempt.first())
 
-		if (context!!.contains(Binding.Kind.TypeParameter)) {
-			// A cheeky hack to allow for using relative names for of Type Parameters
-			val tp = matches.filter { it.kind is Binding.Kind.TypeParameter }
-
-			if (tp.count() == 1) {
-				val invocation = getKoinInstance<Invocation>()
-				val printer = getKoinInstance<Printer>()
-
-				val options = matches.joinToString(", ") { it.path.toString(OrbitMangler) }
-				invocation.warn(Warning("The name $name is bound to multiple components. Proceeding with the assumption that $name = ${tp[0].path.toString(OrbitMangler)} in this context.\n\tIf this is not correct, please use the fully qualified name instead. Possible options in this context:\n\t\t$options", SourcePosition.unknown))
-
-				return BindingSearchResult.Success(tp[0])
-			}
-		}
-
 		// If bindings have associated records in the graph, we can try to order by "distance"
-		if (parentVertexID == null || graph == null) return BindingSearchResult.Multiple(matches)
-		val graphedMatches = matches.filter { it.vertexID != null }
+		if (parentVertexID == null || graph == null) {
+			if (context!!.contains(Binding.Kind.TypeParameter)) {
+				// A cheeky hack to allow for using relative names for of Type Parameters
+				val tp = matches.filter { it.kind is Binding.Kind.TypeParameter }
 
-		if (graphedMatches.count() > 0) {
-			val connectedMatches = graphedMatches.filter { graph!!.isConnected(it.vertexID!!, parentVertexID!!) }
+				if (tp.count() == 1) {
+					val invocation = getKoinInstance<Invocation>()
+					val printer = getKoinInstance<Printer>()
 
-			if (connectedMatches.count() == 1) return BindingSearchResult.Success(connectedMatches[0])
+					val options = matches.joinToString(", ") { it.path.toString(printer) }
+					invocation.warn(Warning("The name $name is bound to multiple components. Proceeding with the assumption that $name = ${tp[0].path.toString(OrbitMangler)} in this context.\n\tIf this is not correct, please use the fully qualified name instead. Possible options in this context:\n\t\t$options", SourcePosition.unknown))
+
+					return BindingSearchResult.Success(tp[0])
+				}
+			}
+
+			return BindingSearchResult.Multiple(matches)
 		}
+
+		val enclosingPath = graph.getName(parentVertexID).toPath(OrbitMangler)
+		val related = matches.filterIndexed { idx, binding ->
+			enclosingPath.dropLast(1).isAncestor(binding.path)
+		}
+
+		if (related.count() == 1)
+			return BindingSearchResult.Success(related[0])
+
+//		val graphedMatches = matches.filter { it.vertexID != null }
+//
+//		if (graphedMatches.count() > 0) {
+//			val connectedMatches = graphedMatches.filter { graph!!.isConnected(it.vertexID!!, parentVertexID!!) }
+//
+//			if (connectedMatches.count() == 1) return BindingSearchResult.Success(connectedMatches[0])
+//		}
 
 		return BindingSearchResult.Multiple(matches)
 	}
