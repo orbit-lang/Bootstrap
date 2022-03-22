@@ -11,4 +11,6 @@ module Test {
     type Bar(a A) : T3
 
     type projection Bar : Foo
+
+    type ALike : synthesise(trait, A)
 }

@@ -2,6 +2,7 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.*
 import org.orbit.core.components.SourcePosition
+import org.orbit.core.components.TokenType
 import org.orbit.frontend.components.ParseError
 import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.phase.Parser
@@ -117,7 +118,7 @@ class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<Ty
 
 			next = context.peek()
 
-			while (next.type == TokenTypes.TypeIdentifier) {
+			while (next.type == TokenTypes.TypeIdentifier || next.type.family == TokenType.Family.CompileTime) {
 				val traitConformance = context.attempt(TypeExpressionRule)
 					?: throw context.invocation.make(Parser.Errors.UnexpectedToken(next))
 

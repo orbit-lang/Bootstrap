@@ -43,6 +43,10 @@ class TypeDefPathResolver(
 				it.typeExpressionNode.annotate(graphID, Annotations.GraphID)
 			}
 
+			input.traitConformances.forEach {
+				it.annotate(graphID, Annotations.GraphID)
+			}
+
 			path
 		} else {
 			val path = input.getPath()
