@@ -16,6 +16,13 @@ fun ParameterisedType.contains(parameter: Parameter) : Boolean
 data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: List<Parameter>, override val isSynthetic: Boolean = false) : DeclType, ParameterisedType {
     override val fullyQualifiedName: String = baseType.fullyQualifiedName
 
+    override val kind: Kind get() {
+        val parameterKinds = parameters.map { it.kind }
+        val inputKind = TupleKind(parameterKinds)
+
+        return HigherKind(inputKind, IntrinsicKinds.Type(baseType.kind.level - 1))
+    }
+
     override fun indexOf(parameter: Parameter) : Int
         = parameters.indexOf(parameter)
 

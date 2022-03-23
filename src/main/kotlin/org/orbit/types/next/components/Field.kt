@@ -10,6 +10,8 @@ interface WhereClauseType : TypeComponent
 data class Field(val name: String, val type: TypeComponent, val defaultValue: ExpressionNode? = null) : WhereClauseType {
     constructor(path: Path, type: TypeComponent) : this(OrbitMangler.mangle(path), type)
 
+    override val kind: Kind = IntrinsicKinds.Type
+
     override val fullyQualifiedName: String = "($name: ${type.fullyQualifiedName})"
     override val isSynthetic: Boolean = type.isSynthetic
 

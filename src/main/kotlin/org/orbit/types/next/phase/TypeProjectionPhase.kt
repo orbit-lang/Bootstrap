@@ -17,7 +17,10 @@ object TypeProjectionPhase : TypePhase<TypeProjectionNode, TypeComponent>, KoinC
     override fun run(input: TypePhaseData<TypeProjectionNode>): TypeComponent {
         // TODO - Extend other things: Traits, PolymorphicTypes, etc
         val source = input.inferenceUtil.inferAs<TypeExpressionNode, IType>(input.node.typeIdentifier)
-        val target = input.inferenceUtil.inferAs<TypeExpressionNode, ITrait>(input.node.traitIdentifier)
+        val target = input.inferenceUtil.infer(input.node.traitIdentifier)
+
+        if (target !is ITrait) return Never("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${target.toString(printer)} (Kind: ${target.kind.toString(printer)})")
+
         val wheres = input.inferenceUtil.inferAllAs<WhereClauseNode, Field>(input.node.whereNodes,
             AnyInferenceContext(WhereClauseNode::class.java)
         )

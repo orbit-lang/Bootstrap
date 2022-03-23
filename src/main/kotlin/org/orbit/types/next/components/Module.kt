@@ -7,6 +7,8 @@ class Module(override val fullyQualifiedName: String, imports: List<Module> = em
     constructor(path: Path, imports: List<Module> = emptyList())
         : this(OrbitMangler.mangle(path), imports)
 
+    override val kind: Kind = IntrinsicKinds.Type
+
     override val isSynthetic: Boolean = false
     private val context: Ctx = imports.map { it.context }
         .fold(Ctx()) { acc, next -> acc.merge(next) }

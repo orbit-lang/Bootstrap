@@ -11,6 +11,7 @@ import org.orbit.util.next.IAlias
 interface TypeComponent {
     val fullyQualifiedName: String
     val isSynthetic: Boolean
+    val kind: Kind
 
     fun compare(ctx: Ctx, other: TypeComponent) : TypeRelation
     fun inferenceKey() : String = fullyQualifiedName
@@ -30,6 +31,7 @@ object Anything : InternalControlType {
     override val input: ITrait = this
     override val target: TypeComponent = this
     override val contracts: List<Contract<*>> = emptyList()
+    override val kind: Kind = IntrinsicKinds.Type
 
     override fun deriveTrait(ctx: Ctx): ITrait = Anything
 
@@ -48,6 +50,7 @@ interface NeverType : InternalControlType {
     val position: SourcePosition
 
     override val contracts: List<Contract<*>> get() = emptyList()
+    override val kind: Kind get() = IntrinsicKinds.Type
 }
 
 data class Never(override val message: String = "", override val position: SourcePosition = SourcePosition.unknown) : Exception(message), NeverType, ExecutableType<NeverType>, KoinComponent {
@@ -105,6 +108,8 @@ fun TypeComponent.toString(printer: Printer) : String
 
 interface VectorType : ValueType, Collection<TypeComponent> {
     val elements: List<TypeComponent>
+
+    override val kind: Kind get() = IntrinsicKinds.Type
 
     override val isSynthetic: Boolean
         get() = true

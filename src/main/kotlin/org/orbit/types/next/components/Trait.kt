@@ -14,6 +14,8 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
     override val trait: Trait = this
     override val input: Trait = this
 
+    override val kind: Kind = IntrinsicKinds.Trait
+
     override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult {
         val start: ContractResult = ContractResult.None
 

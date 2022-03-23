@@ -1,16 +1,10 @@
 module Test {
     type A
-    type B
-    trait T1(a A)
-    trait T2(b B)
-    type constructor Merge<A, B>
+    type B(a A)
+    type C
+    trait T
+    type constructor Foo<T, U>
+    trait constructor Bar<T>
 
-    alias T3 = synthesise(trait, A)
-
-    trait Foo(a A)
-    type Bar(a A) : T3
-
-    type projection Bar : Foo
-
-    type ALike : synthesise(trait, A)
+    type projection C : Bar<T>
 }

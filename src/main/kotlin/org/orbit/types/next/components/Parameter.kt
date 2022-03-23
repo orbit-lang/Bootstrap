@@ -7,6 +7,7 @@ data class Parameter(override val fullyQualifiedName: String) : DeclType {
     constructor(path: Path) : this(path.toString(OrbitMangler))
 
     override val isSynthetic: Boolean = false
+    override val kind: Kind = IntrinsicKinds.Type
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
         is Parameter -> when (NominalEq.eq(ctx, this, other)) {

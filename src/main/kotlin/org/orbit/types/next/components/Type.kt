@@ -15,6 +15,8 @@ data class Type(override val fullyQualifiedName: String, private val fields: Lis
     constructor(path: Path, fields: List<Field> = emptyList(), isSynthetic: Boolean = false)
         : this(OrbitMangler.mangle(path), fields, isSynthetic)
 
+    override val kind: Kind = IntrinsicKinds.Type
+
     override fun equals(other: Any?): Boolean = when (other) {
         is Type -> fullyQualifiedName == other.fullyQualifiedName
         else -> false

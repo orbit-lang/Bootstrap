@@ -9,6 +9,8 @@ data class Lambda(override val takes: TypeComponent, override val returns: TypeC
     override val fullyQualifiedName: String
         = "(${takes.fullyQualifiedName}) -> ${returns.fullyQualifiedName}"
 
+    override val kind: Kind = IntrinsicKinds.Type
+
     private fun compare(ctx: Ctx, other: Lambda): TypeRelation {
         val tRelation = takes.compare(ctx, other.takes)
         val rRelation = returns.compare(ctx, other.returns)

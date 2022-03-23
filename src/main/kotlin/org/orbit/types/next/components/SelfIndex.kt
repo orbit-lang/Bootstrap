@@ -3,6 +3,7 @@ package org.orbit.types.next.components
 data class SelfIndex(val parameter: Parameter) : TypeComponent {
     override val fullyQualifiedName: String = "Self::${parameter.fullyQualifiedName}"
     override val isSynthetic: Boolean = true
+    override val kind: Kind = IntrinsicKinds.Type
 
     fun indexWithin(type: PolymorphicType<*>) : Int
         = type.parameters.indexOf(parameter)

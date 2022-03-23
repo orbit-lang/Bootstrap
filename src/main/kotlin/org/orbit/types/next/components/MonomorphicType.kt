@@ -12,6 +12,8 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
 
     override val contracts: List<Contract<*>> = emptyList()
 
+    override val kind: Kind = specialisedType.kind
+
     override fun getFields(): List<Field> = when (specialisedType) {
         is IType -> specialisedType.getFields()
         else -> emptyList()

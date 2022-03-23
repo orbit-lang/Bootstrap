@@ -11,6 +11,8 @@ fun List<TypeComponent>.join() : String
 data class Func(override val takes: VectorType, override val returns: TypeComponent) : ExecutableType<VectorType> {
     constructor(takes: List<TypeComponent>, returns: TypeComponent) : this(ListType(takes), returns)
 
+    override val kind: Kind = IntrinsicKinds.Type
+
     override val fullyQualifiedName: String
         = "${takes.fullyQualifiedName} -> ${returns.fullyQualifiedName}"
 

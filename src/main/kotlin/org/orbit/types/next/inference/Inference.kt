@@ -34,11 +34,15 @@ interface ITypeRef : ValueType, ITrait, IType {
 data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
     constructor(path: Path) : this(path.toString(OrbitMangler))
 
+    override val kind: Kind = IntrinsicKinds.Type
+
     companion object : ITypeRef {
         override val fullyQualifiedName: String
             get() = throw RuntimeException("FATAL - Naked Type Reference")
         override val isSynthetic: Boolean
             get() = throw RuntimeException("FATAL - Naked Type Reference")
+
+        override val kind: Kind = IntrinsicKinds.Type
 
         override val contracts: List<Contract<*>> = emptyList()
 
