@@ -23,8 +23,6 @@ object TypeSynthesisRule : ParseRule<TypeSynthesisNode>, KoinComponent {
         val kind = IntrinsicKinds.valueOf(kindToken.type)
             ?: throw invocation.make<Parser>("First argument to compile-time function `synthesise()` must be a Kind, found ${next.text}", next)
 
-        context.expect(TokenTypes.Comma)
-
         next = context.peek()
         val target = context.attempt(TypeExpressionRule)
             ?: throw invocation.make<Parser>("Second argument to compile-time function `synthesise()` must be a Type Expression, found ${next.text}", next)

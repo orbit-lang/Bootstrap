@@ -1,6 +1,7 @@
 package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
+import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.TypeProjectionNode
 import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Environment
@@ -16,6 +17,10 @@ object TypeProjectionPathResolver : PathResolver<TypeProjectionNode> {
 	override fun resolve(input: TypeProjectionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
 		val typeResult = TypeExpressionPathResolver.resolve(input.typeIdentifier, pass, environment, graph)
 			.asSuccess()
+
+		val graphID = graph.find(typeResult.path.toString(OrbitMangler))
+
+		input.traitIdentifier.annotate(graphID, Annotations.GraphID)
 
 		val traitResult = TypeExpressionPathResolver.resolve(input.traitIdentifier, pass, environment, graph)
 			.asSuccess()

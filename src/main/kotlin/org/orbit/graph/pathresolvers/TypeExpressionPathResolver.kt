@@ -8,6 +8,7 @@ import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getGraphIDOrNull
+import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.util.Invocation
 
 object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
@@ -27,6 +28,8 @@ object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
 			MetaTypePathResolver.resolve(input, pass, environment, graph)
 
 		is TypeSynthesisNode -> TypeSynthesisPathResolver.resolve(input, pass, environment, graph)
+
+		is TypeIndexNode -> throw invocation.make<CanonicalNameResolver>("Self Index not allowed in this context", input)
 
 		else -> TODO("???")
 	}

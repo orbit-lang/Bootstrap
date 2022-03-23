@@ -1,10 +1,3 @@
 module Test {
-    type A
-    type B(a A)
-    type C
-    trait T
-    type constructor Foo<T, U>
-    trait constructor Bar<T>
-
-    type projection C : Bar<T>
+    
 }
