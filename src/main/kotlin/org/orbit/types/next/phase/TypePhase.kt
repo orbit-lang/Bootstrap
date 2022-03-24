@@ -55,6 +55,7 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         traits = TraitContractsPhase.executeAll(input.inferenceUtil, traitDefs)
 
         TypeConstructorConstraintsPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
+        TraitConstructorConstraintsPhase.executeAll(input.inferenceUtil, traitConstructorDefs)
         TypeAliasPhase.executeAll(input.inferenceUtil, typeAliasDefs)
 
         TypeProjectionPhase.executeAll(input.inferenceUtil, typeProjections)

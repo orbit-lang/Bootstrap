@@ -25,16 +25,6 @@ object TypeConstructorStubPhase : EntityConstructorStubPhase<TypeConstructorNode
         )
 
         val baseType = Type(input.node.getPath(), fields)
-//        val wheres = input.inferenceUtil.inferAllAs<TypeConstraintWhereClauseNode, TypeConstraint>(input.node.clauses, AnyInferenceContext(TypeConstraintWhereClauseNode::class.java))
-//
-//        val nParameters = parameters.map { parameter ->
-//            val constraints = wheres.filter { it.source == parameter }
-//
-//            when (constraints.isEmpty()) {
-//                true -> parameter
-//                else -> Parameter(parameter.fullyQualifiedName, constraints)
-//            }
-//        }
 
         return PolymorphicType(baseType, parameters)
     }

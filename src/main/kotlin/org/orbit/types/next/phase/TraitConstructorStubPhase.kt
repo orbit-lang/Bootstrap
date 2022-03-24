@@ -3,14 +3,9 @@ package org.orbit.types.next.phase
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.getPath
-import org.orbit.core.nodes.PairNode
-import org.orbit.core.nodes.TraitConstructorNode
-import org.orbit.core.nodes.TypeIdentifierNode
+import org.orbit.core.nodes.*
 import org.orbit.types.next.components.*
-import org.orbit.types.next.inference.AnyInferenceContext
-import org.orbit.types.next.inference.InferenceUtil
-import org.orbit.types.next.inference.TypeLiteralInferenceContext
-import org.orbit.types.next.inference.TypeReference
+import org.orbit.types.next.inference.*
 import org.orbit.util.Invocation
 
 object TraitConstructorStubPhase : EntityConstructorStubPhase<TraitConstructorNode, Trait>, KoinComponent {
@@ -35,5 +30,27 @@ object TraitConstructorStubPhase : EntityConstructorStubPhase<TraitConstructorNo
         val baseType = Trait(input.node.getPath(), fieldContracts)
 
         return PolymorphicType(baseType, parameters)
+    }
+}
+
+object TraitConstructorConstraintsPhase : TypePhase<TraitConstructorNode, PolymorphicType<ITrait>>, KoinComponent {
+    override val invocation: Invocation by inject()
+
+    override fun run(input: TypePhaseData<TraitConstructorNode>): PolymorphicType<ITrait> {
+        val traitConstructor = input.inferenceUtil.inferAs<TypeIdentifierNode, PolymorphicType<ITrait>>(input.node.typeIdentifierNode)
+
+        val wheres = input.inferenceUtil.inferAllAs<TypeConstraintWhereClauseNode, TypeConstraint>(input.node.clauses, AnyInferenceContext(
+            TypeConstraintWhereClauseNode::class.java))
+
+        val nParameters = traitConstructor.parameters.map { parameter ->
+            val constraints = wheres.filter { it.source == parameter }
+
+            when (constraints.isEmpty()) {
+                true -> parameter
+                else -> Parameter(parameter.fullyQualifiedName, constraints)
+            }
+        }
+
+        return PolymorphicType(traitConstructor.baseType, nParameters)
     }
 }

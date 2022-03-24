@@ -1,8 +1,3 @@
 module Test {
-    trait constructor A<T>(value T)
-    type constructor A2<T2>(value T2)
-    type B
-
-    type projection B : synthesise(trait A2<B>)
-        where value = B()
+    trait constructor A<T> where T : A<T>
 }
