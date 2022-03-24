@@ -1,7 +1,10 @@
 package org.orbit.types.next.inference
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.core.nodes.*
 import org.orbit.types.next.components.*
+import org.orbit.util.Printer
 
 data class TypeConstraint(val source: Parameter, val target: ITrait) : TypeComponent {
     override val fullyQualifiedName: String = "${source.fullyQualifiedName} : ${target.fullyQualifiedName}"
@@ -14,12 +17,17 @@ data class TypeConstraint(val source: Parameter, val target: ITrait) : TypeCompo
     }
 }
 
-object TraitConformanceConstraintInference : Inference<TraitConformanceTypeConstraintNode, ITrait> {
+object TraitConformanceConstraintInference : Inference<TraitConformanceTypeConstraintNode, ITrait>, KoinComponent {
+    private val printer: Printer by inject()
+
     override fun infer(inferenceUtil: InferenceUtil, node: TraitConformanceTypeConstraintNode): InferenceResult {
         val parameter = inferenceUtil.inferAs<TypeIdentifierNode, Parameter>(node.constrainedTypeNode)
-        val trait = inferenceUtil.inferAs<TypeExpressionNode, ITrait>(node.constraintTraitNode)
+        val trait = inferenceUtil.infer(node.constraintTraitNode)
 
-        return TypeConstraint(parameter, trait).inferenceResult()
+        return when (trait) {
+            is ITrait -> TypeConstraint(parameter, trait)
+            else -> Never("Only Traits may appear on the right-hand side of a Conformance Constraint, found ${trait.toString(printer)} (Kind: ${trait.kind.toString(printer)})", node.firstToken.position)
+        }.inferenceResult()
     }
 }
 

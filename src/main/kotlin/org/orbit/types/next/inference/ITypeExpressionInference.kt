@@ -87,13 +87,17 @@ object TypeIndexInference : Inference<TypeIndexNode, TypeComponent>, KoinCompone
 }
 
 object TypeSynthesisInference : Inference<TypeSynthesisNode, ITrait>, KoinComponent  {
-     private val invocation: Invocation by inject()
+    private val invocation: Invocation by inject()
+    private val printer: Printer by inject()
 
     override fun infer(inferenceUtil: InferenceUtil, node: TypeSynthesisNode): InferenceResult {
         if (node.kind != IntrinsicKinds.Trait) throw invocation.compilerError<TypeSystem>("Only Trait synthesis is currently supported, found ${node.kind.keyword.identifier}", node)
 
-        val target = inferenceUtil.inferAs<TypeExpressionNode, IType>(node.targetNode)
+        val target = inferenceUtil.infer(node.targetNode)
 
-        return target.deriveTrait(inferenceUtil.toCtx()).inferenceResult()
+        return when (target) {
+            is IType -> target.deriveTrait(inferenceUtil.toCtx())
+            else -> Never("Cannot synthesise a Trait from ${target.toString(printer)} (Kind: ${target.kind.toString(printer)}), only Types")
+        }.inferenceResult()
     }
 }

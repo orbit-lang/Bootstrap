@@ -15,7 +15,7 @@ interface ITrait : Entity, Contract<ITrait> {
     fun <C: Contract<*>> getTypedContracts(clazz: Class<C>) : List<C> = contracts.filterIsInstance(clazz)
 }
 
-fun List<ITrait>.mergeAll(ctx: Ctx) : ITrait = fold(Never as ITrait) { acc, next ->
+fun List<ITrait>.mergeAll(ctx: Ctx) : ITrait = fold(Anything as ITrait) { acc, next ->
     when (val r = acc.merge(ctx, next)) {
         null -> acc
         else -> r

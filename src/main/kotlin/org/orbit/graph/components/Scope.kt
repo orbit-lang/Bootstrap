@@ -136,7 +136,8 @@ class Scope(
 		// Get all bindings whose Path ends with name
 		var matches = environment.allBindings.filter(partial(Binding::matches, name))
 
-		if (matches.isEmpty()) return BindingSearchResult.None(name)
+		if (matches.isEmpty())
+			return BindingSearchResult.None(name)
 		if (matches.count() == 1) {
 			val result = matches.first()
 			if (context != null && !context.same(result.kind)) {
@@ -153,7 +154,8 @@ class Scope(
 
 		matches = matches.filter { context.same(it.kind) }
 
-		if (matches.isEmpty()) return BindingSearchResult.None(name)
+		if (matches.isEmpty())
+			return BindingSearchResult.None(name)
 		if (matches.count() == 1) return BindingSearchResult.Success(matches.first())
 
 		val finalAttempt = matches.filter { it.path == path }
@@ -187,14 +189,6 @@ class Scope(
 
 		if (related.count() == 1)
 			return BindingSearchResult.Success(related[0])
-
-//		val graphedMatches = matches.filter { it.vertexID != null }
-//
-//		if (graphedMatches.count() > 0) {
-//			val connectedMatches = graphedMatches.filter { graph!!.isConnected(it.vertexID!!, parentVertexID!!) }
-//
-//			if (connectedMatches.count() == 1) return BindingSearchResult.Success(connectedMatches[0])
-//		}
 
 		return BindingSearchResult.Multiple(matches)
 	}

@@ -7,18 +7,24 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
 object TypeConstraintPathResolver : PathResolver<TraitConformanceTypeConstraintNode> {
 	override val invocation: Invocation by inject()
+	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: TraitConformanceTypeConstraintNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
 		val constrainedTypePath = environment.getBinding(input.constrainedTypeNode.value, Binding.Kind.TypeParameter).unwrap(this, input.constrainedTypeNode.firstToken.position)
-		val constraintTraitPath = environment.getBinding(input.constraintTraitNode.value, Binding.Kind.Union(Binding.Kind.Trait, Binding.Kind.TraitConstructor)).unwrap(this, input.constraintTraitNode.firstToken.position)
+		// NOTE - We were using the context Binding.Kind.Union(Binding.Kind.Trait, Binding.Kind.TraitConstructor) here,
+		//  but maybe its best to let the Type System limit what can appear on the right-hand side here
+		val constraintTraitPath = environment.getBinding(input.constraintTraitNode.value, Binding.Kind.Union.entityOrConstructorOrParameter).unwrap(this, input.constraintTraitNode.firstToken.position)
 
 		input.constrainedTypeNode.annotate(constrainedTypePath.path, Annotations.Path)
 		input.constraintTraitNode.annotate(constraintTraitPath.path, Annotations.Path)
 		input.annotate(constrainedTypePath.path, Annotations.Path)
+
+		pathResolverUtil.resolve(input.constraintTraitNode, pass, environment, graph)
 
 		return PathResolver.Result.Success(constrainedTypePath.path)
 	}

@@ -47,7 +47,7 @@ class TraitConstructorPathResolver(private val parentPath: Path) : PathResolver<
 
 				graph.link(graphID, vertexID)
 
-				//environment.bind(Binding.Kind.TypeParameter, typeParameter.value, nPath, vertexID)
+				environment.bind(Binding.Kind.TypeParameter, typeParameter.value, nPath, vertexID)
 			}
 		} else {
 			val parentGraphID = input.getGraphID()

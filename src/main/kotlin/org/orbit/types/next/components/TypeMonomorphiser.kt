@@ -4,6 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.components.SourcePosition
+import org.orbit.types.next.inference.ITypeRef
 import org.orbit.types.next.inference.TypeReference
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -67,24 +68,42 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<IType>, List<Pair<Int, 
             val omegaTrait = parameters.first.constraints.map { it.target }
                 .mergeAll(ctx)
 
-            when (val result = omegaTrait.isImplemented(ctx, parameters.second.second)) {
-                is ContractResult.Failure -> throw invocation.make<TypeSystem>(result.getErrorMessage(printer, parameters.second.second), SourcePosition.unknown)
-                is ContractResult.Group -> when (result.isSuccessGroup) {
-                    true -> {}
-                    else -> throw invocation.make<TypeSystem>(result.getErrorMessage(printer, parameters.second.second), SourcePosition.unknown)
+            if (omegaTrait !is Anything) {
+                when (val result = omegaTrait.isImplemented(ctx, parameters.second.second)) {
+                    is ContractResult.Failure ->
+                        throw invocation.make<TypeSystem>(
+                            result.getErrorMessage(printer, parameters.second.second),
+                            SourcePosition.unknown
+                        )
+                    is ContractResult.Group -> when (result.isSuccessGroup) {
+                        true -> {
+                        }
+                        else -> throw invocation.make<TypeSystem>(
+                            result.getErrorMessage(
+                                printer,
+                                parameters.second.second
+                            ), SourcePosition.unknown
+                        )
+                    }
+                    else -> {
+                    }
                 }
-                else -> {}
             }
         }
 
         val nFields = input.baseType.getFields().map {
-            val idx = input.parameters.indexOf(it.type)
-            when (it.type is Parameter) {
-                true -> when (val e = over.firstOrNull { o -> o.first == idx }) {
-                    null -> it
-                    else -> Field(it.fullyQualifiedName, e.second)
-                }
+            val resolved = when (it.type) {
+                is ITypeRef -> Field(it.name, ctx.getType(it.type.fullyQualifiedName)!!, it.defaultValue)
                 else -> it
+            }
+
+            val idx = input.parameters.indexOf(resolved.type)
+            when (resolved.type is Parameter) {
+                true -> when (val e = over.firstOrNull { o -> o.first == idx }) {
+                    null -> resolved
+                    else -> Field(resolved.name, e.second)
+                }
+                else -> resolved
             }
         }
 
