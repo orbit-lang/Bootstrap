@@ -15,6 +15,7 @@ interface TypeComponent {
 
     fun compare(ctx: Ctx, other: TypeComponent) : TypeRelation
     fun inferenceKey() : String = fullyQualifiedName
+    fun references(type: TypeComponent) : Boolean = type.fullyQualifiedName == fullyQualifiedName
 }
 
 fun TypeComponent.resolve(ctx: Ctx) : TypeComponent?

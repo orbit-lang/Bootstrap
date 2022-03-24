@@ -14,6 +14,9 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
 
     override val kind: Kind = specialisedType.kind
 
+    override fun references(type: TypeComponent): Boolean
+        = polymorphicType.references(type) || specialisedType.references(type) || concreteParameters.contains(type)
+
     override fun merge(ctx: Ctx, other: ITrait): ITrait = when (specialisedType) {
         is ITrait -> specialisedType.merge(ctx, other)
         else -> Never

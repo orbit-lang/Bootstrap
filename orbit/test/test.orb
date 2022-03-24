@@ -1,3 +1,10 @@
 module Test {
-    trait constructor A<T> where T : A<T>
+    type Z
+    trait ZAware(z Z)
+    trait constructor A<T>(value T) where T : ZAware
+    type B
+
+    type projection B : A<B>
+        where z = Z()
+        where value = B()
 }

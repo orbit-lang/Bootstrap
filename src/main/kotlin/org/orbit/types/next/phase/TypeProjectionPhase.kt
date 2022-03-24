@@ -17,9 +17,13 @@ object TypeProjectionPhase : TypePhase<TypeProjectionNode, TypeComponent>, KoinC
     override fun run(input: TypePhaseData<TypeProjectionNode>): TypeComponent {
         // TODO - Extend other things: Traits, PolymorphicTypes, etc
         val source = input.inferenceUtil.inferAs<TypeExpressionNode, IType>(input.node.typeIdentifier)
-        val target = input.inferenceUtil.infer(input.node.traitIdentifier)
+        val nInferenceUtil = input.inferenceUtil.derive(retainsTypeMap = true, retainsBindingScope = true, self = source)
+
+        val target = nInferenceUtil.infer(input.node.traitIdentifier)
 
         if (target !is ITrait) return Never("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${target.toString(printer)} (Kind: ${target.kind.toString(printer)})")
+
+//        if (target.references(source)) return Never("Source Type ${source.toString(printer)} must not reference itself in the projected Trait ${target.toString(printer)}", input.node.traitIdentifier.firstToken.position)
 
         val wheres = input.inferenceUtil.inferAllAs<WhereClauseNode, Field>(input.node.whereNodes,
             AnyInferenceContext(WhereClauseNode::class.java)
@@ -27,9 +31,8 @@ object TypeProjectionPhase : TypePhase<TypeProjectionNode, TypeComponent>, KoinC
 
         val ctx = input.inferenceUtil.toCtx()
         val nType = Type(source.fullyQualifiedName, source.getFields() + wheres)
-        val result = target.isImplemented(ctx, nType)
 
-        return when (result) {
+        return when (val result = target.isImplemented(ctx, nType)) {
             is ContractResult.Success, ContractResult.None -> nType
             is ContractResult.Failure -> Never("Type Projection error:\n\t${result.getErrorMessage(printer, source)}")
             is ContractResult.Group -> Never("Type Projection errors:\n\t${result.getErrorMessage(printer, source)}")

@@ -47,7 +47,7 @@ object MetaTypeInference : ITypeExpressionInference<MetaTypeNode, MonomorphicTyp
             is Type -> TypeMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<IType>, parameters, MonomorphisationContext.Any)
                 .toInferenceResult(printer)
 
-            is Trait -> TraitMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<ITrait>, parameters, MonomorphisationContext.TraitConformance)
+            is Trait -> TraitMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<ITrait>, parameters, MonomorphisationContext.TraitConformance(inferenceUtil.self))
                 .toInferenceResult(printer)
 
             else -> InferenceResult.Failure(Never("Cannot specialise Polymorphic Type ${polyType.toString(printer)}"))
