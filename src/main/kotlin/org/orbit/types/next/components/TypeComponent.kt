@@ -22,6 +22,8 @@ fun TypeComponent.resolve(ctx: Ctx) : TypeComponent?
 
 sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias {
     override fun getFields(): List<Field> = emptyList()
+
+    override fun merge(ctx: Ctx, other: ITrait): ITrait = other
 }
 
 object Anything : InternalControlType {

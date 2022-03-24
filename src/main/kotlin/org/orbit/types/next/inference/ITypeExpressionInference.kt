@@ -44,7 +44,7 @@ object MetaTypeInference : ITypeExpressionInference<MetaTypeNode, MonomorphicTyp
             .mapIndexed { idx, type -> Pair(idx, type) }
 
         return when (polyType.baseType) {
-            is Type -> TypeMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<Type>, parameters, MonomorphisationContext.Any)
+            is Type -> TypeMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<IType>, parameters, MonomorphisationContext.Any)
                 .toInferenceResult(printer)
 
             is Trait -> TraitMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<ITrait>, parameters, MonomorphisationContext.TraitConformance)

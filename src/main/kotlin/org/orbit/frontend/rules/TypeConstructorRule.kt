@@ -38,7 +38,10 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
         if (next.type != TokenTypes.LAngle) {
             // TODO - Parse sum types. Type constructors without type params are allowed,
             //  but you must have at least 1 case constructor, otherwise it doesn't do anything!
-            throw invocation.make<Parser>("Expected type parameter list after `type constructor ${typeIdentifier.value}`", next)
+            throw invocation.make<Parser>(
+                "Expected type parameter list after `type constructor ${typeIdentifier.value}`",
+                next
+            )
         }
 
         context.consume()
@@ -48,13 +51,6 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
         while (next.type != TokenTypes.RAngle) {
             val typeParameter = context.attempt(TypeIdentifierRule.Naked)
                 ?: throw invocation.make<Parser>("", context.peek())
-
-//            val nToken = context.peek()
-//
-//            if (nToken.type == TokenTypes.TypeIdentifier) {
-//                // This is a dependent pair
-//                val
-//            }
 
             typeParameters.add(typeParameter)
 
@@ -70,17 +66,18 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         next = context.peek()
 
-        if (next.type != TokenTypes.LParen) return +TypeConstructorNode(start, end, typeIdentifier, typeParameters)
+        var properties: List<PairNode> = emptyList()
+        if (next.type == TokenTypes.LParen) {
+            val propertiesRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule)
+            val delimitedNode = context.attempt(propertiesRule)
+                ?: throw invocation.make<Parser>("Expected property list after type constructor", next)
 
-        val propertiesRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule)
-        val delimitedNode = context.attempt(propertiesRule)
-            ?: throw invocation.make<Parser>("Expected property list after type constructor", next)
+            properties = delimitedNode.nodes
 
-        val properties = delimitedNode.nodes
-
-        if (properties.isEmpty()) {
-            // TODO - output source code in this warning
-            invocation.warn("Redundant empty property list", delimitedNode.lastToken)
+            if (properties.isEmpty()) {
+                // TODO - output source code in this warning
+                invocation.warn("Redundant empty property list", delimitedNode.lastToken)
+            }
         }
 
         next = context.peek()

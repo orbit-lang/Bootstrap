@@ -86,6 +86,9 @@ val mainModule = module {
 		util.registerInference(RValueInference, RValueNode::class.java)
 		util.registerInference(ConstructorInference, ConstructorNode::class.java)
 		util.registerInference(TypeSynthesisInference, TypeSynthesisNode::class.java)
+		util.registerInference(WhereConformanceInference, TypeConstraintWhereClauseNode::class.java)
+		util.registerInference(TraitConformanceConstraintInference, TraitConformanceTypeConstraintNode::class.java)
+		util.registerInference(TypeConstraintInference, TypeConstraintNode::class.java)
 
 		util
 	}

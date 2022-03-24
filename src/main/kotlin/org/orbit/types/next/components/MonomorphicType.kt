@@ -14,6 +14,11 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
 
     override val kind: Kind = specialisedType.kind
 
+    override fun merge(ctx: Ctx, other: ITrait): ITrait = when (specialisedType) {
+        is ITrait -> specialisedType.merge(ctx, other)
+        else -> Never
+    }
+
     override fun getFields(): List<Field> = when (specialisedType) {
         is IType -> specialisedType.getFields()
         else -> emptyList()

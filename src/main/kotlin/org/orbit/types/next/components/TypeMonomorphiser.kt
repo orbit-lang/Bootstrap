@@ -55,9 +55,27 @@ object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int
     }
 }
 
-object TypeMonomorphiser : Monomorphiser<PolymorphicType<Type>, List<Pair<Int, TypeComponent>>, Type> {
-    override fun monomorphise(ctx: Ctx, input: PolymorphicType<Type>, over: List<Pair<Int, TypeComponent>>, context: MonomorphisationContext): MonomorphisationResult<Type> {
+object TypeMonomorphiser : Monomorphiser<PolymorphicType<IType>, List<Pair<Int, TypeComponent>>, IType>, KoinComponent {
+    private val invocation: Invocation by inject()
+    private val printer: Printer by inject()
+
+    override fun monomorphise(ctx: Ctx, input: PolymorphicType<IType>, over: List<Pair<Int, TypeComponent>>, context: MonomorphisationContext): MonomorphisationResult<IType> {
         if (over.count() > input.parameters.count()) return MonomorphisationResult.Failure(input.baseType)
+
+        // TODO - Assuming Polytype is total for the time being
+        input.parameters.zip(over).forEach { parameters ->
+            val omegaTrait = parameters.first.constraints.map { it.target }
+                .mergeAll(ctx)
+
+            when (val result = omegaTrait.isImplemented(ctx, parameters.second.second)) {
+                is ContractResult.Failure -> throw invocation.make<TypeSystem>(result.getErrorMessage(printer, parameters.second.second), SourcePosition.unknown)
+                is ContractResult.Group -> when (result.isSuccessGroup) {
+                    true -> {}
+                    else -> throw invocation.make<TypeSystem>(result.getErrorMessage(printer, parameters.second.second), SourcePosition.unknown)
+                }
+                else -> {}
+            }
+        }
 
         val nFields = input.baseType.getFields().map {
             val idx = input.parameters.indexOf(it.type)

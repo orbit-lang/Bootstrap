@@ -2,9 +2,12 @@ package org.orbit.types.next.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.types.next.constraints.Constraint
+import org.orbit.types.next.constraints.ParameterConstraint
+import org.orbit.types.next.inference.TypeConstraint
 
-data class Parameter(override val fullyQualifiedName: String) : DeclType {
-    constructor(path: Path) : this(path.toString(OrbitMangler))
+data class Parameter(override val fullyQualifiedName: String, val constraints: List<TypeConstraint> = emptyList()) : DeclType {
+    constructor(path: Path, constraints: List<TypeConstraint> = emptyList()) : this(path.toString(OrbitMangler), constraints)
 
     override val isSynthetic: Boolean = false
     override val kind: Kind = IntrinsicKinds.Type

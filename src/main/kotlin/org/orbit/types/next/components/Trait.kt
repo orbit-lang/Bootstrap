@@ -2,10 +2,24 @@ package org.orbit.types.next.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.components.SourcePosition
+import org.orbit.types.next.phase.TypeSystem
+import org.orbit.util.Invocation
 import org.orbit.util.Printer
+import org.orbit.util.getKoinInstance
 
 interface ITrait : Entity, Contract<ITrait> {
     val contracts: List<Contract<*>>
+
+    fun merge(ctx: Ctx, other: ITrait) : ITrait
+    fun <C: Contract<*>> getTypedContracts(clazz: Class<C>) : List<C> = contracts.filterIsInstance(clazz)
+}
+
+fun List<ITrait>.mergeAll(ctx: Ctx) : ITrait = fold(Never as ITrait) { acc, next ->
+    when (val r = acc.merge(ctx, next)) {
+        null -> acc
+        else -> r
+    }
 }
 
 data class Trait(override val fullyQualifiedName: String, override val contracts: List<Contract<*>> = emptyList(), override val isSynthetic: Boolean = false) : ITrait {
@@ -29,16 +43,18 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
 
     inline fun <reified C: Contract<*>> getTypedContracts() : List<C> = contracts.filterIsInstance<C>()
 
-    fun merge(ctx: Ctx, other: Trait) : Trait? {
+    override fun merge(ctx: Ctx, other: ITrait) : ITrait {
+        val printer: Printer = getKoinInstance()
+
         val nFieldContracts = mutableListOf<FieldContract>()
         for (f1 in getTypedContracts<FieldContract>()) {
-            for (f2 in other.getTypedContracts<FieldContract>()) {
-                if (f1.input.fullyQualifiedName == f2.input.fullyQualifiedName) {
+            for (f2 in other.getTypedContracts(FieldContract::class.java)) {
+                if (f1.input.name == f2.input.name) {
                     if (AnyEq.eq(ctx, f1.input, f2.input)) {
                         // Name is the same, types are related
                         // We need the least specific of the two here
                         val min = TypeMinimum.calculate(ctx, f1.input, f2.input)
-                            ?: return null
+                            ?: return Never("Cannot merge Trait fields ${f1.input.toString(printer)} & ${f2.input.toString(printer)}")
 
                         if (min === f1.input) {
                             nFieldContracts.add(f1)
@@ -47,7 +63,10 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
                         }
                     } else {
                         // Conflict! Same name, unrelated types
-                        return null
+                        val invocation: Invocation = getKoinInstance()
+                        val printer: Printer = getKoinInstance()
+
+                        throw invocation.make<TypeSystem>("Conflict found between Fields ${f1.input.toString(printer)} & ${f2.input.toString(printer)}", SourcePosition.unknown)
                     }
                 } else {
                     nFieldContracts.add(f1)

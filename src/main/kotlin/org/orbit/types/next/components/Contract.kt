@@ -12,6 +12,10 @@ sealed class ContractResult(open val type: TypeComponent) : Semigroup<ContractRe
     }
 
     data class Group(override val type: TypeComponent, val results: List<ContractResult>) : ContractResult(type) {
+        val isSuccessGroup: Boolean get() {
+            return results.filterIsInstance<ContractResult.Success>().count() == results.count()
+        }
+
         fun getErrorMessage(printer: Printer, type: TypeComponent) : String {
             val failures = results.filterIsInstance<Failure>()
 

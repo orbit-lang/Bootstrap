@@ -29,6 +29,15 @@ interface ITypeRef : ValueType, ITrait, IType {
     }
 
     override fun getFields(): List<Field> = emptyList()
+
+    override fun merge(ctx: Ctx, other: ITrait): ITrait {
+        val t = ctx.getType(fullyQualifiedName) ?: return Never
+
+        return when (t) {
+            is ITrait -> t.merge(ctx, other)
+            else -> Never
+        }
+    }
 }
 
 data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
