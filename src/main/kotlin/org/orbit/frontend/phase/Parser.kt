@@ -47,6 +47,8 @@ class Parser(
 	var tokens: MutableList<Token> = mutableListOf()
 		private set
 
+	var forceThrow = false
+
 	private var isRecording = false
 	private var recordedTokens = mutableListOf<Token>()
 
@@ -179,7 +181,7 @@ class Parser(
 			}
 		} catch (ex: Exception) {
 			// We don't care why this failed, only that it did
-			if (rethrow) throw ex
+			if (rethrow || forceThrow) throw ex
 			
 			tokens = backup
 		}
