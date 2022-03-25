@@ -14,9 +14,7 @@ object TypeConstructorStubPhase : EntityConstructorStubPhase<TypeConstructorNode
     override val invocation: Invocation by inject()
 
     override fun run(input: TypePhaseData<TypeConstructorNode>): PolymorphicType<Type> {
-        val parameters = input.inferenceUtil.inferAllAs<TypeIdentifierNode, Parameter>(input.node.typeParameterNodes,
-            TypeLiteralInferenceContext.TypeParameterContext
-        )
+        val parameters = input.inferenceUtil.inferAllAs<TypeIdentifierNode, Parameter>(input.node.typeParameterNodes, TypeLiteralInferenceContext.TypeParameterContext)
 
         parameters.forEach { input.inferenceUtil.declare(it) }
 

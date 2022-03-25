@@ -43,6 +43,7 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         val typeConstructorDefs = input.node.search<TypeConstructorNode>()
         val traitConstructorDefs = input.node.search<TraitConstructorNode>()
         val typeProjections = input.node.search<TypeProjectionNode>()
+        val methodDefs = input.node.search<MethodDefNode>()
 
         var types: List<IType> = TypeStubPhase.executeAll(input.inferenceUtil, typeDefs)
         var traits: List<ITrait> = TraitStubPhase.executeAll(input.inferenceUtil, traitDefs)
@@ -57,6 +58,8 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         TypeConstructorConstraintsPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
         TraitConstructorConstraintsPhase.executeAll(input.inferenceUtil, traitConstructorDefs)
         TypeAliasPhase.executeAll(input.inferenceUtil, typeAliasDefs)
+
+        var methods = MethodStubPhase.executeAll(input.inferenceUtil, methodDefs)
 
         TypeProjectionPhase.executeAll(input.inferenceUtil, typeProjections)
 

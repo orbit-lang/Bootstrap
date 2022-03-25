@@ -22,7 +22,7 @@ fun TypeComponent.inferenceResult() : InferenceResult = when (this) {
     else -> InferenceResult.Success(this)
 }
 
-interface ITypeRef : ValueType, ITrait, IType {
+interface ITypeRef : ValueType, ITrait, IType, ISignature {
     override fun deriveTrait(ctx: Ctx): ITrait = when (val type = ctx.getTypeAs<IType>(fullyQualifiedName)) {
         null -> Never
         else -> type.deriveTrait(ctx)
@@ -37,6 +37,10 @@ interface ITypeRef : ValueType, ITrait, IType {
             is ITrait -> t.merge(ctx, other)
             else -> Never
         }
+    }
+
+    override fun getSignature(printer: Printer): ISignature {
+        TODO("Not yet implemented")
     }
 }
 

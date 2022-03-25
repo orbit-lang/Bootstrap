@@ -1,6 +1,7 @@
 package org.orbit.types.next.components
 
 import org.orbit.core.OrbitMangler
+import org.orbit.util.Printer
 import org.orbit.util.toPath
 
 interface ParameterisedType : TypeComponent {
@@ -13,7 +14,7 @@ interface ParameterisedType : TypeComponent {
 fun ParameterisedType.contains(parameter: Parameter) : Boolean
     = indexOf(parameter) > -1
 
-data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: List<Parameter>, override val isSynthetic: Boolean = false) : DeclType, ParameterisedType {
+data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: List<Parameter>, override val isSynthetic: Boolean = false) : DeclType, ParameterisedType, ISignature {
     override val fullyQualifiedName: String = baseType.fullyQualifiedName
 
     override val kind: Kind get() {
@@ -21,6 +22,16 @@ data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: Li
         val inputKind = TupleKind(parameterKinds)
 
         return HigherKind(inputKind, IntrinsicKinds.Type(baseType.kind.level - 1))
+    }
+
+    override fun getSignature(printer: Printer): ISignature = when (baseType) {
+        is ISignature -> baseType.getSignature(printer)
+        else -> Never("${baseType.toString(printer)} is not a Signature")
+    }
+
+    override fun getSignatureTypeParameters(): List<Parameter> = when (baseType) {
+        is Signature -> parameters
+        else -> emptyList()
     }
 
     override fun indexOf(parameter: Parameter) : Int

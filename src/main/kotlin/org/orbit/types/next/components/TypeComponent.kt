@@ -21,10 +21,11 @@ interface TypeComponent {
 fun TypeComponent.resolve(ctx: Ctx) : TypeComponent?
     = ctx.getType(fullyQualifiedName)
 
-sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias {
+sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias, ISignature {
     override fun getFields(): List<Field> = emptyList()
 
     override fun merge(ctx: Ctx, other: ITrait): ITrait = other
+    override fun getSignature(printer: Printer): ISignature = Never("${toString(printer)} is not a Signature")
 }
 
 object Anything : InternalControlType {

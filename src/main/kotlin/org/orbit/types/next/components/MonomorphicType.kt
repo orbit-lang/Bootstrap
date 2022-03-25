@@ -4,7 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.util.Printer
 
-data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<TypeComponent>, val isTotal: Boolean) : IType, ITrait, ParameterisedType, KoinComponent {
+data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<TypeComponent>, val isTotal: Boolean) : IType, ITrait, ParameterisedType, ISignature, KoinComponent {
     private val printer: Printer by inject()
 
     override val fullyQualifiedName: String = specialisedType.fullyQualifiedName
@@ -16,6 +16,11 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
 
     override fun references(type: TypeComponent): Boolean
         = polymorphicType.references(type) || specialisedType.references(type) || concreteParameters.contains(type)
+
+    override fun getSignature(printer: Printer) : ISignature = when (specialisedType) {
+        is ISignature -> specialisedType.getSignature(printer)
+        else -> Never("${specialisedType.toString(printer)} is not a Signature")
+    }
 
     override fun merge(ctx: Ctx, other: ITrait): ITrait = when (specialisedType) {
         is ITrait -> specialisedType.merge(ctx, other)
