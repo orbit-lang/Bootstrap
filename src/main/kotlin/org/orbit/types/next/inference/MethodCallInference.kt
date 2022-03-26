@@ -32,7 +32,6 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
          *
          * If the virtual Type is found to implement the virtual Trait, then this is valid call to this method.
          */
-
         val callableInterface = signature.derive()
         val calleeContracts = arguments.mapIndexed { idx, type -> Field("$idx", type) }
         val receiverContract = Field("__receiver", receiver)
@@ -40,7 +39,7 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
         val calleeType = Type(signature.getPath(OrbitMangler) + "SyntheticCallee", calleeContracts + receiverContract + returnsContract)
 
         val onFailure = {
-            val signaturePretty = signature.parameters.map { it.toString(printer) }.joinToString(", ")
+            val signaturePretty = signature.parameters.joinToString(", ") { it.toString(printer) }
             val calleePretty = arguments.joinToString(", ") { it.toString(printer) }
 
             Never("Cannot call method ${signature.toString(printer)} with arguments ($calleePretty), expected ($signaturePretty)")

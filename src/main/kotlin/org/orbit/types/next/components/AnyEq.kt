@@ -1,6 +1,10 @@
 package org.orbit.types.next.components
 
-object AnyEq : ITypeEq<TypeComponent, TypeComponent> {
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.orbit.util.Printer
+
+object AnyEq : ITypeEq<TypeComponent, TypeComponent>, KoinComponent {
     override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereferencing(a) { a ->
         ctx.dereferencing(b) { b ->
             when (a) {

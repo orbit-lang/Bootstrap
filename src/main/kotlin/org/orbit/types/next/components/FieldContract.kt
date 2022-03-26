@@ -7,7 +7,7 @@ data class FieldContract(override val trait: ITrait, override val input: Field) 
         if (by !is Type) return ContractResult.Failure(by, this)
         if (by.getFields().none { it.name == input.name }) return ContractResult.Failure(by, this)
 
-        return when (by.getFields().any { AnyEq.eq(ctx, input.type, it.type) }) {
+        return when (by.getFields().any { input.name == it.name && AnyEq.eq(ctx, input.type, it.type) }) {
             true -> ContractResult.Success(by, this)
             else -> ContractResult.Failure(by, this)
         }

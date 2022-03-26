@@ -92,6 +92,8 @@ val mainModule = module {
 		util.registerInference(SignatureInference, MethodSignatureNode::class.java)
 		util.registerInference(ReturnStatementInference, ReturnStatementNode::class.java)
 		util.registerInference(MethodCallInference, MethodCallNode::class.java)
+		util.registerInference(ReferenceCallInference, ReferenceCallNode::class.java)
+		util.registerInference(AssignmentStatementInference, AssignmentStatementNode::class.java)
 
 		util
 	}

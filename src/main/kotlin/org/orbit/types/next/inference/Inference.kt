@@ -164,7 +164,7 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         }
 
         val inference = inferences[context] as? Inference<N, *>
-            ?: throw invocation.compilerError<TypeSystem>("Inference class not registered for node: $node", node)
+            ?: throw invocation.compilerError<TypeSystem>("Inference class not registered for node: $node\nin context: $context", node)
 
         return when (val result = inference.infer(this, context, node)) {
             is InferenceResult.Success<*> -> result.type.apply {

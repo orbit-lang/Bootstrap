@@ -11,6 +11,19 @@ data class Lambda(override val takes: TypeComponent, override val returns: TypeC
 
     override val kind: Kind = IntrinsicKinds.Type
 
+    fun uncurry() : Func = when (returns) {
+        is Lambda -> Func(listOf(takes, returns.takes), returns.returns)
+        else -> Func(listOf(takes), returns)
+    }
+
+    fun derive() : Trait {
+        val trait = Trait(fullyQualifiedName)
+        val takesContract = FieldContract(trait, Field("__takes", takes))
+        val returnsContract = FieldContract(trait, Field("__returns", returns))
+
+        return Trait(fullyQualifiedName, listOf(takesContract, returnsContract))
+    }
+
     private fun compare(ctx: Ctx, other: Lambda): TypeRelation {
         val tRelation = takes.compare(ctx, other.takes)
         val rRelation = returns.compare(ctx, other.returns)

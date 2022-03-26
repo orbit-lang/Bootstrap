@@ -13,7 +13,7 @@ data class ReferenceCallNode(
     override val lastToken: Token,
     override val parameterNodes: List<ExpressionNode>,
     val referenceNode: ExpressionNode
-) : InvokableNode(firstToken, lastToken, parameterNodes) {
+) : InvokableNode(firstToken, lastToken, parameterNodes), ValueRepresentableNode {
     override fun getChildren(): List<Node>
         = parameterNodes + referenceNode
 }

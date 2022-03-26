@@ -5,6 +5,7 @@ import org.orbit.core.Path
 import org.orbit.core.nodes.Node
 import org.orbit.core.phase.Phase
 import org.orbit.types.next.components.*
+import org.orbit.types.next.inference.ITypeRef
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
@@ -94,13 +95,7 @@ class TypeMap : ITypeMap {
         = find(OrbitMangler.mangle(path))
 
     override fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean) {
-//        println("ID: ${node.id} -- ${value.fullyQualifiedName}")
-//        if (!mergeOnCollision && map.containsKey(node.id)) {
-//            val other = map
-//            throw RuntimeException("FATAL - Node ID Collision: ${node.id}")
-//        }
-
-        if (value is DeclType) declare(value)
+        if (value is DeclType && value !is ITypeRef) declare(value)
 
         map[node.id] = value.inferenceKey()
     }

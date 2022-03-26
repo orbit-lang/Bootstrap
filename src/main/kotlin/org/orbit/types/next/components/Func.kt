@@ -18,6 +18,21 @@ data class Func(override val takes: VectorType, override val returns: TypeCompon
 
     override val isSynthetic: Boolean = false
 
+    fun derive() : Trait {
+        val trait = Trait(fullyQualifiedName)
+        val contracts = takes.elements.mapIndexed { idx, type -> when (type) {
+            is Field -> FieldContract(trait, Field("$idx", type.type))
+            else -> FieldContract(trait, Field("$idx", type))
+        }}
+
+        val returns = FieldContract(trait, Field("__returns", when (returns) {
+            is Field -> returns.type
+            else -> returns
+        }))
+
+        return Trait(fullyQualifiedName, contracts + returns)
+    }
+
     /*
         f : (A, B) -> C
         g = f(a, _) : (A) -> (B) -> C

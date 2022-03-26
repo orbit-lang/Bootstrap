@@ -24,6 +24,7 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
         if (args.count() != source.getFields().count()) {
             var recovered = false
             for (pair in source.getFields().withIndex()) {
+                if (pair.value.defaultValue == null) continue
                 args.add(pair.index, pair.value.type as IType)
 
                 if (args.count() == source.getFields().count()) {

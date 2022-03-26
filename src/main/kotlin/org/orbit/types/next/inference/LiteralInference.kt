@@ -20,7 +20,7 @@ object SymbolLiteralInference : LiteralInference<SymbolLiteralNode, Type> {
         = Native.Types.Symbol.type.inferenceResult()
 }
 
-data class AnnotatedBlockInferenceContext(val typeAnnotation: TypeComponent) : InferenceContext {
+data class TypeAnnotatedInferenceContext(val typeAnnotation: TypeComponent) : InferenceContext {
     override val nodeType: Class<out Node> = BlockNode::class.java
 }
 
@@ -29,7 +29,7 @@ object BlockInference : LiteralInference<BlockNode, TypeComponent>, KoinComponen
 
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: BlockNode): InferenceResult {
         val typeAnnotation: TypeComponent? = when (context) {
-            is AnnotatedBlockInferenceContext -> context.typeAnnotation
+            is TypeAnnotatedInferenceContext -> context.typeAnnotation
             else -> null
         }
 
@@ -47,24 +47,27 @@ object BlockInference : LiteralInference<BlockNode, TypeComponent>, KoinComponen
     }
 }
 
-object LambdaLiteralInference : LiteralInference<LambdaLiteralNode, TypeComponent>, KoinComponent {
+object LambdaLiteralInference : LiteralInference<LambdaLiteralNode, Func>, KoinComponent {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: LambdaLiteralNode): InferenceResult {
+        // TODO - Can we inject a `Self` type into a lambda body?
+        val nInferenceUtil = inferenceUtil.derive()
         val parameterTypes = node.bindings.map {
-            val type = inferenceUtil.infer(it)
+            val field = nInferenceUtil.inferAs<PairNode, Field>(it)
 
-            inferenceUtil.set(it, type)
-            inferenceUtil.set(it.typeExpressionNode, type)
+            nInferenceUtil.set(it, field.type)
+            nInferenceUtil.set(it.typeExpressionNode, field.type)
 
-            type
+            nInferenceUtil.bind(it.identifierNode.identifier, field.type)
+
+            field
         }
 
-        val resultType = inferenceUtil.infer(node.body)
+        val resultType = nInferenceUtil.infer(node.body)
         val result = Func(parameterTypes, resultType)
-        val lambda = result.curry()
 
-        inferenceUtil.set(node, lambda)
+        inferenceUtil.set(node, result)
 
-        return lambda.inferenceResult()
+        return result.inferenceResult()
     }
 }
 

@@ -1,9 +1,10 @@
 module Test {
-    trait T
     type A
-    type B : T
-    type C(a A)
+    type B(a A)
 
-    (B) new (c C) (B) = B()
-    (A) new () (T) = B.new(A())
+    (A) new () (A) {
+        l = (a A) in { a }
+
+        return invoke l(B(A()))
+    }
 }
