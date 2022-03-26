@@ -10,6 +10,7 @@ object AssignmentRule : ParseRule<AssignmentStatementNode>, WhereClauseExpressio
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.peek()
         val identifier = context.attempt(IdentifierRule, true)!!
+        val typeAnnotationNode = context.attempt(TypeExpressionRule)
 
         val next = context.peek()
 
@@ -23,6 +24,6 @@ object AssignmentRule : ParseRule<AssignmentStatementNode>, WhereClauseExpressio
             as? ExpressionNode
             ?: throw context.invocation.make<Parser>("@AssignmentRule:27", context.peek().position)
 
-        return +AssignmentStatementNode(start, value.lastToken, identifier, value)
+        return +AssignmentStatementNode(start, value.lastToken, identifier, value, typeAnnotationNode)
     }
 }

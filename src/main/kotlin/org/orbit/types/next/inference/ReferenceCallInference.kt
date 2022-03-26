@@ -22,7 +22,7 @@ object ReferenceCallInference : Inference<ReferenceCallNode, TypeComponent>, Koi
         if (lambda.takes is NeverType) return Never("Cannot invoke Lambda ${lambda.toString(printer)} with arguments $pretty").inferenceResult()
 
         // Use the same trick as MethodCallInference
-        val callableInterface = lambda.derive()
+        val callableInterface = lambda.derive( )
         val calleeFields = arguments.mapIndexed { idx, type -> Field("$idx", type) }
         // TODO - Pass the Type Annotation in via the inference context
         val calleeReturns = Field("__returns", lambda.returns)

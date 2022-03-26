@@ -9,6 +9,7 @@ import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
+import org.orbit.util.getKoinInstance
 import org.orbit.util.next.*
 import java.lang.RuntimeException
 
@@ -164,10 +165,18 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         }
 
         val inference = inferences[context] as? Inference<N, *>
+            ?: inferences[AnyInferenceContext(node::class.java)] as? Inference<N, *>
             ?: throw invocation.compilerError<TypeSystem>("Inference class not registered for node: $node\nin context: $context", node)
 
         return when (val result = inference.infer(this, context, node)) {
             is InferenceResult.Success<*> -> result.type.apply {
+                if (context is TypeAnnotatedInferenceContext) {
+                    if (!AnyEq.eq(toCtx(), context.typeAnnotation, this)) {
+                        val printer: Printer = getKoinInstance()
+                        return Never("Inferred Type ${this.toString(printer)} does not match Type Annotation ${context.typeAnnotation.toString(printer)}", node.firstToken.position)
+                    }
+                }
+
                 if (autoCaptureType) typeMap.set(node, this)
             }
 

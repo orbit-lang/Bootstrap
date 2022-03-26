@@ -22,4 +22,8 @@ object Native {
 
         val type: Type = Type(module.path + name)
     }
+
+    sealed class Traits(val module: Native.Modules, val name: String) {
+        object AnyType : Traits(Native.Modules.Intrinsics, "Orb::Core::Types::AnyType")
+    }
 }

@@ -1,10 +1,11 @@
 module Test {
     type A
     type B(a A)
+    type Main
 
-    (A) new () (A) {
-        l = (a A) in { a }
+    (A) new () (A) = A()
 
-        return invoke l(B(A()))
+    (self Main) main () () {
+        A.new()
     }
 }
