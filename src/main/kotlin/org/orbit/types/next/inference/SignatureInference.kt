@@ -6,7 +6,7 @@ import org.orbit.types.next.components.*
 import org.orbit.types.next.intrinsics.Native
 
 object SignatureInference : Inference<MethodSignatureNode, ISignature> {
-    override fun infer(inferenceUtil: InferenceUtil, node: MethodSignatureNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: MethodSignatureNode): InferenceResult {
         val typeParameters: List<Parameter> = when (val pNode = node.typeParameters) {
             null -> emptyList()
             else -> inferenceUtil.inferAllAs(pNode.typeParameters, TypeLiteralInferenceContext.TypeParameterContext)

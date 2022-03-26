@@ -12,7 +12,7 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    override fun infer(inferenceUtil: InferenceUtil, node: ConstructorNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: ConstructorNode): InferenceResult {
         val source = inferenceUtil.infer(node.typeExpressionNode)
 
         if (source !is IType)

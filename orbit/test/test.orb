@@ -1,4 +1,9 @@
 module Test {
+    trait T
     type A
-    (T) getA <T> () (A) = A()
+    type B : T
+    type C(a A)
+
+    (B) new (c C) (B) = B()
+    (A) new () (T) = B.new(A())
 }

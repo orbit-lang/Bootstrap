@@ -25,7 +25,7 @@ data class MethodCallNode(
     val messageIdentifier: IdentifierNode,
     override val parameterNodes: List<ExpressionNode>,
     val isPropertyAccess: Boolean = false
-) : InvokableNode(firstToken, lastToken, parameterNodes) {
+) : InvokableNode(firstToken, lastToken, parameterNodes), ValueRepresentableNode {
     val isInstanceCall: Boolean
         get() = when (receiverExpression) {
             is RValueNode -> receiverExpression.expressionNode !is TypeExpressionNode

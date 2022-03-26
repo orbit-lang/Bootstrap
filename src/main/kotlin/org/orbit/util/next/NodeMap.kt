@@ -16,6 +16,7 @@ interface ITypeMapRead : ITypeMapInterface {
     fun getConformance(type: TypeComponent) : List<ITrait>
     fun toCtx() : Ctx
     fun getTypeErrors() : List<Never>
+    fun filter(fn: (TypeComponent) -> Boolean) : List<TypeComponent>
 }
 
 interface ITypeMapWrite : ITypeMapInterface {
@@ -58,6 +59,9 @@ class TypeMap : ITypeMap {
             traits.forEach { tr -> map(type, tr) }
         }
     }
+
+    override fun filter(fn: (TypeComponent) -> Boolean): List<TypeComponent>
+        = visibleTypes.values.filter(fn)
 
     override fun getTypeErrors(): List<Never>
         = visibleTypes.values.filterIsInstance<Never>()

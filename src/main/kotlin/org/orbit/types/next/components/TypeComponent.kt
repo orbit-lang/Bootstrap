@@ -39,7 +39,7 @@ object Anything : InternalControlType {
 
     override fun deriveTrait(ctx: Ctx): ITrait = Anything
 
-    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = TypeRelation.Unrelated(this, other)
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = TypeRelation.Same(this, other)
 
     override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult
         = ContractResult.Success(by, this)

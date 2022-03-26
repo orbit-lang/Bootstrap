@@ -18,10 +18,10 @@ object AnyTypeExpressionInferenceContext : InferenceContext {
 interface ITypeExpressionInference<N: TypeExpressionNode, T: TypeComponent> : Inference<N, T>
 
 object AnyTypeExpressionInference : ITypeExpressionInference<TypeExpressionNode, TypeComponent> {
-    override fun infer(inferenceUtil: InferenceUtil, node: TypeExpressionNode): InferenceResult = when (node) {
-        is TypeIdentifierNode -> TypeLiteralInference.infer(inferenceUtil, node)
-        is MetaTypeNode -> MetaTypeInference.infer(inferenceUtil, node)
-        is TypeIndexNode -> TypeIndexInference.infer(inferenceUtil, node)
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeExpressionNode): InferenceResult = when (node) {
+        is TypeIdentifierNode -> TypeLiteralInference.infer(inferenceUtil, context, node)
+        is MetaTypeNode -> MetaTypeInference.infer(inferenceUtil, context, node)
+        is TypeIndexNode -> TypeIndexInference.infer(inferenceUtil, context, node)
         else -> InferenceResult.Failure(Never("Failed to infer Type Expression: ${node::class.java.simpleName}"))
     }
 }
@@ -29,7 +29,7 @@ object AnyTypeExpressionInference : ITypeExpressionInference<TypeExpressionNode,
 object TypeLiteralInference : ITypeExpressionInference<TypeIdentifierNode, TypeComponent>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(inferenceUtil: InferenceUtil, node: TypeIdentifierNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeIdentifierNode): InferenceResult {
         return inferenceUtil.find<TypeSystem>(node.getPath(), invocation, node)
             .inferenceResult()
     }
@@ -38,7 +38,7 @@ object TypeLiteralInference : ITypeExpressionInference<TypeIdentifierNode, TypeC
 object MetaTypeInference : ITypeExpressionInference<MetaTypeNode, MonomorphicType<*>>, KoinComponent {
     private val printer: Printer by inject()
 
-    override fun infer(inferenceUtil: InferenceUtil, node: MetaTypeNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: MetaTypeNode): InferenceResult {
         val polyType = inferenceUtil.inferAs<TypeIdentifierNode, PolymorphicType<TypeComponent>>(node.typeConstructorIdentifier)
         val parameters = inferenceUtil.inferAllAs<TypeExpressionNode, TypeComponent>(node.typeParameters, AnyInferenceContext(TypeExpressionNode::class.java))
             .mapIndexed { idx, type -> Pair(idx, type) }
@@ -59,7 +59,7 @@ object TypeIndexInference : Inference<TypeIndexNode, TypeComponent>, KoinCompone
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    override fun infer(inferenceUtil: InferenceUtil, node: TypeIndexNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeIndexNode): InferenceResult {
         val self = inferenceUtil.self ?: throw invocation.make<TypeSystem>("Cannot infer Self in this context", node)
         val idx = Parameter(self.getPath(OrbitMangler) + node.index.value)
 
@@ -90,7 +90,7 @@ object TypeSynthesisInference : Inference<TypeSynthesisNode, ITrait>, KoinCompon
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    override fun infer(inferenceUtil: InferenceUtil, node: TypeSynthesisNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeSynthesisNode): InferenceResult {
         if (node.kind != IntrinsicKinds.Trait) throw invocation.compilerError<TypeSystem>("Only Trait synthesis is currently supported, found ${node.kind.keyword.identifier}", node)
 
         val target = inferenceUtil.infer(node.targetNode)

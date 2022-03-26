@@ -13,7 +13,7 @@ import org.orbit.util.Printer
 object TypeDefInference : Inference<TypeDefNode, Type>, KoinComponent {
     private val printer: Printer by inject()
 
-    override fun infer(inferenceUtil: InferenceUtil, node: TypeDefNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeDefNode): InferenceResult {
         val type = Type(node.getPath())
 
         val fields = node.propertyPairs.map {

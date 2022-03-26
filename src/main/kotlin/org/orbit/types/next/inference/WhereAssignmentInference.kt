@@ -13,12 +13,12 @@ sealed interface WhereClauseExpressionInferenceContext : InferenceContext {
 }
 
 object WhereClauseInference : Inference<WhereClauseNode, TypeComponent> {
-    override fun infer(inferenceUtil: InferenceUtil, node: WhereClauseNode): InferenceResult
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: WhereClauseNode): InferenceResult
         = inferenceUtil.infer(node.whereExpression, WhereClauseExpressionInferenceContext.AssignmentContext).inferenceResult()
 }
 
 object WhereAssignmentInference : Inference<AssignmentStatementNode, Field> {
-    override fun infer(inferenceUtil: InferenceUtil, node: AssignmentStatementNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: AssignmentStatementNode): InferenceResult {
         val name = node.identifier.identifier
         val type = inferenceUtil.infer(node.value, AnyExpressionContext)
 

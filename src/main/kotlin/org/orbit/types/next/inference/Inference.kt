@@ -104,7 +104,7 @@ data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
 }
 
 interface Inference<N: Node, T: TypeComponent> {
-    fun infer(inferenceUtil: InferenceUtil, node: N) : InferenceResult
+    fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: N) : InferenceResult
 }
 
 interface InferenceContext {
@@ -138,7 +138,7 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
 
     fun getTypeMap() : ITypeMapRead = typeMap
 
-    fun derive(retainsTypeMap: Boolean, retainsBindingScope: Boolean, self: TypeComponent? = null) : InferenceUtil {
+    fun derive(retainsTypeMap: Boolean = true, retainsBindingScope: Boolean = true, self: TypeComponent? = null) : InferenceUtil {
         val nTypeMap = when (retainsTypeMap) {
             true -> typeMap
             else -> TypeMap()
@@ -166,7 +166,7 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         val inference = inferences[context] as? Inference<N, *>
             ?: throw invocation.compilerError<TypeSystem>("Inference class not registered for node: $node", node)
 
-        return when (val result = inference.infer(this, node)) {
+        return when (val result = inference.infer(this, context, node)) {
             is InferenceResult.Success<*> -> result.type.apply {
                 if (autoCaptureType) typeMap.set(node, this)
             }

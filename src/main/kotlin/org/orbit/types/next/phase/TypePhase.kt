@@ -12,14 +12,16 @@ import org.orbit.core.phase.getInputType
 import org.orbit.core.storeResult
 import org.orbit.graph.phase.NameResolverResult
 import org.orbit.graph.phase.measureTimeWithResult
-import org.orbit.types.next.components.ITrait
-import org.orbit.types.next.components.IType
-import org.orbit.types.next.components.Module
-import org.orbit.types.next.components.TypeComponent
+import org.orbit.types.next.components.*
+import org.orbit.types.next.inference.AnnotatedBlockInferenceContext
+import org.orbit.types.next.inference.BlockInference
+import org.orbit.types.next.inference.InferenceResult
 import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
+import org.orbit.util.Printer
 import org.orbit.util.next.ITypeMapRead
 import kotlin.contracts.ExperimentalContracts
+import kotlin.math.sign
 import kotlin.time.ExperimentalTime
 
 interface TypePhase<N: Node, T: TypeComponent> : Phase<TypePhaseData<N>, T> {
@@ -32,6 +34,34 @@ interface TypePhase<N: Node, T: TypeComponent> : Phase<TypePhaseData<N>, T> {
 
 fun <N: Node, T: TypeComponent> TypePhase<N, T>.executeAll(inferenceUtil: InferenceUtil, nodes: List<N>) : List<T>
     = nodes.map { execute(TypePhaseData(inferenceUtil, it)) }
+
+object MethodBodyPhase : TypePhase<MethodDefNode, TypeComponent>, KoinComponent {
+    override val invocation: Invocation by inject()
+    private val printer: Printer by inject()
+
+    private fun typeCheckGenericMethodBody(input: TypePhaseData<MethodDefNode>, signature: PolymorphicType<ISignature>) : TypeComponent {
+        TODO("Generic Methods")
+    }
+
+    private fun typeCheckMethodBody(input: TypePhaseData<MethodDefNode>, signature: Signature) : TypeComponent {
+        val nInferenceUtil = input.inferenceUtil.derive(self = signature.receiver)
+
+        return when (val result = BlockInference.infer(nInferenceUtil, AnnotatedBlockInferenceContext(signature.returns), input.node.body)) {
+            is InferenceResult.Success<*> -> result.type
+            is InferenceResult.Failure -> result.never
+        }
+    }
+
+    override fun run(input: TypePhaseData<MethodDefNode>): TypeComponent {
+        val signature = input.inferenceUtil.inferAs<MethodSignatureNode, ISignature>(input.node.signature)
+
+        return when (signature) {
+            is PolymorphicType<*> -> typeCheckGenericMethodBody(input, signature as PolymorphicType<ISignature>)
+            is Signature -> typeCheckMethodBody(input, signature)
+            else -> Never("${signature.toString(printer)} is not a Signature")
+        }
+    }
+}
 
 object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
     override val invocation: Invocation by inject()
@@ -64,6 +94,8 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         TypeProjectionPhase.executeAll(input.inferenceUtil, typeProjections)
 
         types = TraitConformanceVerification.executeAll(input.inferenceUtil, typeDefs)
+
+        MethodBodyPhase.executeAll(input.inferenceUtil, methodDefs)
 
         return Module(input.node.getPath()).apply {
             extendAll(types + traits)

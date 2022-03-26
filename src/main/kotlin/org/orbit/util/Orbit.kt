@@ -90,6 +90,8 @@ val mainModule = module {
 		util.registerInference(TraitConformanceConstraintInference, TraitConformanceTypeConstraintNode::class.java)
 		util.registerInference(TypeConstraintInference, TypeConstraintNode::class.java)
 		util.registerInference(SignatureInference, MethodSignatureNode::class.java)
+		util.registerInference(ReturnStatementInference, ReturnStatementNode::class.java)
+		util.registerInference(MethodCallInference, MethodCallNode::class.java)
 
 		util
 	}

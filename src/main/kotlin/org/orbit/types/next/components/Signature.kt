@@ -22,4 +22,13 @@ data class Signature(val relativeName: String, val receiver: TypeComponent, val 
     }
 
     override fun getSignature(printer: Printer): ISignature = this
+    
+    fun derive() : Trait {
+        val trait = Trait(getPath(OrbitMangler) + "CallableInterface")
+        val receiverContract = FieldContract(trait, Field("__receiver", receiver))
+        val returnsContract = FieldContract(trait, Field("__returns", returns))
+        val contracts = parameters.mapIndexed { idx, type -> FieldContract(trait, Field("$idx", type)) }
+
+        return Trait(trait.fullyQualifiedName, contracts + receiverContract + returnsContract)
+    }
 }

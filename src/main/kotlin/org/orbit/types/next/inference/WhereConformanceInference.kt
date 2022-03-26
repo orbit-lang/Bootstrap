@@ -20,7 +20,11 @@ data class TypeConstraint(val source: Parameter, val target: ITrait) : TypeCompo
 object TraitConformanceConstraintInference : Inference<TraitConformanceTypeConstraintNode, ITrait>, KoinComponent {
     private val printer: Printer by inject()
 
-    override fun infer(inferenceUtil: InferenceUtil, node: TraitConformanceTypeConstraintNode): InferenceResult {
+    override fun infer(
+        inferenceUtil: InferenceUtil,
+        context: InferenceContext,
+        node: TraitConformanceTypeConstraintNode
+    ): InferenceResult {
         val parameter = inferenceUtil.inferAs<TypeIdentifierNode, Parameter>(node.constrainedTypeNode)
         val trait = inferenceUtil.infer(node.constraintTraitNode)
 
@@ -32,14 +36,14 @@ object TraitConformanceConstraintInference : Inference<TraitConformanceTypeConst
 }
 
 object TypeConstraintInference : Inference<TypeConstraintNode, TypeConstraint> {
-    override fun infer(inferenceUtil: InferenceUtil, node: TypeConstraintNode): InferenceResult = when (node) {
-        is TraitConformanceTypeConstraintNode -> TraitConformanceConstraintInference.infer(inferenceUtil, node)
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeConstraintNode): InferenceResult = when (node) {
+        is TraitConformanceTypeConstraintNode -> TraitConformanceConstraintInference.infer(inferenceUtil, context, node)
         else -> TODO("HERE")
     }
 }
 
 object WhereConformanceInference : Inference<TypeConstraintWhereClauseNode, TypeComponent> {
-    override fun infer(inferenceUtil: InferenceUtil, node: TypeConstraintWhereClauseNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeConstraintWhereClauseNode): InferenceResult {
         val constraint = inferenceUtil.inferAs<TypeConstraintNode, TypeConstraint>(node.statementNode)
 
         return InferenceResult.Success(constraint)

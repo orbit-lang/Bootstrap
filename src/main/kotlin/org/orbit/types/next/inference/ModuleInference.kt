@@ -7,7 +7,7 @@ import org.orbit.types.next.components.Module
 import org.orbit.types.next.components.Type
 
 object ModuleInference : Inference<ModuleNode, Module> {
-    override fun infer(inferenceUtil: InferenceUtil, node: ModuleNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: ModuleNode): InferenceResult {
         val typeDefs = node.search(TypeDefNode::class.java)
         val types = typeDefs.map { inferenceUtil.inferAs<TypeDefNode, Type>(it) }
 
