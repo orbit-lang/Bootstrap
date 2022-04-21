@@ -6,7 +6,7 @@ import com.github.ajalt.clikt.parameters.types.file
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
-import org.orbit.graph.components.Scope
+import org.orbit.core.Scope
 
 class Symbols : CliktCommand(), KoinComponent {
 	private val invocation: Invocation by inject()
@@ -22,7 +22,7 @@ class Symbols : CliktCommand(), KoinComponent {
 		val allBindings = library.scopes.flatMap(Scope::bindings)
 			.joinToString("\n\t") { "${it.kind::class.java.simpleName} : ${it.path.toString(OrbitMangler)}" }
 
-		val allTypes = library.context.types.joinToString("\n\t") { "${it::class.java.simpleName} : ${it.name}" }
+		val allTypes = library.typeMap.toCtx().getTypes().joinToString("\n\t") { "${it::class.java.simpleName} : ${it.fullyQualifiedName}" }
 
 		println("Library @ ${source.absolutePath} contains the following symbols:")
 

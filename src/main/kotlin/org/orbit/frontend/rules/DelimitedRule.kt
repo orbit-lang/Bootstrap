@@ -5,7 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.core.components.TokenType
 import org.orbit.core.nodes.DelimitedNode
 import org.orbit.core.nodes.Node
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation

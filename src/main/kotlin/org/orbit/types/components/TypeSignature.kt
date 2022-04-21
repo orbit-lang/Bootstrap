@@ -6,11 +6,9 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.IdentifierNode
 import org.orbit.core.nodes.MethodSignatureNode
-import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.TypeIdentifierNode
-import org.orbit.frontend.components.TokenTypes
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.annotate
+import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.Annotations
 import org.orbit.types.phase.AnyEqualityConstraint
 
 data class TypeSignature(
@@ -41,10 +39,10 @@ data class TypeSignature(
         val retNode = TypeIdentifierNode(startToken, endToken, ret)
 
         recNode.annotate(recPath, Annotations.Path)
-        recNode.annotate(recType, Annotations.Type)
+//        recNode.annotate(recType, Annotations.Type)
 
         retNode.annotate(retPath, Annotations.Path)
-        retNode.annotate(retType, Annotations.Type)
+//        retNode.annotate(retType, Annotations.Type)
 
         return MethodSignatureNode(startToken, endToken,
             IdentifierNode(startToken, endToken, name),

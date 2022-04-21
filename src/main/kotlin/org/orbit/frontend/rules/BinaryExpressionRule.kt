@@ -2,7 +2,7 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.BinaryExpressionNode
 import org.orbit.core.nodes.ExpressionNode
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.parseTrailing
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser

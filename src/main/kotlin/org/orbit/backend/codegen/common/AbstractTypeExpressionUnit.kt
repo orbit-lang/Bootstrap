@@ -9,8 +9,7 @@ import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.TypeIdentifierNode
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.annotate
+import org.orbit.core.nodes.Annotations
 import org.orbit.types.components.Context
 import org.orbit.types.components.IntrinsicTypes
 import org.orbit.types.components.TypeConstructor

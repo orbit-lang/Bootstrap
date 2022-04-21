@@ -4,11 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
-import org.orbit.core.injectResult
 import org.orbit.core.nodes.EntityConstructorNode
-import org.orbit.core.nodes.TypeConstructorNode
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -40,7 +36,7 @@ class ResolveEntityConstructorProperties<N: EntityConstructorNode, C: EntityCons
 
         entityConstructor = generator(entityConstructor.name, entityConstructor.typeParameters, properties, entityConstructor.partiallyResolvedTraitConstructors, signatures)
 
-        node.annotate(entityConstructor, Annotations.Type, true)
+//        node.annotate(entityConstructor, Annotations.Type, true)
 
         context.remove(entityConstructor.name)
         context.add(entityConstructor)

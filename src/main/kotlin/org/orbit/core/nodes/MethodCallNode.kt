@@ -6,7 +6,7 @@ abstract class InvokableNode(
     override val firstToken: Token,
     override val lastToken: Token,
     open val parameterNodes: List<ExpressionNode>
-) : ExpressionNode(firstToken, lastToken)
+) : ExpressionNode()
 
 data class ReferenceCallNode(
     override val firstToken: Token,

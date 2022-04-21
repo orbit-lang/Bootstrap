@@ -1,27 +1,21 @@
 package org.orbit.graph.phase
 
-import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.module
 import org.orbit.core.*
 import org.orbit.core.components.SourcePosition
-import org.orbit.core.nodes.ContainerNode
-import org.orbit.core.nodes.Node
-import org.orbit.core.nodes.ProgramNode
+import org.orbit.core.nodes.*
 import org.orbit.core.phase.AdaptablePhase
 import org.orbit.core.phase.Phase
 import org.orbit.frontend.phase.Parser
 import org.orbit.graph.components.*
-import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getAnnotation
 import org.orbit.graph.extensions.getScopeIdentifier
 import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.serial.Serial
 import org.orbit.util.*
-import java.io.Serializable
 import java.util.*
 import java.util.Stack
 import kotlin.contracts.ExperimentalContracts
@@ -52,13 +46,6 @@ sealed class GraphErrors {
 
 data class NameResolverInput(val parserResult: Parser.Result, val environment: Environment, val graph: Graph)
 data class NameResolverResult(val environment: Environment, val graph: Graph)
-
-@JvmInline
-value class SerialBool(val flag: Boolean) : Serial, Serializable {
-	override fun describe(json: JSONObject) {
-		TODO("Not yet implemented")
-	}
-}
 
 fun Node.isResolved() : Boolean {
 	return getAnnotation<SerialBool>(Annotations.Resolved)?.value?.flag ?: false

@@ -6,7 +6,7 @@ data class ProgramNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val declarations: List<TopLevelDeclarationNode>
-) : Node(firstToken, lastToken) {
+) : Node() {
 	override fun getChildren() : List<Node> = declarations
 
 	fun getApiDefs() : List<ApiDefNode>

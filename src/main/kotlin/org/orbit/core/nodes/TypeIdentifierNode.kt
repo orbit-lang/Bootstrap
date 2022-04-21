@@ -1,17 +1,15 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
-import java.io.Serializable
 
-abstract class TypeExpressionNode(firstToken: Token, lastToken: Token, value: String)
-	: LiteralNode<String>(firstToken, lastToken, value)
+abstract class TypeExpressionNode : LiteralNode<String>()
 
 data class TypeIdentifierNode(
     override val firstToken: Token,
     override val lastToken: Token,
     override val value: String,
     val typeParametersNode: TypeParametersNode = TypeParametersNode(firstToken, lastToken)
-) : TypeExpressionNode(firstToken, lastToken, value), LValueTypeParameter {
+) : TypeExpressionNode(), LValueTypeParameter {
 	companion object {
 		fun unit(token: Token) : TypeIdentifierNode
 			= TypeIdentifierNode(token, token, "Orb::Types::Intrinsics::Unit")
@@ -41,4 +39,4 @@ data class CollectionTypeLiteralNode(
 	override val lastToken: Token,
 	override val value: String,
 	val typeExpressionNode: TypeExpressionNode
-) : TypeExpressionNode(firstToken, lastToken, value)
+) : TypeExpressionNode()

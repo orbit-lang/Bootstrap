@@ -5,8 +5,6 @@ import org.koin.core.component.inject
 import org.orbit.core.nodes.AssignmentStatementNode
 import org.orbit.core.nodes.TypeProjectionNode
 import org.orbit.core.nodes.WhereClauseNode
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
 import org.orbit.types.phase.NominalEqualityConstraint
 import org.orbit.types.phase.TraitEnforcer
@@ -64,8 +62,8 @@ class TypeProjectionAssembler(private val node: TypeProjectionNode) : TypeAction
             typeConstructor = type.typeConstructor
         )
 
-        assignmentNode.annotate(rhs, Annotations.Type)
-        assignmentNode.value.annotate(rhs, Annotations.Type)
+//        assignmentNode.annotate(rhs, Annotations.Type)
+//        assignmentNode.value.annotate(rhs, Annotations.Type)
 
         context.remove(type.name)
         context.add(type)
@@ -89,7 +87,7 @@ class TypeProjectionAssembler(private val node: TypeProjectionNode) : TypeAction
         type = TypeInferenceUtil.infer(context, node.typeIdentifier, null) as Type
         trait = TypeExpressionInference.infer(context, node.traitIdentifier, null) as Trait
 
-        node.typeIdentifier.annotate(type, Annotations.Type)
+//        node.typeIdentifier.annotate(type, Annotations.Type)
 
         type = Type(
             type.name,
@@ -113,7 +111,7 @@ class TypeProjectionAssembler(private val node: TypeProjectionNode) : TypeAction
 
         val typeProjection = TypeProjection(type, trait)
 
-        node.annotate(typeProjection, Annotations.Type)
+//        node.annotate(typeProjection, Annotations.Type)
 
         context.add(typeProjection)
     }

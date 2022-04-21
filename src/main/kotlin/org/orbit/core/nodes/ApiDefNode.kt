@@ -3,22 +3,18 @@ package org.orbit.core.nodes
 import org.orbit.core.components.Token
 import org.orbit.graph.pathresolvers.PathResolver
 
-abstract class TopLevelDeclarationNode(
-	override val firstToken: Token,
-	override val lastToken: Token,
+sealed class TopLevelDeclarationNode(
 	override val annotationPass: PathResolver.Pass
-) : AnnotatedNode(firstToken, lastToken, annotationPass)
+) : AnnotatedNode()
 
-abstract class ContainerNode(
-	override val firstToken: Token,
-	override val lastToken: Token,
-	open val identifier: TypeIdentifierNode,
-	open val within: TypeIdentifierNode?,
-	open val with: List<TypeIdentifierNode>,
-	open val entityDefs: List<EntityDefNode>,
-	open val methodDefs: List<MethodDefNode>,
-	open val entityConstructors: List<EntityConstructorNode>
-) : TopLevelDeclarationNode(firstToken, lastToken, PathResolver.Pass.Last)
+sealed class ContainerNode : TopLevelDeclarationNode(PathResolver.Pass.Last) {
+	abstract val identifier: TypeIdentifierNode
+	abstract val within: TypeIdentifierNode?
+	abstract val with: List<TypeIdentifierNode>
+	abstract val entityDefs: List<EntityDefNode>
+	abstract val methodDefs: List<MethodDefNode>
+	abstract val entityConstructors: List<EntityConstructorNode>
+}
 
 data class ApiDefNode(
 	override val firstToken: Token,
@@ -31,7 +27,7 @@ data class ApiDefNode(
 	override val with: List<TypeIdentifierNode>,
 	val standardEntityDefs: List<EntityDefNode>,
 	override val entityConstructors: List<EntityConstructorNode>
-) : ContainerNode(firstToken, lastToken, identifier, within, with, standardEntityDefs + requiredTypes + requiredTraits, methodDefs, entityConstructors) {
+) : ContainerNode() {
 	override val entityDefs: List<EntityDefNode>
 		get() = standardEntityDefs + requiredTypes + requiredTraits
 

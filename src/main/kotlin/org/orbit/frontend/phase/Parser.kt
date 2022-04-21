@@ -8,7 +8,7 @@ import org.orbit.core.nodes.Node
 import org.orbit.core.phase.AdaptablePhase
 import org.orbit.core.phase.PhaseAdapter
 import org.orbit.frontend.components.ParseError
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.util.Invocation

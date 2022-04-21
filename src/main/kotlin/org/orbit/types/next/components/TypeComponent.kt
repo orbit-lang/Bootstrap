@@ -6,6 +6,7 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
+import org.orbit.util.getKoinInstance
 import org.orbit.util.next.IAlias
 
 interface TypeComponent {
@@ -16,6 +17,7 @@ interface TypeComponent {
     fun compare(ctx: Ctx, other: TypeComponent) : TypeRelation
     fun inferenceKey() : String = fullyQualifiedName
     fun references(type: TypeComponent) : Boolean = type.fullyQualifiedName == fullyQualifiedName
+//    fun toJson() : JsonObject
 }
 
 fun TypeComponent.resolve(ctx: Ctx) : TypeComponent?
@@ -26,6 +28,10 @@ sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias, ISi
 
     override fun merge(ctx: Ctx, other: ITrait): ITrait = other
     override fun getSignature(printer: Printer): ISignature = Never("${toString(printer)} is not a Signature")
+    override fun getName(): String = ""
+    override fun getParameterTypes(): List<TypeComponent> = emptyList()
+    override fun getReceiverType(): TypeComponent = Never
+    override fun getReturnType(): TypeComponent = Never
 }
 
 object Anything : InternalControlType {

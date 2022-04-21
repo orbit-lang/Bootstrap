@@ -34,8 +34,11 @@ object TypeProjectionPhase : TypePhase<TypeProjectionNode, TypeComponent>, KoinC
 
         return when (val result = target.isImplemented(ctx, nType)) {
             is ContractResult.Success, ContractResult.None -> nType
-            is ContractResult.Failure -> Never("Type Projection error:\n\t${result.getErrorMessage(printer, source)}")
-            is ContractResult.Group -> Never("Type Projection errors:\n\t${result.getErrorMessage(printer, source)}")
+            is ContractResult.Failure -> throw invocation.make<TypeSystem>("Type Projection error:\n\t${result.getErrorMessage(printer, source)}", input.node)
+            is ContractResult.Group -> when (result.isSuccessGroup) {
+                true -> nType
+                else -> throw invocation.make<TypeSystem>("Type Projection errors:\n\t${result.getErrorMessage(printer, source)}", input.node)
+            }
         }
     }
 }

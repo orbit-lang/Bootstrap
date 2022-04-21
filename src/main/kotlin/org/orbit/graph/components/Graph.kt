@@ -1,9 +1,9 @@
 package org.orbit.graph.components
 
+import org.orbit.core.GraphEntity
 import org.orbit.core.OrbitMangler
-import java.io.Serializable
 
-class Graph : Serializable {
+class Graph {
     private val vertices = mutableSetOf<GraphEntity.Vertex>()
     private val edges = mutableSetOf<GraphEntity.Edge>()
 

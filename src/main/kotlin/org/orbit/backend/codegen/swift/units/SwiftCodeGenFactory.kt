@@ -3,7 +3,7 @@ package org.orbit.backend.codegen.swift.units
 import org.orbit.backend.codegen.CodeGenFactory
 import org.orbit.backend.codegen.common.*
 import org.orbit.core.nodes.*
-import org.orbit.graph.components.StringKey
+import org.orbit.core.StringKey
 import java.math.BigInteger
 
 object SwiftCodeGenFactory : CodeGenFactory<SwiftHeader> {

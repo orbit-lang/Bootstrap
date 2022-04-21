@@ -10,8 +10,8 @@ open class CompilationScheme(entries: List<CompilationSchemeEntry>) : MutableLis
         CompilationSchemeEntry.canonicalNameResolver,
         CompilationSchemeEntry.observers,
         CompilationSchemeEntry.typeSystem,
-		CompilationSchemeEntry.traitEnforcer,
-        CompilationSchemeEntry.mainResolver
+//		CompilationSchemeEntry.traitEnforcer,
+//        CompilationSchemeEntry.mainResolver
 	))
 
 	override fun next(): CompilationSchemeEntry {

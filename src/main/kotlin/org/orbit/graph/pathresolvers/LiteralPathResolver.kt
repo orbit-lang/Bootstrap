@@ -3,10 +3,9 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.Path
 import org.orbit.core.nodes.LiteralNode
-import org.orbit.graph.components.Annotations
+import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
 import org.orbit.util.Invocation
 
 abstract class LiteralPathResolver<N: LiteralNode<*>>(private val path: Path) : PathResolver<N> {

@@ -8,9 +8,6 @@ import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
 import org.orbit.core.injectQualified
 import org.orbit.core.nodes.MethodCallNode
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.getAnnotation
-import org.orbit.types.components.SignatureProtocol
 
 class CallUnit(override val node: MethodCallNode, override val depth: Int) : AbstractMethodCallUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
@@ -24,20 +21,22 @@ class CallUnit(override val node: MethodCallNode, override val depth: Int) : Abs
             return "$receiver.${node.messageIdentifier.identifier}"
         }
 
-        val signature = node.getAnnotation<SignatureProtocol<*>>(Annotations.Type)?.value
-            ?: TODO("@CallUnit:64")
+//        val signature = node.getAnnotation<SignatureProtocol<*>>(Annotations.Type)?.value
+//            ?: TODO("@CallUnit:64")
+//
+//        val sig = signature.toString(mangler)
+//        val rParams = when (node.isInstanceCall) {
+//            true -> (listOf(node.receiverExpression) + node.parameterNodes)
+//            else -> node.parameterNodes
+//        }
+//
+//        val params = rParams.zip(signature.parameters).joinToString(", ") {
+//            codeGenFactory.getExpressionUnit(it.first, depth)
+//                .generate(mangler)
+//        }
+//
+//        return "$sig($params)"
 
-        val sig = signature.toString(mangler)
-        val rParams = when (node.isInstanceCall) {
-            true -> (listOf(node.receiverExpression) + node.parameterNodes)
-            else -> node.parameterNodes
-        }
-
-        val params = rParams.zip(signature.parameters).joinToString(", ") {
-            codeGenFactory.getExpressionUnit(it.first, depth)
-                .generate(mangler)
-        }
-
-        return "$sig($params)"
+        return ""
     }
 }

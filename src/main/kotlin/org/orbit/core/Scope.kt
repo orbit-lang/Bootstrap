@@ -1,21 +1,20 @@
-package org.orbit.graph.components
+package org.orbit.core
 
-import org.json.JSONObject
 import org.orbit.core.*
 import org.orbit.core.components.*
 import org.orbit.core.phase.Phase
-import org.orbit.graph.pathresolvers.PathResolver
-import org.orbit.serial.Serial
+import org.orbit.graph.components.Binding
+import org.orbit.graph.components.Environment
+import org.orbit.graph.components.Graph
 import org.orbit.util.*
-import java.io.Serializable
 
 class Scope(
-	@Transient private val environment: Environment,
+	private val environment: Environment,
 	val parentScope: Scope? = null,
 	val identifier: ScopeIdentifier = ScopeIdentifier.next(),
 	val bindings: MutableList<Binding> = mutableListOf(),
 	private val imports: MutableSet<ScopeIdentifier> = mutableSetOf()
-) : Serial, Serializable, CompilationEventBusAware by CompilationEventBusAwareImpl {
+) : AnySerializable(), CompilationEventBusAware by CompilationEventBusAwareImpl {
 	sealed class Events(override val identifier: String) : CompilationEvent {
 		class BindingCreated(binding: Binding) : Events("Scope Binding Created: $binding")
 	}
@@ -285,13 +284,7 @@ class Scope(
 			}
 	}
 
-//	fun getChildren(graph: Graph) {
-//		val rootVertex = graph.findVertex()
-//	}
-
 	override fun toString(): String {
 		return "SCOPE($identifier) <- PARENT(${parentScope?.identifier})\n" + bindings.joinToString("\n") { "\t" + it.toString() }
 	}
-
-	override fun describe(json: JSONObject) {}
 }

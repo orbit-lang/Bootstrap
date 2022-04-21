@@ -6,10 +6,8 @@ import org.orbit.core.getPath
 import org.orbit.core.nodes.TraitConstructorNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.core.nodes.TypeDefNode
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -26,7 +24,7 @@ class TypeConstructorTypeResolver(override val node: TypeConstructorNode, overri
 
         val type = TypeConstructor(node.getPath(), typeParameters)
 
-        node.annotate(type, Annotations.Type)
+//        node.annotate(type, Annotations.Type)
 
         return type
     }
@@ -44,7 +42,7 @@ class TraitConstructorTypeResolver(override val node: TraitConstructorNode, over
 
         val type = TraitConstructor(node.getPath(), typeParameters)
 
-        node.annotate(type, Annotations.Type)
+//        node.annotate(type, Annotations.Type)
 
         return type
     }
@@ -85,7 +83,7 @@ class TypeDefTypeResolver(override val node: TypeDefNode, override val binding: 
 
         type = Type(node.getPath(), properties = members, traitConformance = traitConformance, isRequired = node.isRequired)
 
-        node.annotate(type, Annotations.Type)
+//        node.annotate(type, Annotations.Type)
 
         return type
     }

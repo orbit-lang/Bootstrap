@@ -43,6 +43,26 @@ interface ITypeRef : ValueType, ITrait, IType, ISignature {
     override fun getSignature(printer: Printer): ISignature {
         TODO("Not yet implemented")
     }
+
+    override fun getName(): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun getParameterTypes(): List<TypeComponent> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getReceiverType(): TypeComponent {
+        TODO("Not yet implemented")
+    }
+
+    override fun getReturnType(): TypeComponent {
+        TODO("Not yet implemented")
+    }
+
+    override fun getSignatureTypeParameters(): List<Parameter> {
+        return super.getSignatureTypeParameters()
+    }
 }
 
 data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {

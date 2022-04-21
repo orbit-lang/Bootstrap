@@ -104,9 +104,9 @@ class Context(builtIns: Set<TypeProtocol> = IntrinsicTypes.allTypes + IntOperato
         val importedTypes = importManager.allTypes
 
         for (t in importedTypes) {
-            if (types.none { it.name == t.name }) {
-                types.add(t)
-            }
+//            if (types.none { it.name == t.name }) {
+//                types.add(t)
+//            }
         }
     }
 

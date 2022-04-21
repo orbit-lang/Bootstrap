@@ -3,8 +3,6 @@ package org.orbit.types.components
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.ConstructorNode
-import org.orbit.core.nodes.MetaTypeNode
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.phase.AnyEqualityConstraint
 import org.orbit.types.phase.TypeSystem
@@ -66,43 +64,45 @@ object ConstructorInference : TypeInference<ConstructorNode>, KoinComponent {
             throw invocation.make<TypeSystem>("Type '${receiverType.name}' expects ${parameterTypes.size} constructor ${"parameter".pluralise(parameterTypes.size)}, found ${node.parameterNodes.size}", node.firstToken.position)
         }
 
-        val fReceiverType: Type = when (receiverType) {
-            is Type -> receiverType
-            is TypeConstructor -> {
-                val inf = TypeConstructorTypeParameterInference(receiverType, receiverType.properties.zip(argumentTypes))
+        return receiverType
 
-                inf.infer(context) as Type
-            }
-
-            else -> TODO("")
-        }
-
-        node.typeExpressionNode.annotate(fReceiverType, Annotations.Type)
-
-        parameterTypes = fReceiverType.properties.toMutableList()
-
-        for ((idx, pair) in parameterTypes.zip(node.parameterNodes).withIndex()) {
-            val argumentType = TypeInferenceUtil.infer(context, pair.second)
-            val equalityConstraint = AnyEqualityConstraint(pair.first.type)
-
-            if (!equalityConstraint.checkConformance(context, argumentType)) {
-                throw invocation.make<TypeSystem>("Constructor expects parameter of type ${pair.first.type.toString(printer)} at position ${idx}, found ${argumentType.toString(printer)}", pair.second.firstToken.position)
-            }
-
-            parameterTypes[idx] = Property(pair.first.name, argumentType)
-        }
-
-        if (node.typeExpressionNode is MetaTypeNode) {
-            // TODO - this is super dirty!!!
-            val nType = Type(receiverType.name, properties = parameterTypes, typeParameters = fReceiverType.typeParameters, traitConformance = fReceiverType.traitConformance, equalitySemantics = fReceiverType.equalitySemantics, isRequired = fReceiverType.isRequired, isEphemeral = fReceiverType.isEphemeral,typeConstructor = fReceiverType.typeConstructor)
-
-            context.registerMonomorphisation(nType)
-
-            node.typeExpressionNode.annotate(nType, Annotations.Type, true)
-
-            return nType
-        }
-
-        return fReceiverType
+//        val fReceiverType: Type = when (receiverType) {
+//            is Type -> receiverType
+//            is TypeConstructor -> {
+//                val inf = TypeConstructorTypeParameterInference(receiverType, receiverType.properties.zip(argumentTypes))
+//
+//                inf.infer(context) as Type
+//            }
+//
+//            else -> TODO("")
+//        }
+//
+//        node.typeExpressionNode.annotate(fReceiverType, Annotations.Type)
+//
+//        parameterTypes = fReceiverType.properties.toMutableList()
+//
+//        for ((idx, pair) in parameterTypes.zip(node.parameterNodes).withIndex()) {
+//            val argumentType = TypeInferenceUtil.infer(context, pair.second)
+//            val equalityConstraint = AnyEqualityConstraint(pair.first.type)
+//
+//            if (!equalityConstraint.checkConformance(context, argumentType)) {
+//                throw invocation.make<TypeSystem>("Constructor expects parameter of type ${pair.first.type.toString(printer)} at position ${idx}, found ${argumentType.toString(printer)}", pair.second.firstToken.position)
+//            }
+//
+//            parameterTypes[idx] = Property(pair.first.name, argumentType)
+//        }
+//
+//        if (node.typeExpressionNode is MetaTypeNode) {
+//            // TODO - this is super dirty!!!
+//            val nType = Type(receiverType.name, properties = parameterTypes, typeParameters = fReceiverType.typeParameters, traitConformance = fReceiverType.traitConformance, equalitySemantics = fReceiverType.equalitySemantics, isRequired = fReceiverType.isRequired, isEphemeral = fReceiverType.isEphemeral,typeConstructor = fReceiverType.typeConstructor)
+//
+//            context.registerMonomorphisation(nType)
+//
+//            node.typeExpressionNode.annotate(nType, Annotations.Type, true)
+//
+//            return nType
+//        }
+//
+//        return fReceiverType
     }
 }

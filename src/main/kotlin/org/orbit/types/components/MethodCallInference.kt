@@ -4,12 +4,9 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.components.CompilationSchemeEntry
-import org.orbit.core.getFullyQualifiedPath
 import org.orbit.core.injectResult
 import org.orbit.core.nodes.MethodCallNode
 import org.orbit.core.nodes.ReferenceCallNode
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.*
 
@@ -137,7 +134,7 @@ object MethodCallInference : TypeInference<MethodCallNode>, KoinComponent {
                     }
                 }
 
-            node.annotate(signature, Annotations.Type)
+//            node.annotate(signature, Annotations.Type)
 
             return signature.returnType
         }

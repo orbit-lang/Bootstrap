@@ -6,7 +6,7 @@ data class PrintNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val expressionNode: ExpressionNode
-) : Node(firstToken, lastToken) {
+) : Node() {
     override fun getChildren(): List<Node> {
         return listOf(expressionNode)
     }

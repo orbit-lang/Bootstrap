@@ -10,7 +10,7 @@ data class TraitDefNode(
     override val propertyPairs: List<PairNode> = emptyList(),
     val traitConformances: List<TypeIdentifierNode> = emptyList(),
     val signatures: List<MethodSignatureNode> = emptyList()
-) : EntityDefNode(firstToken, lastToken, propertyPairs, isRequired) {
+) : EntityDefNode() {
 	override fun getChildren() : List<Node>
 		= listOf(typeIdentifierNode) + traitConformances + propertyPairs + signatures
 }

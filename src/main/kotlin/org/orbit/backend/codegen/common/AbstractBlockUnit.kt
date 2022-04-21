@@ -9,8 +9,8 @@ import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
 import org.orbit.core.injectQualified
 import org.orbit.core.nodes.*
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.components.StringKey
+import org.orbit.core.nodes.Annotations
+import org.orbit.core.StringKey
 import org.orbit.graph.extensions.getAnnotation
 import org.orbit.util.partial
 

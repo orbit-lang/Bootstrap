@@ -1,12 +1,69 @@
 package org.orbit.graph.components
 
+import com.google.gson.*
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
+import org.orbit.core.GraphEntity
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.util.endsWith
-import java.io.Serializable
+import java.lang.reflect.Type
 
-data class Binding(val kind: Kind, val simpleName: String, val path: Path, val vertexID: GraphEntity.Vertex.ID? = null) : Serializable {
-	interface Kind : Serializable {
+object KindAdapter : TypeAdapter<Binding.Kind>() {
+	override fun write(out: JsonWriter?, value: Binding.Kind?) {
+		if (value == null || out == null) return
+
+		out.beginObject()
+		if (value is Binding.Kind.Union) {
+			out.name("union.left")
+			write(out, value.left)
+			out.name("union.right")
+			write(out, value.right)
+		} else {
+			out.value(value.getName())
+		}
+		out.endObject()
+	}
+
+	override fun read(`in`: JsonReader?): Binding.Kind {
+		if (`in` == null) return Binding.Kind.Empty
+
+		return Binding.Kind.Empty
+	}
+}
+
+object KindSerialiser : JsonSerializer<Binding.Kind> {
+	override fun serialize(src: Binding.Kind, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+		if (src is Binding.Kind.Union) {
+			return context.serialize(src.toMap())
+		}
+
+		return context.serialize(src.getName())
+	}
+}
+
+object KindDeserialiser : JsonDeserializer<Binding.Kind> {
+	override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Binding.Kind {
+		return Binding.Kind.Empty
+	}
+}
+
+object PathSerialiser : JsonSerializer<Path> {
+	override fun serialize(src: Path, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+		return context.serialize(src.toString(OrbitMangler))
+	}
+}
+
+object PathDeserialiser : JsonDeserializer<Path> {
+	override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Path {
+		val str = json.asJsonArray
+
+		return Path(str.map { it.asString })
+	}
+}
+
+data class Binding(val kind: Kind, val simpleName: String, val path: Path, val vertexID: GraphEntity.Vertex.ID? = null) {
+	interface Kind {
 		interface Container : Kind
 		interface Entity : Kind
 		interface Projection : Kind
@@ -59,6 +116,20 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 
 			override fun contains(kind: Kind): Boolean {
 				return left.contains(kind) || right.contains(kind)
+			}
+
+			fun toMap() : Map<String, Any> {
+				val leftValue = when (left) {
+					is Union -> left.toMap()
+					else -> left
+				}
+
+				val rightValue = when (right) {
+					is Union -> right.toMap()
+					else -> right
+				}
+
+				return mapOf("union.left" to leftValue, "union.right" to rightValue)
 			}
 		}
 	}

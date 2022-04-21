@@ -5,16 +5,14 @@ import org.koin.core.component.inject
 import org.orbit.core.Path
 import org.orbit.core.phase.Phase
 import org.orbit.core.nodes.Node
-import org.orbit.graph.components.Annotations
+import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.isAnnotated
 import org.orbit.graph.phase.GraphErrors
-import org.orbit.serial.Serial
-import java.io.Serializable
 
 interface PathResolver<N: Node> : Phase<PathResolver.InputType<N>, PathResolver.Result>, KoinComponent {
-	sealed class Pass : Serializable {
+	sealed class Pass {
 		object Initial : Pass()
 		data class Subsequent(val index: Int) : Pass()
 		object Last : Pass()

@@ -1,17 +1,13 @@
 package org.orbit.core.components
 
-import org.orbit.serial.Serial
-import java.io.Serializable
-import kotlin.reflect.typeOf
-
-abstract class TokenType(
+sealed class TokenType(
 	val identifier: String,
 	val pattern: String,
 	val ignoreWhitespace: Boolean,
 	val isWhitespace: Boolean,
 	val family: Family
-) : Serializable {
-	sealed class Family(val name: String) : Serializable {
+) {
+	sealed class Family(val name: String) {
 		object Keyword : Family("Keyword")
 		object Id : Family("Id")
 		object Op : Family("Op")

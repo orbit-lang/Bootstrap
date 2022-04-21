@@ -5,7 +5,7 @@ import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.frontend.phase.Parser
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 
 class TraitDefRule(override val isRequired: Boolean = false) : EntityParseRule<TraitDefNode> {

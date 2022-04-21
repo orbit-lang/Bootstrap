@@ -3,7 +3,7 @@ package org.orbit.frontend.rules
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.*
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation

@@ -12,10 +12,8 @@ import org.orbit.core.nodes.TraitDefNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.core.nodes.TypeProjectionNode
 import org.orbit.frontend.phase.Parser
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.DuplicateTraitConformance
@@ -70,7 +68,7 @@ class TraitConformanceTypeResolver(override val node: TypeDefNode, override val 
                     OrbitMangler
                 )} which is not a Trait", node)
 
-            tc.annotate(traitType, Annotations.Type)
+//            tc.annotate(traitType, Annotations.Type)
 
             if (tc !is MetaTypeNode) {
 
@@ -91,7 +89,7 @@ class TraitConformanceTypeResolver(override val node: TypeDefNode, override val 
             // 1. Injected trait property definitions into type
             partialType = Type(node.getPath(), properties = traitType.properties, isRequired = node.isRequired)
 
-            node.annotate(partialType, Annotations.Type)
+//            node.annotate(partialType, Annotations.Type)
             context.add(partialType)
 
             if (traitType.signatures.isEmpty()) continue

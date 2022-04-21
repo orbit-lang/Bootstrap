@@ -4,14 +4,11 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.getPath
-import org.orbit.core.nodes.LValueTypeParameter
+import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.graph.components.*
-import org.orbit.graph.extensions.annotate
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
-import org.orbit.util.dispose
-import org.orbit.util.partial
 
 class TraitDefPathResolver(
     private val parentPath: Path

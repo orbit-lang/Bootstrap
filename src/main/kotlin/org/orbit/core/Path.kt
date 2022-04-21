@@ -1,14 +1,10 @@
 package org.orbit.core
 
-import org.json.JSONObject
-import org.orbit.graph.components.Scope
-import org.orbit.serial.Serial
 import org.orbit.util.AnyPrintable
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
-import java.io.Serializable
 
-open class Path(val relativeNames: List<String>) : Serial, Serializable, AnyPrintable, Collection<String> by relativeNames {
+open class Path(open val relativeNames: List<String>) : AnySerializable(), AnyPrintable, Collection<String> by relativeNames {
 	companion object {
 		val empty = Path()
 		val self = Path("Self")
@@ -85,9 +81,5 @@ open class Path(val relativeNames: List<String>) : Serial, Serializable, AnyPrin
 	override fun equals(other: Any?) = when (other) {
 		is Path -> other.relativeNames.joinToString("") == relativeNames.joinToString("")
 		else -> false
-	}
-
-	override fun describe(json: JSONObject) {
-		json.put("path.value", toString(OrbitMangler))
 	}
 }

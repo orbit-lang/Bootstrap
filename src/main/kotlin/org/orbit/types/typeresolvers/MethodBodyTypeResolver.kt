@@ -3,10 +3,8 @@ package org.orbit.types.typeresolvers
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.*
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -47,14 +45,14 @@ class MethodBodyTypeResolver(val signature: TypeSignature, override val node: Bl
                         throw invocation.make<TypeSystem>("Method '${binding.simpleName}' declares a return type of ${returnType.toString(printer)}, found ${varType.toString(printer)}", statementNode)
                     }
 
-                    statementNode.valueNode.expressionNode.annotate(varType, Annotations.Type)
+//                    statementNode.valueNode.expressionNode.annotate(varType, Annotations.Type)
                 }
 
                 is DeferNode -> {
                     // Create a new lexical scope derived from (i.e. inheriting existing bindings) the current scope
                     val localContext = Context(ctx)
 
-                    statementNode.annotate(returnType, Annotations.Type, true)
+//                    statementNode.annotate(returnType, Annotations.Type, true)
 
                     if (statementNode.returnValueIdentifier != null) {
                         if (!node.containsReturn) {

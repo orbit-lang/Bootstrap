@@ -4,7 +4,7 @@ import org.orbit.core.phase.ReifiedPhase
 import org.orbit.core.SourceProvider
 import org.orbit.core.nodes.DefineNode
 import org.orbit.frontend.StringSourceProvider
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.rules.DefineRule
 import org.orbit.util.Invocation
 

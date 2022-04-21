@@ -4,16 +4,13 @@ import org.orbit.types.next.inference.TypeReference
 
 interface IContextRead {
     fun getTypes() : List<TypeComponent>
-    fun getSignatureMap() : Map<Type, List<Signature>>
     fun getConformanceMap() : Map<TypeComponent, List<ITrait>>
-
     fun getType(name: String) : TypeComponent?
     fun <T: TypeComponent> getTypeAs(name: String) : T?
 }
 
 interface IContextWrite {
     fun extend(type: TypeComponent)
-    fun map(key: Type, value: Signature)
     fun map(key: TypeComponent, value: ITrait)
 }
 
@@ -21,17 +18,14 @@ interface IContext : IContextRead, IContextWrite
 
 class Ctx constructor() : IContext {
     private val types = mutableListOf<TypeComponent>()
-    private val signatureMap = mutableMapOf<Type, List<Signature>>()
     private val conformanceMap = mutableMapOf<TypeComponent, List<ITrait>>()
 
-    private constructor(types: List<TypeComponent>, signatureMap: Map<Type, List<Signature>>, conformanceMap: Map<TypeComponent, List<ITrait>>) : this() {
+    private constructor(types: List<TypeComponent>, conformanceMap: Map<TypeComponent, List<ITrait>>) : this() {
         this.types.addAll(types)
-        this.signatureMap.putAll(signatureMap)
         this.conformanceMap.putAll(conformanceMap)
     }
 
     override fun getTypes() : List<TypeComponent> = types
-    override fun getSignatureMap() : Map<Type, List<Signature>> = signatureMap
     override fun getConformanceMap() : Map<TypeComponent, List<ITrait>> = conformanceMap
 
     override fun <T : TypeComponent> getTypeAs(name: String): T?
@@ -54,18 +48,6 @@ class Ctx constructor() : IContext {
     fun merge(other: Ctx) : Ctx {
         val distinctTypes = (types + other.types).distinctBy { it.fullyQualifiedName }
 
-        val distinctSignatureKeys = (signatureMap.keys + other.signatureMap.keys)
-            .distinctBy { it.fullyQualifiedName }
-
-        val distinctSignatures = mutableMapOf<Type, List<Signature>>()
-        for (key in distinctSignatureKeys) {
-            val values1 = getSignatures(key)
-            val values2 = other.getSignatures(key)
-            val merged = (values1 + values2).distinctBy { it.fullyQualifiedName }
-
-            distinctSignatures[key] = merged
-        }
-
         val distinctConformanceKeys = (conformanceMap.keys + other.conformanceMap.keys)
             .distinctBy { it.fullyQualifiedName }
 
@@ -78,12 +60,11 @@ class Ctx constructor() : IContext {
             distinctConformance[key] = merged
         }
 
-        return Ctx(distinctTypes, distinctSignatures, distinctConformance)
+        return Ctx(distinctTypes, distinctConformance)
     }
 
-    fun getSignatures(type: Type) : List<Signature>
-        = signatureMap.filter { it.key == type }
-            .values.firstOrNull() ?: emptyList()
+    fun getSignatures(type: Type) : List<ISignature>
+        = types.filterIsInstance<ISignature>()
 
     fun getConformance(type: TypeComponent) : List<ITrait>
         = conformanceMap.filter { it.key == type }
@@ -95,15 +76,8 @@ class Ctx constructor() : IContext {
         }
     }
 
-    override fun map(key: Type, value: Signature) = when (val sigs = signatureMap[key]) {
-        null -> signatureMap[key] = listOf(value)
-        else -> signatureMap[key] = (sigs + value).distinctBy { it.fullyQualifiedName }
-    }
-
     override fun map(key: TypeComponent, value: ITrait) = when (val conf = conformanceMap[key]) {
         null -> conformanceMap[key] = listOf(value)
         else -> conformanceMap[key] = (conf + value).distinctBy { it.fullyQualifiedName }
     }
-
-
 }

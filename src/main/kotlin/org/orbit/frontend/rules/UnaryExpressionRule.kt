@@ -1,7 +1,7 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.UnaryExpressionNode
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.parseTrailing
 import org.orbit.frontend.phase.Parser
 

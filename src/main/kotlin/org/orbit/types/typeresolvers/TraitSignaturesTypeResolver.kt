@@ -5,10 +5,8 @@ import org.koin.core.component.inject
 import org.orbit.core.getPath
 import org.orbit.core.getType
 import org.orbit.core.nodes.TraitDefNode
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.Context
 import org.orbit.types.components.SignatureProtocol
 import org.orbit.types.components.Trait
@@ -33,7 +31,7 @@ class TraitSignaturesTypeResolver(override val node: TraitDefNode, override val 
 
         partialTrait = Trait(node.getPath(), properties = partialTrait.properties, signatures = signatures)
 
-        node.annotate(partialTrait, Annotations.Type)
+//        node.annotate(partialTrait, Annotations.Type)
 
         return partialTrait
     }

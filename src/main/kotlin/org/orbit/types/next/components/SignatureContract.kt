@@ -2,14 +2,14 @@ package org.orbit.types.next.components
 
 import org.orbit.util.Printer
 
-data class SignatureContract(override val trait: ITrait, override val input: Signature) : Contract<Signature> {
-    private fun isMatchingSignature(ctx: Ctx, other: Signature) : Boolean {
-        if (input.relativeName != other.relativeName) return false
+data class SignatureContract(override val trait: ITrait, override val input: ISignature) : Contract<ISignature> {
+    private fun isMatchingSignature(ctx: Ctx, other: ISignature) : Boolean {
+        if (input.getName() != other.getName()) return false
 
-        val isReceiverEq = AnyEq.eq(ctx, input.receiver, other.receiver)
-        val areParametersEq = input.parameters.count() == other.parameters.count()
-            && input.parameters.zip(other.parameters).allEq(ctx)
-        val isReturnEq = AnyEq.eq(ctx, input.returns, other.returns)
+        val isReceiverEq = AnyEq.eq(ctx, input.getReceiverType(), other.getReceiverType())
+        val areParametersEq = input.getParameterTypes().count() == other.getParameterTypes().count()
+            && input.getParameterTypes().zip(other.getParameterTypes()).allEq(ctx)
+        val isReturnEq = AnyEq.eq(ctx, input.getReturnType(), other.getReturnType())
 
         return isReceiverEq && areParametersEq && isReturnEq
     }

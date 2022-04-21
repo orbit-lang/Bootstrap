@@ -6,7 +6,7 @@ data class ReturnStatementNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val valueNode: RValueNode
-) : Node(firstToken, lastToken) {
+) : Node() {
 	constructor(firstToken: Token, lastToken: Token, expressionNode: ExpressionNode)
 		:this (firstToken, lastToken, RValueNode(expressionNode))
 

@@ -5,13 +5,9 @@ import org.orbit.core.components.Token
 import org.orbit.core.components.TokenType
 import org.orbit.core.components.TokenTypeProvider
 import org.orbit.frontend.StringSourceProvider
-import org.orbit.frontend.components.TokenTypes
 import org.orbit.frontend.phase.Lexer
-import org.orbit.frontend.rules.ParseRule
 import org.orbit.util.Invocation
 import org.orbit.util.Unix
-import org.orbit.util.partialReverse
-import org.orbit.util.partialReverseLast2
 
 //sealed class K(open val name: String) {
 //    object InhabitedType : K("*")
@@ -325,7 +321,7 @@ class λ {
         object Variable : TokenType("Var", "[a-zA-Z]", true, false, TokenType.Family.Id)
 
         override fun getTokenTypes(): List<TokenType> {
-            return listOf(Lambda, Variable, org.orbit.frontend.components.TokenTypes.Dot, org.orbit.frontend.components.TokenTypes.LParen, org.orbit.frontend.components.TokenTypes.RParen, org.orbit.frontend.components.TokenTypes.Colon)
+            return listOf(Lambda, Variable, org.orbit.core.components.TokenTypes.Dot, org.orbit.core.components.TokenTypes.LParen, org.orbit.core.components.TokenTypes.RParen, org.orbit.core.components.TokenTypes.Colon)
         }
     }
 
@@ -369,7 +365,7 @@ class λ {
         fun parse() : STL.Term = when (val next = tokens[idx].type) {
             is λ.TokenTypes.Lambda -> parseLambda()
             is λ.TokenTypes.Variable -> parseVar()
-            is org.orbit.frontend.components.TokenTypes.LParen -> parseGrouped()
+            is org.orbit.core.components.TokenTypes.LParen -> parseGrouped()
             else -> throw Exception("Unrecognised token: $next")
         }
     }

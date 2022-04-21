@@ -6,6 +6,8 @@ class TypeIdentifierWildcardNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val fullyQualifiedPart: TypeIdentifierNode
-) : TypeExpressionNode(firstToken, lastToken, fullyQualifiedPart.value) {
+) : TypeExpressionNode() {
+    override val value: String = fullyQualifiedPart.value
+
     override fun getChildren(): List<Node> = listOf(fullyQualifiedPart)
 }

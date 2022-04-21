@@ -6,7 +6,7 @@ import org.orbit.backend.codegen.CodeGenFactory
 import org.orbit.backend.codegen.common.AbstractReturnStatementUnit
 import org.orbit.core.*
 import org.orbit.core.nodes.ReturnStatementNode
-import org.orbit.graph.components.StringKey
+import org.orbit.core.StringKey
 
 class ReturnStatementUnit(override val node: ReturnStatementNode, override val depth: Int, private val resultIsDeferred: Boolean, override val deferFunctions: List<StringKey>) : AbstractReturnStatementUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()

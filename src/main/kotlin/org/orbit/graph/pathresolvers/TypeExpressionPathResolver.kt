@@ -2,11 +2,10 @@ package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
 import org.orbit.core.nodes.*
-import org.orbit.graph.components.Annotations
+import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getGraphIDOrNull
 import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.util.Invocation

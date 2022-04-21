@@ -1,9 +1,10 @@
 package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
+import org.orbit.core.Scope
+import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ConstructorNode
 import org.orbit.graph.components.*
-import org.orbit.graph.extensions.annotate
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 

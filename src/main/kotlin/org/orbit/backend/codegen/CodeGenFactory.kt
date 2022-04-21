@@ -2,7 +2,7 @@ package org.orbit.backend.codegen
 
 import org.orbit.backend.codegen.common.*
 import org.orbit.core.nodes.*
-import org.orbit.graph.components.StringKey
+import org.orbit.core.StringKey
 import java.math.BigInteger
 
 interface CodeGenFactory<H: AbstractHeader> {

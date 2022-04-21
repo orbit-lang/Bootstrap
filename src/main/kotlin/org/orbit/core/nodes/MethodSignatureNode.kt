@@ -1,10 +1,7 @@
 package org.orbit.core.nodes
 
+import org.orbit.core.AnySerializable
 import org.orbit.core.components.Token
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.annotate
-import org.orbit.serial.Serial
-import java.io.Serializable
 
 data class MethodSignatureNode(
     override val firstToken: Token,
@@ -15,8 +12,8 @@ data class MethodSignatureNode(
     val returnTypeNode: TypeExpressionNode?,
 	val typeParameters: TypeParametersNode? = null,
 	val typeConstraints: List<TypeConstraintWhereClauseNode> = emptyList()
-) : Node(firstToken, lastToken) {
-	inline fun <reified T> annotateParameter(idx: Int, value: T, tag: Annotations) where T: Serial, T: Serializable {
+) : Node() {
+	inline fun <reified T: AnySerializable> annotateParameter(idx: Int, value: T, tag: Annotations) {
 		parameterNodes[idx].annotate(value, tag)
 	}
 

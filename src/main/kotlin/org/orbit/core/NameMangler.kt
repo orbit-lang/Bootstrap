@@ -1,11 +1,11 @@
 package org.orbit.core
 
 import org.orbit.core.nodes.Node
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.getAnnotation
+import org.orbit.core.nodes.NodeAnnotationTag
+import org.orbit.core.nodes.Annotations
 import org.orbit.types.components.*
 
-class FullyQualifiedPath(relativeNames: List<String>) : Path(relativeNames) {
+class FullyQualifiedPath(override val relativeNames: List<String>) : Path(relativeNames) {
 	constructor(path: Path) : this(path.relativeNames)
 	constructor(vararg relativeNames: String) : this(relativeNames.toList())
 
@@ -25,18 +25,19 @@ class FullyQualifiedPath(relativeNames: List<String>) : Path(relativeNames) {
 }
 
 fun Node.getPathOrNull() : Path? {
-	return getAnnotation<Path>(Annotations.Path)?.value
+	return getAnnotation<Path>(Annotations.Path as NodeAnnotationTag<Path>)?.value
 }
 
 fun Node.getPath() : Path {
-	return getAnnotation<Path>(Annotations.Path)!!.value
+	return getAnnotation<Path>(Annotations.Path as NodeAnnotationTag<Path>)!!.value
 }
 
 fun Node.getType() : TypeProtocol {
-	val type = getAnnotation<TypeProtocol>(Annotations.Type)
-		?: throw RuntimeException("HERE")
-
-	return type!!.value
+//	val type = getAnnotation<TypeProtocol>(Annotations.Type as NodeAnnotationTag<TypeProtocol>)
+//		?: throw RuntimeException("HERE")
+//
+//	return type!!.value
+	TODO("NODE GET TYPE")
 }
 
 fun TypeProtocol.getFullyQualifiedPath() : Path = when (this) {

@@ -2,15 +2,10 @@ package org.orbit.types.typeresolvers
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.Path
-import org.orbit.core.getPath
 import org.orbit.core.nodes.MethodSignatureNode
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
-import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
 
 class MethodSignatureTypeResolver(override val node: MethodSignatureNode, override val binding: Binding, private val enclosingType: Entity? = null) : TypeResolver<MethodSignatureNode, TypeSignature>, KoinComponent {
@@ -32,7 +27,7 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
             .resolve(environment, context)
             .evaluate(context) as ValuePositionType
 
-        receiver.annotate(receiverType, Annotations.Type)
+//        receiver.annotate(receiverType, Annotations.Type)
 
         node.parameterNodes.forEach {
             val resolver = TypeExpressionTypeResolver(it.typeExpressionNode, Binding.empty)
@@ -52,13 +47,13 @@ class MethodSignatureTypeResolver(override val node: MethodSignatureNode, overri
                 .evaluate(context) as ValuePositionType
         }
 
-        node.returnTypeNode?.annotate(returnType, Annotations.Type)
+//        node.returnTypeNode?.annotate(returnType, Annotations.Type)
 
         // NOTE - Decided to erase the difference between Type & Instance methods here.
         //  From this point, the compiler sees instance methods as type methods with an extra "self" param
         val funcType = TypeSignature(node.identifierNode.identifier, receiverType, argTypes, returnType, typeParameters)
 
-        node.annotate(funcType, Annotations.Type)
+//        node.annotate(funcType, Annotations.Type)
 
         return funcType
     }

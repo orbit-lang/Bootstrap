@@ -7,7 +7,7 @@ class LambdaLiteralNode(
     override val lastToken: Token,
     val bindings: List<PairNode>,
     val body: BlockNode
-) : ExpressionNode(firstToken, lastToken), ValueRepresentableNode {
+) : ExpressionNode(), ValueRepresentableNode {
     override fun getChildren(): List<Node>
         = bindings + body
 }

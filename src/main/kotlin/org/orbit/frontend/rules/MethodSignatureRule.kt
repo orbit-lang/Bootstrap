@@ -4,9 +4,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.*
 import org.orbit.core.components.SourcePosition
-import org.orbit.core.components.Token
 import org.orbit.frontend.components.ParseError
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.phase.Parser
 import java.util.*
 import org.orbit.frontend.extensions.unaryPlus

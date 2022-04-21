@@ -1,15 +1,13 @@
 package org.orbit.types.components
 
-import jdk.nashorn.internal.parser.TokenType
 import org.orbit.core.OrbitMangler
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.IdentifierNode
 import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.TypeIdentifierNode
-import org.orbit.frontend.components.TokenTypes
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.annotate
+import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.Annotations
 import org.orbit.util.Printer
 
 data class Parameter(override val name: String, val type: TypeProtocol) : TypeProtocol {
@@ -26,12 +24,12 @@ data class Parameter(override val name: String, val type: TypeProtocol) : TypePr
         val typeNode = TypeIdentifierNode(typeToken, typeToken, type.name)
 
         typeNode.annotate(typePath, Annotations.Path)
-        typeNode.annotate(type, Annotations.Type)
+//        typeNode.annotate(type, Annotations.Type)
 
         val node = PairNode(nameToken, typeToken, nameNode, typeNode)
 
         node.annotate(typePath, Annotations.Path)
-        node.annotate(type, Annotations.Type)
+//        node.annotate(type, Annotations.Type)
 
         return node
     }

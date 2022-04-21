@@ -7,10 +7,6 @@ import org.orbit.backend.codegen.CodeUnit
 import org.orbit.backend.codegen.common.AbstractDeferStatementUnit
 import org.orbit.core.*
 import org.orbit.core.nodes.DeferNode
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.components.StringKey
-import org.orbit.graph.extensions.annotate
-import org.orbit.graph.extensions.getAnnotation
 
 class DeferFunctionUnit(override val node: DeferNode, override val depth: Int, private val index: Int) : CodeUnit<DeferNode>, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
@@ -31,14 +27,15 @@ class DeferFunctionUnit(override val node: DeferNode, override val depth: Int, p
         val body = codeGenFactory.getBlockUnit(node.blockNode, depth + 1, true, false)
             .generate(mangler)
 
-        node.annotate(StringKey(funcName), key = Annotations.DeferFunction, true)
-        node.blockNode.annotate(StringKey(funcName), key = Annotations.DeferFunction, true)
-
-        return """
-            |void $funcName($param) {
-            |$body
-            |}
-        """.trimMargin().prependIndent(indent())
+        return ""
+//        node.annotate(StringKey(funcName), key = Annotations.DeferFunction, true)
+//        node.blockNode.annotate(StringKey(funcName), key = Annotations.DeferFunction, true)
+//
+//        return """
+//            |void $funcName($param) {
+//            |$body
+//            |}
+//        """.trimMargin().prependIndent(indent())
     }
 }
 
@@ -48,9 +45,9 @@ class DeferStatementUnit(override val node: DeferNode, override val depth: Int) 
 
     // TODO
     override fun generate(mangler: Mangler): String {
-        val deferFunc = node.getAnnotation<StringKey>(Annotations.DeferFunction)
-            ?.value
-            ?: return ""
+//        val deferFunc = node.getAnnotation<StringKey>(Annotations.DeferFunction)
+//            ?.value
+//            ?: return ""
 
         return ""
     }

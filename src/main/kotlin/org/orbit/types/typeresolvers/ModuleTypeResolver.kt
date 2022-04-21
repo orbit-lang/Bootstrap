@@ -5,10 +5,8 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.ModuleNode
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -41,7 +39,7 @@ class ModuleTypeResolver(override val node: ModuleNode, override val binding: Bi
             }
 
         return Module(path.toString(OrbitMangler), typeAliases).also {
-            node.annotate(it, Annotations.Type)
+//            node.annotate(it, Annotations.Type)
         }
     }
 }

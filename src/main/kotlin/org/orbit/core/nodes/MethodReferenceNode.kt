@@ -7,7 +7,7 @@ data class MethodReferenceNode(
     override val lastToken: Token,
     val typeIdentifierNode: TypeIdentifierNode,
     val identifierNode: IdentifierNode
-) : ExpressionNode(firstToken, lastToken) {
+) : ExpressionNode() {
     override fun getChildren(): List<Node> {
         return listOf(typeIdentifierNode, identifierNode)
     }

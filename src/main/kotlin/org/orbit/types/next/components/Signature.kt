@@ -7,6 +7,10 @@ import org.orbit.util.Printer
 interface ISignature : DeclType {
     fun getSignature(printer: Printer) : ISignature
     fun getSignatureTypeParameters() : List<Parameter> = emptyList()
+    fun getName() : String
+    fun getReceiverType() : TypeComponent
+    fun getParameterTypes() : List<TypeComponent>
+    fun getReturnType() : TypeComponent
 }
 
 data class Signature(val relativeName: String, val receiver: TypeComponent, val parameters: List<TypeComponent>, val returns: TypeComponent, override val isSynthetic: Boolean = false) : ISignature {
@@ -22,6 +26,11 @@ data class Signature(val relativeName: String, val receiver: TypeComponent, val 
     }
 
     override fun getSignature(printer: Printer): ISignature = this
+
+    override fun getName(): String = relativeName
+    override fun getReceiverType(): TypeComponent = receiver
+    override fun getParameterTypes(): List<TypeComponent> = parameters
+    override fun getReturnType(): TypeComponent = returns
     
     fun derive() : Trait {
         val trait = Trait(getPath(OrbitMangler) + "CallableInterface")

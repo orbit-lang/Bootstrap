@@ -8,6 +8,8 @@ class TypeSynthesisNode(
     override val lastToken: Token,
     val kind: Kind,
     val targetNode: TypeExpressionNode
-) : TypeExpressionNode(firstToken, lastToken, targetNode.value) {
+) : TypeExpressionNode() {
+    override val value: String = targetNode.value
+
     override fun getChildren(): List<Node> = listOf(targetNode)
 }

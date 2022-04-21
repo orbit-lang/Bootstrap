@@ -6,7 +6,7 @@ import org.orbit.core.nodes.BlockNode
 import org.orbit.core.nodes.LambdaLiteralNode
 import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.TypeIdentifierNode
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 

@@ -3,7 +3,7 @@ package org.orbit.frontend.rules
 import org.orbit.core.nodes.ExtensionNode
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.WhereClauseNode
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 

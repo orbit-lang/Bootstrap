@@ -8,13 +8,9 @@ import org.orbit.core.getType
 import org.orbit.core.injectResult
 import org.orbit.core.nodes.BlockNode
 import org.orbit.core.nodes.MethodDefNode
-import org.orbit.core.nodes.ReturnStatementNode
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
-import org.orbit.graph.extensions.annotate
 import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.Context
-import org.orbit.types.components.TypeInferenceUtil
 import org.orbit.types.components.TypeSignature
 import org.orbit.types.typeresolvers.MethodBodyTypeResolver
 import org.orbit.util.Printer

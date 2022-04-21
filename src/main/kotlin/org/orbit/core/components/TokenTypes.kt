@@ -1,7 +1,4 @@
-package org.orbit.frontend.components
-
-import org.orbit.core.components.TokenType
-import org.orbit.core.components.TokenTypeProvider
+package org.orbit.core.components
 
 object TokenTypes : TokenTypeProvider {
     // Symbols
@@ -22,7 +19,7 @@ object TokenTypes : TokenTypeProvider {
     object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false, Family.White)
 
 	// Comments
-	object MultiLineComment : TokenType("MultiLineComment", "\\/\\*.**\\/", true, false, Family.Comment)
+    object MultiLineComment : TokenType("MultiLineComment", "\\/\\*.**\\/", true, false, Family.Comment)
 	
     // Keywords
     object Api : TokenType("API", "api", true, false, Family.Keyword)
@@ -30,7 +27,7 @@ object TokenTypes : TokenTypeProvider {
     object Trait : TokenType("Trait", "trait", true, false, Family.Keyword + Family.Kind)
     object With : TokenType("With", "with", true, false, Family.Keyword)
     object Within : TokenType("Within", "within", true, false, Family.Keyword)
-	object Return : TokenType("Return", "return", true, false, Family.Keyword)
+    object Return : TokenType("Return", "return", true, false, Family.Keyword)
     object Module : TokenType("Module", "module", true, false, Family.Keyword)
     object Define : TokenType("Define", "define", true, false, Family.Keyword)
     object Defer : TokenType("Defer", "defer", true, false, Family.Keyword)
@@ -56,8 +53,10 @@ object TokenTypes : TokenTypeProvider {
     object Real : TokenType("Real", "[0-9]+\\\\.[0-9]+", true, false, Family.Num)
     object Identifier : TokenType("Identifier", "[a-z_]+[a-zA-Z0-9_]*", true, false, Family.Id)
     object TypeIdentifier : TokenType("TypeIdentifier", "([A-Z]+[a-zA-Z0-9_]*)(::[A-Z]+[a-zA-Z0-9_]*)*(::\\*)?", true, false, Family.Id)
-	object Symbol : TokenType("Symbol", "\\:[a-zA-Z_]+[a-zA-Z0-9_]*", false, false, Family.Id)
-	object EOS : TokenType("", "", true, false, Family.White)
+    object Symbol : TokenType("Symbol", "\\:[a-zA-Z_]+[a-zA-Z0-9_]*", false, false, Family.Id)
+    object EOS : TokenType("", "", true, false, Family.White)
+
+    data class HigherKind(val level: kotlin.Int) : TokenType("Type$level", "", true, false, TokenType.Family.Kind)
 
     override fun getTokenTypes() : List<TokenType> {
         // NOTE - Keywords MUST be listed before the Identifier token type

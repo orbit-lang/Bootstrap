@@ -1,19 +1,16 @@
-package org.orbit.graph.components
+package org.orbit.core
 
-import org.json.JSONObject
-import org.orbit.serial.Serial
-import java.io.Serializable
 import java.util.*
 
-sealed class GraphEntity : Serializable {
+sealed class GraphEntity : AnySerializable() {
     class Alias(name: String, id: ID) : Vertex(name, id)
 
     // A single point in the dependency graph
     open class Vertex(val name: String, val id: ID = ID.random()) : GraphEntity() {
-        data class ID(val uuid: UUID) : Serial, Serializable {
+        data class ID(val uuid: String) : AnySerializable() {
             companion object {
                 val Self = random()
-                fun random() : ID = ID(UUID.randomUUID())
+                fun random() : ID = ID(UUID.randomUUID().toString())
             }
 
             override fun equals(other: Any?): Boolean = when (other) {
@@ -22,11 +19,7 @@ sealed class GraphEntity : Serializable {
             }
 
             override fun toString(): String {
-                return uuid.toString()
-            }
-
-            override fun describe(json: JSONObject) {
-                json.put("vertex.id", uuid.toString())
+                return uuid
             }
         }
 

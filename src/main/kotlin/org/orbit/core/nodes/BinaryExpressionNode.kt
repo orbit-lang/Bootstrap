@@ -11,18 +11,9 @@ data class BinaryExpressionNode(
     val operator: String,
     val left: ExpressionNode,
     val right: ExpressionNode
-) : ExpressionNode(firstToken, lastToken), Serial {
+) : ExpressionNode() {
 	override fun getChildren() : List<Node> {
 		return listOf(left, right)
-	}
-
-	override fun describe(json: JSONObject) {
-		val l = Serialiser.serialise(left as Serial)
-		val r = Serialiser.serialise(right as Serial)
-
-		json.put("OP", operator)
-		json.put("LEFT", l)
-		json.put("RIGHT", r)
 	}
 }
 
@@ -31,7 +22,7 @@ data class UnaryExpressionNode(
     override val lastToken: Token,
     val operator: String,
     val operand: ExpressionNode
-) : ExpressionNode(firstToken, lastToken), Serial {
+) : ExpressionNode() {
 	override fun getChildren(): List<Node> {
 		return listOf(operand)
 	}

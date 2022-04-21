@@ -1,11 +1,13 @@
 package org.orbit.graph.components
 
+import org.orbit.core.GraphEntity
 import org.orbit.core.Path
+import org.orbit.core.Scope
+import org.orbit.core.ScopeIdentifier
+import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.Node
-import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getScopeIdentifier
 import org.orbit.graph.extensions.getScopeIdentifierOrNull
-import org.orbit.graph.extensions.isAnnotated
 
 class Environment(
     val ast: Node,

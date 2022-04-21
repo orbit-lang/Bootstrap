@@ -1,20 +1,21 @@
 package org.orbit.util
 
+import org.orbit.core.Scope
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.getResult
 import org.orbit.graph.components.Graph
-import org.orbit.graph.components.Scope
 import org.orbit.graph.phase.NameResolverResult
-import org.orbit.types.components.Context
+import org.orbit.types.next.phase.TypeSystem
+import org.orbit.util.next.ITypeMapRead
 import java.io.*
 
-data class OrbitLibrary(val scopes: List<Scope>, val context: Context, val graph: Graph) : Serializable {
+data class OrbitLibrary(val scopes: List<Scope>, val typeMap: ITypeMapRead, val graph: Graph) : Serializable {
 	companion object : FilenameFilter {
 		fun fromInvocation(invocation: Invocation) : OrbitLibrary {
 			val names = invocation.getResult<NameResolverResult>(CompilationSchemeEntry.canonicalNameResolver)
-			val context = invocation.getResult<Context>(CompilationSchemeEntry.typeSystem)
+			val typeSystemResult = invocation.getResult<TypeSystem.Result>(CompilationSchemeEntry.typeSystem)
 
-			return OrbitLibrary(names.environment.scopes, context, names.graph)
+			return OrbitLibrary(names.environment.scopes, typeSystemResult.typeMap, names.graph)
 		}
 
 		fun fromPath(path: File) : OrbitLibrary {

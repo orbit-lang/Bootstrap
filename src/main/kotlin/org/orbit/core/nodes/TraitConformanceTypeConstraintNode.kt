@@ -7,7 +7,7 @@ data class TraitConformanceTypeConstraintNode(
     override val lastToken: Token,
     val constrainedTypeNode: TypeIdentifierNode,
     val constraintTraitNode: TypeExpressionNode
-) : TypeConstraintNode(firstToken, lastToken) {
+) : TypeConstraintNode() {
     override fun getChildren(): List<Node>
         = listOf(constrainedTypeNode, constraintTraitNode)
 }

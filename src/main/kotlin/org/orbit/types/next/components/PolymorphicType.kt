@@ -2,6 +2,7 @@ package org.orbit.types.next.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.util.Printer
+import org.orbit.util.getKoinInstance
 import org.orbit.util.toPath
 
 interface ParameterisedType : TypeComponent {
@@ -24,15 +25,18 @@ data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: Li
         return HigherKind(inputKind, IntrinsicKinds.Type(baseType.kind.level - 1))
     }
 
+    private fun getSignatureNever() = Never("${baseType.toString(getKoinInstance())} is not a Signature")
+
     override fun getSignature(printer: Printer): ISignature = when (baseType) {
         is ISignature -> baseType.getSignature(printer)
-        else -> Never("${baseType.toString(printer)} is not a Signature")
+        else -> getSignatureNever()
     }
 
-    override fun getSignatureTypeParameters(): List<Parameter> = when (baseType) {
-        is Signature -> parameters
-        else -> emptyList()
-    }
+    override fun getName(): String = getSignature(getKoinInstance()).getName()
+    override fun getReceiverType(): TypeComponent = getSignature(getKoinInstance()).getReceiverType()
+    override fun getParameterTypes(): List<TypeComponent> = getSignature(getKoinInstance()).getParameterTypes()
+    override fun getReturnType(): TypeComponent = getSignature(getKoinInstance()).getReturnType()
+    override fun getSignatureTypeParameters(): List<Parameter> = getSignature(getKoinInstance()).getSignatureTypeParameters()
 
     override fun indexOf(parameter: Parameter) : Int
         = parameters.indexOf(parameter)

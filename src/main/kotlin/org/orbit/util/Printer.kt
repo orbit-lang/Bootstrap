@@ -4,9 +4,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.frontend.components.TokenTypes
-import org.orbit.types.components.TypeProtocol
-import java.awt.print.Printable
 
 enum class PrintableKey(val generator: (PrintableFactory) -> String) {
 	Bold(PrintableFactory::getBold),

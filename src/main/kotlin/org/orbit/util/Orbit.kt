@@ -1,6 +1,8 @@
 package org.orbit.util
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.dsl.module
@@ -13,15 +15,18 @@ import org.orbit.backend.codegen.swift.units.SwiftHeader
 import org.orbit.backend.codegen.swift.units.SwiftMangler
 import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
+import org.orbit.core.Path
 import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.nodes.*
 import org.orbit.core.phase.CompilerGenerator
 import org.orbit.core.single
+import org.orbit.graph.components.*
 import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.types.next.inference.*
-import org.orbit.types.next.phase.TypeProjectionPhase
 import org.orbit.util.next.BindingScope
+import org.orbit.util.next.CtxDeserializer
+import org.orbit.util.next.ITypeMapRead
 import org.orbit.util.next.TypeMap
 
 val mainModule = module {
@@ -115,6 +120,16 @@ val mainModule = module {
 	}
 
 	factory { ASTUtil() }
+
+	single<Gson> {
+		GsonBuilder()
+			.registerTypeAdapter(Binding.Kind::class.java, KindSerialiser)
+			.registerTypeAdapter(Binding.Kind::class.java, KindDeserialiser)
+			.registerTypeAdapter(Path::class.java, PathSerialiser)
+			.registerTypeAdapter(Path::class.java, PathDeserialiser)
+			.registerTypeAdapter(ITypeMapRead::class.java, CtxDeserializer)
+			.create()
+	}
 }
 
 inline fun <reified T> getKoinInstance(): T {

@@ -2,15 +2,12 @@ package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
 import org.orbit.core.components.TokenType
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.types.components.ConformanceBoundsConstraint
 import org.orbit.types.components.EntityConstructorConstraint
 import org.orbit.types.components.EqualityBoundsConstraint
 
-abstract class WhereClauseExpressionNode(
-    override val firstToken: Token,
-    override val lastToken: Token
-) : Node(firstToken, lastToken)
+abstract class WhereClauseExpressionNode : Node()
 
 enum class TypeBoundsExpressionType(val op: TokenType, val entityConstructorConstraint: EntityConstructorConstraint) {
     Equals(TokenTypes.Assignment, EqualityBoundsConstraint), Conforms(TokenTypes.Colon, ConformanceBoundsConstraint);
@@ -30,7 +27,7 @@ data class WhereClauseTypeBoundsExpressionNode(
     val boundsType: TypeBoundsExpressionType,
     val sourceTypeExpression: TypeExpressionNode,
     val targetTypeExpression: TypeExpressionNode
-) : WhereClauseExpressionNode(firstToken, lastToken) {
+) : WhereClauseExpressionNode() {
     override fun getChildren(): List<Node> = listOf(sourceTypeExpression, targetTypeExpression)
 }
 
@@ -38,6 +35,6 @@ data class WhereClauseNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val whereExpression: WhereClauseExpressionNode
-) : Node(firstToken, lastToken) {
+) : Node() {
     override fun getChildren(): List<Node> = listOf(whereExpression)
 }

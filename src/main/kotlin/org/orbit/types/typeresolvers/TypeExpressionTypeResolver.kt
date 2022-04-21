@@ -6,13 +6,10 @@ import org.orbit.core.getPath
 import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.TypeIdentifierNode
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
 import org.orbit.util.Invocation
-import org.orbit.util.partial
 
 class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override val binding: Binding) : TypeResolver<TypeExpressionNode, TypeExpression>,
     KoinComponent {
@@ -28,7 +25,7 @@ class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override
                 else -> abstractType as Entity
             }
 
-            node.annotate(type, Annotations.Type)
+//            node.annotate(type, Annotations.Type)
 
             type
         }
@@ -36,7 +33,7 @@ class TypeExpressionTypeResolver(override val node: TypeExpressionNode, override
         is MetaTypeNode -> {
             val type = MetaTypeInference.infer(context, node, null) as TypeExpression
 
-            node.annotate(type, Annotations.Type)
+//            node.annotate(type, Annotations.Type)
 
             type
         }

@@ -10,9 +10,6 @@ import org.orbit.core.Mangler
 import org.orbit.core.injectQualified
 import org.orbit.core.nodes.MethodCallNode
 import org.orbit.core.nodes.ReferenceCallNode
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.extensions.getAnnotation
-import org.orbit.types.components.SignatureProtocol
 
 class ReferenceCallUnit(override val node: ReferenceCallNode, override val depth: Int) : AbstractReferenceCallUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
@@ -43,22 +40,24 @@ class MethodCallUnit(override val node: MethodCallNode, override val depth: Int)
             return "$receiver.${node.messageIdentifier.identifier}"
         }
 
-        val signature = node.getAnnotation<SignatureProtocol<*>>(Annotations.Type)?.value
-            ?: TODO("@CallUnit:64")
+        return ""
 
-        val sig = signature.toString(mangler)
-        val rParams = when (node.isInstanceCall) {
-            true -> (listOf(node.receiverExpression) + node.parameterNodes)
-            else -> node.parameterNodes
-        }
-
-        val params = rParams.zip(signature.parameters).joinToString(", ") {
-            val expr = codeGenFactory.getExpressionUnit(it.first, depth)
-                .generate(mangler)
-
-            "${it.second.name}: $expr"
-        }
-
-        return "$sig($params)"
+//        val signature = node.getAnnotation<SignatureProtocol<*>>(Annotations.Type)?.value
+//            ?: TODO("@CallUnit:64")
+//
+//        val sig = signature.toString(mangler)
+//        val rParams = when (node.isInstanceCall) {
+//            true -> (listOf(node.receiverExpression) + node.parameterNodes)
+//            else -> node.parameterNodes
+//        }
+//
+//        val params = rParams.zip(signature.parameters).joinToString(", ") {
+//            val expr = codeGenFactory.getExpressionUnit(it.first, depth)
+//                .generate(mangler)
+//
+//            "${it.second.name}: $expr"
+//        }
+//
+//        return "$sig($params)"
     }
 }

@@ -8,9 +8,7 @@ import org.orbit.core.injectResult
 import org.orbit.core.nodes.EntityConstructorNode
 import org.orbit.core.nodes.TraitConstructorNode
 import org.orbit.core.nodes.TypeConstructorNode
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
-import org.orbit.graph.extensions.annotate
 import org.orbit.graph.phase.NameResolverResult
 import org.orbit.types.components.*
 import org.orbit.types.typeresolvers.MethodSignatureTypeResolver
@@ -34,7 +32,7 @@ class CreateTraitConstructorStub(
 
         val tc = TraitConstructor(node = it, typeParameters)
 
-        it.annotate(tc, Annotations.Type)
+//        it.annotate(tc, Annotations.Type)
 
         tc
     }
@@ -57,7 +55,7 @@ class ResolveTraitConstructorSignatures(private val node: TraitConstructorNode) 
 
         val nTraitConstructor = TraitConstructor(traitConstructor.name, traitConstructor.typeParameters, traitConstructor.properties, traitConstructor.partiallyResolvedTraitConstructors, signatures)
 
-        node.annotate(nTraitConstructor, Annotations.Type, mergeOnConflict = true)
+//        node.annotate(nTraitConstructor, Annotations.Type, mergeOnConflict = true)
 
         context.add(nTraitConstructor)
     }

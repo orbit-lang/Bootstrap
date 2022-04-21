@@ -7,7 +7,7 @@ data class EitherNode<N: Node, M: Node>(
     override val lastToken: Token,
     val leftNode: N?,
     val rightNode: M?
-) : Node(firstToken, lastToken) {
+) : Node() {
     val isLeft: Boolean get() = leftNode != null
     val isRight: Boolean get() = rightNode != null
 

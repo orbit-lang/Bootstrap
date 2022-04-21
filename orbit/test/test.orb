@@ -3,9 +3,8 @@ module Test {
     type B(a A)
     type Main
 
-    (A) new () (A) = A()
+    type projection Main : synthesise(trait B)
+        where a by { A() }
 
-    (self Main) main () () {
-        A.new()
-    }
+    (A) new () (A) = A()
 }

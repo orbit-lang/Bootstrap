@@ -3,8 +3,8 @@ package org.orbit.util
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.graph.components.Binding
-import org.orbit.graph.components.Scope
-import org.orbit.graph.components.ScopeIdentifier
+import org.orbit.core.Scope
+import org.orbit.core.ScopeIdentifier
 
 class ImportManager(private val libraries: List<OrbitLibrary>) {
 	val allScopes = libraries.flatMap { it.scopes }
@@ -12,7 +12,7 @@ class ImportManager(private val libraries: List<OrbitLibrary>) {
 	val allBindings = libraries
 		.flatMap { it.scopes }
 		.flatMap { it.bindings }
-	val allTypes = libraries.flatMap { it.context.types }
+	val allTypes = libraries.flatMap { it.typeMap.toCtx().getTypes() }
 
 	fun findSymbol(symbol: String) : Scope.BindingSearchResult {
 		val matches = allBindings.filter { it.simpleName == symbol || it.path.toString(OrbitMangler) == symbol }

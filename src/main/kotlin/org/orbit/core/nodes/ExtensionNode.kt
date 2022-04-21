@@ -8,6 +8,6 @@ data class ExtensionNode(
     val targetTypeNode: TypeExpressionNode,
     val methodDefNodes: List<MethodDefNode>,
     val whereClauses: List<WhereClauseNode>
-) : Node(firstToken, lastToken) {
+) : Node() {
     override fun getChildren(): List<Node> = listOf(targetTypeNode) + methodDefNodes + whereClauses
 }

@@ -3,7 +3,7 @@ package org.orbit.types.next.components
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 
-class Module(override val fullyQualifiedName: String, imports: List<Module> = emptyList()) : DeclType, IContext {
+class Module(override val fullyQualifiedName: String, val imports: List<Module> = emptyList()) : DeclType, IContext {
     constructor(path: Path, imports: List<Module> = emptyList())
         : this(OrbitMangler.mangle(path), imports)
 
@@ -14,14 +14,12 @@ class Module(override val fullyQualifiedName: String, imports: List<Module> = em
         .fold(Ctx()) { acc, next -> acc.merge(next) }
 
     override fun getTypes(): List<TypeComponent> = context.getTypes()
-    override fun getSignatureMap(): Map<Type, List<Signature>> = context.getSignatureMap()
     override fun getConformanceMap(): Map<TypeComponent, List<ITrait>> = context.getConformanceMap()
 
     override fun getType(name: String): TypeComponent? = context.getType(name)
     override fun <T : TypeComponent> getTypeAs(name: String): T? = context.getTypeAs(name)
 
     override fun extend(type: TypeComponent) = context.extend(type)
-    override fun map(key: Type, value: Signature) = context.map(key, value)
     override fun map(key: TypeComponent, value: ITrait) = context.map(key, value)
 
     fun extendAll(types: List<TypeComponent>) : Module {

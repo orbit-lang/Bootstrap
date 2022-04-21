@@ -9,17 +9,14 @@ import org.orbit.core.components.Token
 	only really "exist" nominally, that have no unique
 	behaviour of their own (at least at parse-time).
 */
-abstract class ExpressionNode(
-    override val firstToken: Token,
-    override val lastToken: Token
-) : Node(firstToken, lastToken)
+abstract class ExpressionNode : Node()
 
 data class RValueNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val expressionNode: ExpressionNode,
     val typeParametersNode: TypeParametersNode = TypeParametersNode(lastToken, lastToken)
-) : ExpressionNode(firstToken, lastToken) {
+) : ExpressionNode() {
 	constructor(expressionNode: ExpressionNode)
 		: this(expressionNode.firstToken, expressionNode.lastToken, expressionNode)
 

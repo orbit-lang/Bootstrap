@@ -1,7 +1,7 @@
 package org.orbit.types.next.components
 
 import org.orbit.core.components.TokenType
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import kotlin.math.max
@@ -112,5 +112,5 @@ data class HigherKind(val from: Kind, val to: Kind) : Kind {
     override val kind: Kind = this
 
     override val keyword: TokenType
-        get() = object : TokenType("Type$level", "", true, false, TokenType.Family.Kind) {}
+        get() = TokenTypes.HigherKind(level)
 }

@@ -34,7 +34,7 @@ class IntLiteralAnalyser(override val invocation: Invocation) :
 			throw invocation.make<IntLiteralAnalyser>("Int accepts 1 (optional) type parameter, `type Int<Width Int>`", node.firstToken.position)
 		}
 
-		var width = 32.toBigInteger()
+		var width = 32
 		if (typeParams.typeParameters.isNotEmpty()) {
 			val widthNode = typeParams.typeParameters.first() as ValueTypeParameterNode
 
@@ -51,8 +51,8 @@ class IntLiteralAnalyser(override val invocation: Invocation) :
 
 		val analyses = mutableListOf<Analysis>()
 
-		val bigP = BigInteger.valueOf(maxValueP.toLong())
-		val bigN = BigInteger.valueOf(maxValueN.toLong())
+		val bigP = maxValueP.toLong()
+		val bigN = maxValueN.toLong()
 
 		if (value.second > bigP) {
 			// Int value overflows width

@@ -4,9 +4,8 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.CollectionTypeLiteralNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.TypeIdentifierNode
-import org.orbit.core.nodes.TypeParametersNode
 import org.orbit.frontend.components.ParseError
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.extensions.unaryPlus
 

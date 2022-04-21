@@ -7,7 +7,7 @@ import org.orbit.core.components.TokenType
 import org.orbit.core.components.TokenTypeProvider
 import org.orbit.core.phase.AdaptablePhase
 import org.orbit.core.phase.PhaseAdapter
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.util.Fatal
 import org.orbit.util.Invocation
 import org.orbit.frontend.extensions.*

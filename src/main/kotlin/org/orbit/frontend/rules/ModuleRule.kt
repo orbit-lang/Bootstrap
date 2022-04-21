@@ -1,20 +1,9 @@
 package org.orbit.frontend.rules
 
-import org.orbit.core.components.Token
 import org.orbit.core.nodes.*
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.extensions.unaryPlus
-
-data class PhaseAnnotationNode(
-    override val firstToken: Token,
-    override val lastToken: Token,
-    val annotationIdentifierNode: TypeIdentifierNode) : Node(firstToken, lastToken) {
-
-    override fun getChildren(): List<Node> {
-        return listOf(annotationIdentifierNode)
-    }
-}
 
 object PhaseAnnotationRule : ParseRule<PhaseAnnotationNode> {
     override fun parse(context: Parser): ParseRule.Result {

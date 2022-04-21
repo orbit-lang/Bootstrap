@@ -14,15 +14,12 @@ import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
-import org.orbit.backend.phase.CodeWriter
-import org.orbit.backend.phase.MainResolver
 import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.DummyPhase
 import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.components.CompilationScheme
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.getResult
-import org.orbit.core.nodes.ProgramNode
 import org.orbit.core.phase.CompilerGenerator
 import org.orbit.frontend.MultiFileSourceProvider
 import org.orbit.frontend.phase.CommentParser
@@ -31,11 +28,7 @@ import org.orbit.frontend.phase.ObserverPhase
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.graph.phase.CanonicalNameResolver
-import org.orbit.types.phase.TraitEnforcer
-import org.orbit.types.phase.TypeSystem
-import org.orbit.types.util.TypeAssistant
 import java.io.File
-import java.io.FileWriter
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
@@ -146,8 +139,8 @@ class Build : CliktCommand(), KoinComponent {
                 compilerGenerator[CompilationSchemeEntry.observers] = ObserverPhase(invocation)
                 compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
                 compilerGenerator[CompilationSchemeEntry.typeSystem] = org.orbit.types.next.phase.TypeSystem //TypeSystem(invocation)
-                compilerGenerator[CompilationSchemeEntry.traitEnforcer] = TraitEnforcer()
-                compilerGenerator[CompilationSchemeEntry.mainResolver] = MainResolver
+//                compilerGenerator[CompilationSchemeEntry.traitEnforcer] = TraitEnforcer()
+//                compilerGenerator[CompilationSchemeEntry.mainResolver] = MainResolver
 
                 compilationEventBus.events.registerObserver {
                     val printer = Printer(invocation.platform.getPrintableFactory())
@@ -160,9 +153,9 @@ class Build : CliktCommand(), KoinComponent {
 
                 compilerGenerator.run(CompilationScheme)
 
-                val typeAssistant = invocation.getResult<TypeAssistant>("__type_assistant__")
+//                val typeAssistant = invocation.getResult<TypeAssistant>("__type_assistant__")
 
-                println(typeAssistant.dump())
+//                println(typeAssistant.dump())
 
                 val parserResult = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser)
 
@@ -182,9 +175,9 @@ class Build : CliktCommand(), KoinComponent {
                     swiftLibraryFile.createNewFile()
                 }
 
-                val codeWriter = CodeWriter(completeLibraryOutputDirectoryPath)
-
-                codeWriter.execute(parserResult.ast as ProgramNode)
+//                val codeWriter = CodeWriter(completeLibraryOutputDirectoryPath)
+//
+//                codeWriter.execute(parserResult.ast as ProgramNode)
             } catch (ex: Exception) {
                 println(invocation.dumpWarnings())
                 println(ex.message)

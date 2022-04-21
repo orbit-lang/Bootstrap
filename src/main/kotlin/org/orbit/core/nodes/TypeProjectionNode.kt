@@ -8,6 +8,6 @@ data class TypeProjectionNode(
     val typeIdentifier: TypeExpressionNode,
     val traitIdentifier: TypeExpressionNode,
     val whereNodes: List<WhereClauseNode> = emptyList()
-) : Node(firstToken, lastToken) {
+) : Node() {
     override fun getChildren(): List<Node> = listOf(typeIdentifier, traitIdentifier) + whereNodes
 }

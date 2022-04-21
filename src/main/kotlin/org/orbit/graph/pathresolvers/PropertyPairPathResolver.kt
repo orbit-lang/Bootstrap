@@ -1,13 +1,10 @@
 package org.orbit.graph.pathresolvers
 
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.PairNode
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.components.Binding
+import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 

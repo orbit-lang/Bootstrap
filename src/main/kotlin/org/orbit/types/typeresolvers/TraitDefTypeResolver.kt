@@ -6,10 +6,8 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.core.nodes.TypeAliasNode
-import org.orbit.graph.components.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.components.*
 import org.orbit.types.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -71,7 +69,7 @@ class TraitDefTypeResolver(override val node: TraitDefNode, override val binding
 
         trait = Trait(node.getPath(), properties = members)
 
-        node.annotate(trait, Annotations.Type)
+//        node.annotate(trait, Annotations.Type)
 
         return trait
     }

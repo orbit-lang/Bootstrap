@@ -15,7 +15,7 @@ data class ModuleNode(
     override val entityConstructors: List<EntityConstructorNode>,
     val typeProjections: List<TypeProjectionNode>,
     val extensions: List<ExtensionNode> = emptyList()
-) : ContainerNode(firstToken, lastToken, identifier, within, with, entityDefs, methodDefs, entityConstructors) {
+) : ContainerNode() {
     val isEmpty: Boolean get() = entityDefs.isEmpty() && methodDefs.isEmpty() && typeAliasNodes.isEmpty() && extensions.isEmpty()
 
     override fun getChildren(): List<Node> = when (within) {

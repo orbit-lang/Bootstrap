@@ -4,7 +4,7 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.ExpressionNode
 import org.orbit.core.phase.Phase
 import org.orbit.frontend.StringSourceProvider
-import org.orbit.frontend.components.TokenTypes
+import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.phase.Lexer
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ExpressionRule

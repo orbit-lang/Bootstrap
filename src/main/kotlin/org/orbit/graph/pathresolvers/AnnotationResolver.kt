@@ -2,12 +2,11 @@ package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
 import org.orbit.core.nodes.Node
-import org.orbit.frontend.rules.PhaseAnnotationNode
-import org.orbit.graph.components.Annotations
+import org.orbit.core.nodes.PhaseAnnotationNode
+import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
 import org.orbit.util.Invocation
 
 class AnnotationResolver<N: Node>(private val annotationNode: PhaseAnnotationNode, clazz: Class<N>) : PathResolver<N> {

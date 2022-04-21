@@ -1,31 +1,28 @@
 package org.orbit.graph.extensions
 
-import org.orbit.core.nodes.KeyedNodeAnnotationTag
-import org.orbit.core.nodes.Node
-import org.orbit.core.nodes.NodeAnnotation
-import org.orbit.graph.components.Annotations
-import org.orbit.graph.components.GraphEntity
-import org.orbit.graph.components.ScopeIdentifier
-import org.orbit.serial.Serial
-import java.io.Serializable
+import org.orbit.core.AnySerializable
+import org.orbit.core.nodes.*
+import org.orbit.core.nodes.Annotations
+import org.orbit.core.GraphEntity
+import org.orbit.core.ScopeIdentifier
 
 fun Node.getScopeIdentifier() : ScopeIdentifier {
-    return getAnnotation<ScopeIdentifier>(Annotations.Scope)!!.value
+    return getAnnotation<ScopeIdentifier>(Annotations.Scope as NodeAnnotationTag<ScopeIdentifier>)!!.value
 }
 
 fun Node.getScopeIdentifierOrNull() : ScopeIdentifier? {
-    return getAnnotation<ScopeIdentifier>(Annotations.Scope)?.value
+    return getAnnotation<ScopeIdentifier>(Annotations.Scope as NodeAnnotationTag<ScopeIdentifier>)?.value
 }
 
 fun Node.getGraphID() : GraphEntity.Vertex.ID {
-    return getAnnotation<GraphEntity.Vertex.ID>(Annotations.GraphID)!!.value
+    return getAnnotation<GraphEntity.Vertex.ID>(Annotations.GraphID as NodeAnnotationTag<GraphEntity.Vertex.ID>)!!.value
 }
 
 fun Node.getGraphIDOrNull() : GraphEntity.Vertex.ID? {
-    return getAnnotation<GraphEntity.Vertex.ID>(Annotations.GraphID)?.value
+    return getAnnotation<GraphEntity.Vertex.ID>(Annotations.GraphID as NodeAnnotationTag<GraphEntity.Vertex.ID>)?.value
 }
 
-inline fun <reified T> Node.annotate(value: T, key: Annotations, mergeOnConflict: Boolean = false) where T: Serial, T: Serializable {
+inline fun <reified T: AnySerializable> Node.annotate(value: T, key: Annotations, mergeOnConflict: Boolean = false) {
     annotateByKey(value, key.key, mergeOnConflict)
 }
 
@@ -45,6 +42,6 @@ fun Node.remove(annotation: Annotations) {
     }
 }
 
-inline fun <reified T> Node.getAnnotation(key: Annotations) : NodeAnnotation<T>? where T: Serial, T: Serializable {
+inline fun <reified T: AnySerializable> Node.getAnnotation(key: Annotations) : NodeAnnotation<T>? {
     return getAnnotationByKey(key.key)
 }
