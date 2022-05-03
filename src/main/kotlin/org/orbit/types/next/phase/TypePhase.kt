@@ -37,15 +37,15 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
     override val invocation: Invocation by inject()
 
     override fun run(input: TypePhaseData<ModuleNode>): Module {
-        val typeDefs = input.node.search<TypeDefNode>(ignoreScopedNodes = true)
-        val traitDefs = input.node.search<TraitDefNode>()
-        val typeAliasDefs = input.node.search<TypeAliasNode>()
-        val typeConstructorDefs = input.node.search<TypeConstructorNode>(ignoreScopedNodes = true)
-        val traitConstructorDefs = input.node.search<TraitConstructorNode>()
-        val typeProjections = input.node.search<TypeProjectionNode>()
-        val methodDefs = input.node.search<MethodDefNode>()
-        val familyDefs = input.node.search<FamilyNode>()
-        val familyConstructorDefs = input.node.search<FamilyConstructorNode>()
+        val typeDefs = input.node.entityDefs.filterIsInstance<TypeDefNode>()
+        val traitDefs = input.node.entityDefs.filterIsInstance<TraitDefNode>()
+        val typeAliasDefs = input.node.typeAliasNodes
+        val typeConstructorDefs = input.node.entityConstructors.filterIsInstance<TypeConstructorNode>()
+        val traitConstructorDefs = input.node.entityConstructors.filterIsInstance<TraitConstructorNode>()
+        val typeProjections = input.node.typeProjections
+        val methodDefs = input.node.methodDefs
+        val familyDefs = input.node.entityDefs.filterIsInstance<FamilyNode>()
+        val familyConstructorDefs = input.node.entityConstructors.filterIsInstance<FamilyConstructorNode>()
 
         var types: List<IType> = TypeStubPhase.executeAll(input.inferenceUtil, typeDefs)
         var traits: List<ITrait> = TraitStubPhase.executeAll(input.inferenceUtil, traitDefs)
@@ -67,13 +67,14 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
 
         TypeConstructorConstraintsPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
         TraitConstructorConstraintsPhase.executeAll(input.inferenceUtil, traitConstructorDefs)
-        TypeAliasPhase.executeAll(input.inferenceUtil, typeAliasDefs)
 
         var methods = MethodStubPhase.executeAll(input.inferenceUtil, methodDefs)
 
         TypeProjectionPhase.executeAll(input.inferenceUtil, typeProjections)
 
         types = TraitConformanceVerification.executeAll(input.inferenceUtil, typeDefs)
+
+        TypeAliasPhase.executeAll(input.inferenceUtil, typeAliasDefs)
 
         MethodBodyPhase.executeAll(input.inferenceUtil, methodDefs)
 

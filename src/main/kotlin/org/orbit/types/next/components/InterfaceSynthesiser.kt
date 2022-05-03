@@ -1,7 +1,7 @@
 package org.orbit.types.next.components
 
 object InterfaceSynthesiser : Synthesiser<Type, Trait> {
-    override val identifier: String = "SyntheticInterface"
+    override val identifier: String = "__Self__"
 
     override fun synthesise(ctx: Ctx, input: Type): Trait {
         val trait = Trait("${input.fullyQualifiedName}::$identifier")

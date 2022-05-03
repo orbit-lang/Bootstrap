@@ -1,10 +1,12 @@
 module Test {
-    family constructor Option<T> {
-        type None
-        type Some(value T)
-    }
+    type X
+    trait A
+    type constructor B<T>
+        where T : A
 
-    type A
+    type projection C : A
+        where x = X()
 
-    (self A) optional () (Option<A>) = Some(self)
+    type C
+    alias D = B<C>
 }

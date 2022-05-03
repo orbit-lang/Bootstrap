@@ -151,7 +151,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<IType>, List<Pair<Int, 
                             ), SourcePosition.unknown
                         )
                     }
-                    else -> { }
+                    else -> {}
                 }
             }
         }

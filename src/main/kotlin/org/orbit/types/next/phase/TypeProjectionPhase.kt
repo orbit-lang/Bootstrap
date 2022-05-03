@@ -23,14 +23,15 @@ object TypeProjectionPhase : TypePhase<TypeProjectionNode, TypeComponent>, KoinC
 
         if (target !is ITrait) return Never("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${target.toString(printer)} (Kind: ${target.kind.toString(printer)})")
 
-//        if (target.references(source)) return Never("Source Type ${source.toString(printer)} must not reference itself in the projected Trait ${target.toString(printer)}", input.node.traitIdentifier.firstToken.position)
-
         val wheres = input.inferenceUtil.inferAllAs<WhereClauseNode, Field>(input.node.whereNodes,
             AnyInferenceContext(WhereClauseNode::class.java)
         )
 
-        val ctx = input.inferenceUtil.toCtx()
         val nType = Type(source.fullyQualifiedName, source.getFields() + wheres)
+
+        input.inferenceUtil.addConformance(source, target)
+
+        val ctx = input.inferenceUtil.toCtx()
 
         return when (val result = target.isImplemented(ctx, nType)) {
             is ContractResult.Success, ContractResult.None -> nType
