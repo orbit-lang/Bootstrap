@@ -5,13 +5,14 @@ import org.orbit.core.components.Token
 abstract class EntityDefNode : Node() {
     abstract val propertyPairs: List<PairNode>
     abstract val isRequired: Boolean
+    abstract val typeIdentifierNode: TypeIdentifierNode
 }
 
 class TypeDefNode(
     override val firstToken: Token,
     override val lastToken: Token,
     override val isRequired: Boolean,
-    val typeIdentifierNode: TypeIdentifierNode,
+    override val typeIdentifierNode: TypeIdentifierNode,
     override val propertyPairs: List<PairNode> = emptyList(),
     val traitConformances: List<TypeExpressionNode> = emptyList(),
     val body: BlockNode = BlockNode(lastToken, lastToken, emptyList()),
@@ -32,4 +33,8 @@ class TypeDefNode(
 
 	override fun getChildren() : List<Node>
 		= listOf(typeIdentifierNode, body) + getAllPropertyPairs() + traitConformances
+
+    fun promote(given: List<TypeIdentifierNode>) : TypeConstructorNode {
+        return TypeConstructorNode(firstToken, lastToken, typeIdentifierNode, given, traitConformances, propertyPairs, emptyList())
+    }
 }

@@ -13,13 +13,27 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
     private val printer: Printer by inject()
 
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: ConstructorNode): InferenceResult {
-        val source = inferenceUtil.infer(node.typeExpressionNode)
-
-        if (source !is IType)
-            return Never("Attempting to instantiate non-Type ${source.toString(printer)}").inferenceResult()
-
-        val args = inferenceUtil.inferAllAs<ExpressionNode, IType>(node.parameterNodes, AnyExpressionContext)
+        val args = node.parameterNodes.map { inferenceUtil.infer(it) }
             .toMutableList()
+
+        val source: IType = when (val t = inferenceUtil.infer(node.typeExpressionNode)) {
+            is IType -> t
+            is PolymorphicType<*> -> {
+                // We have enough information here to attempt type inference for constructor calls that do not
+                //  explicitly pass Type Parameters at the call-site
+                if (args.count() < t.parameters.count())
+                    return Never("Attempting to instantiate non-Type (${t.kind.toString(printer)}) ${t.toString(printer)}").inferenceResult()
+
+                val slice = args.subList(0, t.parameters.count()).mapIndexed { idx, item ->
+                    Pair(idx, item)
+                }
+
+                MonoUtil.monomorphise(inferenceUtil.toCtx(), t, slice, null)
+                    .toType(printer) as IType
+            }
+
+            else -> return Never("Attempting to instantiate non-Type (${t.kind.toString(printer)}) ${t.toString(printer)}").inferenceResult()
+        }
 
         if (args.count() != source.getFields().count()) {
             var recovered = false

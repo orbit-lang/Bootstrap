@@ -90,7 +90,7 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                     methodDefNodes.add(methodDefNode)
                 }
 
-                TokenTypes.Type, TokenTypes.Trait -> {
+                TokenTypes.Type, TokenTypes.Trait, TokenTypes.Family -> {
                     val entity = context.attemptAny(EntityParseRule.moduleTopLevelRules, true)
 
                     when (entity) {
@@ -115,7 +115,7 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                     typeAliasNodes.add(typeAlias)
                 }
 
-                else -> TODO("@ModuleRule:107")
+                else -> throw Exception("Unexpected top-level lexeme: `${next.text}`")
             }
 
             next = context.peek()

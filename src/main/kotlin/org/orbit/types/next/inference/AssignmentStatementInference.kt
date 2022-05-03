@@ -1,6 +1,7 @@
 package org.orbit.types.next.inference
 
 import org.orbit.core.nodes.AssignmentStatementNode
+import org.orbit.core.nodes.ExpressionNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.types.next.components.TypeComponent
 
@@ -11,8 +12,8 @@ object AssignmentStatementInference : StatementInference<AssignmentStatementNode
         }
 
         val nContext = when (typeAnnotation) {
-            null -> context
-            else -> TypeAnnotatedInferenceContext(typeAnnotation)
+            null -> AnyInferenceContext(ExpressionNode::class.java)
+            else -> TypeAnnotatedInferenceContext(typeAnnotation, ExpressionNode::class.java)
         }
 
         val type = inferenceUtil.infer(node.value, nContext)

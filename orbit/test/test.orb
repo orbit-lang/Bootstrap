@@ -1,10 +1,10 @@
 module Test {
+    family constructor Option<T> {
+        type None
+        type Some(value T)
+    }
+
     type A
-    type B(a A)
-    type Main
 
-    type projection Main : synthesise(trait B)
-        where a by { A() }
-
-    (A) new () (A) = A()
+    (self A) optional () (Option<A>) = Some(self)
 }

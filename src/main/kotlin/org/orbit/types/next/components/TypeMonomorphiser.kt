@@ -4,12 +4,52 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.components.SourcePosition
-import org.orbit.types.next.inference.ITypeRef
-import org.orbit.types.next.inference.TypeReference
+import org.orbit.types.next.inference.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 import org.orbit.util.seconds
+
+object FamilyMonomorphiser : Monomorphiser<PolymorphicType<TypeFamily<*>>, List<Pair<Int, TypeComponent>>, TypeFamily<*>>, KoinComponent {
+    private val invocation: Invocation by inject()
+    private val printer: Printer by inject()
+
+    override fun monomorphise(ctx: Ctx, input: PolymorphicType<TypeFamily<*>>, over: List<Pair<Int, TypeComponent>>, context: MonomorphisationContext): MonomorphisationResult<TypeFamily<*>> {
+        if (over.count() > input.parameters.count()) return MonomorphisationResult.Failure(input.baseType)
+
+        input.parameters.zip(over).forEach { parameters ->
+            val omegaTrait = parameters.first.constraints.map { it.target }
+                .mergeAll(ctx)
+
+            if (omegaTrait !is Anything) {
+                when (val result = omegaTrait.isImplemented(ctx, parameters.second.second)) {
+                    is ContractResult.Failure -> throw invocation.make<TypeSystem>(result.getErrorMessage(printer, parameters.second.second), SourcePosition.unknown)
+                    is ContractResult.Group -> when (result.isSuccessGroup) {
+                        true -> {}
+                        else -> throw invocation.make<TypeSystem>(result.getErrorMessage(printer, parameters.second.second), SourcePosition.unknown)
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+
+        val nPath = OrbitMangler.unmangle(input.fullyQualifiedName).plus(over.map {
+            OrbitMangler.unmangle(it.second.fullyQualifiedName)
+        })
+
+        val nFamily = TypeFamily<TypeComponent>(nPath, input.baseType.members)
+
+        val nMembers = input.baseType.members.map {
+            when (it) {
+                is PolymorphicType<*> -> MonoUtil.monomorphise(ctx, it, over, nFamily).toType(printer)
+                else -> throw invocation.make<TypeSystem>("Cannot monomorphise non-Polymorphic Type Family member ${it.toString(printer)}", SourcePosition.unknown)
+            }
+        }
+
+        return MonomorphisationResult.Total(TypeFamily(nPath, nMembers))
+    }
+}
 
 object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int, TypeComponent>>, ITrait>, KoinComponent {
     private val invocation: Invocation by inject()
@@ -103,8 +143,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<IType>, List<Pair<Int, 
                             SourcePosition.unknown
                         )
                     is ContractResult.Group -> when (result.isSuccessGroup) {
-                        true -> {
-                        }
+                        true -> {}
                         else -> throw invocation.make<TypeSystem>(
                             result.getErrorMessage(
                                 printer,
@@ -112,8 +151,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<IType>, List<Pair<Int, 
                             ), SourcePosition.unknown
                         )
                     }
-                    else -> {
-                    }
+                    else -> { }
                 }
             }
         }
@@ -149,5 +187,19 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<IType>, List<Pair<Int, 
                 MonomorphisationResult.Partial(nPoly)
             }
         }
+    }
+}
+
+object MonoUtil : KoinComponent {
+    private val printer: Printer by inject()
+
+    fun monomorphise(ctx: Ctx, polyType: PolymorphicType<*>, parameters: List<Pair<Int, TypeComponent>>, selfType: TypeComponent?) : MonomorphisationResult<*> = when (polyType.baseType) {
+        is Type -> TypeMonomorphiser.monomorphise(ctx, polyType as PolymorphicType<IType>, parameters, MonomorphisationContext.Any)
+
+        is Trait -> TraitMonomorphiser.monomorphise(ctx, polyType as PolymorphicType<ITrait>, parameters, MonomorphisationContext.TraitConformance(selfType))
+
+        is TypeFamily<*> -> FamilyMonomorphiser.monomorphise(ctx, polyType as PolymorphicType<TypeFamily<*>>, parameters, MonomorphisationContext.Any)
+
+        else -> MonomorphisationResult.Failure(Never("Cannot specialise Polymorphic Type ${polyType.toString(printer)}"))
     }
 }

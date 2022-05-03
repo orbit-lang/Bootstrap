@@ -6,6 +6,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.*
 import org.orbit.types.next.components.*
+import org.orbit.types.next.intrinsics.Native
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
@@ -13,6 +14,8 @@ import org.orbit.util.next.find
 
 object AnyTypeExpressionInferenceContext : InferenceContext {
     override val nodeType: Class<out Node> = TypeExpressionNode::class.java
+
+    override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
 }
 
 interface ITypeExpressionInference<N: TypeExpressionNode, T: TypeComponent> : Inference<N, T>
@@ -26,12 +29,24 @@ object AnyTypeExpressionInference : ITypeExpressionInference<TypeExpressionNode,
     }
 }
 
+object MirrorInferenceContext : InferenceContext {
+    override val nodeType: Class<out Node> = TypeIdentifierNode::class.java
+
+    override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
+}
+
 object TypeLiteralInference : ITypeExpressionInference<TypeIdentifierNode, TypeComponent>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeIdentifierNode): InferenceResult {
-        return inferenceUtil.find<TypeSystem>(node.getPath(), invocation, node)
-            .inferenceResult()
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeIdentifierNode): InferenceResult = when (context) {
+        is MirrorInferenceContext -> {
+            val type = inferenceUtil.find<TypeSystem>(node.getPath(), invocation, node)
+
+            Native.Types.Mirror(type)
+                .type.inferenceResult()
+        }
+
+        else -> inferenceUtil.find<TypeSystem>(node.getPath(), invocation, node).inferenceResult()
     }
 }
 
@@ -48,6 +63,9 @@ object MetaTypeInference : ITypeExpressionInference<MetaTypeNode, MonomorphicTyp
                 .toInferenceResult(printer)
 
             is Trait -> TraitMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<ITrait>, parameters, MonomorphisationContext.TraitConformance(inferenceUtil.self))
+                .toInferenceResult(printer)
+
+            is TypeFamily<*> -> FamilyMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<TypeFamily<*>>, parameters, MonomorphisationContext.Any)
                 .toInferenceResult(printer)
 
             else -> InferenceResult.Failure(Never("Cannot specialise Polymorphic Type ${polyType.toString(printer)}"))

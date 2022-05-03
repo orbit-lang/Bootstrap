@@ -42,9 +42,15 @@ sealed interface IntrinsicKinds : Kind {
         }
     }
 
+    data class Family<K: Kind>(override val kind: K) : IntrinsicKinds {
+        override val keyword: TokenType = TokenTypes.Family
+        override val level: Int = kind.level
+    }
+
     override val kind: Kind get() = when (this) {
         is Type, Type -> Type(level + 1)
         is Trait, Trait -> Trait(level + 1)
+        else -> this
     }
 
     companion object {

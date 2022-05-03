@@ -92,8 +92,8 @@ sealed class Node {
 
 	abstract fun getChildren() : List<Node>
 
-	inline fun <reified N: Node> search(priorityComparator: PriorityComparator<N>? = null) : List<N> {
-		return search(N::class.java)
+	inline fun <reified N: Node> search(priorityComparator: PriorityComparator<N>? = null, ignoreScopedNodes: Boolean = false) : List<N> {
+		return search(N::class.java, ignoreScopedNodes = ignoreScopedNodes)
 	}
 
 	fun <N: Node> search(nodeType: Class<N>, priorityComparator: PriorityComparator<N>? = null, ignoreScopedNodes: Boolean = false) : List<N> {
@@ -105,7 +105,7 @@ sealed class Node {
 				}
 			}
 
-		return matches + getChildren().flatMap { it.search(nodeType) }
+		return matches + getChildren().flatMap { it.search(nodeType, ignoreScopedNodes = ignoreScopedNodes) }
 			.prioritise(priorityComparator)
 	}
 

@@ -95,7 +95,7 @@ class TypeMap constructor() : ITypeMap {
         conformanceMap[type.fullyQualifiedName] = conformance + trait.fullyQualifiedName
     }
 
-    override fun getConformance(type: TypeComponent): List<Trait> {
+    override fun getConformance(type: TypeComponent): List<ITrait> {
         val conformance = conformanceMap[type.fullyQualifiedName]
             ?: return emptyList()
 
@@ -104,6 +104,7 @@ class TypeMap constructor() : ITypeMap {
 
     fun <T: TypeComponent> findAs(name: String) : T? = when (val type = visibleTypes[name]) {
         is Alias -> type.target as? T
+        is PolymorphicType<*> -> type.baseType as? T
         else -> type as? T
     }
 

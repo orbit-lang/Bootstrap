@@ -25,6 +25,7 @@ object TokenTypes : TokenTypeProvider {
     object Api : TokenType("API", "api", true, false, Family.Keyword)
     object Type : TokenType("Type", "type", true, false, Family.Keyword + Family.Kind)
     object Trait : TokenType("Trait", "trait", true, false, Family.Keyword + Family.Kind)
+    object Family : TokenType("Family", "family", true, false, Family.Keyword + Family.Kind)
     object With : TokenType("With", "with", true, false, Family.Keyword)
     object Within : TokenType("Within", "within", true, false, Family.Keyword)
     object Return : TokenType("Return", "return", true, false, Family.Keyword)
@@ -44,6 +45,7 @@ object TokenTypes : TokenTypeProvider {
     object Let : TokenType("Let", "let", true, false, Family.Keyword)
     object In : TokenType("In", "\\bin\\b", true, false, Family.Keyword)
     object Invoke : TokenType("Invoke", "invoke", true, false, Family.Keyword)
+    object Of : TokenType("Of", "of", true, false, Family.Keyword)
 
     // Compile-time functions
     object Synthesise : TokenType("Synthesise", "synthesise", true, false, Family.CompileTime)
@@ -65,11 +67,11 @@ object TokenTypes : TokenTypeProvider {
             Int, Real, Api, Module, Define, Defer, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias,
             Synthesise,
-            Let, Invoke, In,
+            Let, Invoke, In, Of,
             TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
-            Type, Trait, Within, With, Return,
+            Type, Trait, Within, With, Return, Family,
             Operator, Identifier
         )
     }

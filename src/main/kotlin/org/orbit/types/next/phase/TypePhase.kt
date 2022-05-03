@@ -37,23 +37,33 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
     override val invocation: Invocation by inject()
 
     override fun run(input: TypePhaseData<ModuleNode>): Module {
-        val typeDefs = input.node.search<TypeDefNode>()
+        val typeDefs = input.node.search<TypeDefNode>(ignoreScopedNodes = true)
         val traitDefs = input.node.search<TraitDefNode>()
         val typeAliasDefs = input.node.search<TypeAliasNode>()
-        val typeConstructorDefs = input.node.search<TypeConstructorNode>()
+        val typeConstructorDefs = input.node.search<TypeConstructorNode>(ignoreScopedNodes = true)
         val traitConstructorDefs = input.node.search<TraitConstructorNode>()
         val typeProjections = input.node.search<TypeProjectionNode>()
         val methodDefs = input.node.search<MethodDefNode>()
+        val familyDefs = input.node.search<FamilyNode>()
+        val familyConstructorDefs = input.node.search<FamilyConstructorNode>()
 
         var types: List<IType> = TypeStubPhase.executeAll(input.inferenceUtil, typeDefs)
         var traits: List<ITrait> = TraitStubPhase.executeAll(input.inferenceUtil, traitDefs)
 
         TypeConstructorStubPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
         TraitConstructorStubPhase.executeAll(input.inferenceUtil, traitConstructorDefs)
+        FamilyConstructorStubPhase.executeAll(input.inferenceUtil, familyConstructorDefs)
+
+        FamilyConstructorExpansionPhase.executeAll(input.inferenceUtil, familyConstructorDefs)
 
         types = TraitConformancePhase.executeAll(input.inferenceUtil, typeDefs)
         types = TypeFieldsPhase.executeAll(input.inferenceUtil, typeDefs)
         traits = TraitContractsPhase.executeAll(input.inferenceUtil, traitDefs)
+
+        TypeConstructorConformancePhase.executeAll(input.inferenceUtil, typeConstructorDefs)
+
+        var families = FamilyPhase.executeAll(input.inferenceUtil, familyDefs)
+        families = FamilyExpansionPhase.executeAll(input.inferenceUtil, familyDefs)
 
         TypeConstructorConstraintsPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
         TraitConstructorConstraintsPhase.executeAll(input.inferenceUtil, traitConstructorDefs)
@@ -68,7 +78,7 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         MethodBodyPhase.executeAll(input.inferenceUtil, methodDefs)
 
         return Module(input.node.getPath()).apply {
-            extendAll(types + traits)
+            extendAll(types + traits + families)
         }
     }
 }

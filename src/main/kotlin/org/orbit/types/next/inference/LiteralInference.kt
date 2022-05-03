@@ -20,8 +20,12 @@ object SymbolLiteralInference : LiteralInference<SymbolLiteralNode, Type> {
         = Native.Types.Symbol.type.inferenceResult()
 }
 
-data class TypeAnnotatedInferenceContext(val typeAnnotation: TypeComponent) : InferenceContext {
-    override val nodeType: Class<out Node> = BlockNode::class.java
+data class TypeAnnotatedInferenceContext<N: Node>(val typeAnnotation: TypeComponent, val clazz: Class<N>) : InferenceContext {
+    override val nodeType: Class<out Node> = clazz
+
+    override fun <N : Node> clone(clazz: Class<N>): InferenceContext {
+        return TypeAnnotatedInferenceContext(typeAnnotation, clazz)
+    }
 }
 
 object BlockInference : LiteralInference<BlockNode, TypeComponent>, KoinComponent {
@@ -29,11 +33,11 @@ object BlockInference : LiteralInference<BlockNode, TypeComponent>, KoinComponen
 
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: BlockNode): InferenceResult {
         val typeAnnotation: TypeComponent? = when (context) {
-            is TypeAnnotatedInferenceContext -> context.typeAnnotation
+            is TypeAnnotatedInferenceContext<*> -> context.typeAnnotation
             else -> null
         }
 
-        val bodyTypes = node.body.map { inferenceUtil.infer(it) }
+        val bodyTypes = node.body.map { inferenceUtil.infer(it, context) }
         val returns = (bodyTypes.lastOrNull() ?: Native.Types.Unit.type)
 
         if (typeAnnotation == null) return returns.inferenceResult()
@@ -77,7 +81,9 @@ object VariableInference : LiteralInference<IdentifierNode, TypeComponent>, Koin
 }
 
 sealed class TypeLiteralInferenceContext(override val nodeType: Class<out Node>) : InferenceContext {
-    object TypeParameterContext : TypeLiteralInferenceContext(TypeIdentifierNode::class.java)
+    object TypeParameterContext : TypeLiteralInferenceContext(TypeIdentifierNode::class.java) {
+        override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
+    }
 }
 
 object RValueInference : Inference<RValueNode, TypeComponent> {
@@ -87,11 +93,14 @@ object RValueInference : Inference<RValueNode, TypeComponent> {
 
 object AnyExpressionContext : InferenceContext {
     override val nodeType: Class<out Node> = ExpressionNode::class.java
+
+    override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
 }
 
 object AnyExpressionInference : Inference<ExpressionNode, TypeComponent> {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: ExpressionNode): InferenceResult = when (node) {
-        is ValueRepresentableNode, is RValueNode -> inferenceUtil.infer(node).inferenceResult()
+        is ValueRepresentableNode -> inferenceUtil.infer(node, context.clone(node::class.java)).inferenceResult()
+        is RValueNode -> inferenceUtil.infer(node.expressionNode, context.clone(node.expressionNode::class.java)).inferenceResult()
         else -> Never("Cannot infer type of non-Expression node ${node::class.java.simpleName}", node.firstToken.position)
             .inferenceResult()
     }

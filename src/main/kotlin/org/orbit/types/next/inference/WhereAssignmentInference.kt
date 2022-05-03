@@ -9,6 +9,8 @@ import org.orbit.types.next.components.TypeComponent
 sealed interface WhereClauseExpressionInferenceContext : InferenceContext {
     object AssignmentContext : WhereClauseExpressionInferenceContext {
         override val nodeType: Class<out Node> = AssignmentStatementNode::class.java
+
+        override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
     }
 }
 

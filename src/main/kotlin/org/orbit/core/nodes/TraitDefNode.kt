@@ -6,7 +6,7 @@ data class TraitDefNode(
     override val firstToken: Token,
     override val lastToken: Token,
     override val isRequired: Boolean,
-    val typeIdentifierNode: TypeIdentifierNode,
+    override val typeIdentifierNode: TypeIdentifierNode,
     override val propertyPairs: List<PairNode> = emptyList(),
     val traitConformances: List<TypeIdentifierNode> = emptyList(),
     val signatures: List<MethodSignatureNode> = emptyList()

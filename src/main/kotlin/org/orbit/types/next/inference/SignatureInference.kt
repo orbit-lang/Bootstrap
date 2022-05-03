@@ -28,7 +28,7 @@ object SignatureInference : Inference<MethodSignatureNode, ISignature> {
 
         return when (typeParameters.isEmpty()) {
             true -> signature
-            else -> PolymorphicType(signature, typeParameters, false)
+            else -> PolymorphicType(signature, typeParameters, emptyList(),false)
         }.inferenceResult()
     }
 }

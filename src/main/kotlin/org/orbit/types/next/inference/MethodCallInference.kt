@@ -5,6 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.MethodCallNode
 import org.orbit.types.next.components.*
+import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 
 object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinComponent {
@@ -30,7 +31,7 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
          *
          * We then synthesise a new, corresponding "virtual" Type consisting of the known type info from the CallSite.
          *
-         * If the virtual Type is found to implement the virtual Trait, then this is valid call to this method.
+         * If the virtual Type is found to implement the virtual Trait, then this is a valid call to this method.
          */
         val callableInterface = signature.derive()
         val calleeContracts = arguments.mapIndexed { idx, type -> Field("$idx", type) }
@@ -42,7 +43,7 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
             val signaturePretty = signature.parameters.joinToString(", ") { it.toString(printer) }
             val calleePretty = arguments.joinToString(", ") { it.toString(printer) }
 
-            Never("Cannot call method ${signature.toString(printer)} with arguments ($calleePretty), expected ($signaturePretty)")
+            Never("Cannot call method ${printer.apply(signature.relativeName, PrintableKey.Bold)} with arguments ($calleePretty), expected ($signaturePretty)")
         }
 
         if (callableInterface.contracts.count() != calleeType.getFields().count())

@@ -4,6 +4,8 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.types.next.components.Module
 import org.orbit.types.next.components.Type
+import org.orbit.types.next.components.TypeComponent
+import org.orbit.types.next.components.getPath
 
 object Native {
     sealed class Modules(val path: Path) {
@@ -19,6 +21,7 @@ object Native {
         object Int : Types(Native.Modules.Intrinsics, "Int")
         object Bool : Types(Native.Modules.Intrinsics, "Bool")
         object Symbol : Types(Native.Modules.Intrinsics, "Symbol")
+        data class Mirror(val reflectedType: TypeComponent) : Types(Native.Modules.Intrinsics, "Mirror::${reflectedType.getPath(OrbitMangler).toString(OrbitMangler)}")
 
         val type: Type = Type(module.path + name)
     }

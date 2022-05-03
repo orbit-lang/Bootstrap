@@ -1,13 +1,14 @@
 package org.orbit.core
 
+import java.io.Serializable
 import java.util.*
 
 sealed class GraphEntity : AnySerializable() {
     class Alias(name: String, id: ID) : Vertex(name, id)
 
     // A single point in the dependency graph
-    open class Vertex(val name: String, val id: ID = ID.random()) : GraphEntity() {
-        data class ID(val uuid: String) : AnySerializable() {
+    open class Vertex(val name: String, val id: ID = ID.random()) : GraphEntity(), Serializable {
+        data class ID(val uuid: String) : AnySerializable(), Serializable {
             companion object {
                 val Self = random()
                 fun random() : ID = ID(UUID.randomUUID().toString())
@@ -34,7 +35,7 @@ sealed class GraphEntity : AnySerializable() {
     }
 
     // A link between two entities representing a dependency
-    class Edge(var left: Vertex.ID, var right: Vertex.ID) : GraphEntity() {
+    class Edge(var left: Vertex.ID, var right: Vertex.ID) : GraphEntity(), Serializable {
         override fun toString(): String {
             return "$left -> $right"
         }

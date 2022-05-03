@@ -130,6 +130,8 @@ interface Inference<N: Node, T: TypeComponent> {
 
 interface InferenceContext {
     val nodeType: Class<out Node>
+
+    fun <N: Node> clone(clazz: Class<N>) : InferenceContext
 }
 
 data class AnyInferenceContext(override val nodeType: Class<out Node>) : InferenceContext {
@@ -139,6 +141,10 @@ data class AnyInferenceContext(override val nodeType: Class<out Node>) : Inferen
     }
 
     override fun hashCode(): Int = nodeType.hashCode()
+
+    override fun <N : Node> clone(clazz: Class<N>) : InferenceContext {
+        return AnyInferenceContext(clazz)
+    }
 }
 
 class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBindingScope, val self: TypeComponent? = null) : KoinComponent, ITypeMap by typeMap, IBindingScope by bindingScope {
@@ -190,7 +196,7 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
 
         return when (val result = inference.infer(this, context, node)) {
             is InferenceResult.Success<*> -> result.type.apply {
-                if (context is TypeAnnotatedInferenceContext) {
+                if (context is TypeAnnotatedInferenceContext<*>) {
                     if (!AnyEq.eq(toCtx(), context.typeAnnotation, this)) {
                         val printer: Printer = getKoinInstance()
                         return Never("Inferred Type ${this.toString(printer)} does not match Type Annotation ${context.typeAnnotation.toString(printer)}", node.firstToken.position)

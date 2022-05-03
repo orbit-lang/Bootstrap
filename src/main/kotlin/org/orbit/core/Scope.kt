@@ -7,6 +7,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.util.*
+import java.io.Serializable
 
 class Scope(
 	private val environment: Environment,
@@ -14,7 +15,7 @@ class Scope(
 	val identifier: ScopeIdentifier = ScopeIdentifier.next(),
 	val bindings: MutableList<Binding> = mutableListOf(),
 	private val imports: MutableSet<ScopeIdentifier> = mutableSetOf()
-) : AnySerializable(), CompilationEventBusAware by CompilationEventBusAwareImpl {
+) : AnySerializable(), CompilationEventBusAware by CompilationEventBusAwareImpl, Serializable {
 	sealed class Events(override val identifier: String) : CompilationEvent {
 		class BindingCreated(binding: Binding) : Events("Scope Binding Created: $binding")
 	}
@@ -135,8 +136,15 @@ class Scope(
 		// Get all bindings whose Path ends with name
 		var matches = environment.allBindings.filter(partial(Binding::matches, name))
 
-		if (matches.isEmpty())
-			return BindingSearchResult.None(name)
+		if (matches.isEmpty()) {
+			// If we can't find an exact match, allow for abbreviated aliases, e.g. Option::Some = Orb::Core::Option::Some
+			matches = environment.allBindings.filter { it.path.endsWith(OrbitMangler.unmangle(name)) }
+
+			if (matches.isEmpty()) {
+				return BindingSearchResult.None(name)
+			}
+		}
+
 		if (matches.count() == 1) {
 			val result = matches.first()
 			if (context != null && !context.same(result.kind)) {
@@ -178,6 +186,13 @@ class Scope(
 				}
 			}
 
+			val vertexIDs = matches.mapNotNull { graph?.findOrNull(it) }
+
+			// NOTE - This is a workaround for allowing mid-length aliases for Type Family members, e.g. Days::Monday
+			if (vertexIDs.count() == matches.count() && vertexIDs.distinct().count() == 1) {
+				return BindingSearchResult.Success(matches[0])
+			}
+
 			return BindingSearchResult.Multiple(matches)
 		}
 
@@ -188,6 +203,16 @@ class Scope(
 
 		if (related.count() == 1)
 			return BindingSearchResult.Success(related[0])
+
+		// Another thing we can try is to look for edges between the parent context and any partial matches
+		val connected = matches
+			.mapNotNull { when (val vid = graph.findOrNull(it)) {
+				null -> null
+				else -> Pair(vid, it)
+			} }
+			.filter { graph.isConnected(it.first, parentVertexID) }
+
+		if (connected.count() == 1) return BindingSearchResult.Success(connected[0].second)
 
 		return BindingSearchResult.Multiple(matches)
 	}

@@ -2,6 +2,7 @@ package org.orbit.types.next.phase
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.nodes.BlockNode
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.types.next.components.*
@@ -21,9 +22,14 @@ object MethodBodyPhase : TypePhase<MethodDefNode, TypeComponent>, KoinComponent 
 
     private fun typeCheckMethodBody(input: TypePhaseData<MethodDefNode>, signature: Signature) : TypeComponent {
         val nInferenceUtil = input.inferenceUtil.derive(self = signature.receiver)
+        val params = input.node.signature.parameterNodes.zip(signature.parameters)
+
+        params.forEach {
+            nInferenceUtil.bind(it.first.identifierNode.identifier, it.second)
+        }
 
         return when (val result =
-            BlockInference.infer(nInferenceUtil, TypeAnnotatedInferenceContext(signature.returns), input.node.body)) {
+            BlockInference.infer(nInferenceUtil, TypeAnnotatedInferenceContext(signature.returns, BlockNode::class.java), input.node.body)) {
             is InferenceResult.Success<*> -> result.type
             is InferenceResult.Failure -> result.never
         }

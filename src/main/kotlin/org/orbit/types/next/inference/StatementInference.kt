@@ -8,6 +8,6 @@ interface StatementInference<N: Node, T: TypeComponent> : Inference<N, T>
 
 object ReturnStatementInference : StatementInference<ReturnStatementNode, TypeComponent> {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: ReturnStatementNode): InferenceResult {
-        return inferenceUtil.infer(node.valueNode).inferenceResult()
+        return inferenceUtil.infer(node.valueNode, context).inferenceResult()
     }
 }

@@ -32,6 +32,16 @@ open class Path(open val relativeNames: List<String>) : AnySerializable(), AnyPr
 		return this + Path(other)
 	}
 
+	fun endsWith(other: Path) : Boolean = when (relativeNames.count() > other.count()) {
+		true -> {
+			val slice = Path(relativeNames.drop(relativeNames.count() - other.count()))
+
+			slice == other
+		}
+
+		else -> false
+	}
+
 	open operator fun minus(other: Path) : Path {
 		return Path(relativeNames.subList(0, relativeNames.indexOf(other.relativeNames.last())))
 	}

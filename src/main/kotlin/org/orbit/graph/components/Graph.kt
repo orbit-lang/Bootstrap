@@ -2,8 +2,9 @@ package org.orbit.graph.components
 
 import org.orbit.core.GraphEntity
 import org.orbit.core.OrbitMangler
+import java.io.Serializable
 
-class Graph {
+class Graph : Serializable {
     private val vertices = mutableSetOf<GraphEntity.Vertex>()
     private val edges = mutableSetOf<GraphEntity.Edge>()
 
@@ -62,8 +63,6 @@ class Graph {
         else -> find(binding.path.toString(OrbitMangler))
     }
 
-    //fun findClosest(name: String, to: GraphEntity.Vertex.ID) : GraphEntity.Vertex.ID
-
     fun isConnected(source: GraphEntity.Vertex.ID, target: GraphEntity.Vertex.ID) : Boolean {
         val edgesA = edges.filter { it.right == source }
 
@@ -77,6 +76,14 @@ class Graph {
     fun find(name: String) : GraphEntity.Vertex.ID {
         return vertices.find { it.name == name }?.id
             ?: throw Exception("Dependency not found: $name")
+    }
+
+    fun findOrNull(name: String) : GraphEntity.Vertex.ID? {
+        return vertices.find { it.name == name }?.id
+    }
+
+    fun findOrNull(binding: Binding) : GraphEntity.Vertex.ID? {
+        return vertices.find { it.name == binding.path.toString(OrbitMangler) }?.id
     }
 
     fun getName(id: GraphEntity.Vertex.ID) : String {

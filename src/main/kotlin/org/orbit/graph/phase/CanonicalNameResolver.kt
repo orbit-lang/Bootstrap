@@ -48,7 +48,12 @@ data class NameResolverInput(val parserResult: Parser.Result, val environment: E
 data class NameResolverResult(val environment: Environment, val graph: Graph)
 
 fun Node.isResolved() : Boolean {
-	return getAnnotation<SerialBool>(Annotations.Resolved)?.value?.flag ?: false
+	val annotation = getAnnotation(Annotations.Resolved)?.value ?: return false
+
+	return when (annotation) {
+		is SerialBool -> annotation.flag
+		else -> false
+	}
 }
 
 fun <K, V> mapOf(list: List<Pair<K, V>>) : Map<K, V> {

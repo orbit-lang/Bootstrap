@@ -35,7 +35,7 @@ internal class IntLiteralTests : IntegrationTest {
 
         val intLiteralNode = result.ast as IntLiteralNode
 
-        assertEquals(BigInteger("123"), intLiteralNode.value.second)
+        assertEquals(123, intLiteralNode.value.second)
     }
 
     @Test

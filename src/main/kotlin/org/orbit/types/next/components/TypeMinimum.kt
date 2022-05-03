@@ -5,5 +5,6 @@ object TypeMinimum : TypeExtreme {
         is TypeRelation.Same -> a
         is TypeRelation.Related -> rel.leastSpecific
         is TypeRelation.Unrelated -> null
+        is TypeRelation.Member<*> -> rel.member
     }
 }

@@ -206,6 +206,7 @@ class TypeSystem(override val invocation: Invocation, private val context: Conte
         val typeAliases = moduleNode.typeAliasNodes
         val typeConstructors = moduleNode.entityConstructors.filterIsInstance<TypeConstructorNode>()
         val traitConstructors = moduleNode.entityConstructors.filterIsInstance<TraitConstructorNode>()
+        val typeFamilies = moduleNode.entityDefs.filterIsInstance<FamilyNode>()
 
         performTypeAction(assistant, typeDefs, ::CreateTypeStub)
         performTypeAction(assistant, traitDefs, ::CreateTraitStub)

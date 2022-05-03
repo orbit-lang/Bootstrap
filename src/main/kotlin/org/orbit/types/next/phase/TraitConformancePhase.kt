@@ -3,10 +3,7 @@ package org.orbit.types.next.phase
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.TypeDefNode
-import org.orbit.types.next.components.ITrait
-import org.orbit.types.next.components.IType
-import org.orbit.types.next.components.Type
-import org.orbit.types.next.components.toString
+import org.orbit.types.next.components.*
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
@@ -15,7 +12,12 @@ object TraitConformancePhase : TypePhase<TypeDefNode, IType>, KoinComponent {
     private val printer: Printer by inject()
 
     override fun run(input: TypePhaseData<TypeDefNode>): IType {
-        val type = input.inferenceUtil.inferAs<TypeDefNode, Type>(input.node)
+        val type = when (val t = input.inferenceUtil.infer(input.node)) {
+            is Type -> t
+            is PolymorphicType<*> -> t.baseType as Type
+            else -> Never("")
+        }
+
         val traits = input.node.traitConformances.map {
             val trait = input.inferenceUtil.infer(it)
 

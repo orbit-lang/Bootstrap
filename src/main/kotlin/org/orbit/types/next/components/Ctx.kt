@@ -64,7 +64,8 @@ class Ctx constructor() : IContext {
     }
 
     fun getSignatures(type: Type) : List<ISignature>
-        = types.filterIsInstance<ISignature>()
+        = types.filterIsInstance<Signature>()
+        .filter { AnyEq.eq(this, it.getReceiverType(), type) }
 
     fun getConformance(type: TypeComponent) : List<ITrait>
         = conformanceMap.filter { it.key == type }
