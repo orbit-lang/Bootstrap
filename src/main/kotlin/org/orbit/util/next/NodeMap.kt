@@ -75,7 +75,7 @@ class TypeMap constructor() : ITypeMap {
     override fun toCtx(): Ctx = Ctx().apply {
         visibleTypes.values.map(::extend)
         conformanceMap.forEach {
-            val type = findAs<Type>(it.key) ?: return@forEach
+            val type = findAs<TypeComponent>(it.key) ?: return@forEach
             val traits = it.value.mapNotNull { s -> findAs<ITrait>(s) }
 
             traits.forEach { tr -> map(type, tr) }

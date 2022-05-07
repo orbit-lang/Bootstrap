@@ -92,7 +92,7 @@ object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int
             }
 
             val idx = input.parameters.indexOfFirst { item -> item.fullyQualifiedName == resolved.input.type.fullyQualifiedName }
-            when (resolved.input.type is Parameter) {
+            when (resolved.input.type is AbstractTypeParameter) {
                 true -> when (val e = over.firstOrNull { o -> o.first == idx }) {
                     null -> it
                     else -> FieldContract(TypeReference(nPath), Field(it.input.name, e.second))
@@ -106,7 +106,7 @@ object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int
         val nTrait = Trait(nPath, nFieldContracts, true)
 
         return when (input.parameters.count() == over.count()) {
-            true -> MonomorphisationResult.Total(MonomorphicType(input, nTrait, over.seconds(), true))
+            true -> MonomorphisationResult.Total(MonomorphicType(input, nTrait, over.toConcreteParameters(input.parameters), true))
             else -> {
                 if (context is MonomorphisationContext.TraitConformance) {
                     val pretty = input.parameters.joinToString(", ") { it.toString(printer) }
@@ -115,7 +115,7 @@ object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int
 
                 val delta = input.parameters.count() - over.count()
                 val unresolvedParameters = input.parameters.slice(IntRange(delta, input.parameters.count() - 1))
-                val nPoly = PolymorphicType(input.baseType, unresolvedParameters)
+                val nPoly = PolymorphicType(input.baseType, unresolvedParameters, partialFields = input.partialFields)
 
                 MonomorphisationResult.Partial(nPoly)
             }
@@ -123,11 +123,19 @@ object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int
     }
 }
 
-object TypeMonomorphiser : Monomorphiser<PolymorphicType<IType>, List<Pair<Int, TypeComponent>>, IType>, KoinComponent {
+private fun List<Pair<Int, TypeComponent>>.toConcreteParameters(given: List<AbstractTypeParameter>) : List<ConcreteTypeParameter>
+    = map { ConcreteTypeParameter(it.first, given[it.first], it.second) }
+
+object TypeMonomorphiser : Monomorphiser<PolymorphicType<FieldAwareType>, List<Pair<Int, TypeComponent>>, FieldAwareType>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    override fun monomorphise(ctx: Ctx, input: PolymorphicType<IType>, over: List<Pair<Int, TypeComponent>>, context: MonomorphisationContext): MonomorphisationResult<IType> {
+    private val monos = mutableMapOf<String, MonomorphicType<*>>()
+
+    fun getPolymorphicSource(type: TypeComponent) : MonomorphicType<*>?
+        = monos[type.fullyQualifiedName]
+
+    override fun monomorphise(ctx: Ctx, input: PolymorphicType<FieldAwareType>, over: List<Pair<Int, TypeComponent>>, context: MonomorphisationContext): MonomorphisationResult<FieldAwareType> {
         if (over.count() > input.parameters.count()) return MonomorphisationResult.Failure(input.baseType)
 
         // TODO - Assuming Polytype is total for the time being
@@ -163,7 +171,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<IType>, List<Pair<Int, 
             }
 
             val idx = input.parameters.indexOf(resolved.type)
-            when (resolved.type is Parameter) {
+            when (resolved.type is AbstractTypeParameter) {
                 true -> when (val e = over.firstOrNull { o -> o.first == idx }) {
                     null -> resolved
                     else -> Field(resolved.name, e.second)
@@ -178,11 +186,15 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<IType>, List<Pair<Int, 
         val nType = Type(nPath, nFields, true)
 
         return when (input.parameters.count() == over.count()) {
-            true -> MonomorphisationResult.Total(MonomorphicType(input, nType, over.seconds(), true))
+            true -> {
+                val mono = MonomorphicType(input, nType, over.toConcreteParameters(input.parameters), isTotal = true)
+                monos[nType.fullyQualifiedName] = mono
+                MonomorphisationResult.Total(mono)
+            }
             else -> {
                 val delta = input.parameters.count() - over.count()
                 val unresolvedParameters = input.parameters.slice(IntRange(delta, input.parameters.count() - 1))
-                val nPoly = PolymorphicType(input.baseType, unresolvedParameters)
+                val nPoly = PolymorphicType(MonomorphicType(input, nType, over.toConcreteParameters(input.parameters), false) as FieldAwareType, unresolvedParameters, partialFields = nFields)
 
                 MonomorphisationResult.Partial(nPoly)
             }
@@ -194,7 +206,7 @@ object MonoUtil : KoinComponent {
     private val printer: Printer by inject()
 
     fun monomorphise(ctx: Ctx, polyType: PolymorphicType<*>, parameters: List<Pair<Int, TypeComponent>>, selfType: TypeComponent?) : MonomorphisationResult<*> = when (polyType.baseType) {
-        is Type -> TypeMonomorphiser.monomorphise(ctx, polyType as PolymorphicType<IType>, parameters, MonomorphisationContext.Any)
+        is Type -> TypeMonomorphiser.monomorphise(ctx, polyType as PolymorphicType<FieldAwareType>, parameters, MonomorphisationContext.Any)
 
         is Trait -> TraitMonomorphiser.monomorphise(ctx, polyType as PolymorphicType<ITrait>, parameters, MonomorphisationContext.TraitConformance(selfType))
 

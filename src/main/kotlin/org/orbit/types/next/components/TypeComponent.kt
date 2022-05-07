@@ -18,6 +18,9 @@ interface TypeComponent {
     fun inferenceKey() : String = fullyQualifiedName
     fun references(type: TypeComponent) : Boolean = type.fullyQualifiedName == fullyQualifiedName
 //    fun toJson() : JsonObject
+
+    fun toString(printer: Printer) : String
+        = printer.apply(fullyQualifiedName, org.orbit.util.PrintableKey.Bold)
 }
 
 fun TypeComponent.resolve(ctx: Ctx) : TypeComponent?
@@ -112,9 +115,6 @@ data class Never(override val message: String = "", override val position: Sourc
 
 interface DeclType : TypeComponent
 interface ValueType : TypeComponent
-
-fun TypeComponent.toString(printer: Printer) : String
-    = printer.apply(fullyQualifiedName, PrintableKey.Bold)
 
 interface VectorType : ValueType, Collection<TypeComponent> {
     val elements: List<TypeComponent>

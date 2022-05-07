@@ -179,7 +179,7 @@ class NextTypesTests : TestCase() {
     fun testMonomorphiseField() {
         val ctx = Ctx()
         val t = Type("T")
-        val p = Parameter("P")
+        val p = AbstractTypeParameter("P")
         val f = Field("F", p)
 
         val result = FieldMonomorphiser.monomorphise(ctx, f, t, MonomorphisationContext.Any)
@@ -246,8 +246,8 @@ class NextTypesTests : TestCase() {
     fun testMonomorphiseSignature() {
         val ctx = Ctx()
         val t = Type("T")
-        val p1 = Parameter("P1")
-        val p2 = Parameter("P2")
+        val p1 = AbstractTypeParameter("P1")
+        val p2 = AbstractTypeParameter("P2")
         val s = Signature("s", Self, listOf(Self, t), p2)
         val poly = PolymorphicType(s, listOf(p1, p2))
 
@@ -295,8 +295,8 @@ class NextTypesTests : TestCase() {
         val ctx = Ctx()
         val t1 = Type("T1")
         val t2 = Type("T2")
-        val p1 = Parameter("P1")
-        val p2 = Parameter("P2")
+        val p1 = AbstractTypeParameter("P1")
+        val p2 = AbstractTypeParameter("P2")
         val poly = PolymorphicType(t1, listOf(p1, p2))
         val selfIndex = SelfIndex(p1)
         val sut = EqualityConstraint<Type>(selfIndex, t2)

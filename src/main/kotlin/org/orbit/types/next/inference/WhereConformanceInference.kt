@@ -6,7 +6,7 @@ import org.orbit.core.nodes.*
 import org.orbit.types.next.components.*
 import org.orbit.util.Printer
 
-data class TypeConstraint(val source: Parameter, val target: ITrait) : TypeComponent {
+data class TypeConstraint(val source: AbstractTypeParameter, val target: ITrait) : TypeComponent {
     override val fullyQualifiedName: String = "${source.fullyQualifiedName} : ${target.fullyQualifiedName}"
     override val isSynthetic: Boolean = true
     override val kind: Kind = IntrinsicKinds.Type
@@ -25,7 +25,7 @@ object TraitConformanceConstraintInference : Inference<TraitConformanceTypeConst
         context: InferenceContext,
         node: TraitConformanceTypeConstraintNode
     ): InferenceResult {
-        val parameter = inferenceUtil.inferAs<TypeIdentifierNode, Parameter>(node.constrainedTypeNode)
+        val parameter = inferenceUtil.inferAs<TypeIdentifierNode, AbstractTypeParameter>(node.constrainedTypeNode)
         val trait = inferenceUtil.infer(node.constraintTraitNode)
 
         return when (trait) {

@@ -107,7 +107,7 @@ class PartialCallRule(private val receiverExpression: ExpressionNode) : ValueRul
 
         if (next.type == TokenTypes.RParen) {
             context.consume()
-            return parseTrailing(context, MethodCallNode(receiverExpression.firstToken, methodIdentifier.lastToken, receiverExpression, methodIdentifier, emptyList()))
+            return parseTrailing(context, MethodCallNode(receiverExpression.firstToken, methodIdentifier.lastToken, receiverExpression, methodIdentifier, listOf(receiverExpression)))
         }
 
         val parameterNodes = mutableListOf<ExpressionNode>()
@@ -130,85 +130,3 @@ class PartialCallRule(private val receiverExpression: ExpressionNode) : ValueRul
         return parseTrailing(context, MethodCallNode(receiverExpression.firstToken, last, receiverExpression, methodIdentifier, parameterNodes))
     }
 }
-
-//object TypeMethodCallRule : MethodCallRule<TypeMethodCallNode> {
-//    override fun parse(context: Parser): ParseRule.Result {
-//        val typeIdentifier = context.attempt(TypeIdentifierRule.RValue)
-//            ?: throw context.invocation.make<Parser>("", context.peek())
-//
-//        context.expectOrNull(TokenTypes.Dot)
-//            ?: return ParseRule.Result.Failure.Rewind(listOf(typeIdentifier.firstToken))
-//
-//        val methodIdentifier = context.attempt(IdentifierRule)
-//            ?: throw context.invocation.make<Parser>("Expected method name", context.peek())
-//
-//        context.expect(TokenTypes.LParen)
-//
-//        var next = context.peek()
-//
-//        if (next.type == TokenTypes.RParen) {
-//            context.consume()
-//            return +TypeMethodCallNode(typeIdentifier.firstToken, next, methodIdentifier, emptyList(), typeIdentifier)
-//        }
-//
-//        val parameterNodes = mutableListOf<ExpressionNode>()
-//        while (next.type != TokenTypes.RParen) {
-//            val expression = context.attempt(ExpressionRule.defaultValue)
-//                ?: throw context.invocation.make<Parser>("Method call parameters must be expressions", next.position)
-//
-//            parameterNodes.add(expression)
-//
-//            next = context.peek()
-//
-//            if (next.type == TokenTypes.Comma) {
-//                context.consume()
-//                next = context.peek()
-//            }
-//        }
-//
-//        val last = context.expect(TokenTypes.RParen)
-//
-//        return +TypeMethodCallNode(typeIdentifier.firstToken, last, methodIdentifier, parameterNodes, typeIdentifier)
-//    }
-//}
-
-//object InstanceMethodCallRule : MethodCallRule<InstanceMethodCallNode> {
-//    override fun parse(context: Parser): ParseRule.Result {
-//        val instanceIdentifier = context.attempt(IdentifierRule)
-//            ?: throw context.invocation.make<Parser>("Expected identifier", context.peek())
-//
-//        context.expectOrNull(TokenTypes.Dot)
-//            ?: return ParseRule.Result.Failure.Rewind(listOf(instanceIdentifier.firstToken))
-//
-//        val methodIdentifier = context.attempt(IdentifierRule)
-//            ?: throw context.invocation.make<Parser>("Expected method name", context.peek())
-//
-//        context.expect(TokenTypes.LParen)
-//
-//        var next = context.peek()
-//
-//        if (next.type == TokenTypes.RParen) {
-//            context.consume()
-//            return +InstanceMethodCallNode(instanceIdentifier.firstToken, next, methodIdentifier, instanceIdentifier, emptyList())
-//        }
-//
-//        val parameterNodes = mutableListOf<ExpressionNode>()
-//        while (next.type != TokenTypes.RParen) {
-//            val expression = context.attempt(ExpressionRule.defaultValue)
-//                ?: throw context.invocation.make<Parser>("Method call parameters must be expressions", next.position)
-//
-//            parameterNodes.add(expression)
-//
-//            next = context.peek()
-//
-//            if (next.type == TokenTypes.Comma) {
-//                context.consume()
-//                next = context.peek()
-//            }
-//        }
-//
-//        val last = context.expect(TokenTypes.RParen)
-//
-//        return +InstanceMethodCallNode(instanceIdentifier.firstToken, last, methodIdentifier, instanceIdentifier, parameterNodes)
-//    }
-//}

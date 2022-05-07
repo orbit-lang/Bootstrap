@@ -1,12 +1,20 @@
-module Test {
-    type X
+module Orb::Types::Intrinsics {
+    type Unit
+    type Int
+}
+
+module Single with Orb::Types::Intrinsics {
+    type constructor Box<T>(value T)
     trait A
-    type constructor B<T>
-        where T : A
+    type B
 
-    type projection C : A
-        where x = X()
+    extension Box where T = B {
+        (self Self) b () (B) = self.value
+    }
 
-    type C
-    alias D = B<C>
+    (A) main () () {
+        box = Box(B())
+
+        tr = box.b()
+    }
 }

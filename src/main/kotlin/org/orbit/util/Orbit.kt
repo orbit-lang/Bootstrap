@@ -99,6 +99,7 @@ val mainModule = module {
 		util.registerInference(MethodCallInference, MethodCallNode::class.java)
 		util.registerInference(ReferenceCallInference, ReferenceCallNode::class.java)
 		util.registerInference(AssignmentStatementInference, AssignmentStatementNode::class.java)
+		util.registerInference(TypeBoundsExpressionInference, WhereClauseExpressionInferenceContext.TypeBoundsContext)
 
 		util
 	}

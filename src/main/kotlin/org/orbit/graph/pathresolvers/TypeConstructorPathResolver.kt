@@ -3,10 +3,12 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.SerialIndex
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
@@ -33,17 +35,18 @@ class FamilyConstructorPathResolver(private val parentPath: Path) : PathResolver
 
 			input.annotate(graphID, Annotations.GraphID)
 
-			for (typeParameter in input.typeParameterNodes) {
-				val nPath = path + typeParameter.value
+			for (typeParameter in input.typeParameterNodes.withIndex()) {
+				val nPath = path + typeParameter.value.value
 
-				typeParameter.annotate(nPath, Annotations.Path)
-				typeParameter.annotate(graphID, Annotations.GraphID)
+				typeParameter.value.annotate(nPath, Annotations.Path)
+				typeParameter.value.annotate(graphID, Annotations.GraphID)
+				typeParameter.value.annotate(SerialIndex(typeParameter.index), Annotations.Index)
 
-				val vertexID = graph.insert(typeParameter.value)
+				val vertexID = graph.insert(typeParameter.value.value)
 
 				graph.link(graphID, vertexID)
 
-				environment.bind(Binding.Kind.TypeParameter, typeParameter.value, nPath, vertexID)
+				environment.bind(Binding.Kind.TypeParameter, typeParameter.value.value, nPath, vertexID)
 			}
 		} else {
 			val parentGraphID = input.getGraphID()
@@ -108,17 +111,18 @@ class TypeConstructorPathResolver(
 
 			input.annotate(graphID, Annotations.GraphID)
 
-			for (typeParameter in input.typeParameterNodes) {
-				val nPath = path + typeParameter.value
+			for (typeParameter in input.typeParameterNodes.withIndex()) {
+				val nPath = path + typeParameter.value.value
 
-				typeParameter.annotate(nPath, Annotations.Path)
-				typeParameter.annotate(graphID, Annotations.GraphID)
+				typeParameter.value.annotate(nPath, Annotations.Path)
+				typeParameter.value.annotate(graphID, Annotations.GraphID)
+				typeParameter.value.annotate(SerialIndex(typeParameter.index), Annotations.Index)
 
-				val vertexID = graph.insert(typeParameter.value)
+				val vertexID = graph.insert(typeParameter.value.value)
 
 				graph.link(graphID, vertexID)
 
-				environment.bind(Binding.Kind.TypeParameter, typeParameter.value, nPath, vertexID)
+				environment.bind(Binding.Kind.TypeParameter, typeParameter.value.value, nPath, vertexID)
 			}
 		} else {
 			val parentGraphID = input.getGraphID()

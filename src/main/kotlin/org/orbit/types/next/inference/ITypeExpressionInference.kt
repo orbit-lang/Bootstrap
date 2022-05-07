@@ -59,7 +59,7 @@ object MetaTypeInference : ITypeExpressionInference<MetaTypeNode, MonomorphicTyp
             .mapIndexed { idx, type -> Pair(idx, type) }
 
         return when (polyType.baseType) {
-            is Type -> TypeMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<IType>, parameters, MonomorphisationContext.Any)
+            is Type -> TypeMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<FieldAwareType>, parameters, MonomorphisationContext.Any)
                 .toInferenceResult(printer)
 
             is Trait -> TraitMonomorphiser.monomorphise(inferenceUtil.toCtx(), polyType as PolymorphicType<ITrait>, parameters, MonomorphisationContext.TraitConformance(inferenceUtil.self))
@@ -79,7 +79,7 @@ object TypeIndexInference : Inference<TypeIndexNode, TypeComponent>, KoinCompone
 
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeIndexNode): InferenceResult {
         val self = inferenceUtil.self ?: throw invocation.make<TypeSystem>("Cannot infer Self in this context", node)
-        val idx = Parameter(self.getPath(OrbitMangler) + node.index.value)
+        val idx = AbstractTypeParameter(self.getPath(OrbitMangler) + node.index.value)
 
         return when (self) {
             is ParameterisedType -> when (self.contains(idx)) {
@@ -90,7 +90,7 @@ object TypeIndexInference : Inference<TypeIndexNode, TypeComponent>, KoinCompone
             else -> {
                 val conformance = inferenceUtil.getConformance(self)
                 val parameterised = conformance.filterIsInstance<ParameterisedType>()
-                val relativeIdx = Parameter(node.index.value)
+                val relativeIdx = AbstractTypeParameter(node.index.value)
                 val matches = parameterised.mapNotNull { when (it.indexOfRelative(relativeIdx)) {
                     -1 -> null
                     else -> it.typeOfRelative(relativeIdx)

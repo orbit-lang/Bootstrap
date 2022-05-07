@@ -5,7 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 
-data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<TypeComponent>, val isTotal: Boolean) : IType, ITrait, ParameterisedType, ISignature, KoinComponent {
+data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<ConcreteTypeParameter>, val isTotal: Boolean) : IType, ITrait, ParameterisedType, ISignature, KoinComponent {
     private val printer: Printer by inject()
 
     override val fullyQualifiedName: String = specialisedType.fullyQualifiedName
@@ -44,20 +44,20 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
         return InterfaceSynthesiser.synthesise(ctx, specialisedType)
     }
 
-    override fun indexOf(parameter: Parameter): Int
+    override fun indexOf(parameter: AbstractTypeParameter): Int
         = polymorphicType.indexOf(parameter)
 
-    override fun indexOfRelative(parameter: Parameter): Int
+    override fun indexOfRelative(parameter: AbstractTypeParameter): Int
         = polymorphicType.indexOfRelative(parameter)
 
-    override fun typeOf(parameter: Parameter): TypeComponent? = when (val idx = indexOf(parameter)) {
+    override fun typeOf(parameter: AbstractTypeParameter): TypeComponent? = when (val idx = indexOf(parameter)) {
         -1 -> null
-        else -> concreteParameters[idx]
+        else -> concreteParameters[idx].concreteType
     }
 
-    override fun typeOfRelative(parameter: Parameter): TypeComponent? = when (val idx = indexOfRelative(parameter)) {
+    override fun typeOfRelative(parameter: AbstractTypeParameter): TypeComponent? = when (val idx = indexOfRelative(parameter)) {
         -1 -> null
-        else -> concreteParameters[idx]
+        else -> concreteParameters[idx].concreteType
     }
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation

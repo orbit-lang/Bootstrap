@@ -60,7 +60,7 @@ interface ITypeRef : ValueType, ITrait, IType, ISignature {
         TODO("Not yet implemented")
     }
 
-    override fun getSignatureTypeParameters(): List<Parameter> {
+    override fun getSignatureTypeParameters(): List<AbstractTypeParameter> {
         return super.getSignatureTypeParameters()
     }
 }
@@ -179,6 +179,10 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         val nInferenceUtil = InferenceUtil(nTypeMap, nBindingScope, self)
 
         nInferenceUtil.registerAllInferences(this)
+
+        self?.let {
+            nInferenceUtil.declare(Alias("Self", it))
+        }
 
         return nInferenceUtil
     }

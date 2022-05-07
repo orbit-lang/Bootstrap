@@ -162,3 +162,8 @@ fun <A, B> List<Pair<A, B>>.firsts() : List<A>
 
 fun <A, B> List<Pair<A, B>>.seconds() : List<B>
     = map { it.second }
+
+fun Boolean.alsoIf(block: () -> Boolean) : Boolean = when (this) {
+    true -> this.also { block() }
+    else -> this
+}

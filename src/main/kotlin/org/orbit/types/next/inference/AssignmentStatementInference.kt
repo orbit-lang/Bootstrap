@@ -4,6 +4,7 @@ import org.orbit.core.nodes.AssignmentStatementNode
 import org.orbit.core.nodes.ExpressionNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.types.next.components.TypeComponent
+import org.orbit.types.next.intrinsics.Native
 
 object AssignmentStatementInference : StatementInference<AssignmentStatementNode, TypeComponent> {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: AssignmentStatementNode): InferenceResult {
@@ -20,6 +21,7 @@ object AssignmentStatementInference : StatementInference<AssignmentStatementNode
 
         inferenceUtil.bind(node.identifier.identifier, type)
 
-        return type.inferenceResult()
+        return Native.Types.Unit.type
+            .inferenceResult()
     }
 }

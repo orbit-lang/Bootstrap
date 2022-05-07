@@ -6,16 +6,16 @@ import org.orbit.util.getKoinInstance
 import org.orbit.util.toPath
 
 interface ParameterisedType : TypeComponent {
-    fun indexOf(parameter: Parameter) : Int
-    fun indexOfRelative(parameter: Parameter) : Int
-    fun typeOf(parameter: Parameter) : TypeComponent?
-    fun typeOfRelative(parameter: Parameter) : TypeComponent?
+    fun indexOf(parameter: AbstractTypeParameter) : Int
+    fun indexOfRelative(parameter: AbstractTypeParameter) : Int
+    fun typeOf(parameter: AbstractTypeParameter) : TypeComponent?
+    fun typeOfRelative(parameter: AbstractTypeParameter) : TypeComponent?
 }
 
-fun ParameterisedType.contains(parameter: Parameter) : Boolean
+fun ParameterisedType.contains(parameter: AbstractTypeParameter) : Boolean
     = indexOf(parameter) > -1
 
-data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: List<Parameter>, val traitConformance: List<ITrait> = emptyList(), override val isSynthetic: Boolean = false) : DeclType, ParameterisedType, ISignature {
+data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: List<AbstractTypeParameter>, val traitConformance: List<ITrait> = emptyList(), override val isSynthetic: Boolean = false, val partialFields: List<Field>) : DeclType, ParameterisedType, ISignature, FieldAwareType {
     override val fullyQualifiedName: String = baseType.fullyQualifiedName
 
     override val kind: Kind get() {
@@ -24,6 +24,26 @@ data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: Li
 
         return HigherKind(inputKind, IntrinsicKinds.Type(baseType.kind.level - 1))
     }
+
+    fun replaceTypeParameter(idx: Int, with: AbstractTypeParameter) : PolymorphicType<T> {
+        val mut = parameters.toMutableList()
+
+        mut[idx] = with
+
+        val nFields = partialFields.map {
+            when (it.type is AbstractTypeParameter && it.type.fullyQualifiedName == with.fullyQualifiedName) {
+                true -> Field(it.name, with)
+                else -> it
+            }
+        }
+
+        return PolymorphicType(baseType, mut, traitConformance, isSynthetic, nFields)
+    }
+
+    fun withPartialFields(fields: List<Field>) : PolymorphicType<T>
+        = PolymorphicType(baseType, parameters, traitConformance, isSynthetic, partialFields + fields)
+
+    override fun getFields(): List<Field> = partialFields
 
     private fun getSignatureNever() = Never("${baseType.toString(getKoinInstance())} is not a Signature")
 
@@ -36,23 +56,23 @@ data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: Li
     override fun getReceiverType(): TypeComponent = getSignature(getKoinInstance()).getReceiverType()
     override fun getParameterTypes(): List<TypeComponent> = getSignature(getKoinInstance()).getParameterTypes()
     override fun getReturnType(): TypeComponent = getSignature(getKoinInstance()).getReturnType()
-    override fun getSignatureTypeParameters(): List<Parameter> = getSignature(getKoinInstance()).getSignatureTypeParameters()
+    override fun getSignatureTypeParameters(): List<AbstractTypeParameter> = getSignature(getKoinInstance()).getSignatureTypeParameters()
 
-    override fun indexOf(parameter: Parameter) : Int
+    override fun indexOf(parameter: AbstractTypeParameter) : Int
         = parameters.indexOf(parameter)
 
-    override fun indexOfRelative(parameter: Parameter): Int {
-        val relativeParameters = parameters.map { Parameter(it.fullyQualifiedName.toPath(OrbitMangler).last()) }
+    override fun indexOfRelative(parameter: AbstractTypeParameter): Int {
+        val relativeParameters = parameters.map { AbstractTypeParameter(it.fullyQualifiedName.toPath(OrbitMangler).last()) }
 
         return relativeParameters.indexOf(parameter)
     }
 
-    override fun typeOf(parameter: Parameter): TypeComponent? = when (val idx = indexOf(parameter)) {
+    override fun typeOf(parameter: AbstractTypeParameter): TypeComponent? = when (val idx = indexOf(parameter)) {
         -1 -> null
         else -> parameters[idx]
     }
 
-    override fun typeOfRelative(parameter: Parameter): TypeComponent? = when (val idx = indexOfRelative(parameter)) {
+    override fun typeOfRelative(parameter: AbstractTypeParameter): TypeComponent? = when (val idx = indexOfRelative(parameter)) {
         -1 -> null
         else -> parameters[idx]
     }

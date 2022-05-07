@@ -5,20 +5,45 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.MethodCallNode
 import org.orbit.types.next.components.*
+import org.orbit.types.next.phase.TypeSystem
+import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 
 object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinComponent {
+    private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: MethodCallNode): InferenceResult {
         val receiver = inferenceUtil.infer(node.receiverExpression)
-        val leadingPath = receiver.getPath(OrbitMangler) + node.messageIdentifier.identifier
-        val candidateSignatures = inferenceUtil.getTypeMap().filter {
-            it is Signature && it.getPath(OrbitMangler).containsSubPath(leadingPath)
+
+        if (node.isPropertyAccess) {
+            if (receiver is FieldAwareType) {
+                val matches = receiver.getFields()
+                    .filter { it.name == node.messageIdentifier.identifier }
+
+                if (matches.isEmpty())
+                    throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a property named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Bold, PrintableKey.Italics)}", node.messageIdentifier.firstToken)
+
+                return matches.first().type
+                    .inferenceResult()
+            }
         }
 
-        if (candidateSignatures.count() != 1) TODO("Method Call Conflict")
+        val candidateSignatures = inferenceUtil.getTypeMap().filter {
+            it is Signature
+                && it.relativeName == node.messageIdentifier.identifier
+                && AnyEq.eq(inferenceUtil.toCtx(), receiver, it.receiver)
+        }
+
+        if (candidateSignatures.isEmpty())
+            throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a method named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Italics, PrintableKey.Bold)}", node.messageIdentifier.firstToken)
+
+        if (candidateSignatures.count() > 1) {
+            val pretty = candidateSignatures.joinToString("\n\t") { it.toString(printer) }
+
+            throw invocation.make<TypeSystem>("Multiple candidates found for method call:\n\t$pretty", node.messageIdentifier.firstToken)
+        }
 
         val signature = candidateSignatures[0] as Signature
         val arguments = inferenceUtil.inferAll(node.parameterNodes, AnyExpressionContext)
@@ -36,14 +61,14 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
         val callableInterface = signature.derive()
         val calleeContracts = arguments.mapIndexed { idx, type -> Field("$idx", type) }
         val receiverContract = Field("__receiver", receiver)
-        val returnsContract = Field("__returns", Anything)
+        val returnsContract = Field("__returns", signature.returns)
         val calleeType = Type(signature.getPath(OrbitMangler) + "SyntheticCallee", calleeContracts + receiverContract + returnsContract)
 
         val onFailure = {
             val signaturePretty = signature.parameters.joinToString(", ") { it.toString(printer) }
             val calleePretty = arguments.joinToString(", ") { it.toString(printer) }
 
-            Never("Cannot call method ${printer.apply(signature.relativeName, PrintableKey.Bold)} with arguments ($calleePretty), expected ($signaturePretty)")
+            Never("Cannot call method ${signature.toString(printer)} with arguments ($calleePretty), expected ($signaturePretty)")
         }
 
         if (callableInterface.contracts.count() != calleeType.getFields().count())

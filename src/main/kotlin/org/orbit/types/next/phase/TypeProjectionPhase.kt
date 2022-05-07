@@ -21,7 +21,7 @@ object TypeProjectionPhase : TypePhase<TypeProjectionNode, TypeComponent>, KoinC
 
         val target = nInferenceUtil.infer(input.node.traitIdentifier)
 
-        if (target !is ITrait) return Never("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${target.toString(printer)} (Kind: ${target.kind.toString(printer)})")
+        if (target !is ITrait) throw invocation.make<TypeSystem>("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${target.toString(printer)} (Kind: ${target.kind.toString(printer)})", input.node.traitIdentifier)
 
         val wheres = input.inferenceUtil.inferAllAs<WhereClauseNode, Field>(input.node.whereNodes,
             AnyInferenceContext(WhereClauseNode::class.java)

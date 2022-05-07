@@ -11,4 +11,5 @@ sealed class Annotations(val key: String) : NodeAnnotationTag<AnySerializable>()
     object Type : Annotations("$KEY::Type")
     object Resolved : Annotations("$KEY::Resolved")
     object DeferFunction : Annotations("$KEY::DeferFunction")
+    object Index : Annotations("$KEY::Index")
 }

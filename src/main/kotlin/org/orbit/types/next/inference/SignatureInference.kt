@@ -7,7 +7,7 @@ import org.orbit.types.next.intrinsics.Native
 
 object SignatureInference : Inference<MethodSignatureNode, ISignature> {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: MethodSignatureNode): InferenceResult {
-        val typeParameters: List<Parameter> = when (val pNode = node.typeParameters) {
+        val typeParameters: List<AbstractTypeParameter> = when (val pNode = node.typeParameters) {
             null -> emptyList()
             else -> inferenceUtil.inferAllAs(pNode.typeParameters, TypeLiteralInferenceContext.TypeParameterContext)
         }
@@ -28,7 +28,7 @@ object SignatureInference : Inference<MethodSignatureNode, ISignature> {
 
         return when (typeParameters.isEmpty()) {
             true -> signature
-            else -> PolymorphicType(signature, typeParameters, emptyList(),false)
+            else -> PolymorphicType(signature, typeParameters, emptyList(),false, partialFields = emptyList())
         }.inferenceResult()
     }
 }

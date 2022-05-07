@@ -4,7 +4,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.getPath
 import org.orbit.core.nodes.*
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.AnyInferenceContext
 import org.orbit.types.next.inference.TypeConstraint
@@ -16,7 +15,7 @@ object FamilyConstructorStubPhase : EntityConstructorStubPhase<FamilyConstructor
     override val invocation: Invocation by inject()
 
     override fun run(input: TypePhaseData<FamilyConstructorNode>): PolymorphicType<TypeFamily<*>> {
-        val parameters = input.inferenceUtil.inferAllAs<TypeIdentifierNode, Parameter>(input.node.typeParameterNodes, TypeLiteralInferenceContext.TypeParameterContext)
+        val parameters = input.inferenceUtil.inferAllAs<TypeIdentifierNode, AbstractTypeParameter>(input.node.typeParameterNodes, TypeLiteralInferenceContext.TypeParameterContext)
 
         parameters.forEach { input.inferenceUtil.declare(it) }
 
@@ -26,7 +25,7 @@ object FamilyConstructorStubPhase : EntityConstructorStubPhase<FamilyConstructor
 
         val baseFamily = TypeFamily(input.node.getPath(), members)
 
-        return PolymorphicType(baseFamily, parameters)
+        return PolymorphicType(baseFamily, parameters, partialFields = emptyList())
     }
 }
 
@@ -34,7 +33,7 @@ object TypeConstructorStubPhase : EntityConstructorStubPhase<TypeConstructorNode
     override val invocation: Invocation by inject()
 
     override fun run(input: TypePhaseData<TypeConstructorNode>): PolymorphicType<Type> {
-        val parameters = input.inferenceUtil.inferAllAs<TypeIdentifierNode, Parameter>(input.node.typeParameterNodes, TypeLiteralInferenceContext.TypeParameterContext)
+        val parameters = input.inferenceUtil.inferAllAs<TypeIdentifierNode, AbstractTypeParameter>(input.node.typeParameterNodes, TypeLiteralInferenceContext.TypeParameterContext)
 
         parameters.forEach { input.inferenceUtil.declare(it) }
 
@@ -42,7 +41,7 @@ object TypeConstructorStubPhase : EntityConstructorStubPhase<TypeConstructorNode
 
         val baseType = Type(input.node.getPath(), fields)
 
-        return PolymorphicType(baseType, parameters)
+        return PolymorphicType(baseType, parameters, partialFields = emptyList())
     }
 }
 
@@ -62,7 +61,7 @@ object TypeConstructorConformancePhase : TypePhase<TypeConstructorNode, Polymorp
             }
         }
 
-        return PolymorphicType(typeConstructor.baseType, typeConstructor.parameters, traitConformance as List<ITrait>, typeConstructor.isSynthetic)
+        return PolymorphicType(typeConstructor.baseType, typeConstructor.parameters, traitConformance as List<ITrait>, typeConstructor.isSynthetic, typeConstructor.partialFields)
     }
 }
 
@@ -79,10 +78,10 @@ object TypeConstructorConstraintsPhase : TypePhase<TypeConstructorNode, Polymorp
 
             when (constraints.isEmpty()) {
                 true -> parameter
-                else -> Parameter(parameter.fullyQualifiedName, constraints)
+                else -> AbstractTypeParameter(parameter.fullyQualifiedName, constraints)
             }
         }
 
-        return PolymorphicType(typeConstructor.baseType, nParameters, typeConstructor.traitConformance, typeConstructor.isSynthetic)
+        return PolymorphicType(typeConstructor.baseType, nParameters, typeConstructor.traitConformance, typeConstructor.isSynthetic, typeConstructor.partialFields)
     }
 }

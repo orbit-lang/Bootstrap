@@ -12,14 +12,14 @@ object TraitConstructorStubPhase : EntityConstructorStubPhase<TraitConstructorNo
     override val invocation: Invocation by inject()
 
     override fun run(input: TypePhaseData<TraitConstructorNode>): PolymorphicType<Trait> {
-        val parameters = input.inferenceUtil.inferAllAs<TypeIdentifierNode, Parameter>(input.node.typeParameterNodes,
+        val parameters = input.inferenceUtil.inferAllAs<TypeIdentifierNode, AbstractTypeParameter>(input.node.typeParameterNodes,
             TypeLiteralInferenceContext.TypeParameterContext
         )
 
         parameters.forEach { input.inferenceUtil.declare(it) }
 
         val protoTrait = Trait(input.node.getPath())
-        val protoPoly = PolymorphicType(protoTrait, parameters)
+        val protoPoly = PolymorphicType(protoTrait, parameters, partialFields = emptyList())
         val nInferenceUtil = input.inferenceUtil.derive(retainsTypeMap = true, retainsBindingScope = true, protoPoly)
 
         val fields = nInferenceUtil.inferAllAs<PairNode, Field>(input.node.properties,
@@ -29,7 +29,7 @@ object TraitConstructorStubPhase : EntityConstructorStubPhase<TraitConstructorNo
         val fieldContracts = fields.map { FieldContract(TypeReference(input.node.getPath()), it) }
         val baseType = Trait(input.node.getPath(), fieldContracts)
 
-        return PolymorphicType(baseType, parameters)
+        return PolymorphicType(baseType, parameters, partialFields = emptyList())
     }
 }
 
@@ -47,10 +47,10 @@ object TraitConstructorConstraintsPhase : TypePhase<TraitConstructorNode, Polymo
 
             when (constraints.isEmpty()) {
                 true -> parameter
-                else -> Parameter(parameter.fullyQualifiedName, constraints)
+                else -> AbstractTypeParameter(parameter.fullyQualifiedName, constraints)
             }
         }
 
-        return PolymorphicType(traitConstructor.baseType, nParameters)
+        return PolymorphicType(traitConstructor.baseType, nParameters, partialFields = traitConstructor.partialFields)
     }
 }

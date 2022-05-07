@@ -2,11 +2,12 @@ package org.orbit.types.next.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 
 interface ISignature : DeclType {
     fun getSignature(printer: Printer) : ISignature
-    fun getSignatureTypeParameters() : List<Parameter> = emptyList()
+    fun getSignatureTypeParameters() : List<AbstractTypeParameter> = emptyList()
     fun getName() : String
     fun getReceiverType() : TypeComponent
     fun getParameterTypes() : List<TypeComponent>
@@ -39,5 +40,10 @@ data class Signature(val relativeName: String, val receiver: TypeComponent, val 
         val contracts = parameters.mapIndexed { idx, type -> FieldContract(trait, Field("$idx", type)) }
 
         return Trait(trait.fullyQualifiedName, contracts + receiverContract + returnsContract)
+    }
+
+    override fun toString(printer: Printer): String {
+        val args = parameters.joinToString(", ") { it.toString(printer) }
+        return "(${receiver.toString(printer)}) ${printer.apply(relativeName, PrintableKey.Bold, PrintableKey.Italics)} ($args) (${returns.toString(printer)})"
     }
 }

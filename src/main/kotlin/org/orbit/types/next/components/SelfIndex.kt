@@ -1,6 +1,6 @@
 package org.orbit.types.next.components
 
-data class SelfIndex(val parameter: Parameter) : TypeComponent {
+data class SelfIndex(val parameter: AbstractTypeParameter) : TypeComponent {
     override val fullyQualifiedName: String = "Self::${parameter.fullyQualifiedName}"
     override val isSynthetic: Boolean = true
     override val kind: Kind = IntrinsicKinds.Type
