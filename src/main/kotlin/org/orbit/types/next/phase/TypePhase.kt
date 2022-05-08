@@ -111,29 +111,21 @@ object TypeSystem : AdaptablePhase<TypePhaseData<ProgramNode>, TypeSystem.Result
         registerAdapter(NameResolverAdapter)
     }
 
-    @ExperimentalTime
-    @ExperimentalContracts
     override fun execute(input: TypePhaseData<ProgramNode>): Result {
-        val timedResult = measureTimeWithResult {
-            val moduleNodes = input.node.search(ModuleNode::class.java)
-            val modules = ModulePhase.executeAll(input.inferenceUtil, moduleNodes)
-            val result = Result(modules, input.inferenceUtil.getTypeMap())
-            val typeErrors = input.inferenceUtil.getTypeErrors()
+        val moduleNodes = input.node.search(ModuleNode::class.java)
+        val modules = ModulePhase.executeAll(input.inferenceUtil, moduleNodes)
+        val result = Result(modules, input.inferenceUtil.getTypeMap())
+        val typeErrors = input.inferenceUtil.getTypeErrors()
 
-            if (typeErrors.isNotEmpty()) {
-                val fullMessage = typeErrors.joinToString("\n") { it.message }
+        if (typeErrors.isNotEmpty()) {
+            val fullMessage = typeErrors.joinToString("\n") { it.message }
 
-                throw invocation.make<TypeSystem>(fullMessage, input.node)
-            }
-
-            invocation.storeResult(CompilationSchemeEntry.typeSystem, result)
-//          invocation.storeResult("__type_assistant__", typeAssistant)
-
-            result
+            throw invocation.make<TypeSystem>(fullMessage, input.node)
         }
 
-        println(printer.apply("Completed type checking in ${timedResult.first}", PrintableKey.Bold, PrintableKey.Italics, PrintableKey.Success))
+        invocation.storeResult(CompilationSchemeEntry.typeSystem, result)
+//          invocation.storeResult("__type_assistant__", typeAssistant)
 
-        return timedResult.second
+        return result
     }
 }

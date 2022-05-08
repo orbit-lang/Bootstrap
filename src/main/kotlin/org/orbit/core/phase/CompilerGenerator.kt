@@ -7,11 +7,15 @@ import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.components.CompilationScheme
 import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.util.Invocation
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 
-class CompilerGenerator(private val invocation: Invocation, phases: Map<String, AnyPhase> = emptyMap()) :
-    KoinComponent {
+class CompilerGenerator(private val invocation: Invocation, phases: Map<String, AnyPhase> = emptyMap()) : KoinComponent {
 	private val phases = phases.toMutableMap()
 	private val eventBus: CompilationEventBus by inject()
+	private val printer: Printer by inject()
 
 	operator fun set(key: String, value: ReifiedPhase<*, *>) {
 		phases[key] = value as AnyPhase
@@ -21,6 +25,7 @@ class CompilerGenerator(private val invocation: Invocation, phases: Map<String, 
 		set(key.uniqueIdentifier, value)
 	}
 
+	@ExperimentalTime
 	fun run(scheme: CompilationScheme) {
 		for (entry in scheme) {
 			val phase = phases[entry.uniqueIdentifier] ?: throw RuntimeException("Unknown compilation phase '${entry.uniqueIdentifier}'")
@@ -37,7 +42,11 @@ class CompilerGenerator(private val invocation: Invocation, phases: Map<String, 
 
 			eventBus.notify(PhaseLifecycle.Event(PhaseLifecycle.Before, entry.uniqueIdentifier))
 
-			phase.execute(input)
+			val timed = measureTimedValue {
+				phase.execute(input)
+			}
+
+			println(printer.apply("Completed phase ${entry.uniqueIdentifier} in ${timed.duration}", PrintableKey.Italics, PrintableKey.Bold, PrintableKey.Success))
 
 			eventBus.notify(PhaseLifecycle.Event(PhaseLifecycle.After, entry.uniqueIdentifier))
 		}

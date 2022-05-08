@@ -3,17 +3,17 @@ module Orb::Types::Intrinsics {
     type Int
 }
 
-module Single with Orb::Types::Intrinsics {
-    type constructor Box<T>(value T)
-    trait A(x Int)
-    type B(x Int) : A
+module Orb::Core::Main {
+    type Main
+}
 
-    extension Box where T : A {
-        (self Self) a () (A) = self.value
-    }
+module Single with Orb::* {
+    type A
+    type B(a A)
 
-    (A) main () () {
-        box = Box(B(1))
-        tr = box.a()
+    
+
+    (self Main) main () () {
+
     }
 }
