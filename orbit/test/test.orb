@@ -8,12 +8,19 @@ module Orb::Core::Main {
 }
 
 module Single with Orb::* {
+    type constructor Any<T>(value T)
     type A
     type B(a A)
 
-    
+    extension Any {
+        (self Self) getSelf () (Self) = self
+    }
 
     (self Main) main () () {
+        a = A()
+        b = B(a)
 
+        aa = Any(a).getSelf()
+        bb = Any(b).getSelf()
     }
 }

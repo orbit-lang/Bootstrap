@@ -3,12 +3,14 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.SerialIndex
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.extensions.getGraphIDOrNull
 import org.orbit.types.components.IntrinsicTypes
@@ -27,13 +29,14 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 
 		if (tp != null) {
 			val mPath = Path(input.identifierNode.identifier)
-			tp.typeParameters.forEach {
-				val nPath = mPath + it.value
+			tp.typeParameters.forEachIndexed { idx, tp ->
+				val nPath = mPath + tp.value
 				val nGraphID = graph.insert(nPath.toString(OrbitMangler))
 
-				it.annotate(nPath, Annotations.Path)
+				tp.annotate(SerialIndex(idx), Annotations.Index)
+				tp.annotate(nPath, Annotations.Path)
 				// TODO - Recursively resolve nested type parameters
-				environment.bind(Binding.Kind.Type, it.value, nPath, nGraphID)
+				environment.bind(Binding.Kind.Type, tp.value, nPath, nGraphID)
 				graph.link(graphID, nGraphID)
 			}
 		}
