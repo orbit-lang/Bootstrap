@@ -13,12 +13,7 @@ object TypeProjectionRule : ParseRule<TypeProjectionNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect(TokenTypes.Type)
-        var next = context.peek()
-
-        if (next.type != TokenTypes.Projection) return ParseRule.Result.Failure.Rewind(listOf(start))
-
-        context.consume()
+        val start = context.expect(TokenTypes.Projection)
 
         val typeIdentifier = context.attempt(TypeExpressionRule)
             ?: throw invocation.make<Parser>("Expected type identifier after `type projection`", context.peek())
@@ -28,7 +23,7 @@ object TypeProjectionRule : ParseRule<TypeProjectionNode>, KoinComponent {
         val traitIdentifierRule = context.attempt(TypeExpressionRule)
             ?: throw invocation.make<Parser>("Expected trait identifier after `type projection ${typeIdentifier.value} :`", context.peek())
 
-        next = context.peek()
+        var next = context.peek()
         val whereClauses = mutableListOf<WhereClauseNode>()
         while (next.type == TokenTypes.Where) {
             val whereClause = context.attempt(WhereClauseRule.typeProjection)

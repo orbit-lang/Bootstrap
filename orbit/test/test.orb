@@ -16,7 +16,7 @@ module Single with Orb::* {
     trait A(x Int)
     type B
 
-    type projection B : A
+    projection B : A
         where x = 1
 
     extension B {

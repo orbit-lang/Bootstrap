@@ -96,21 +96,27 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                     when (entity) {
                         is EntityConstructorNode -> entityConstructorNodes.add(entity)
                         is TypeAliasNode -> typeAliasNodes.add(entity)
-                        is TypeProjectionNode -> typeProjectionNodes.add(entity)
                         else -> entityDefNodes.add(entity!! as EntityDefNode)
                     }
                 }
 
+                TokenTypes.Projection -> {
+                    val projection = context.attempt(TypeProjectionRule)
+                        ?: TODO("@ModuleRule:105")
+
+                    typeProjectionNodes.add(projection)
+                }
+
                 TokenTypes.Extension -> {
                     val extension = context.attempt(ExtensionRule, true)
-                        ?: TODO("@ModuleRule:117")
+                        ?: TODO("@ModuleRule:112")
 
                     extensionNodes.add(extension)
                 }
 
                 TokenTypes.Alias -> {
                     val typeAlias = context.attempt(TypeAliasRule)
-                        ?: TODO("@ModuleRule:124")
+                        ?: TODO("@ModuleRule:119")
 
                     typeAliasNodes.add(typeAlias)
                 }
