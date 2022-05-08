@@ -11,6 +11,7 @@ import org.orbit.types.next.components.PolymorphicType
 import org.orbit.types.next.components.TypeComponent
 import org.orbit.types.next.components.toString
 import org.orbit.types.next.constraints.*
+import org.orbit.types.next.inference.AnyExpressionContext
 import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
@@ -41,7 +42,7 @@ object ExtensionPhase : TypePhase<ExtensionNode, TypeComponent>, KoinComponent {
         else -> acc
     }
 
-    override fun run(input: TypePhaseData<ExtensionNode>): TypeComponent {
+    private fun inferPolyTypeExtension(input: TypePhaseData<ExtensionNode>) : TypeComponent {
         val targetType = input.inferenceUtil.inferAs<TypeExpressionNode, PolymorphicType<TypeComponent>>(input.node.targetTypeNode)
         var nInferenceUtil = input.inferenceUtil.derive(self = targetType)
 
@@ -51,11 +52,21 @@ object ExtensionPhase : TypePhase<ExtensionNode, TypeComponent>, KoinComponent {
 
         val result = constraints.fold(Pair(nInferenceUtil, IdentityConstraintApplication(targetType) as ConstraintApplication<TypeComponent>), ::refine)
 
-        nInferenceUtil = result.first.derive(self = result.second.resultValue())
+        return result.second.resultValue()
+    }
+
+    override fun run(input: TypePhaseData<ExtensionNode>): TypeComponent {
+        val targetType = input.inferenceUtil.infer(input.node.targetTypeNode)
+        val extendedType = when (targetType) {
+            is PolymorphicType<*> -> inferPolyTypeExtension(input)
+            else -> targetType
+        }
+
+        val nInferenceUtil = input.inferenceUtil.derive(self = extendedType)
 
         MethodStubPhase.executeAll(nInferenceUtil, input.node.methodDefNodes)
         MethodBodyPhase.executeAll(nInferenceUtil, input.node.methodDefNodes)
 
-        return result.second.resultValue()
+        return extendedType
     }
 }

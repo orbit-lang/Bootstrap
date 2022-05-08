@@ -219,8 +219,11 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         }
     }
 
-    inline fun <N: Node, reified T: TypeComponent> inferAsOrNull(node: N, context: InferenceContext = AnyInferenceContext(node::class.java)) : T?
-        = infer(node, context) as? T
+    inline fun <N: Node, reified T: TypeComponent> inferAsOrNull(node: N, context: InferenceContext = AnyInferenceContext(node::class.java)) : T? = try {
+        infer(node, context) as? T
+    } catch (_: Exception) {
+        null
+    }
 
     inline fun <N: Node, reified T: TypeComponent> inferAs(node: N, context: InferenceContext = AnyInferenceContext(node::class.java)) : T
         = inferAsOrNull(node, context)!!

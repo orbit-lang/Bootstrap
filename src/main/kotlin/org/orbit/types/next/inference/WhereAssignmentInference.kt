@@ -23,7 +23,11 @@ sealed interface WhereClauseExpressionInferenceContext : InferenceContext {
 
 object WhereClauseInference : Inference<WhereClauseNode, TypeComponent> {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: WhereClauseNode): InferenceResult
-        = inferenceUtil.infer(node.whereExpression, WhereClauseExpressionInferenceContext.TypeBoundsContext).inferenceResult()
+        // TODO - There will be other kinds of WhereClauseExpression in the future - we'll need to switch on the type here
+        = when (node.whereExpression) {
+            is AssignmentStatementNode -> inferenceUtil.infer(node.whereExpression, WhereClauseExpressionInferenceContext.AssignmentContext)
+            else -> inferenceUtil.infer(node.whereExpression, WhereClauseExpressionInferenceContext.TypeBoundsContext)
+        }.inferenceResult()
 }
 
 object TypeBoundsExpressionInference : Inference<WhereClauseTypeBoundsExpressionNode, Constraint<PolymorphicType<*>, ConstraintApplication<PolymorphicType<*>>>> {

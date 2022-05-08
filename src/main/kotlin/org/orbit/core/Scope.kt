@@ -183,6 +183,9 @@ class Scope(
 					invocation.warn(Warning("The name $name is bound to multiple components. Proceeding with the assumption that $name = ${tp[0].path.toString(OrbitMangler)} in this context.\n\tIf this is not correct, please use the fully qualified name instead. Possible options in this context:\n\t\t$options", SourcePosition.unknown))
 
 					return BindingSearchResult.Success(tp[0])
+				} else if (tp.count() > 1) {
+					// If multiple Type Parameters with the same relative name (e.g. `T`), we can attempt to find the
+					// "closest" one by simply checking for membership within the enclosing context
 				}
 			}
 

@@ -13,25 +13,23 @@ module Orb::Core::Main {
 }
 
 module Single with Orb::* {
-    type A
-    type B(a A)
+    trait A(x Int)
+    type B
 
-    (self B) foo () (B) {
-        defer(res) { typeOf res }
+    type projection B : A
+        where x = 1
 
-        return self
+    extension B {
+        (self Self) doubleX () (Int) = self.x
+    }
+
+    type constructor Box<T>(value T)
+
+    extension Box where T = B {
+        (self Self) getB () (B) = self.value
     }
 
     (self Main) main () () {
-        defer(res) { typeOf res }
 
-        a = A()
-        b = B(a)
-
-        aa = Any(a).getSelf()
-        bb = Any(b).getSelf()
-
-        typeOf Any(a)
-        typeOf bb
     }
 }
