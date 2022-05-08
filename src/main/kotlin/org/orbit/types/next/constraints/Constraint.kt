@@ -20,5 +20,3 @@ interface Constraint<T: TypeComponent, C: ConstraintApplication<T>> : TypeCompon
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation
         = TypeRelation.Unrelated(this, other)
 }
-
-data class ParameterConstraint(val target: TypeComponent, val eq: ITypeEq<*, *>)

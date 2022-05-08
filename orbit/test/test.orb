@@ -5,16 +5,15 @@ module Orb::Types::Intrinsics {
 
 module Single with Orb::Types::Intrinsics {
     type constructor Box<T>(value T)
-    trait A
-    type B
+    trait A(x Int)
+    type B(x Int) : A
 
-    extension Box where T = B {
-        (self Self) b () (B) = self.value
+    extension Box where T : A {
+        (self Self) a () (A) = self.value
     }
 
     (A) main () () {
-        box = Box(B())
-
-        tr = box.b()
+        box = Box(B(1))
+        tr = box.a()
     }
 }

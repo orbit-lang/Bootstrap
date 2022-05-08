@@ -52,6 +52,8 @@ data class ConformanceConstraint<T: TypeComponent>(private val left: SelfIndex, 
     }
 }
 
+
+
 sealed interface EqualityConstraintApplication<T: TypeComponent> : ConstraintApplication<PolymorphicType<T>> {
     data class None<T: TypeComponent>(override val initialValue: PolymorphicType<T>) : EqualityConstraintApplication<T>
     data class Total<T: TypeComponent>(override val initialValue: PolymorphicType<T>, val result: MonomorphicType<T>) : EqualityConstraintApplication<T>

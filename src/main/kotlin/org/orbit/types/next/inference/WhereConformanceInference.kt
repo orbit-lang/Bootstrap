@@ -6,6 +6,31 @@ import org.orbit.core.nodes.*
 import org.orbit.types.next.components.*
 import org.orbit.util.Printer
 
+interface ITypeConstraint<T: TypeComponent, U: TypeComponent> {
+    val source: T
+
+    fun check(ctx: Ctx, type: U) : Boolean
+}
+
+data class SameConstraint<T: TypeComponent>(override val source: T) : ITypeConstraint<T, T> {
+    override fun check(ctx: Ctx, type: T): Boolean = when (type) {
+        is T -> NominalEq.eq(ctx, source, type)
+        else -> false
+    }
+}
+
+data class LikeConstraint<T: TypeComponent>(override val source: ITrait) : ITypeConstraint<ITrait, T> {
+    override fun check(ctx: Ctx, type: T): Boolean
+        = ctx.getConformance(type).contains(source)
+}
+
+data class MemberConstraint<T: TypeComponent>(override val source: TypeFamily<T>) : ITypeConstraint<TypeFamily<T>, T> {
+    override fun check(ctx: Ctx, type: T): Boolean = when (source.compare(ctx, type)) {
+        is TypeRelation.Member<*> -> true
+        else -> false
+    }
+}
+
 data class TypeConstraint(val source: AbstractTypeParameter, val target: ITrait) : TypeComponent {
     override val fullyQualifiedName: String = "${source.fullyQualifiedName} : ${target.fullyQualifiedName}"
     override val isSynthetic: Boolean = true

@@ -18,6 +18,8 @@ import org.orbit.types.next.components.Module
 import org.orbit.types.next.components.TypeComponent
 import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
 import org.orbit.util.next.ITypeMapRead
 import kotlin.contracts.ExperimentalContracts
 import kotlin.time.ExperimentalTime
@@ -103,6 +105,7 @@ object TypeSystem : AdaptablePhase<TypePhaseData<ProgramNode>, TypeSystem.Result
     override val outputType: Class<Result> = Result::class.java
 
     override val invocation: Invocation by inject()
+    private val printer: Printer by inject()
 
     init {
         registerAdapter(NameResolverAdapter)
@@ -129,7 +132,7 @@ object TypeSystem : AdaptablePhase<TypePhaseData<ProgramNode>, TypeSystem.Result
             result
         }
 
-        println("Completed type checking in ${timedResult.first}")
+        println(printer.apply("Completed type checking in ${timedResult.first}", PrintableKey.Bold, PrintableKey.Italics, PrintableKey.Success))
 
         return timedResult.second
     }

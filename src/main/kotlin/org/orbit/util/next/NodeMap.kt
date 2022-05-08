@@ -12,12 +12,6 @@ import org.orbit.util.Printer
 
 interface ITypeMapInterface
 
-object CtxDeserializer : JsonDeserializer<ITypeMapRead> {
-    override fun deserialize(json: JsonElement, typeOfT: java.lang.reflect.Type, context: JsonDeserializationContext): ITypeMapRead {
-        return TypeMap(json.asJsonObject) as ITypeMapRead
-    }
-}
-
 interface ITypeMapRead : ITypeMapInterface {
     fun find(name: String) : TypeComponent?
     fun get(node: Node) : TypeComponent?
@@ -49,24 +43,10 @@ interface IAlias : DeclType {
     val target: TypeComponent
 }
 
-class TypeMap constructor() : ITypeMap {
+class TypeMap : ITypeMap {
     private val map = mutableMapOf<String, String>()
     private val visibleTypes = mutableMapOf<String, TypeComponent>()
     private val conformanceMap = mutableMapOf<String, List<String>>()
-
-    constructor(json: JsonObject) : this() {
-        val m = json.getAsJsonObject("map")
-
-        for (kv in m.entrySet()) {
-            map[kv.key] = kv.value.toString()
-        }
-
-        val v = json.getAsJsonObject("visibleTypes")
-
-        for (kv in v.entrySet()) {
-            visibleTypes[kv.key] = Gson().fromJson(kv.value, TypeComponent::class.java)
-        }
-    }
 
     override fun declare(type: DeclType) {
         visibleTypes[type.fullyQualifiedName] = type

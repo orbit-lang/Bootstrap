@@ -25,7 +25,6 @@ import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.types.next.inference.*
 import org.orbit.util.next.BindingScope
-import org.orbit.util.next.CtxDeserializer
 import org.orbit.util.next.ITypeMapRead
 import org.orbit.util.next.TypeMap
 
@@ -128,7 +127,6 @@ val mainModule = module {
 			.registerTypeAdapter(Binding.Kind::class.java, KindDeserialiser)
 			.registerTypeAdapter(Path::class.java, PathSerialiser)
 			.registerTypeAdapter(Path::class.java, PathDeserialiser)
-			.registerTypeAdapter(ITypeMapRead::class.java, CtxDeserializer)
 			.create()
 	}
 }
