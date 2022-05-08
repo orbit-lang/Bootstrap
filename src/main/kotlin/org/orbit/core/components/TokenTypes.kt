@@ -46,6 +46,7 @@ object TokenTypes : TokenTypeProvider {
     object In : TokenType("In", "\\bin\\b", true, false, Family.Keyword)
     object Invoke : TokenType("Invoke", "invoke", true, false, Family.Keyword)
     object Of : TokenType("Of", "of", true, false, Family.Keyword)
+    object TypeOf : TokenType("TypeOf", "typeOf", true, false, Family.Keyword)
 
     // Compile-time functions
     object Synthesise : TokenType("Synthesise", "synthesise", true, false, Family.CompileTime)
@@ -71,7 +72,7 @@ object TokenTypes : TokenTypeProvider {
             TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
-            Type, Trait, Within, With, Return, Family,
+            TypeOf, Type, Trait, Within, With, Return, Family,
             Operator, Identifier
         )
     }

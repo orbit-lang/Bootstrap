@@ -16,6 +16,11 @@ import java.lang.RuntimeException
 sealed interface InferenceResult {
     data class Success<T: TypeComponent>(val type: T) : InferenceResult
     data class Failure(val never: NeverType) : InferenceResult
+
+    fun typeValue() : TypeComponent = when (this) {
+        is Success<*> -> type
+        is Failure -> never
+    }
 }
 
 fun TypeComponent.inferenceResult() : InferenceResult = when (this) {

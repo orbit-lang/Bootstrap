@@ -25,7 +25,7 @@ object DeferRule : ParseRule<DeferNode> {
         }
 
         // Defer statements are not allowed to return
-        val blockNode = context.attempt(BlockRule(PrintRule, PrintRule, AssignmentRule))
+        val blockNode = context.attempt(BlockRule(TypeOfRule, PrintRule, PrintRule, AssignmentRule))
             ?: throw context.invocation.make<Parser>("Defer statement must be followed by a block", context.peek())
 
         return +DeferNode(start, blockNode.lastToken, returnValueIdentifier, blockNode)

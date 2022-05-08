@@ -1,6 +1,11 @@
 module Orb::Types::Intrinsics {
     type Unit
     type Int
+    type constructor Any<T>(value T)
+
+    extension Any {
+        (self Self) getSelf () (Self) = self
+    }
 }
 
 module Orb::Core::Main {
@@ -8,19 +13,25 @@ module Orb::Core::Main {
 }
 
 module Single with Orb::* {
-    type constructor Any<T>(value T)
     type A
     type B(a A)
 
-    extension Any {
-        (self Self) getSelf () (Self) = self
+    (self B) foo () (B) {
+        defer(res) { typeOf res }
+
+        return self
     }
 
     (self Main) main () () {
+        defer(res) { typeOf res }
+
         a = A()
         b = B(a)
 
         aa = Any(a).getSelf()
         bb = Any(b).getSelf()
+
+        typeOf Any(a)
+        typeOf bb
     }
 }
