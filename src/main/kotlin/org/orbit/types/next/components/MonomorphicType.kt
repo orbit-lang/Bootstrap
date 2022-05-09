@@ -15,6 +15,8 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
 
     override val kind: Kind = specialisedType.kind
 
+    fun with(type: T) = MonomorphicType(polymorphicType, type, concreteParameters, isTotal)
+
     override fun references(type: TypeComponent): Boolean
         = polymorphicType.references(type) || specialisedType.references(type) || concreteParameters.contains(type)
 

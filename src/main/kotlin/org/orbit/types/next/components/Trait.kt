@@ -35,22 +35,6 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
         else -> ContractResult.Failure(by, this)
     }
 
-//        {
-//        if (contracts.isEmpty()) {
-//            // NOTE - This is essentially allowing for "existential types"
-//            return when (StructuralEq.eq(ctx, this, by)) {
-//                true -> ContractResult.Success(by, this)
-//                else -> ContractResult.Failure(by, this)
-//            }
-//        }
-//
-//        val start: ContractResult = ContractResult.None
-//
-//        return contracts.fold(start) { acc, next ->
-//            acc + (next.isImplemented(ctx, by))
-//        }
-//    }
-
     override fun getErrorMessage(printer: Printer, type: TypeComponent): String
         = "Type ${type.toString(printer)} does not implement Trait ${toString(printer)}"
 

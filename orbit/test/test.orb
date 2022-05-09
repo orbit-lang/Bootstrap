@@ -13,23 +13,22 @@ module Orb::Core::Main {
 }
 
 module Single with Orb::* {
-    trait A(x Int)
-    type B
-
-    projection B : A
-        where x = 1
-
-    extension B {
-        (self Self) doubleX () (Int) = self.x
-    }
-
     type constructor Box<T>(value T)
 
-    extension Box where T = B {
-        (self Self) getB () (B) = self.value
+    type A
+    trait B
+    type C
+
+    projection Box<A> : B
+
+    extension Box where T : B {
+        (self Self) takeB () (B) = self.value
     }
 
-    (self Main) main () () {
+    projection A : B
+    projection C : B
 
+    (self Main) main () () {
+        aBox = Box(A())
     }
 }

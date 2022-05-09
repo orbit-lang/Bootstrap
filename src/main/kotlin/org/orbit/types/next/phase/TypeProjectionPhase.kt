@@ -25,17 +25,21 @@ object TypeProjectionPhase : TypePhase<TypeProjectionNode, TypeComponent>, KoinC
 
         val wheres = input.inferenceUtil.inferAllAs<WhereClauseNode, Field>(input.node.whereNodes, AnyInferenceContext(WhereClauseNode::class.java))
 
-        val nType = Type(source.fullyQualifiedName, source.getFields() + wheres)
+        val nType: IType = Type(source.fullyQualifiedName, source.getFields() + wheres)
+        val mType: TypeComponent = when (source) {
+            is MonomorphicType<*> -> (source as MonomorphicType<IType>).with(nType)
+            else -> nType
+        }
 
-        input.inferenceUtil.addConformance(source, target)
+        input.inferenceUtil.addConformance(mType, target)
 
         val ctx = input.inferenceUtil.toCtx()
 
-        return when (val result = target.isImplemented(ctx, nType)) {
-            is ContractResult.Success, ContractResult.None -> nType
+        return when (val result = target.isImplemented(ctx, mType)) {
+            is ContractResult.Success, ContractResult.None -> mType
             is ContractResult.Failure -> throw invocation.make<TypeSystem>("Type Projection error:\n\t${result.getErrorMessage(printer, source)}", input.node)
             is ContractResult.Group -> when (result.isSuccessGroup) {
-                true -> nType
+                true -> mType
                 else -> throw invocation.make<TypeSystem>("Type Projection errors:\n\t${result.getErrorMessage(printer, source)}", input.node)
             }
         }
