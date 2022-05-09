@@ -5,15 +5,14 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.SerialIndex
 import org.orbit.core.components.SourcePosition
-import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.extensions.getGraphIDOrNull
-import org.orbit.types.components.IntrinsicTypes
+import org.orbit.types.next.intrinsics.Native
 import org.orbit.util.Invocation
 import org.orbit.util.dispose
 import org.orbit.util.partial
@@ -52,7 +51,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		input.receiverTypeNode.annotate(receiverBinding.path, Annotations.Path)
 
 		val name = input.identifierNode.identifier
-		val ret = input.returnTypeNode?.value ?: IntrinsicTypes.Unit.type.name
+		val ret = input.returnTypeNode?.value ?: Native.Types.Unit.name
 
 		if (input.returnTypeNode?.value != null) {
 			try {

@@ -6,7 +6,7 @@ import org.orbit.core.nodes.*
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.types.components.IntrinsicTypes
+import org.orbit.types.next.intrinsics.Native
 import org.orbit.util.Invocation
 
 class BlockPathResolver : PathResolver<BlockNode> {
@@ -17,7 +17,7 @@ class BlockPathResolver : PathResolver<BlockNode> {
 		return environment.withScope {
 
 			// TODO - Non-linear routes through a block, e.g. conditionals, controls etc
-			var result: PathResolver.Result = PathResolver.Result.Success(OrbitMangler.unmangle(IntrinsicTypes.Unit.type.name))
+			var result: PathResolver.Result = PathResolver.Result.Success(OrbitMangler.unmangle(Native.Types.Unit.type.fullyQualifiedName))
 
 			for (node in input.body) {
 				when (node) {

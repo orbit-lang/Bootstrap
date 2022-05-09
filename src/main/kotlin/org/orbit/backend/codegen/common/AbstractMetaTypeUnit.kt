@@ -15,22 +15,9 @@ class MetaTypeUnit(override val node: MetaTypeNode, override val depth: Int, pri
     private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler) : String {
-        val type = node.getType()
-        return type.getFullyQualifiedPath().toString(mangler)
-
-//        val path = node.getPath()
-//
-//        val separator = when (inFuncNamePosition) {
-//            true -> "_"
-//            else -> ", "
-//        }
-//
-//        val typeParameters = node.typeParameters
-//            .map(partial(codeGenFactory::getTypeExpressionUnit, depth))
-//            .joinToString(separator, transform = partial(AbstractTypeExpressionUnit::generate, mangler))
-//
-//        val typeName = path.toString(mangler)
-//
-//        return "${typeName}_$typeParameters"
+        // TODO
+        return ""
+//        val type = node.getType()
+//        return type.getFullyQualifiedPath().toString(mangler)
     }
 }

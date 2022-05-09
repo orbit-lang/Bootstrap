@@ -3,14 +3,11 @@ package org.orbit.core.nodes
 import org.orbit.core.components.Token
 import org.orbit.core.components.TokenType
 import org.orbit.core.components.TokenTypes
-import org.orbit.types.components.ConformanceBoundsConstraint
-import org.orbit.types.components.EntityConstructorConstraint
-import org.orbit.types.components.EqualityBoundsConstraint
 
 abstract class WhereClauseExpressionNode : Node()
 
-enum class TypeBoundsExpressionType(val op: TokenType, val entityConstructorConstraint: EntityConstructorConstraint) {
-    Equals(TokenTypes.Assignment, EqualityBoundsConstraint), Conforms(TokenTypes.Colon, ConformanceBoundsConstraint);
+enum class TypeBoundsExpressionType(val op: TokenType) {
+    Equals(TokenTypes.Assignment), Conforms(TokenTypes.Colon);
 
     companion object {
         fun valueOf(op: TokenType) : TypeBoundsExpressionType?

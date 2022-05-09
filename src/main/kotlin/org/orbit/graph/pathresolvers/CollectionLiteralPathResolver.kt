@@ -6,7 +6,7 @@ import org.orbit.core.nodes.CollectionLiteralNode
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.types.components.IntrinsicTypes
+import org.orbit.types.next.intrinsics.Native
 import org.orbit.util.Invocation
 
 object CollectionLiteralPathResolver : PathResolver<CollectionLiteralNode>, KoinComponent {
@@ -16,6 +16,6 @@ object CollectionLiteralPathResolver : PathResolver<CollectionLiteralNode>, Koin
     override fun resolve(input: CollectionLiteralNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
         input.elements.forEach { pathResolverUtil.resolve(it, pass, environment, graph) }
 
-        return PathResolver.Result.Success(IntrinsicTypes.Array.path)
+        return PathResolver.Result.Success(Native.Types.Array.path)
     }
 }

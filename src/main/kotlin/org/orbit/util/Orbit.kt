@@ -7,12 +7,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.dsl.module
 import org.orbit.backend.codegen.CodeGenFactory
-import org.orbit.backend.codegen.c.units.CCodeGenFactory
-import org.orbit.backend.codegen.c.units.CHeader
-import org.orbit.backend.codegen.c.units.CMangler
-import org.orbit.backend.codegen.swift.units.SwiftCodeGenFactory
-import org.orbit.backend.codegen.swift.units.SwiftHeader
-import org.orbit.backend.codegen.swift.units.SwiftMangler
 import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
 import org.orbit.core.Path
@@ -25,7 +19,6 @@ import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.types.next.inference.*
 import org.orbit.util.next.BindingScope
-import org.orbit.util.next.ITypeMapRead
 import org.orbit.util.next.TypeMap
 
 val mainModule = module {
@@ -106,23 +99,21 @@ val mainModule = module {
 		util
 	}
 
-	single<CodeGenFactory<SwiftHeader>>(CodeGeneratorQualifier.Swift) {
-		SwiftCodeGenFactory
-	}
-
-	single<CodeGenFactory<CHeader>>(CodeGeneratorQualifier.C) {
-		CCodeGenFactory
-	}
-
-	single<Mangler>(CodeGeneratorQualifier.C) {
-		CMangler
-	}
-
-	single<Mangler>(CodeGeneratorQualifier.Swift) {
-		SwiftMangler
-	}
-
-	factory { ASTUtil() }
+//	single<CodeGenFactory<SwiftHeader>>(CodeGeneratorQualifier.Swift) {
+//		SwiftCodeGenFactory
+//	}
+//
+//	single<CodeGenFactory<CHeader>>(CodeGeneratorQualifier.C) {
+//		CCodeGenFactory
+//	}
+//
+//	single<Mangler>(CodeGeneratorQualifier.C) {
+//		CMangler
+//	}
+//
+//	single<Mangler>(CodeGeneratorQualifier.Swift) {
+//		SwiftMangler
+//	}
 
 	single<Gson> {
 		GsonBuilder()

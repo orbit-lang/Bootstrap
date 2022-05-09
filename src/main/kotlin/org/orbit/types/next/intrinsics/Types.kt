@@ -16,17 +16,20 @@ object Native {
             get() = Module(path)
     }
 
-    sealed class Types(val module: Native.Modules, val name: String) {
-        object Unit : Types(Native.Modules.Intrinsics, "Unit")
-        object Int : Types(Native.Modules.Intrinsics, "Int")
-        object Bool : Types(Native.Modules.Intrinsics, "Bool")
-        object Symbol : Types(Native.Modules.Intrinsics, "Symbol")
-        data class Mirror(val reflectedType: TypeComponent) : Types(Native.Modules.Intrinsics, "Mirror::${reflectedType.getPath(OrbitMangler).toString(OrbitMangler)}")
+    sealed class Types(val module: Modules, val name: String) {
+        object Unit : Types(Modules.Intrinsics, "Unit")
+        object Int : Types(Modules.Intrinsics, "Int")
+        object Bool : Types(Modules.Intrinsics, "Bool")
+        object Symbol : Types(Modules.Intrinsics, "Symbol")
+        object Main : Types(Modules.Main, "Main")
+        object Array : Types(Modules.Intrinsics, "Array")
+        data class Mirror(val reflectedType: TypeComponent) : Types(Modules.Intrinsics, "Mirror::${reflectedType.getPath(OrbitMangler).toString(OrbitMangler)}")
 
         val type: Type = Type(module.path + name)
+        val path: Path get() = OrbitMangler.unmangle(name)
     }
 
-    sealed class Traits(val module: Native.Modules, val name: String) {
-        object AnyType : Traits(Native.Modules.Intrinsics, "Orb::Core::Types::AnyType")
+    sealed class Traits(val module: Modules, val name: String) {
+        object AnyType : Traits(Modules.Intrinsics, "Orb::Core::Types::AnyType")
     }
 }

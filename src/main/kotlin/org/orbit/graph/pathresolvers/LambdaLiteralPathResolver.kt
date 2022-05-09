@@ -7,7 +7,7 @@ import org.orbit.core.nodes.LambdaLiteralNode
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.types.components.IntrinsicTypes
+import org.orbit.types.next.intrinsics.Native
 import org.orbit.util.Invocation
 
 object LambdaLiteralPathResolver : PathResolver<LambdaLiteralNode>, KoinComponent {
@@ -20,6 +20,7 @@ object LambdaLiteralPathResolver : PathResolver<LambdaLiteralNode>, KoinComponen
 
         return PathResolver.Result.Success(
             bodyPaths.lastOrNull()?.asSuccessOrNull()?.path
-                ?: OrbitMangler.unmangle(IntrinsicTypes.Unit.type.name))
+                ?: Native.Types.Unit.path
+        )
     }
 }

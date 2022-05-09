@@ -15,20 +15,19 @@ module Orb::Core::Main {
 module Single with Orb::* {
     type constructor Box<T>(value T)
 
-    type A
-    trait B
+    trait A
+    type B
     type C
 
-    projection Box<A> : B
-
-    extension Box where T : B {
-        (self Self) takeB () (B) = self.value
+    extension Box where T : A {
+        (self Self) getA () (A) = self.value
     }
 
-    projection A : B
-    projection C : B
+    projection B : A
 
     (self Main) main () () {
-        aBox = Box(A())
+        aBox = Box(B())
+
+        typeOf aBox.getA()
     }
 }

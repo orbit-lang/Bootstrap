@@ -3,7 +3,8 @@ package org.orbit.core
 import org.orbit.core.nodes.Node
 import org.orbit.core.nodes.NodeAnnotationTag
 import org.orbit.core.nodes.Annotations
-import org.orbit.types.components.*
+import org.orbit.types.next.components.Signature
+import org.orbit.types.next.components.TypeComponent
 
 class FullyQualifiedPath(override val relativeNames: List<String>) : Path(relativeNames) {
 	constructor(path: Path) : this(path.relativeNames)
@@ -25,33 +26,17 @@ class FullyQualifiedPath(override val relativeNames: List<String>) : Path(relati
 }
 
 fun Node.getPathOrNull() : Path? {
-	return getAnnotation<Path>(Annotations.Path as NodeAnnotationTag<Path>)?.value
+	return getAnnotation(Annotations.Path as NodeAnnotationTag<Path>)?.value
 }
 
 fun Node.getPath() : Path {
-	return getAnnotation<Path>(Annotations.Path as NodeAnnotationTag<Path>)!!.value
-}
-
-fun Node.getType() : TypeProtocol {
-//	val type = getAnnotation<TypeProtocol>(Annotations.Type as NodeAnnotationTag<TypeProtocol>)
-//		?: throw RuntimeException("HERE")
-//
-//	return type!!.value
-	TODO("NODE GET TYPE")
-}
-
-fun TypeProtocol.getFullyQualifiedPath() : Path = when (this) {
-	is Entity -> properties.fold(OrbitMangler.unmangle(name)) { acc, next ->
-		acc + OrbitMangler.unmangle(next.type.name)
-	}
-
-	else -> OrbitMangler.unmangle(name)
+	return getAnnotation(Annotations.Path as NodeAnnotationTag<Path>)!!.value
 }
 
 interface Mangler {
 	fun mangle(path: Path) : String
 	fun unmangle(name: String) : Path
-	fun mangle(signature: TypeSignature) : String
+	fun mangle(signature: Signature) : String
 }
 
 object OrbitMangler : Mangler {
@@ -63,15 +48,15 @@ object OrbitMangler : Mangler {
 		return Path(name.split("::"))
 	}
 
-	override fun mangle(signature: TypeSignature): String {
+	override fun mangle(signature: Signature): String {
 		val mang = (OrbitMangler + OrbitMangler)
-		val receiver = mang(signature.receiver.name)
-		val params = signature.parameters.map(Parameter::type)
-			.map(TypeProtocol::name).joinToString(", ", transform = mang)
+		val receiver = mang(signature.receiver.fullyQualifiedName)
+		val params = signature.parameters.map(TypeComponent::fullyQualifiedName)
+			.joinToString(", ", transform = mang)
 
-		val ret = mang(signature.returnType.name)
+		val ret = mang(signature.returns.fullyQualifiedName)
 
-		return "($receiver) ${signature.name} ($params) ($ret)"
+		return "($receiver) ${signature.relativeName} ($params) ($ret)"
 	}
 }
 
