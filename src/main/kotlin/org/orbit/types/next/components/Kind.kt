@@ -26,7 +26,8 @@ interface Kind : TypeComponent {
 sealed interface IntrinsicKinds : Kind {
     object Value : IntrinsicKinds {
         override val level: Int = -1
-        override val keyword: TokenType = TokenTypes.Int
+        override val keyword: TokenType
+            = object : TokenType("Value", "Value", true, false, Family.Kind) {}
     }
 
     data class Type(override val level: Int = 0) : IntrinsicKinds {

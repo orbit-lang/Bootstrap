@@ -37,7 +37,7 @@ object BlockInference : LiteralInference<BlockNode, TypeComponent>, KoinComponen
             else -> null
         }
 
-        val bodyTypes = node.body.map { inferenceUtil.infer(it, context) }
+        val bodyTypes = node.body.map { inferenceUtil.infer(it) }
         val returns = (bodyTypes.lastOrNull() ?: Native.Types.Unit.type)
 
         if (typeAnnotation == null) return returns.inferenceResult()
@@ -102,6 +102,7 @@ object AnyExpressionInference : Inference<ExpressionNode, TypeComponent> {
         is ValueRepresentableNode -> inferenceUtil.infer(node).inferenceResult()
         is RValueNode -> inferenceUtil.infer(node.expressionNode, context.clone(node.expressionNode::class.java)).inferenceResult()
         is ExpandNode -> AnyConstantValueInference.infer(inferenceUtil, context, node.expressionNode)
+        is MirrorNode -> MirrorInference.infer(inferenceUtil, context, node)
         else -> Never("Cannot infer type of non-Expression node ${node::class.java.simpleName}", node.firstToken.position)
             .inferenceResult()
     }

@@ -2,15 +2,14 @@ package org.orbit.types.next.intrinsics
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.types.next.components.Module
-import org.orbit.types.next.components.Type
-import org.orbit.types.next.components.TypeComponent
-import org.orbit.types.next.components.getPath
+import org.orbit.types.next.components.*
 
 object Native {
     sealed class Modules(val path: Path) {
         object Intrinsics : Modules(OrbitMangler.unmangle("Orb::Types::Intrinsics"))
         object Main : Modules(OrbitMangler.unmangle("Orb::Core::Main"))
+        object Meta : Modules(OrbitMangler.unmangle("Orb::Meta"))
+        object Kinds : Modules(OrbitMangler.unmangle("Orb::Meta::Kinds"))
 
         val module: Module
             get() = Module(path)
@@ -31,5 +30,8 @@ object Native {
 
     sealed class Traits(val module: Modules, val name: String) {
         object AnyType : Traits(Modules.Intrinsics, "Orb::Core::Types::AnyType")
+        object Kind : Traits(Modules.Kinds, "Kind")
+
+        val trait: Trait = Trait(module.path + name)
     }
 }

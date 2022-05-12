@@ -59,6 +59,7 @@ val mainModule = module {
 		util.registerPathResolver(TypeSynthesisPathResolver, TypeSynthesisNode::class.java)
 		util.registerPathResolver(TypeOfPathResolver, TypeOfNode::class.java)
 		util.registerPathResolver(ExpandPathResolver, ExpandNode::class.java)
+		util.registerPathResolver(MirrorPathResolver, MirrorNode::class.java)
 
 		util
 	}
@@ -97,6 +98,7 @@ val mainModule = module {
 		util.registerInference(TypeOfInference, TypeOfNode::class.java)
 		util.registerInference(DeferInference, DeferNode::class.java)
 		util.registerInference(ExpandInference, ExpandNode::class.java)
+		util.registerInference(MirrorInference, MirrorNode::class.java)
 
 		util
 	}

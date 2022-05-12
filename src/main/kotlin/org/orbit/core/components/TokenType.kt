@@ -1,6 +1,6 @@
 package org.orbit.core.components
 
-sealed class TokenType(
+abstract class TokenType(
 	val identifier: String,
 	val pattern: String,
 	val ignoreWhitespace: Boolean,

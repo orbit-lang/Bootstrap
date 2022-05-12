@@ -1,0 +1,24 @@
+module Orb::Types::Intrinsics {
+    type Unit
+    type Int
+    type Symbol
+}
+
+module Orb::Meta::Kinds with Orb::Types::Intrinsics {
+    trait Kind
+}
+
+module Context with Orb::* {
+    type A
+
+    type constructor KindBox<K>(k K)
+
+    extension KindBox where K : Kind {}
+
+    (A) getKind () () {
+        k = KindBox(mirror Int)
+
+        typeOf k
+        typeOf mirror KindBox
+    }
+}

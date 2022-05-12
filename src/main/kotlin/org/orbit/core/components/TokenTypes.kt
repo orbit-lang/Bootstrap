@@ -23,8 +23,8 @@ object TokenTypes : TokenTypeProvider {
 	
     // Keywords
     object Api : TokenType("API", "api", true, false, Family.Keyword)
-    object Type : TokenType("Type", "type", true, false, Family.Keyword + Family.Kind)
-    object Trait : TokenType("Trait", "trait", true, false, Family.Keyword + Family.Kind)
+    object Type : TokenType("Type(0)", "type", true, false, Family.Keyword + Family.Kind)
+    object Trait : TokenType("Trait(0)", "trait", true, false, Family.Keyword + Family.Kind)
     object Family : TokenType("Family", "family", true, false, Family.Keyword + Family.Kind)
     object With : TokenType("With", "with", true, false, Family.Keyword)
     object Within : TokenType("Within", "within", true, false, Family.Keyword)
@@ -48,6 +48,7 @@ object TokenTypes : TokenTypeProvider {
     object Of : TokenType("Of", "of", true, false, Family.Keyword)
     object TypeOf : TokenType("TypeOf", "typeOf", true, false, Family.Keyword)
     object Expand : TokenType("Expand", "expand", true, false, Family.Keyword)
+    object Mirror : TokenType("Mirror", "mirror", true, false, Family.Keyword)
 
     // Compile-time functions
     object Synthesise : TokenType("Synthesise", "synthesise", true, false, Family.CompileTime)
@@ -60,7 +61,7 @@ object TokenTypes : TokenTypeProvider {
     object Symbol : TokenType("Symbol", "\\:[a-zA-Z_]+[a-zA-Z0-9_]*", false, false, Family.Id)
     object EOS : TokenType("", "", true, false, Family.White)
 
-    data class HigherKind(val level: kotlin.Int) : TokenType("Type$level", "", true, false, TokenType.Family.Kind)
+    data class HigherKind(val level: kotlin.Int) : TokenType("Type($level)", "", true, false, TokenType.Family.Kind)
 
     override fun getTokenTypes() : List<TokenType> {
         // NOTE - Keywords MUST be listed before the Identifier token type
@@ -73,7 +74,7 @@ object TokenTypes : TokenTypeProvider {
             TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
-            Expand, TypeOf, Type, Trait, Within, With, Return, Family,
+            Expand, Mirror, TypeOf, Type, Trait, Within, With, Return, Family,
             Operator, Identifier
         )
     }
