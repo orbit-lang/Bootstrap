@@ -11,5 +11,8 @@ module Orb::Meta::Kinds with Orb::Types::Intrinsics {
 module Context with Orb::* {
     type constructor Box<T>(value T)
 
-    context ValueContext [V]
+    trait Tr
+
+    context ValueContext [T]
+        where T : Tr
 }

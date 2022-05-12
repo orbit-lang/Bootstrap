@@ -81,6 +81,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 		object Method : Kind
 		object TypeProjection : Projection
 		object Empty : Kind
+		object Context : Kind
 
 		fun getName() : String {
 			return javaClass.simpleName

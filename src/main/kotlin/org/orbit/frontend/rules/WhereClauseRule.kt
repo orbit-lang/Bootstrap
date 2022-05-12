@@ -9,11 +9,11 @@ import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
 
-class WhereClauseRule(private val whereExpressionRules: List<WhereClauseExpressionRule<*>>) : ParseRule<WhereClauseNode>,
-    KoinComponent {
+class WhereClauseRule(private val whereExpressionRules: List<WhereClauseExpressionRule<*>>) : ParseRule<WhereClauseNode>, KoinComponent {
     companion object {
         val typeProjection = WhereClauseRule(listOf(AssignmentRule))
         val extension = WhereClauseRule(listOf(WhereClauseTypeBoundsRule))
+        val context = WhereClauseRule(listOf(WhereClauseTypeBoundsRule))
     }
 
     private val invocation: Invocation by inject()

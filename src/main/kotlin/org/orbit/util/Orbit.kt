@@ -94,11 +94,12 @@ val mainModule = module {
 		util.registerInference(MethodCallInference, MethodCallNode::class.java)
 		util.registerInference(ReferenceCallInference, ReferenceCallNode::class.java)
 		util.registerInference(AssignmentStatementInference, AssignmentStatementNode::class.java)
-		util.registerInference(TypeBoundsExpressionInference, WhereClauseExpressionInferenceContext.TypeBoundsContext)
+//		util.registerInference(TypeBoundsExpressionInference, WhereClauseExpressionInferenceContext.TypeBoundsContext)
 		util.registerInference(TypeOfInference, TypeOfNode::class.java)
 		util.registerInference(DeferInference, DeferNode::class.java)
 		util.registerInference(ExpandInference, ExpandNode::class.java)
 		util.registerInference(MirrorInference, MirrorNode::class.java)
+		util.registerInference(TypeBoundsConstraintInference, WhereClauseTypeBoundsExpressionNode::class.java)
 
 		util
 	}

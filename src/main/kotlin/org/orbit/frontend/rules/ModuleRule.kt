@@ -78,11 +78,19 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
         val methodDefNodes = mutableListOf<MethodDefNode>()
         val typeProjectionNodes = mutableListOf<TypeProjectionNode>()
         val extensionNodes = mutableListOf<ExtensionNode>()
+        val contextNodes = mutableListOf<ContextNode>()
 
         next = context.peek()
 
         while (next.type != TokenTypes.RBrace) {
             when (next.type) {
+                TokenTypes.Context -> {
+                    val contextNode = context.attempt(ContextRule)
+                        ?: TODO("ModuleRule:Context ???")
+
+                    contextNodes.add(contextNode)
+                }
+
                 TokenTypes.LParen -> {
                     val methodDefNode = context.attempt(MethodDefRule, true)
                         ?: throw Exception("Expected method signature following '(' at container level")
@@ -129,6 +137,6 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
 
         val end = context.expect(TokenTypes.RBrace)
 
-        return +ModuleNode(start, end, implements, typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes, typeAliasNodes, entityConstructorNodes, typeProjectionNodes, extensionNodes)
+        return +ModuleNode(start, end, implements, typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes, typeAliasNodes, entityConstructorNodes, typeProjectionNodes, extensionNodes, contextNodes)
     }
 }

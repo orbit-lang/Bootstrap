@@ -1,10 +1,5 @@
 package org.orbit.types
 
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.orbit.types.components.*
-
 //internal class InferenceTests {
 //    @Test
 //    fun testVariableInferenceTrue() {

@@ -49,6 +49,7 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         val methodDefs = input.node.methodDefs
         val familyDefs = input.node.entityDefs.filterIsInstance<FamilyNode>()
         val familyConstructorDefs = input.node.entityConstructors.filterIsInstance<FamilyConstructorNode>()
+        val contexts = input.node.contexts
 
         var types: List<IType> = TypeStubPhase.executeAll(input.inferenceUtil, typeDefs)
         var traits: List<ITrait> = TraitStubPhase.executeAll(input.inferenceUtil, traitDefs)
@@ -56,6 +57,7 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         TypeConstructorStubPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
         TraitConstructorStubPhase.executeAll(input.inferenceUtil, traitConstructorDefs)
         FamilyConstructorStubPhase.executeAll(input.inferenceUtil, familyConstructorDefs)
+        ContextPhase.executeAll(input.inferenceUtil, contexts)
 
         TypeConstructorFieldsPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
 

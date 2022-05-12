@@ -24,6 +24,11 @@ interface Kind : TypeComponent {
 }
 
 sealed interface IntrinsicKinds : Kind {
+    object Context : IntrinsicKinds {
+        override val level: Int = Int.MAX_VALUE
+        override val keyword: TokenType = TokenTypes.Context
+    }
+
     object Value : IntrinsicKinds {
         override val level: Int = -1
         override val keyword: TokenType

@@ -3,17 +3,40 @@
 package org.orbit.types
 
 import junit.framework.TestCase
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 import org.orbit.types.next.components.*
 import org.orbit.types.next.constraints.EqualityConstraint
 import org.orbit.types.next.constraints.EqualityConstraintApplication
 import org.orbit.types.next.inference.*
+import org.orbit.util.Invocation
+import org.orbit.util.Printer
+import org.orbit.util.Unix
 import org.orbit.util.assertIs
 import org.orbit.util.next.BindingScope
 import org.orbit.util.next.TypeMap
 
 class NextTypesTests : TestCase() {
+    private val testModule = module {
+        single { Invocation(Unix) }
+        single { Printer(Unix.getPrintableFactory()) }
+    }
+
+    @BeforeEach
+    override fun setUp() {
+        startKoin { modules(testModule) }
+    }
+
+    @AfterEach
+    override fun tearDown() {
+        stopKoin()
+    }
+
     @Test
     fun testExtendContextWithType() {
         val ctx = Ctx()
@@ -400,12 +423,38 @@ class NextTypesTests : TestCase() {
     }
 
     @Test
+    fun testSameConstraintSubFail() {
+        val v = TypeVariable("v")
+        val w = TypeVariable("w")
+        val a = Type("a")
+        val b = Type("b")
+        val ctx = Ctx()
+        val sut = SameConstraint(v, b)
+        val result = sut.substitute(w, a) as SameConstraint
+
+        assertFalse(AnyEq.eq(ctx, a, result.source))
+        assertTrue(result.source is TypeVariable)
+    }
+
+    @Test
+    fun testSameConstraintSubPass() {
+        val v = TypeVariable("v")
+        val a = Type("a")
+        val b = Type("b")
+        val ctx = Ctx()
+        val sut = SameConstraint(v, b)
+        val result = sut.substitute(v, a) as SameConstraint
+
+        assertTrue(AnyEq.eq(ctx, a, result.source))
+    }
+
+    @Test
     fun testSameConstraintSelf() {
         val a = Type("a")
         val ctx = Ctx()
-        val sut = SameConstraint(a)
+        val sut = SameConstraint(a, a)
 
-        assertTrue(sut.check(ctx, a))
+        assertTrue(sut.check(ctx))
     }
 
     @Test
@@ -413,9 +462,9 @@ class NextTypesTests : TestCase() {
         val a = Type("a")
         val b = Type("b")
         val ctx = Ctx()
-        val sut = SameConstraint(a)
+        val sut = SameConstraint(a, b)
 
-        assertFalse(sut.check(ctx, b))
+        assertFalse(sut.check(ctx))
     }
 
     @Test
@@ -428,9 +477,9 @@ class NextTypesTests : TestCase() {
         inferenceUtil.declare(a)
 
         val ctx = inferenceUtil.toCtx()
-        val sut = LikeConstraint<Type>(t)
+        val sut = LikeConstraint(a, t)
 
-        assertFalse(sut.check(ctx, a))
+        assertFalse(sut.check(ctx))
     }
 
     @Test
@@ -444,39 +493,67 @@ class NextTypesTests : TestCase() {
         inferenceUtil.addConformance(a, t)
 
         val ctx = inferenceUtil.toCtx()
-        val sut = LikeConstraint<Type>(t)
+        val sut = LikeConstraint(a, t)
 
-        assertTrue(sut.check(ctx, a))
+        assertTrue(sut.check(ctx))
+    }
+
+//    @Test
+//    fun testMemberConstraintFail() {
+//        val f = TypeFamily<Type>("f")
+//        val t = Type("t")
+//        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root, null)
+//
+//        inferenceUtil.declare(f)
+//        inferenceUtil.declare(t)
+//
+//        val ctx = inferenceUtil.toCtx()
+//
+//        assertFalse(MemberConstraint.check(ctx, f, t))
+//    }
+//
+//    @Test
+//    fun testMemberConstraintPass() {
+//        val t = Type("f")
+//        val f = TypeFamily<Type>("f", t)
+//        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root, null)
+//
+//        inferenceUtil.declare(f)
+//        inferenceUtil.declare(t)
+//
+//        val ctx = inferenceUtil.toCtx()
+//
+//        assertTrue(MemberConstraint.check(ctx, f, t))
+//    }
+
+    @Test
+    fun testContextIncomplete() {
+        val v = TypeVariable("v")
+        val sut = Context("C", listOf(v), emptyList())
+        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root)
+
+        assertThrows<Exception> { sut.check(inferenceUtil, emptyList()) }
     }
 
     @Test
-    fun testMemberConstraintFail() {
-        val f = TypeFamily<Type>("f")
+    fun testContextCompleteEmpty() {
+        val v = TypeVariable("v")
+        val sut = Context("C", listOf(v), emptyList())
         val t = Type("t")
-        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root, null)
+        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root)
 
-        inferenceUtil.declare(f)
-        inferenceUtil.declare(t)
-
-        val ctx = inferenceUtil.toCtx()
-        val sut = MemberConstraint(f)
-
-        assertFalse(sut.check(ctx, t))
+        assertTrue(sut.check(inferenceUtil, listOf(t)))
     }
 
     @Test
-    fun testMemberConstraintPass() {
-        val t = Type("f")
-        val f = TypeFamily<Type>("f", t)
-        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root, null)
+    fun testContextCheckSame() {
+        val v = TypeVariable("v")
+        val t = Type("t")
+        val c = SameConstraint(v, t)
+        val sut = Context("C", listOf(v), listOf(c))
+        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root)
 
-        inferenceUtil.declare(f)
-        inferenceUtil.declare(t)
-
-        val ctx = inferenceUtil.toCtx()
-        val sut = MemberConstraint(f)
-
-        assertTrue(sut.check(ctx, t))
+        assertTrue(sut.check(inferenceUtil, listOf(t)))
     }
 }
 

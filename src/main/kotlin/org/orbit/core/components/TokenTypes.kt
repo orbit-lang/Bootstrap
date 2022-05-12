@@ -49,6 +49,7 @@ object TokenTypes : TokenTypeProvider {
     object TypeOf : TokenType("TypeOf", "typeOf", true, false, Family.Keyword)
     object Expand : TokenType("Expand", "expand", true, false, Family.Keyword)
     object Mirror : TokenType("Mirror", "mirror", true, false, Family.Keyword)
+    object Context : TokenType("Context", "context", true, false, Family.Keyword)
 
     // Compile-time functions
     object Synthesise : TokenType("Synthesise", "synthesise", true, false, Family.CompileTime)
@@ -67,7 +68,7 @@ object TokenTypes : TokenTypeProvider {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Int, Real, Api, Module, Define, Defer, Observe, Where, Print,
+            Int, Real, Context, Api, Module, Define, Defer, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias,
             Synthesise,
             Let, Invoke, In, Of,
