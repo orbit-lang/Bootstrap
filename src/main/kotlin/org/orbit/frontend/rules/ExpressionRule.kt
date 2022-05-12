@@ -10,6 +10,7 @@ interface ValueRule<E: ExpressionNode> : ParseRule<E>
 class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<ExpressionNode> {
 	companion object {
 		val defaultValue = ExpressionRule(
+			ExpandRule,
 			LambdaLiteralRule,
 			ReferenceCallRule,
 			UnaryExpressionRule,
@@ -18,7 +19,7 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 		)
 
 		val singleExpressionBodyRule = ExpressionRule(
-			LambdaLiteralRule, ReferenceCallRule, ConstructorRule(), LiteralRule(), MethodCallRule, UnaryExpressionRule
+			ExpandRule, LambdaLiteralRule, ReferenceCallRule, ConstructorRule(), LiteralRule(), MethodCallRule, UnaryExpressionRule
 		)
 	}
 

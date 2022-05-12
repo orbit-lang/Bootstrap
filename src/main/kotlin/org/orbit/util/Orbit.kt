@@ -58,6 +58,7 @@ val mainModule = module {
 		util.registerPathResolver(TypeIndexResolver, TypeIndexNode::class.java)
 		util.registerPathResolver(TypeSynthesisPathResolver, TypeSynthesisNode::class.java)
 		util.registerPathResolver(TypeOfPathResolver, TypeOfNode::class.java)
+		util.registerPathResolver(ExpandPathResolver, ExpandNode::class.java)
 
 		util
 	}
@@ -95,6 +96,7 @@ val mainModule = module {
 		util.registerInference(TypeBoundsExpressionInference, WhereClauseExpressionInferenceContext.TypeBoundsContext)
 		util.registerInference(TypeOfInference, TypeOfNode::class.java)
 		util.registerInference(DeferInference, DeferNode::class.java)
+		util.registerInference(ExpandInference, ExpandNode::class.java)
 
 		util
 	}

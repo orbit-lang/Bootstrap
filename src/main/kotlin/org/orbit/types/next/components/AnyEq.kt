@@ -90,6 +90,8 @@ object ParameterEq : ITypeEq<ITypeParameter, TypeComponent> {
 object AnyEq : ITypeEq<TypeComponent, TypeComponent>, KoinComponent {
     override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.derefence(a) { a ->
         ctx.derefence(b) { b ->
+            if (b is IValue) return@derefence eq(ctx, a, b.type)
+
             when (a) {
                 is Anything -> true
                 is MonomorphicType<*> -> MonoEq.eq(ctx, a, b)

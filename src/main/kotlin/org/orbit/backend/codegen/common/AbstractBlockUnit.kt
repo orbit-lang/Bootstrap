@@ -4,7 +4,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.codegen.CodeGenFactory
 import org.orbit.backend.codegen.CodeUnit
-import org.orbit.backend.codegen.c.units.*
 import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
 import org.orbit.core.injectQualified

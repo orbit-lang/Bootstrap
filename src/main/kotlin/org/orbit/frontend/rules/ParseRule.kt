@@ -1,5 +1,6 @@
 package org.orbit.frontend.rules
 
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.Node
 import org.orbit.frontend.phase.Parser
@@ -10,6 +11,9 @@ interface ParseRule<N: Node> {
 		sealed class Failure : Result {
 			object Abort : Result
 			data class Rewind(val tokens: List<Token> = emptyList()) : Result
+			data class Throw(val message: String, val position: SourcePosition) : Result {
+				constructor(message: String, token: Token) : this(message, token.position)
+			}
 		}
 
 		fun <R: Result> unwrap() : R? {

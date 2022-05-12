@@ -8,7 +8,7 @@ interface ValueRepresentableNode
 
 // NOTE: Literals might work better as annotations controlled
 // and owned by a phase, rather than baked in like this
-abstract class LiteralNode<T> : ExpressionNode(), Serial, ValueRepresentableNode {
+abstract class LiteralNode<T> : ConstantExpressionNode(), Serial, ValueRepresentableNode {
     abstract val value: T
 
 	override fun getChildren() : List<Node> {

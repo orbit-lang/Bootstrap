@@ -4,6 +4,7 @@ package org.orbit.types
 
 import junit.framework.TestCase
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.orbit.types.next.components.*
 import org.orbit.types.next.constraints.EqualityConstraint
 import org.orbit.types.next.constraints.EqualityConstraintApplication

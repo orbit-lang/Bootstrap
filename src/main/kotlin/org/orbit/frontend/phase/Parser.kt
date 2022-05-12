@@ -11,8 +11,7 @@ import org.orbit.frontend.components.ParseError
 import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.frontend.rules.ProgramRule
-import org.orbit.util.Invocation
-import org.orbit.util.OrbitException
+import org.orbit.util.*
 
 class Parser(
 	override val invocation: Invocation,
@@ -51,6 +50,7 @@ class Parser(
 
 	private var isRecording = false
 	private var recordedTokens = mutableListOf<Token>()
+	private var completeTokens = emptyList<Token>()
 
 	init {
 	    registerAdapter(LexerAdapter)
@@ -177,6 +177,11 @@ class Parser(
 					null
 				}
 
+				is ParseRule.Result.Failure.Throw -> {
+					forceThrow = true
+					throw invocation.make<Parser>(result.message, result.position)
+				}
+
 				else -> null
 			}
 		} catch (ex: Exception) {
@@ -240,10 +245,28 @@ class Parser(
 		return null
 	}
 
+	fun reconstructSource(from: Token, to: Token) : String {
+		var fIdx = -1
+		var lIdx = -1
+		for (item in completeTokens.withIndex()) {
+			if (item.value == from) fIdx = item.index
+			if (item.value == to) lIdx = item.index
+		}
+
+		if (fIdx == -1 || lIdx == -1) return ""
+
+		val printer = getKoinInstance<Printer>()
+
+		if (fIdx == lIdx) return printer.apply(completeTokens[fIdx].text, PrintableKey.Italics)
+
+		return completeTokens.subList(fIdx, lIdx).joinToString(" ") { printer.apply(it.text, PrintableKey.Italics) }
+	}
+
 	override fun execute(input: InputType) : Result {
 		if (input.tokens.isEmpty()) throw Errors.NoMoreTokens
 		
 		tokens = input.tokens.toMutableList()
+		completeTokens = tokens
 
 		val ast = topLevelParseRule.execute(this)
 			.unwrap<ParseRule.Result.Success<*>>()!!

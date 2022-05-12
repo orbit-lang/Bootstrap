@@ -107,7 +107,14 @@ class PartialCallRule(private val receiverExpression: ExpressionNode) : ValueRul
 
         if (next.type == TokenTypes.RParen) {
             context.consume()
-            return parseTrailing(context, MethodCallNode(receiverExpression.firstToken, methodIdentifier.lastToken, receiverExpression, methodIdentifier, listOf(receiverExpression)))
+            val rec = when (receiverExpression) {
+                is RValueNode -> receiverExpression.expressionNode
+                else -> receiverExpression
+            }
+            return parseTrailing(context, MethodCallNode(receiverExpression.firstToken, methodIdentifier.lastToken, receiverExpression, methodIdentifier, when (rec) {
+                is TypeExpressionNode -> emptyList<ExpressionNode>()
+                else -> listOf(receiverExpression)
+            }))
         }
 
         val parameterNodes = mutableListOf<ExpressionNode>()

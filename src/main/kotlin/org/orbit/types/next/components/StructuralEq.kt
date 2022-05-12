@@ -6,6 +6,11 @@ object StructuralEq : ITypeEq<ITrait, TypeComponent> {
     override fun eq(ctx: Ctx, a: ITrait, b: TypeComponent): Boolean = ctx.derefence(b) { b ->
         if (b is Anything) return@derefence true
 
+        // TODO - This is another horrifying hack that states that Type `T` always conforms to its own Interface
+        if (a.fullyQualifiedName.endsWith("__Self__") && a.getPath(OrbitMangler).containsSubPath(b.getPath(OrbitMangler), OrbitMangler)) {
+            return@derefence true
+        }
+
         when (a.contracts.isEmpty()) {
             true -> when (ctx.getConformance(b).contains(a)) {
                 true -> true

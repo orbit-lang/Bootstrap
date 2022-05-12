@@ -3,6 +3,7 @@ package org.orbit.types.next.components
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.ExpressionNode
+import org.orbit.types.next.intrinsics.Native
 
 interface WhereClauseType : TypeComponent
 

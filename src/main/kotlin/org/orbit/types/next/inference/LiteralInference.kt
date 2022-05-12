@@ -101,6 +101,7 @@ object AnyExpressionInference : Inference<ExpressionNode, TypeComponent> {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: ExpressionNode): InferenceResult = when (node) {
         is ValueRepresentableNode -> inferenceUtil.infer(node).inferenceResult()
         is RValueNode -> inferenceUtil.infer(node.expressionNode, context.clone(node.expressionNode::class.java)).inferenceResult()
+        is ExpandNode -> AnyConstantValueInference.infer(inferenceUtil, context, node.expressionNode)
         else -> Never("Cannot infer type of non-Expression node ${node::class.java.simpleName}", node.firstToken.position)
             .inferenceResult()
     }

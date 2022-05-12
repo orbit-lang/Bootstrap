@@ -1,0 +1,31 @@
+module Orb::Types::Intrinsics {
+    type Unit
+    type Int
+}
+
+module Contexts with Orb::* {
+    type A(n Int)
+
+    context Value [v]
+        where kind(v) : value
+
+    context LessThan [i, n] within Value[i] + Value[n]
+        where typeOf(i) = Int
+        where typeOf(n) = Int
+        where i < n
+
+    (Int) get (i Int) (Int) within LessThan[i, 10] {
+        return i
+    }
+
+    (A) a () () {
+        x = expand 1
+        y = expand A(expand 2)
+        typeOf x
+        typeOf y
+
+        i = expand Int.get(1)
+
+        typeOf i
+    }
+}
