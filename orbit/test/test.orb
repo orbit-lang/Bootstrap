@@ -9,16 +9,7 @@ module Orb::Meta::Kinds with Orb::Types::Intrinsics {
 }
 
 module Context with Orb::* {
-    type A
+    type constructor Box<T>(value T)
 
-    type constructor KindBox<K>(k K)
-
-    extension KindBox where K : Kind {}
-
-    (A) getKind () () {
-        k = KindBox(mirror Int)
-
-        typeOf k
-        typeOf mirror KindBox
-    }
+    context ValueContext [V]
 }

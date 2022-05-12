@@ -44,7 +44,7 @@ object ExtensionPhase : TypePhase<ExtensionNode, TypeComponent>, KoinComponent {
 
     private fun inferPolyTypeExtension(input: TypePhaseData<ExtensionNode>) : TypeComponent {
         val targetType = input.inferenceUtil.inferAs<TypeExpressionNode, PolymorphicType<TypeComponent>>(input.node.targetTypeNode)
-        var nInferenceUtil = input.inferenceUtil.derive(self = targetType)
+        val nInferenceUtil = input.inferenceUtil.derive(self = targetType)
 
         val constraints = input.node.whereClauses.map {
             nInferenceUtil.inferAs<WhereClauseNode, Constraint<TypeComponent, ConstraintApplication<TypeComponent>>>(it)

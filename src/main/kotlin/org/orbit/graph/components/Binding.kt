@@ -100,7 +100,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 				val container = Union(Kind.Module, Kind.Api)
 				val entity = Union(Union(Kind.Type, Kind.Trait), Kind.TypeAlias)
 				val entityOrMethod = Union(entity, Kind.Method)
-				val receiver = Union(entityOrMethod,anyEntityConstructor)
+				val receiver = Union(Union(entityOrMethod, anyEntityConstructor), Binding.Kind.TypeParameter)
 				val entityOrConstructor = Union(entity, anyEntityConstructor)
 				val entityMethodOrConstructor = Union(entityOrMethod, anyEntityConstructor)
 				val entityOrConstructorOrParameter = Union(entityOrConstructor, TypeParameter)
