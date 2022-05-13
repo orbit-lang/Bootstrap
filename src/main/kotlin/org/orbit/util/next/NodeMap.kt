@@ -14,17 +14,20 @@ interface ITypeMapInterface
 
 interface ITypeMapRead : ITypeMapInterface {
     fun find(name: String) : TypeComponent?
+    fun findShallow(name: String) : TypeComponent?
     fun get(node: Node) : TypeComponent?
     fun getConformance(type: TypeComponent) : List<ITrait>
     fun toCtx() : Ctx
     fun getTypeErrors() : List<Never>
     fun filter(fn: (TypeComponent) -> Boolean) : List<TypeComponent>
+    fun getContext(type: TypeComponent) : ContextInstantiation?
 }
 
 interface ITypeMapWrite : ITypeMapInterface {
     fun declare(type: DeclType)
     fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean = false)
     fun addConformance(type: TypeComponent, trait: ITrait)
+    fun setContext(type: TypeComponent, context: ContextInstantiation)
 }
 
 interface ITypeMap : ITypeMapRead, ITypeMapWrite
@@ -45,6 +48,7 @@ interface IAlias : DeclType {
 
 class TypeMap : ITypeMap {
     private val map = mutableMapOf<String, String>()
+    private val contextMap = mutableMapOf<String, ContextInstantiation>()
     private val visibleTypes = mutableMapOf<String, TypeComponent>()
     private val conformanceMap = mutableMapOf<String, List<String>>()
 
@@ -60,6 +64,8 @@ class TypeMap : ITypeMap {
 
             traits.forEach { tr -> map(type, tr) }
         }
+
+        contextMap.forEach { (t, u) -> this.map(t, u) }
     }
 
     override fun filter(fn: (TypeComponent) -> Boolean): List<TypeComponent>
@@ -89,9 +95,13 @@ class TypeMap : ITypeMap {
     }
 
     override fun find(name: String): TypeComponent? = when (val type = visibleTypes[name]) {
-        is Alias -> type.target
+        // Aliases can be > 1 level deep, so we recurse through until we find the root Type
+        is Alias -> find(type.target.fullyQualifiedName)
         else -> type
     }
+
+    override fun findShallow(name: String): TypeComponent?
+        = visibleTypes[name]
 
     fun find(path: Path) : TypeComponent?
         = find(OrbitMangler.mangle(path))
@@ -102,11 +112,18 @@ class TypeMap : ITypeMap {
         map[node.id] = value.inferenceKey()
     }
 
+    override fun setContext(type: TypeComponent, context: ContextInstantiation) {
+        contextMap[type.fullyQualifiedName] = context
+    }
+
     override fun get(node: Node): TypeComponent? {
         val key = map[node.id] ?: return null
 
         return find(key)
     }
+
+    override fun getContext(type: TypeComponent): ContextInstantiation?
+        = contextMap[type.fullyQualifiedName]
 }
 
 interface IBindingScope {

@@ -28,6 +28,22 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
                     Pair(idx, item)
                 }
 
+                val context = inferenceUtil.getContext(t)
+
+                if (context != null) {
+                    val nContext = context.given.fold(context) { acc, next ->
+                        when (next) {
+                            is AbstractTypeParameter -> {
+                                val idx = t.indexOf(next)
+                                acc.replace(next, slice[idx].second)
+                            }
+                            else -> acc
+                        }
+                    }
+
+                    nContext.instantiate(inferenceUtil)
+                }
+
                 MonoUtil.monomorphise(inferenceUtil.toCtx(), t, slice, null)
                     .toType(printer) as IType
             }

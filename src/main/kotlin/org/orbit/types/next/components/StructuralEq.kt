@@ -3,12 +3,13 @@ package org.orbit.types.next.components
 import org.orbit.core.OrbitMangler
 
 object StructuralEq : ITypeEq<ITrait, TypeComponent> {
-    override fun eq(ctx: Ctx, a: ITrait, b: TypeComponent): Boolean = ctx.derefence(b) { b ->
-        if (b is Anything) return@derefence true
+    override fun eq(ctx: Ctx, a: ITrait, b: TypeComponent): Boolean = ctx.dereference(a) { a ->
+        if (b is Anything) return@dereference true
+        if (a !is ITrait) return@dereference false
 
         // TODO - This is another horrifying hack that states that Type `T` always conforms to its own Interface
         if (a.fullyQualifiedName.endsWith("__Self__") && a.getPath(OrbitMangler).containsSubPath(b.getPath(OrbitMangler), OrbitMangler)) {
-            return@derefence true
+            return@dereference true
         }
 
         when (a.contracts.isEmpty()) {

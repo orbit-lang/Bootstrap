@@ -555,5 +555,101 @@ class NextTypesTests : TestCase() {
 
         assertTrue(sut.check(inferenceUtil, listOf(t)))
     }
+
+    @Test
+    fun testEqualityRefinement() {
+        val inferenceUtil = InferenceUtil.getRoot()
+        val t = Type("t")
+        val v = TypeVariable("v")
+        val sut = EqualityRefinement(v, t)
+
+        inferenceUtil.declare(v)
+        inferenceUtil.declare(t)
+
+        assertTrue(inferenceUtil.find(v.fullyQualifiedName)!! is TypeVariable)
+
+        sut.refine(inferenceUtil)
+
+        assertTrue(inferenceUtil.find(v.fullyQualifiedName)!! is Type)
+        assertEquals("t", (inferenceUtil.find(v.fullyQualifiedName)!!).fullyQualifiedName)
+    }
+
+    @Test
+    fun testEqualityRefinementDouble() {
+        val inferenceUtil = InferenceUtil.getRoot()
+        val t = Type("t")
+        val u = Type("u")
+        val v = TypeVariable("v")
+        val sut = EqualityRefinement(v, t)
+        val sut2 = EqualityRefinement(v, u)
+
+        inferenceUtil.declare(v)
+        inferenceUtil.declare(t)
+        inferenceUtil.declare(u)
+
+        sut.refine(inferenceUtil)
+
+        assertThrows<Exception> { sut2.refine(inferenceUtil) }
+    }
+
+    @Test
+    fun testEqualityRefinementBothTypeVariables() {
+        val inferenceUtil = InferenceUtil.getRoot()
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val t = Type("t")
+        val sut = EqualityRefinement(a, b)
+        val sut2 = EqualityRefinement(b, t)
+
+        inferenceUtil.declare(a)
+        inferenceUtil.declare(b)
+        inferenceUtil.declare(t)
+
+        sut.refine(inferenceUtil)
+        sut2.refine(inferenceUtil)
+
+        val result = inferenceUtil.find("a")
+            ?: return fail()
+
+        assertTrue(result is Type)
+        assertEquals("t", result.fullyQualifiedName)
+    }
+
+    @Test
+    fun testEqualityRefinementCyclic() {
+        val inferenceUtil = InferenceUtil.getRoot()
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val t = Type("t")
+        val sut = EqualityRefinement(a, b)
+        val sut2 = EqualityRefinement(b, a)
+
+        inferenceUtil.declare(a)
+        inferenceUtil.declare(b)
+        inferenceUtil.declare(t)
+
+        sut.refine(inferenceUtil)
+
+        assertThrows<Exception> { sut2.refine(inferenceUtil) }
+    }
+
+    @Test
+    fun testConformanceRefinement() {
+        val inferenceUtil = InferenceUtil.getRoot()
+        val t = Trait("t")
+        val v = TypeVariable("v")
+        val sut = ConformanceRefinement(v, t)
+
+        inferenceUtil.declare(v)
+        inferenceUtil.declare(t)
+
+        assertTrue(inferenceUtil.getConformance(v).isEmpty())
+
+        sut.refine(inferenceUtil)
+
+        val result = inferenceUtil.getConformance(v)
+
+        assertEquals(1, result.count())
+    }
 }
 

@@ -82,6 +82,8 @@ class FamilyConstructorPathResolver(private val parentPath: Path) : PathResolver
 
 			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
+
+			input.context?.let { pathResolverUtil.resolve(it, pass, environment, graph) }
 		}
 
 		return PathResolver.Result.Success(path)
@@ -145,6 +147,7 @@ class TypeConstructorPathResolver(
 			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
 			input.clauses.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
+			input.context?.let { pathResolverUtil.resolve(it, pass, environment, graph) }
 		}
 
 		return PathResolver.Result.Success(path)

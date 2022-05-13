@@ -3,9 +3,13 @@ package org.orbit.core.nodes
 import org.orbit.core.components.Token
 import org.orbit.graph.pathresolvers.PathResolver
 
+abstract class ContextAwareNode : AnnotatedNode() {
+	abstract val context: ContextExpressionNode?
+}
+
 sealed class TopLevelDeclarationNode(
 	override val annotationPass: PathResolver.Pass
-) : AnnotatedNode()
+) : ContextAwareNode()
 
 sealed class ContainerNode : TopLevelDeclarationNode(PathResolver.Pass.Last) {
 	abstract val identifier: TypeIdentifierNode
@@ -27,7 +31,8 @@ data class ApiDefNode(
 	override val within: TypeIdentifierNode?,
 	override val with: List<TypeIdentifierNode>,
 	val standardEntityDefs: List<EntityDefNode>,
-	override val entityConstructors: List<EntityConstructorNode>
+	override val entityConstructors: List<EntityConstructorNode>,
+	override val context: ContextExpressionNode? = null
 ) : ContainerNode() {
 	override val contexts: List<ContextNode> = emptyList()
 

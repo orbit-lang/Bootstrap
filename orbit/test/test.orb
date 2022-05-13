@@ -9,10 +9,36 @@ module Orb::Meta::Kinds with Orb::Types::Intrinsics {
 }
 
 module Context with Orb::* {
+    trait Tr(x Int)
+    trait Tr2(n Int)
+
+    type Foo
+    type Bar
+
+    context Eq [A, B]
+        where A = B
+
+    context Like [A, B]
+        where A : B
+
+    context BothContext [A]
+        where A : Tr
+        where A : Tr2
+
+    projection Foo : Tr
+        where x = 1
+
+    projection Foo : Tr2
+        where n = 2
+
     type constructor Box<T>(value T)
+        within Eq [T, Foo]
 
-    trait Tr
+#    extension Box within Like[T, Tr] {
+#        (self Self) getX () (Int) = self.x
+#    }
 
-    context ValueContext [T]
-        where T : Tr
+    (Foo) f () () {
+        fbox = Box(Foo())
+    }
 }

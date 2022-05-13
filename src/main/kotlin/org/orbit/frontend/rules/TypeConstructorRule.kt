@@ -118,17 +118,24 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
             emptyList()
         }
 
-        val whereClauses = mutableListOf<TypeConstraintWhereClauseNode>()
-        while (next.type == TokenTypes.Where) {
-            val whereClause = context.attempt(TypeConstraintWhereClauseRule)
+//        val whereClauses = mutableListOf<TypeConstraintWhereClauseNode>()
+//        while (next.type == TokenTypes.Where) {
+//            val whereClause = context.attempt(TypeConstraintWhereClauseRule)
+//                ?: return ParseRule.Result.Failure.Abort
+//
+//            whereClauses.add(whereClause)
+//
+//            next = context.peek()
+//            end = whereClause.lastToken
+//        }
+
+        if (next.type == TokenTypes.Within) {
+            val contextExpr = context.attempt(ContextExpressionRule)
                 ?: return ParseRule.Result.Failure.Abort
 
-            whereClauses.add(whereClause)
-
-            next = context.peek()
-            end = whereClause.lastToken
+            return +TypeConstructorNode(start, end, typeIdentifier, typeParameters, traitConformance, properties, emptyList(), contextExpr)
         }
 
-        return +TypeConstructorNode(start, end, typeIdentifier, typeParameters, traitConformance, properties, whereClauses)
+        return +TypeConstructorNode(start, end, typeIdentifier, typeParameters, traitConformance, properties, emptyList())
     }
 }

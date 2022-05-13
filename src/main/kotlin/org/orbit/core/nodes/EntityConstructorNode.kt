@@ -10,8 +10,9 @@ abstract class EntityConstructorNode : TopLevelDeclarationNode(PathResolver.Pass
     abstract val clauses: List<TypeConstraintWhereClauseNode>
     abstract val properties: List<PairNode>
 
-    override fun getChildren(): List<Node> {
-        return listOf(typeIdentifierNode) + typeParameterNodes + clauses + traitConformance + properties
+    override fun getChildren(): List<Node> = when (context) {
+        null -> listOf(typeIdentifierNode) + typeParameterNodes + clauses + traitConformance + properties
+        else -> listOf(typeIdentifierNode) + typeParameterNodes + clauses + traitConformance + properties + context!!
     }
 
     abstract fun extend(given: List<TypeIdentifierNode>) : EntityConstructorNode
@@ -24,7 +25,8 @@ data class TypeConstructorNode(
     override val typeParameterNodes: List<TypeIdentifierNode>,
     override val traitConformance: List<TypeExpressionNode> = emptyList(),
     override val properties: List<PairNode> = emptyList(),
-    override val clauses: List<TypeConstraintWhereClauseNode> = emptyList()
+    override val clauses: List<TypeConstraintWhereClauseNode> = emptyList(),
+    override val context: ContextExpressionNode? = null
 ): EntityConstructorNode() {
     override fun extend(given: List<TypeIdentifierNode>) : TypeConstructorNode {
         return TypeConstructorNode(firstToken, lastToken, typeIdentifierNode, given + typeParameterNodes, traitConformance, properties, clauses)
@@ -40,7 +42,8 @@ data class TraitConstructorNode(
     override val traitConformance: List<TypeExpressionNode> = emptyList(),
     override val clauses: List<TypeConstraintWhereClauseNode> = emptyList(),
     override val properties: List<PairNode> = emptyList(),
-    val instances: List<TypeDefNode> = emptyList()
+    val instances: List<TypeDefNode> = emptyList(),
+    override val context: ContextExpressionNode? = null
 ): EntityConstructorNode() {
     val isClosed: Boolean
         get() = instances.isNotEmpty()
@@ -62,10 +65,12 @@ data class FamilyConstructorNode(
     override val traitConformance: List<TypeExpressionNode> = emptyList(),
     override val clauses: List<TypeConstraintWhereClauseNode> = emptyList(),
     override val properties: List<PairNode>,
-    val entities: List<EntityConstructorNode>
+    val entities: List<EntityConstructorNode>,
+    override val context: ContextExpressionNode? = null
 ) : EntityConstructorNode() {
-    override fun getChildren(): List<Node> {
-        return super.getChildren() + entities
+    override fun getChildren(): List<Node> = when (context) {
+        null -> super.getChildren() + entities
+        else -> super.getChildren() + entities + context
     }
 
     override fun extend(given: List<TypeIdentifierNode>): EntityConstructorNode {

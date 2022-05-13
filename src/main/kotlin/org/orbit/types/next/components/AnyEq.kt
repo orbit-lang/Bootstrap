@@ -88,20 +88,18 @@ object ParameterEq : ITypeEq<ITypeParameter, TypeComponent> {
 }
 
 object AnyEq : ITypeEq<TypeComponent, TypeComponent>, KoinComponent {
-    override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.derefence(a) { a ->
-        ctx.derefence(b) { b ->
-            if (b is IValue) return@derefence eq(ctx, a, b.type)
+    override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereference(a, b) { a, b ->
+        if (b is IValue) return@dereference eq(ctx, a, b.type)
 
-            when (a) {
-                is Anything -> true
-                is MonomorphicType<*> -> MonoEq.eq(ctx, a, b)
-                is PolymorphicType<*> -> PolyEq.eq(ctx, a, b)
-                is Type -> TypeEq.eq(ctx, a, b)
-                is Trait -> TraitEq.eq(ctx, a, b)
-                is TypeFamily<*> -> FamilyEq.eq(ctx, a, b)
-                is ITypeParameter -> ParameterEq.eq(ctx, a, b)
-                else -> NominalEq.eq(ctx, a, b)
-            }
+        when (a) {
+            is Anything -> true
+            is MonomorphicType<*> -> MonoEq.eq(ctx, a, b)
+            is PolymorphicType<*> -> PolyEq.eq(ctx, a, b)
+            is Type -> TypeEq.eq(ctx, a, b)
+            is Trait -> TraitEq.eq(ctx, a, b)
+            is TypeFamily<*> -> FamilyEq.eq(ctx, a, b)
+            is ITypeParameter -> ParameterEq.eq(ctx, a, b)
+            else -> NominalEq.eq(ctx, a, b)
         }
     }
 }

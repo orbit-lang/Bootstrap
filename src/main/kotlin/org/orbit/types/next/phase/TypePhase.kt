@@ -67,6 +67,7 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         types = TypeFieldsPhase.executeAll(input.inferenceUtil, typeDefs)
         traits = TraitContractsPhase.executeAll(input.inferenceUtil, traitDefs)
 
+        ContextAwarePhase.executeAll(input.inferenceUtil, typeConstructorDefs)
         TypeConstructorConformancePhase.executeAll(input.inferenceUtil, typeConstructorDefs)
 
         var families = FamilyPhase.executeAll(input.inferenceUtil, familyDefs)

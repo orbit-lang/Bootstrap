@@ -8,7 +8,7 @@ data class DefineNode(
     override val lastToken: Token,
     val keySymbolNode: SymbolLiteralNode,
     val outputSymbolNode: SymbolLiteralNode
-) : TopLevelDeclarationNode(PathResolver.Pass.Initial) {
+) : Node() {
     override fun getChildren(): List<Node> {
         return listOf(keySymbolNode, outputSymbolNode)
     }

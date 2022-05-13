@@ -15,12 +15,14 @@ class Module(override val fullyQualifiedName: String, val imports: List<Module> 
 
     override fun getTypes(): List<TypeComponent> = context.getTypes()
     override fun getConformanceMap(): Map<TypeComponent, List<ITrait>> = context.getConformanceMap()
+    override fun getContext(type: TypeComponent): ContextInstantiation? = context.getContext(type)
 
     override fun getType(name: String): TypeComponent? = context.getType(name)
     override fun <T : TypeComponent> getTypeAs(name: String): T? = context.getTypeAs(name)
 
     override fun extend(type: TypeComponent) = context.extend(type)
     override fun map(key: TypeComponent, value: ITrait) = context.map(key, value)
+    override fun map(type: String, context: ContextInstantiation) = this.context.map(type, context)
 
     fun extendAll(types: List<TypeComponent>) : Module {
         types.forEach(::extend)

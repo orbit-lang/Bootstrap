@@ -16,6 +16,7 @@ import org.orbit.core.phase.CompilerGenerator
 import org.orbit.core.single
 import org.orbit.graph.components.*
 import org.orbit.graph.pathresolvers.*
+import org.orbit.graph.pathresolvers.util.ContextInstantiationPathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.types.next.inference.*
 import org.orbit.util.next.BindingScope
@@ -60,6 +61,7 @@ val mainModule = module {
 		util.registerPathResolver(TypeOfPathResolver, TypeOfNode::class.java)
 		util.registerPathResolver(ExpandPathResolver, ExpandNode::class.java)
 		util.registerPathResolver(MirrorPathResolver, MirrorNode::class.java)
+		util.registerPathResolver(ContextInstantiationPathResolver, ContextInstantiationNode::class.java)
 
 		util
 	}
@@ -100,6 +102,8 @@ val mainModule = module {
 		util.registerInference(ExpandInference, ExpandNode::class.java)
 		util.registerInference(MirrorInference, MirrorNode::class.java)
 		util.registerInference(TypeBoundsConstraintInference, WhereClauseTypeBoundsExpressionNode::class.java)
+		util.registerInference(ContextInstantiationInference, ContextInstantiationNode::class.java)
+		util.registerInference(ContextInference, ContextExpressionNode::class.java)
 
 		util
 	}

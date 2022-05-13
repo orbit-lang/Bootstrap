@@ -7,7 +7,7 @@ data class ObserverNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val observerIdentifierNode: MethodReferenceNode
-) : TopLevelDeclarationNode(PathResolver.Pass.Initial) {
+) : Node() {
     override fun getChildren(): List<Node> {
         return listOf(observerIdentifierNode)
     }

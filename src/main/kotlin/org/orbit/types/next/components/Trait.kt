@@ -88,4 +88,9 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
 
         else -> TypeRelation.Unrelated(this, other)
     }
+
+    override fun equals(other: Any?): Boolean = when (other) {
+        is Trait -> fullyQualifiedName == other.fullyQualifiedName
+        else -> false
+    }
 }
