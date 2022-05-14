@@ -74,7 +74,7 @@ object TypeEq : ITypeEq<Type, TypeComponent> {
 
 object TraitEq : ITypeEq<Trait, TypeComponent> {
     override fun eq(ctx: Ctx, a: Trait, b: TypeComponent): Boolean = when (b) {
-        is AbstractTypeParameter -> b.constraints.any { AnyEq.eq(ctx, a, it.target) }
+        //is AbstractTypeParameter -> b.constraints.any { AnyEq.eq(ctx, a, it.target) }
         is Type, is ITypeParameter -> StructuralEq.eq(ctx, a, b)
         else -> NominalEq.eq(ctx, a, b)
     }

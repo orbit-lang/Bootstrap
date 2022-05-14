@@ -43,7 +43,13 @@ object ExtensionPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
             ?: TODO("")
         val nContext = input.inferenceUtil.getContext(extension) ?: ContextInstantiation(extension.context, emptyList())
 
-        nContext.context.apply(nInferenceUtil)
+//        val solution = nContext.context.solve(nInferenceUtil.toCtx())
+//
+//        if (solution is Never) throw invocation.make<TypeSystem>(solution.message, input.node.context?.firstToken?.position ?: SourcePosition.unknown)
+
+        val result = nContext.context.apply(nInferenceUtil)
+
+        if (result is Never) throw invocation.make<TypeSystem>(result.message, input.node.context?.firstToken?.position ?: SourcePosition.unknown)
 
         val nSignatures = MethodStubPhase.executeAll(nInferenceUtil, input.node.methodDefNodes)
             as List<Signature>

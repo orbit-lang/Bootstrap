@@ -5,11 +5,15 @@ module Orb::Types::Intrinsics {
 }
 
 module Context with Orb::* {
-    type Foo(x Int)
+    type Foo(x Int) : XAware
     type Bar
+    trait XAware(x Int)
 
     context Eq [A, B]
         where A = B
+
+    context Like [A, B]
+        where A : B
 
     type constructor Box<T>(value T)
 
@@ -21,8 +25,15 @@ module Context with Orb::* {
         (self Self) getBar () (Bar) = self.value
     }
 
+    extension Box within Like [T, XAware] {
+        (self Self) getXAware () (XAware) = self.value
+    }
+
     (Foo) f () () {
         b = Box(Foo(1))
+        bX = b.getXAware()
+        bXx = bX.x
+
         c = Box(Bar())
 
         x = b.getX()

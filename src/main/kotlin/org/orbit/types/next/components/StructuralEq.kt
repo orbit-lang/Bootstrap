@@ -1,7 +1,6 @@
 package org.orbit.types.next.components
 
 import org.orbit.core.OrbitMangler
-import kotlin.math.exp
 
 object StructuralEq : ITypeEq<ITrait, TypeComponent> {
     override fun eq(ctx: Ctx, a: ITrait, b: TypeComponent): Boolean = ctx.dereference(a) { a ->
@@ -27,7 +26,7 @@ object StructuralEq : ITypeEq<ITrait, TypeComponent> {
                 }
             }
             else -> a.contracts.all {
-                explicitConformance && it.isImplemented(ctx, b) is ContractResult.Success
+                explicitConformance || it.isImplemented(ctx, b) is ContractResult.Success
             }
         }
     }

@@ -22,7 +22,7 @@ fun List<ITrait>.mergeAll(ctx: Ctx) : ITrait = fold(Anything as ITrait) { acc, n
     }
 }
 
-data class Trait(override val fullyQualifiedName: String, override val contracts: List<Contract<*>> = emptyList(), override val isSynthetic: Boolean = false) : ITrait {
+data class Trait(override val fullyQualifiedName: String, override val contracts: List<Contract<*>> = emptyList(), override val isSynthetic: Boolean = false) : ITrait, FieldAwareType {
     constructor(path: Path, contracts: List<Contract<*>> = emptyList(), isSynthetic: Boolean = false) : this(path.toString(OrbitMangler), contracts, isSynthetic)
 
     override val trait: Trait = this
@@ -34,6 +34,9 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
         true -> ContractResult.Success(by, this)
         else -> ContractResult.Failure(by, this)
     }
+
+    override fun getFields(): List<Field> = contracts.filterIsInstance<FieldContract>()
+        .map { it.input }
 
     override fun getErrorMessage(printer: Printer, type: TypeComponent): String
         = "Type ${type.toString(printer)} does not implement Trait ${toString(printer)}"
