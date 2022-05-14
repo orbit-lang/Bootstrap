@@ -28,8 +28,7 @@ object MethodBodyPhase : TypePhase<MethodDefNode, TypeComponent>, KoinComponent 
             nInferenceUtil.bind(it.first.identifierNode.identifier, it.second)
         }
 
-        return when (val result =
-            BlockInference.infer(nInferenceUtil, TypeAnnotatedInferenceContext(signature.returns, BlockNode::class.java), input.node.body)) {
+        return when (val result = BlockInference.infer(nInferenceUtil, TypeAnnotatedInferenceContext(signature.returns, BlockNode::class.java), input.node.body)) {
             is InferenceResult.Success<*> -> result.type
             is InferenceResult.Failure -> result.never
         }

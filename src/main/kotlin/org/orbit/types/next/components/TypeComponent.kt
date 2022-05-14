@@ -35,6 +35,8 @@ sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias, ISi
     override fun getParameterTypes(): List<TypeComponent> = emptyList()
     override fun getReceiverType(): TypeComponent = Never
     override fun getReturnType(): TypeComponent = Never
+
+    operator fun plus(other: InternalControlType): InternalControlType
 }
 
 object Anything : InternalControlType {
@@ -55,6 +57,11 @@ object Anything : InternalControlType {
 
     override fun getErrorMessage(printer: Printer, type: TypeComponent): String {
         TODO("Not yet implemented")
+    }
+
+    override fun plus(other: InternalControlType) = when (other) {
+        is Never -> other
+        else -> this
     }
 }
 
@@ -88,6 +95,11 @@ data class Never(override val message: String = "", override val position: Sourc
 
         override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation
                 = TypeRelation.Unrelated(this, other)
+
+        override fun plus(other: InternalControlType): InternalControlType = when (other) {
+            is Anything -> this
+            else -> other
+        }
     }
 
     private val invocation: Invocation by inject()
@@ -111,6 +123,17 @@ data class Never(override val message: String = "", override val position: Sourc
     }
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = TypeRelation.Unrelated(this, other)
+
+    override fun plus(other: InternalControlType): InternalControlType = when (other) {
+        is Never -> Never(message + "\n" + other.message)
+        else -> this
+    }
+}
+
+fun List<Never>.combine(message: String) : Never {
+    val pretty = joinToString("\n\t") { it.message }
+
+    return Never(message + "\n\t$pretty")
 }
 
 interface DeclType : TypeComponent

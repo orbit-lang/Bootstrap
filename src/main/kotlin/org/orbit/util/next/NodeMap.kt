@@ -21,12 +21,14 @@ interface ITypeMapRead : ITypeMapInterface {
     fun getTypeErrors() : List<Never>
     fun filter(fn: (TypeComponent) -> Boolean) : List<TypeComponent>
     fun getContext(type: TypeComponent) : ContextInstantiation?
+    fun getExtensions(type: TypeComponent) : List<Extension>
 }
 
 interface ITypeMapWrite : ITypeMapInterface {
     fun declare(type: DeclType)
     fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean = false)
     fun addConformance(type: TypeComponent, trait: ITrait)
+    fun addExtension(type: TypeComponent, extension: Extension)
     fun setContext(type: TypeComponent, context: ContextInstantiation)
 }
 
@@ -46,11 +48,20 @@ interface IAlias : DeclType {
     val target: TypeComponent
 }
 
-class TypeMap : ITypeMap {
+class TypeMap constructor(): ITypeMap {
+    constructor(other: TypeMap) : this() {
+        this.map.putAll(other.map)
+        this.contextMap.putAll(other.contextMap)
+        this.visibleTypes.putAll(other.visibleTypes)
+        this.conformanceMap.putAll(other.conformanceMap)
+        this.extensionMap.putAll(other.extensionMap)
+    }
+
     private val map = mutableMapOf<String, String>()
     private val contextMap = mutableMapOf<String, ContextInstantiation>()
     private val visibleTypes = mutableMapOf<String, TypeComponent>()
     private val conformanceMap = mutableMapOf<String, List<String>>()
+    private val extensionMap = mutableMapOf<String, List<String>>()
 
     override fun declare(type: DeclType) {
         visibleTypes[type.fullyQualifiedName] = type
@@ -81,11 +92,25 @@ class TypeMap : ITypeMap {
         conformanceMap[type.fullyQualifiedName] = conformance + trait.fullyQualifiedName
     }
 
+    override fun addExtension(type: TypeComponent, extension: Extension) {
+        val extensions = extensionMap[type.fullyQualifiedName]
+            ?: emptyList()
+
+        extensionMap[type.fullyQualifiedName] = extensions + extension.fullyQualifiedName
+    }
+
     override fun getConformance(type: TypeComponent): List<ITrait> {
         val conformance = conformanceMap[type.fullyQualifiedName]
             ?: return emptyList()
 
         return conformance.mapNotNull(::findAs)
+    }
+
+    override fun getExtensions(type: TypeComponent): List<Extension> {
+        val extensions = extensionMap[type.fullyQualifiedName]
+            ?: return emptyList()
+
+        return extensions.mapNotNull(::findAs)
     }
 
     fun <T: TypeComponent> findAs(name: String) : T? = when (val type = visibleTypes[name]) {

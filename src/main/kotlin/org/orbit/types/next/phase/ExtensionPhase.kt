@@ -4,69 +4,60 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.ExtensionNode
+import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.WhereClauseNode
-import org.orbit.types.next.components.Ctx
-import org.orbit.types.next.components.PolymorphicType
-import org.orbit.types.next.components.TypeComponent
-import org.orbit.types.next.components.toString
+import org.orbit.types.next.components.*
 import org.orbit.types.next.constraints.*
 import org.orbit.types.next.inference.AnyExpressionContext
+import org.orbit.types.next.inference.AnyInferenceContext
 import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
+import java.util.UUID
 
-object ExtensionPhase : TypePhase<ExtensionNode, TypeComponent>, KoinComponent {
+object ExtensionStubPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
+    override val invocation: Invocation by inject()
+
+    override fun run(input: TypePhaseData<ExtensionNode>): Extension {
+        val extends = input.inferenceUtil.infer(input.node.targetTypeNode)
+        val nInferenceUtil = input.inferenceUtil.derive(self = extends)
+        val signatureNodes = input.node.methodDefNodes.map { it.signature }
+        val signatures = nInferenceUtil.inferAllAs<MethodSignatureNode, Signature>(signatureNodes, AnyInferenceContext(MethodSignatureNode::class.java))
+
+        return when (extends) {
+            is PolymorphicType<*> -> Extension(extends, signatures, Next.Context(UUID.randomUUID().toString(), emptyList(), emptyList()))
+            else -> TODO("Extensions on non-Poly Types")
+        }
+    }
+}
+
+object ExtensionPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
     override val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    private fun refine(acc: Pair<InferenceUtil, ConstraintApplication<TypeComponent>>, next: Constraint<TypeComponent, ConstraintApplication<TypeComponent>>) : Pair<InferenceUtil, ConstraintApplication<TypeComponent>> = when (acc.second) {
-        is EqualityConstraintApplication.Partial<*> -> {
-            val partial = acc.second as EqualityConstraintApplication.Partial<TypeComponent>
-            val nInferenceUtil = acc.first.derive(self = partial.result)
-
-            Pair(nInferenceUtil, next.refine(nInferenceUtil, partial.result)!!)
-        }
-        is EqualityConstraintApplication.Total<*> -> when (next) {
-            is EqualityConstraint<*> -> throw invocation.make<TypeSystem>("Attempting to refine total Type ${(acc.second as EqualityConstraintApplication.Total<TypeComponent>).result.toString(printer)}", SourcePosition.unknown)
-            else -> {
-                val nInferenceUtil = acc.first.derive(self = acc.second.resultValue())
-                Pair(nInferenceUtil, next.refine(nInferenceUtil, acc.second.initialValue)!!)
-            }
-        }
-        is EqualityConstraintApplication.None<*> -> Pair(acc.first, next.refine(acc.first, acc.second.initialValue)!!)
-        is ConformanceConstraintApplication<*> -> {
-            Pair(acc.first, next.refine(acc.first, acc.second.initialValue)!!)
-        }
-        is IdentityConstraintApplication<*> -> Pair(acc.first, next.refine(acc.first, acc.second.initialValue)!!)
-        else -> acc
-    }
-
-    private fun inferPolyTypeExtension(input: TypePhaseData<ExtensionNode>) : TypeComponent {
-        val targetType = input.inferenceUtil.inferAs<TypeExpressionNode, PolymorphicType<TypeComponent>>(input.node.targetTypeNode)
-        val nInferenceUtil = input.inferenceUtil.derive(self = targetType)
-
-        val constraints = input.node.whereClauses.map {
-            nInferenceUtil.inferAs<WhereClauseNode, Constraint<TypeComponent, ConstraintApplication<TypeComponent>>>(it)
-        }
-
-        val result = constraints.fold(Pair(nInferenceUtil, IdentityConstraintApplication(targetType) as ConstraintApplication<TypeComponent>), ::refine)
-
-        return result.second.resultValue()
-    }
-
-    override fun run(input: TypePhaseData<ExtensionNode>): TypeComponent {
-        val targetType = input.inferenceUtil.infer(input.node.targetTypeNode)
-        val extendedType = when (targetType) {
-            is PolymorphicType<*> -> inferPolyTypeExtension(input)
-            else -> targetType
-        }
-
+    override fun run(input: TypePhaseData<ExtensionNode>): Extension {
+        val extendedType = input.inferenceUtil.infer(input.node.targetTypeNode)
         val nInferenceUtil = input.inferenceUtil.derive(self = extendedType)
+        val extension = input.inferenceUtil.get(input.node) as? Extension
+            ?: TODO("")
+        val nContext = input.inferenceUtil.getContext(extension) ?: ContextInstantiation(extension.context, emptyList())
 
-        MethodStubPhase.executeAll(nInferenceUtil, input.node.methodDefNodes)
-        MethodBodyPhase.executeAll(nInferenceUtil, input.node.methodDefNodes)
+        nContext.context.apply(nInferenceUtil)
 
-        return extendedType
+        val nSignatures = MethodStubPhase.executeAll(nInferenceUtil, input.node.methodDefNodes)
+            as List<Signature>
+
+        val results = MethodBodyPhase.executeAll(nInferenceUtil, input.node.methodDefNodes)
+        val failures = results.filterIsInstance<Never>()
+            .fold(Anything as InternalControlType) { acc, next -> acc + next }
+
+        if (failures is Never) throw invocation.make<TypeSystem>("Encountered the following issues in Extension ${extension.toString(printer)}:\n\t${failures.message}", SourcePosition.unknown)
+
+        val nExtension = Extension(extension.extends, nSignatures, nContext.context)
+
+        input.inferenceUtil.addExtension(extendedType, nExtension)
+
+        return nExtension
     }
 }

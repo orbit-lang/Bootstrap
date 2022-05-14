@@ -29,6 +29,11 @@ sealed interface IntrinsicKinds : Kind {
         override val keyword: TokenType = TokenTypes.Context
     }
 
+    object Extension : IntrinsicKinds {
+        override val level: Int = Int.MAX_VALUE
+        override val keyword: TokenType = TokenTypes.Extension
+    }
+
     object Value : IntrinsicKinds {
         override val level: Int = -1
         override val keyword: TokenType

@@ -83,7 +83,7 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
 
         return when (result) {
             ContractResult.None -> source
-            is ContractResult.Success -> result.type
+            is ContractResult.Success -> source
             is ContractResult.Failure -> Never("Type Projection error:\n${result.getErrorMessage(printer, source)}")
             is ContractResult.Group -> Never("Type Projection errors:\n${result.getErrorMessage(printer, source)}")
         }.inferenceResult()

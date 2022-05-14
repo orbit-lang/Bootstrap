@@ -177,7 +177,7 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
 
     fun derive(retainsTypeMap: Boolean = true, retainsBindingScope: Boolean = true, self: TypeComponent? = null) : InferenceUtil {
         val nTypeMap = when (retainsTypeMap) {
-            true -> typeMap
+            true -> TypeMap(typeMap as TypeMap)
             else -> TypeMap()
         }
 

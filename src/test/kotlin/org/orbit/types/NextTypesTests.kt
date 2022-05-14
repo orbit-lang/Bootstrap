@@ -12,12 +12,10 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.*
-import org.orbit.util.Invocation
-import org.orbit.util.Printer
-import org.orbit.util.Unix
-import org.orbit.util.assertIs
+import org.orbit.util.*
 import org.orbit.util.next.BindingScope
 import org.orbit.util.next.TypeMap
+import kotlin.test.assertNotEquals
 
 class NextTypesTests : TestCase() {
     private val testModule = module {
@@ -446,55 +444,55 @@ class NextTypesTests : TestCase() {
         assertTrue(AnyEq.eq(ctx, a, result.source))
     }
 
-    @Test
-    fun testSameConstraintSelf() {
-        val a = Type("a")
-        val ctx = Ctx()
-        val sut = SameConstraint(a, a)
-
-        assertTrue(sut.check(ctx))
-    }
-
-    @Test
-    fun testSameConstraintOther() {
-        val a = Type("a")
-        val b = Type("b")
-        val ctx = Ctx()
-        val sut = SameConstraint(a, b)
-
-        assertFalse(sut.check(ctx))
-    }
-
-    @Test
-    fun testLikeConstraintFail() {
-        val t = Trait("t")
-        val a = Type("a")
-        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root, null)
-
-        inferenceUtil.declare(t)
-        inferenceUtil.declare(a)
-
-        val ctx = inferenceUtil.toCtx()
-        val sut = LikeConstraint(a, t)
-
-        assertFalse(sut.check(ctx))
-    }
-
-    @Test
-    fun testLikeConstraintPass() {
-        val t = Trait("t")
-        val a = Type("a")
-        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root, null)
-
-        inferenceUtil.declare(t)
-        inferenceUtil.declare(a)
-        inferenceUtil.addConformance(a, t)
-
-        val ctx = inferenceUtil.toCtx()
-        val sut = LikeConstraint(a, t)
-
-        assertTrue(sut.check(ctx))
-    }
+//    @Test
+//    fun testSameConstraintSelf() {
+//        val a = Type("a")
+//        val ctx = Ctx()
+//        val sut = SameConstraint(a, a)
+//
+//        assertTrue(sut.check(ctx))
+//    }
+//
+//    @Test
+//    fun testSameConstraintOther() {
+//        val a = Type("a")
+//        val b = Type("b")
+//        val ctx = Ctx()
+//        val sut = SameConstraint(a, b)
+//
+//        assertFalse(sut.check(ctx))
+//    }
+//
+//    @Test
+//    fun testLikeConstraintFail() {
+//        val t = Trait("t")
+//        val a = Type("a")
+//        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root, null)
+//
+//        inferenceUtil.declare(t)
+//        inferenceUtil.declare(a)
+//
+//        val ctx = inferenceUtil.toCtx()
+//        val sut = LikeConstraint(a, t)
+//
+//        assertFalse(sut.check(ctx))
+//    }
+//
+//    @Test
+//    fun testLikeConstraintPass() {
+//        val t = Trait("t")
+//        val a = Type("a")
+//        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root, null)
+//
+//        inferenceUtil.declare(t)
+//        inferenceUtil.declare(a)
+//        inferenceUtil.addConformance(a, t)
+//
+//        val ctx = inferenceUtil.toCtx()
+//        val sut = LikeConstraint(a, t)
+//
+//        assertTrue(sut.check(ctx))
+//    }
 
 //    @Test
 //    fun testMemberConstraintFail() {
@@ -648,6 +646,126 @@ class NextTypesTests : TestCase() {
         val result = inferenceUtil.getConformance(v)
 
         assertEquals(1, result.count())
+    }
+
+    @Test
+    fun testNextConstraintSub() {
+        val ctx = Ctx()
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val t = Type("t")
+        val sut = Next.Same(a, b)
+        val res = sut.sub(a, t).sub(b, t)
+
+        assertEquals("t", res.a.fullyQualifiedName)
+        assertEquals("t", res.b.fullyQualifiedName)
+    }
+
+    @Test
+    fun testNextConstraintSolve() {
+        val ctx = Ctx()
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val t = Type("t")
+        val sut = Next.Same(a, b).sub(a, t).sub(b, t)
+        val res = sut.solve(ctx)
+
+        assertNotEquals(res, a)
+        assertNotEquals(res, b)
+        assertEquals(res, t)
+    }
+
+    @Test
+    fun testNextConstraintSolveFails() {
+        val ctx = Ctx()
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val t = Type("t")
+        val u = Type("u")
+        val sut = Next.Same(a, b).sub(a, t).sub(b, u)
+        val res = sut.solve(ctx)
+
+        assertIs<Never>(res)
+    }
+
+    @Test
+    fun testNextContextSolveFails() {
+        val ctx = Ctx()
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val t = Type("t")
+        val u = Type("u")
+        val same = Next.Same(a, b)
+        val sut = Next.Context("C", listOf(a, b), listOf(same))
+        val res = sut.solve(ctx)
+
+        assertIs<Never>(res)
+
+        val sut2 = sut.sub(a, t).sub(b, u)
+
+        assertIs<Never>(sut2.solve(ctx))
+    }
+
+    @Test
+    fun testExtensionFails() {
+        val inferenceUtil = InferenceUtil.getRoot()
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val t = Type("t")
+        val u = Type("u")
+        val same = Next.Same(a, b)
+        val x = AbstractTypeParameter("x")
+        val p = PolymorphicType<FieldAwareType>(Type("p"), listOf(x), partialFields = emptyList())
+        val context = Next.Context("C", listOf(a, b), listOf(same))
+            .sub(a, x)
+            .sub(b, u)
+
+        val sut = Extension(p, emptyList(), context)
+        val m = TypeMonomorphiser.monomorphise(inferenceUtil.toCtx(), p, listOf(Pair(0, t)), MonomorphisationContext.Any)
+            .toType(getKoinInstance()) as MonomorphicType<TypeComponent>
+
+        val res = sut.extend(inferenceUtil, m)
+
+        assertIs<Never>(res)
+    }
+
+    @Test
+    fun testExtensionPass() {
+        val inferenceUtil = InferenceUtil.getRoot()
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val u = Type("u")
+        val same = Next.Same(a, b)
+        val x = AbstractTypeParameter("x")
+        val p = PolymorphicType<FieldAwareType>(Type("p"), listOf(x), partialFields = emptyList())
+        val context = Next.Context("C", listOf(a, b), listOf(same))
+            .sub(a to x, b to u)
+
+        val sut = Extension(p, emptyList(), context)
+        val m = TypeMonomorphiser.monomorphise(inferenceUtil.toCtx(), p, listOf(Pair(0, u)), MonomorphisationContext.Any)
+            .toType(getKoinInstance()) as MonomorphicType<TypeComponent>
+
+        val res = sut.extend(inferenceUtil, m)
+
+        assertIs<Next.Context>(res)
+    }
+
+    @Test
+    fun testSameApply() {
+        val inferenceUtil = InferenceUtil.getRoot()
+        val a = AbstractTypeParameter("a")
+        val t = Type("t")
+        val sut = Next.Same(a, t)
+
+        inferenceUtil.declare(a)
+        inferenceUtil.declare(t)
+
+        assertIs<Anything>(sut.apply(inferenceUtil))
+
+        val res = inferenceUtil.find("a")
+
+        assertNotEquals(res, a)
+        assertEquals(res, t)
     }
 }
 

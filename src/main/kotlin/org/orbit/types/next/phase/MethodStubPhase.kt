@@ -11,6 +11,6 @@ object MethodStubPhase : TypePhase<MethodDefNode, ISignature>, KoinComponent {
     override val invocation: Invocation by inject()
 
     override fun run(input: TypePhaseData<MethodDefNode>): ISignature {
-        return input.inferenceUtil.inferAs<MethodSignatureNode, ISignature>(input.node.signature)
+        return input.inferenceUtil.inferAs(input.node.signature)
     }
 }

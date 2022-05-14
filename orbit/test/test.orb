@@ -5,32 +5,27 @@ module Orb::Types::Intrinsics {
 }
 
 module Context with Orb::* {
-    trait Tr(x Int)
-    trait Tr2(n Int)
-
-    type Foo
+    type Foo(x Int)
     type Bar
 
-    context BothContext [A]
-        where A : Tr
-        where A : Tr2
+    context Eq [A, B]
+        where A = B
 
     type constructor Box<T>(value T)
-        within Eq [T, Foo]
 
-    type constructor K<A, B>(a A, b B)
-        within KindEq [A, B]
+    extension Box within Eq [T, Foo] {
+        (self Self) getX () (Int) = self.value.x
+    }
 
-#    type constructor Functor [F]
-#        where mirror F =
-
-#    extension Box within Like[T, Tr] {
-#        (self Self) getX () (Int) = self.x
-#    }
+    extension Box within Eq [T, Bar] {
+        (self Self) getBar () (Bar) = self.value
+    }
 
     (Foo) f () () {
-        k = K(expand 1, expand :abc)
+        b = Box(Foo(1))
+        c = Box(Bar())
 
-        typeOf mirror k.a
+        x = b.getX()
+        z = c.getBar()
     }
 }

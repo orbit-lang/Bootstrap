@@ -26,7 +26,7 @@ class ExtensionPathResolver(private val parentPath: Path) : PathResolver<Extensi
         input.annotate(graphID, Annotations.GraphID)
         input.annotate(targetTypePath.path, Annotations.Path)
 
-        input.whereClauses.forEach {
+        input.context?.let {
             it.annotate(graphID, Annotations.GraphID)
             pathResolverUtil.resolve(it, pass, environment, graph)
         }

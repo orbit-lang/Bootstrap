@@ -4,6 +4,7 @@ import org.orbit.core.nodes.ExtensionNode
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.WhereClauseNode
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
@@ -13,20 +14,16 @@ object ExtensionRule : ParseRule<ExtensionNode> {
         val targetType = context.attempt(TypeExpressionRule)
             ?: TODO("@ExtensionRule:14")
 
-        var next = context.peek()
+        val next = context.peek()
 
-        val whereClauses = mutableListOf<WhereClauseNode>()
-        while (next.type == TokenTypes.Where) {
-            val whereClause = context.attempt(WhereClauseRule.extension)
-                ?: TODO("@ExtensionRule:21")
-
-            whereClauses.add(whereClause)
-            next = context.peek()
+        val contextNode = when (next.type) {
+            TokenTypes.Within -> context.attempt(ContextExpressionRule) ?: return ParseRule.Result.Failure.Abort
+            else -> null
         }
 
         val body = context.attempt(BlockRule(MethodDefRule))
             ?: TODO("@ExtensionRule:28")
 
-        return +ExtensionNode(start, body.lastToken, targetType, body.body as List<MethodDefNode>, whereClauses)
+        return +ExtensionNode(start, body.lastToken, targetType, body.body as List<MethodDefNode>, contextNode)
     }
 }

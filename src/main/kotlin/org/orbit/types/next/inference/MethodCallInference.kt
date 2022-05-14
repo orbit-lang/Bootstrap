@@ -7,6 +7,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.SerialSignature
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.MethodCallNode
+import org.orbit.core.phase.flatMapNotNull
 import org.orbit.graph.extensions.annotate
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
@@ -29,19 +30,44 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
                 if (matches.isEmpty())
                     throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a property named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Bold, PrintableKey.Italics)}", node.messageIdentifier.firstToken)
 
-                return matches.first().type
-                    .inferenceResult()
+                val fType = inferenceUtil.find(matches.first().type.fullyQualifiedName)
+                    ?: TODO("HERE?!?!?!")
+
+                return fType.inferenceResult()
             }
         }
 
-        val candidateSignatures = inferenceUtil.getTypeMap().filter {
+        var candidateSignatures = inferenceUtil.getTypeMap().filter {
             it is Signature
                 && it.relativeName == node.messageIdentifier.identifier
                 && AnyEq.eq(inferenceUtil.toCtx(), receiver, it.receiver)
         }
 
-        if (candidateSignatures.isEmpty())
-            throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a method named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Italics, PrintableKey.Bold)}", node.messageIdentifier.firstToken)
+        if (candidateSignatures.isEmpty()) {
+            // TODO - Extensions on anything
+            val mono = receiver as? MonomorphicType<TypeComponent>
+                ?: throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a method named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Italics, PrintableKey.Bold)}", node.messageIdentifier.firstToken)
+
+            val extensions = inferenceUtil.getExtensions(mono.polymorphicType)
+
+            val candidateExtensions = extensions.mapNotNull {
+                when (it.extend(inferenceUtil, mono)) {
+                    is Never -> null
+                    else -> it
+                }
+            }
+
+            candidateSignatures = candidateExtensions.flatMap {
+                it.signatures.mapNotNull { s -> when (s.relativeName) {
+                    node.messageIdentifier.identifier -> s.sub(mono.polymorphicType, mono)
+                    else -> null
+                }}
+            }
+
+            if (candidateSignatures.isEmpty()) {
+                throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a method named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Italics, PrintableKey.Bold)}", node.messageIdentifier.firstToken)
+            }
+        }
 
         if (candidateSignatures.count() > 1) {
             val pretty = candidateSignatures.joinToString("\n\t") { it.toString(printer) }
