@@ -18,6 +18,9 @@ module Context with Orb::* {
     context Eq [A, B]
         where A = B
 
+    context KindEq [A, B]
+        where A ^ B
+
     context Like [A, B]
         where A : B
 
@@ -25,20 +28,23 @@ module Context with Orb::* {
         where A : Tr
         where A : Tr2
 
-    projection Foo : Tr
-        where x = 1
-
-    projection Foo : Tr2
-        where n = 2
-
     type constructor Box<T>(value T)
         within Eq [T, Foo]
+
+    type constructor K<A, B>(a A, b B)
+        within KindEq [A, B]
+
+#    type constructor Functor [F]
+#        where mirror F =
 
 #    extension Box within Like[T, Tr] {
 #        (self Self) getX () (Int) = self.x
 #    }
 
     (Foo) f () () {
-        fbox = Box(Foo())
+        k = `K(`1, `2)
+        l = `k
+
+        typeOf l
     }
 }

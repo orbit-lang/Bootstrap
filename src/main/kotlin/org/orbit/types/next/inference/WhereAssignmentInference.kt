@@ -36,8 +36,9 @@ object TypeBoundsExpressionInference : Inference<WhereClauseTypeBoundsExpression
         val targetType = inferenceUtil.infer(node.targetTypeExpression)
 
         return when (node.boundsType) {
-            TypeBoundsExpressionType.Equals -> EqualityConstraint(SelfIndex(sourceParameter), targetType)
-            TypeBoundsExpressionType.Conforms -> ConformanceConstraint<TypeComponent>(SelfIndex(sourceParameter), targetType as ITrait)
+            TypeBoundsOperator.Eq -> EqualityConstraint(SelfIndex(sourceParameter), targetType)
+            TypeBoundsOperator.Like -> ConformanceConstraint<TypeComponent>(SelfIndex(sourceParameter), targetType as ITrait)
+            else -> TODO("@WhereAssignmentInference:41")
         }.inferenceResult()
     }
 }

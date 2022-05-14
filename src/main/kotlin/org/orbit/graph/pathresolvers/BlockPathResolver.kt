@@ -5,6 +5,8 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.types.next.intrinsics.Native
 import org.orbit.util.Invocation
@@ -20,6 +22,8 @@ class BlockPathResolver : PathResolver<BlockNode> {
 			var result: PathResolver.Result = PathResolver.Result.Success(OrbitMangler.unmangle(Native.Types.Unit.type.fullyQualifiedName))
 
 			for (node in input.body) {
+				node.annotate(input.getGraphID(), Annotations.GraphID)
+
 				when (node) {
 					is PrintNode ->
 						pathResolverUtil.resolve(node, pass, environment, graph)

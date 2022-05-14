@@ -6,6 +6,7 @@ import org.orbit.core.nodes.TypeProjectionNode
 import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.annotate
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
@@ -30,8 +31,10 @@ object TypeProjectionPathResolver : PathResolver<TypeProjectionNode> {
 		input.annotate(typeResult.path, Annotations.Path)
 
 		// TODO - Resolve where clauses
-		input.whereNodes
-			.forEach { pathResolverUtil.resolve(it.whereExpression, pass, environment, graph) }
+		input.whereNodes.forEach {
+			it.whereExpression.annotate(graphID, Annotations.GraphID)
+			pathResolverUtil.resolve(it.whereExpression, pass, environment, graph)
+		}
 
 		return typeResult
 	}

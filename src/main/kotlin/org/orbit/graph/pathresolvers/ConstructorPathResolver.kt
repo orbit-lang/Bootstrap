@@ -5,6 +5,8 @@ import org.orbit.core.Scope
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ConstructorNode
 import org.orbit.graph.components.*
+import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
@@ -22,7 +24,10 @@ class ConstructorPathResolver : PathResolver<ConstructorNode> {
 				input.typeExpressionNode.annotate(binding.result.path, Annotations.Path)
 				input.annotate(binding.result.path, Annotations.Path)
 				// Resolver parameters
-				input.parameterNodes.forEach { pathResolverUtil.resolve(it, pass, environment, graph) }
+				input.parameterNodes.forEach {
+					it.annotate(input.getGraphID(), Annotations.GraphID)
+					pathResolverUtil.resolve(it, pass, environment, graph)
+				}
 
                 PathResolver.Result.Success(binding.result.path)
 			}

@@ -10,20 +10,7 @@ import org.orbit.util.Invocation
 class TypeIdentifierPathResolver(private val kind: Binding.Kind? = null) : PathResolver<TypeIdentifierNode> {
 	override val invocation: Invocation by inject()
 
-	override fun resolve(
-        input: TypeIdentifierNode,
-        pass: PathResolver.Pass,
-        environment: Environment,
-        graph: Graph
-	): PathResolver.Result {
+	override fun resolve(input: TypeIdentifierNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
 		return TypeExpressionPathResolver.execute(PathResolver.InputType(input, pass))
-
-
-//		val binding = environment.getBinding(input.value, kind)
-//			.unwrap(this, input.firstToken.position)
-//
-//		input.annotate(binding.path, Annotations.Path)
-//
-//		return PathResolver.Result.Success(binding.path)
 	}
 }

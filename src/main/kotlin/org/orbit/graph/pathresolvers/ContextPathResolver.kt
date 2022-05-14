@@ -11,6 +11,7 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
@@ -48,6 +49,9 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
                 environment.bind(Binding.Kind.TypeParameter, typeParameter.value.value, nPath, vertexID)
             }
         } else {
+            val parentGraphID = input.getGraphID()
+
+            input.clauses.forEach { it.annotate(parentGraphID, Annotations.GraphID) }
             pathResolverUtil.resolveAll(input.clauses, pass, environment, graph)
         }
 

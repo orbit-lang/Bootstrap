@@ -5,6 +5,8 @@ import org.orbit.core.nodes.AssignmentStatementNode
 import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
@@ -13,6 +15,7 @@ class AssignmentPathResolver : PathResolver<AssignmentStatementNode> {
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: AssignmentStatementNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+		input.value.annotate(input.getGraphID(), Annotations.GraphID)
 		val valuePath = pathResolverUtil.resolve(input.value, pass, environment, graph)
 
 		if (input.typeAnnotationNode != null) {
