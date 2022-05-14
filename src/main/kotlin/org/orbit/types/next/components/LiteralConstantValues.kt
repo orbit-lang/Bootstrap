@@ -22,19 +22,14 @@ data class BoolConstantValue(override val value: Boolean) : IConstantValue<Boole
     override val type: TypeComponent = Native.Types.Bool.type
 }
 
+data class SymbolConstantValue(override val value: String) : IConstantValue<String> {
+    override val type: TypeComponent = Native.Types.Symbol.type
+}
+
 data class InstanceConstantValue(override val type: IType, override val value: List<Field>) : IConstantValue<List<Field>> {
     override val fullyQualifiedName: String get() {
         val pretty = value.joinToString(", ") { "${it.name} : ${it.type.fullyQualifiedName}" }
 
         return "({$pretty} : ${type.fullyQualifiedName})"
     }
-
-//    init {
-//        if (!type.permitsConstantValues()) {
-//            val invocation = getKoinInstance<Invocation>()
-//            val printer = getKoinInstance<Printer>()
-//
-//            throw invocation.make<TypeSystem>("Type ${type.toString(printer)} cannot be represented at compile-time because at least one of its fields is not of constant Type", SourcePosition.unknown)
-//        }
-//    }
 }

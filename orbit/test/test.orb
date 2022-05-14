@@ -42,9 +42,8 @@ module Context with Orb::* {
 #    }
 
     (Foo) f () () {
-        k = `K(`1, `2)
-        l = `k
+        k = K(expand 1, expand :abc)
 
-        typeOf l
+        typeOf mirror k.a
     }
 }

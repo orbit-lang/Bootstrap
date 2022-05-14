@@ -11,9 +11,13 @@ import org.orbit.util.Invocation
 interface ConstantValueInference<C: ExpressionNode, V> : Inference<C, IConstantValue<V>>
 
 object IntLiteralValueInference : ConstantValueInference<IntLiteralNode, Int> {
-    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: IntLiteralNode): InferenceResult {
-        return IntConstantValue(node.value.second).inferenceResult()
-    }
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: IntLiteralNode): InferenceResult
+        = IntConstantValue(node.value.second).inferenceResult()
+}
+
+object SymbolLiteralValueInference : ConstantValueInference<SymbolLiteralNode, String> {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: SymbolLiteralNode): InferenceResult
+        = SymbolConstantValue(node.value.second).inferenceResult()
 }
 
 object IdentifierLiteralValueInference : ConstantValueInference<IdentifierNode, Any>, KoinComponent {
@@ -60,6 +64,7 @@ object AnyConstantValueInference : Inference<ExpressionNode, IConstantValue<*>>,
         }
 
         is IntLiteralNode -> IntLiteralValueInference.infer(inferenceUtil, context, node)
+        is SymbolLiteralNode -> SymbolLiteralValueInference.infer(inferenceUtil, context, node)
         is IdentifierNode -> IdentifierLiteralValueInference.infer(inferenceUtil, context, node)
         is ConstructorNode -> InstanceLiteralValueInference.infer(inferenceUtil, context, node)
         is ExpandNode -> infer(inferenceUtil, context, node.expressionNode)
