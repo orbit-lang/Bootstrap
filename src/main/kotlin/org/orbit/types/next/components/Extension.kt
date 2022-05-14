@@ -28,7 +28,7 @@ fun Signature.sub(a: TypeComponent, b: TypeComponent) : Signature {
     return Signature(relativeName, nReceiver, nParams, nReturns, false)
 }
 
-data class Extension(val extends: PolymorphicType<*>, val signatures: List<Signature>, val context: Next.Context) : DeclType, KoinComponent {
+data class Extension(val extends: PolymorphicType<*>, val signatures: List<Signature>, val context: Context) : DeclType, KoinComponent {
     private val id = UUID.randomUUID()
 
     override val fullyQualifiedName: String get() {

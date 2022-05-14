@@ -5,13 +5,8 @@ import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.ExtensionNode
 import org.orbit.core.nodes.MethodSignatureNode
-import org.orbit.core.nodes.TypeExpressionNode
-import org.orbit.core.nodes.WhereClauseNode
 import org.orbit.types.next.components.*
-import org.orbit.types.next.constraints.*
-import org.orbit.types.next.inference.AnyExpressionContext
 import org.orbit.types.next.inference.AnyInferenceContext
-import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 import java.util.UUID
@@ -26,7 +21,7 @@ object ExtensionStubPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
         val signatures = nInferenceUtil.inferAllAs<MethodSignatureNode, Signature>(signatureNodes, AnyInferenceContext(MethodSignatureNode::class.java))
 
         return when (extends) {
-            is PolymorphicType<*> -> Extension(extends, signatures, Next.Context(UUID.randomUUID().toString(), emptyList(), emptyList()))
+            is PolymorphicType<*> -> Extension(extends, signatures, Context(UUID.randomUUID().toString(), emptyList(), emptyList()))
             else -> TODO("Extensions on non-Poly Types")
         }
     }
@@ -42,10 +37,6 @@ object ExtensionPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
         val extension = input.inferenceUtil.get(input.node) as? Extension
             ?: TODO("")
         val nContext = input.inferenceUtil.getContext(extension) ?: ContextInstantiation(extension.context, emptyList())
-
-//        val solution = nContext.context.solve(nInferenceUtil.toCtx())
-//
-//        if (solution is Never) throw invocation.make<TypeSystem>(solution.message, input.node.context?.firstToken?.position ?: SourcePosition.unknown)
 
         val result = nContext.context.apply(nInferenceUtil)
 

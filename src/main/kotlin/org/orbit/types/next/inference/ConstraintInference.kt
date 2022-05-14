@@ -6,7 +6,7 @@ import org.orbit.core.nodes.WhereClauseExpressionNode
 import org.orbit.core.nodes.WhereClauseTypeBoundsExpressionNode
 import org.orbit.types.next.components.*
 
-interface ConstraintInference<W: WhereClauseExpressionNode, T: TypeComponent> : Inference<W, Next.Constraint<*>>
+interface ConstraintInference<W: WhereClauseExpressionNode, T: TypeComponent> : Inference<W, Constraint<*>>
 
 object TypeBoundsConstraintInference : ConstraintInference<WhereClauseTypeBoundsExpressionNode, TypeComponent>, KoinComponent {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: WhereClauseTypeBoundsExpressionNode): InferenceResult {
@@ -14,8 +14,8 @@ object TypeBoundsConstraintInference : ConstraintInference<WhereClauseTypeBounds
         val rightType = inferenceUtil.infer(node.targetTypeExpression)
 
         return when (node.boundsType) {
-            TypeBoundsOperator.Eq -> Next.Same(leftType, rightType)
-            TypeBoundsOperator.Like -> Next.Like(leftType, rightType)
+            TypeBoundsOperator.Eq -> Same(leftType, rightType)
+            TypeBoundsOperator.Like -> Like(leftType, rightType)
             TypeBoundsOperator.KindEq -> KindEqConstraint(leftType, rightType)
             is TypeBoundsOperator.UserDefined -> TODO("User Defined Constraint Operators")
         }.inferenceResult()

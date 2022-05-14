@@ -16,27 +16,13 @@ module Context with Orb::* {
         where A : B
 
     type constructor Box<T>(value T)
-
-    extension Box within Eq [T, Foo] {
-        (self Self) getX () (Int) = self.value.x
-    }
+        within Eq [T, Foo]
 
     extension Box within Eq [T, Bar] {
-        (self Self) getBar () (Bar) = self.value
-    }
-
-    extension Box within Like [T, XAware] {
-        (self Self) getXAware () (XAware) = self.value
+        (self Self) bar () (Bar) = self.value
     }
 
     (Foo) f () () {
-        b = Box(Foo(1))
-        bX = b.getXAware()
-        bXx = bX.x
-
-        c = Box(Bar())
-
-        x = b.getX()
-        z = c.getBar()
+        b = Box(Bar())
     }
 }

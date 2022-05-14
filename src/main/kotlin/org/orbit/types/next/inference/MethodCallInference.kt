@@ -28,12 +28,14 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
                     .filter { it.name == node.messageIdentifier.identifier }
 
                 if (matches.isEmpty())
-                    throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a property named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Bold, PrintableKey.Italics)}", node.messageIdentifier.firstToken)
+                    throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a Field named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Bold, PrintableKey.Italics)}", node.messageIdentifier.firstToken)
 
                 val fType = inferenceUtil.find(matches.first().type.fullyQualifiedName)
                     ?: TODO("HERE?!?!?!")
 
                 return fType.inferenceResult()
+            } else {
+                throw invocation.make<TypeSystem>("Cannot invoke Field `${printer.apply(node.messageIdentifier.identifier, PrintableKey.Italics, PrintableKey.Bold)}` on Type ${receiver.toString(printer)} (${receiver.kind.toString(printer)})", node.receiverExpression)
             }
         }
 

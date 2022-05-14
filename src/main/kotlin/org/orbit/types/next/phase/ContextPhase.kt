@@ -10,17 +10,17 @@ import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.AnyInferenceContext
 import org.orbit.util.Invocation
 
-object ContextPhase : TypePhase<ContextNode, Next.Context>, KoinComponent {
+object ContextPhase : TypePhase<ContextNode, Context>, KoinComponent {
     override val invocation: Invocation by inject()
 
-    override fun run(input: TypePhaseData<ContextNode>): Next.Context {
+    override fun run(input: TypePhaseData<ContextNode>): Context {
         val typeVariables = input.node.typeVariables.map { TypeVariable(it.getPath().toString(OrbitMangler)) }
         val nInferenceContext = input.inferenceUtil.derive()
 
         typeVariables.forEach(nInferenceContext::declare)
 
-        val constraints = input.node.clauses.map { nInferenceContext.inferAs<WhereClauseNode, Next.Constraint<*>>(it, AnyInferenceContext(WhereClauseNode::class.java)) }
+        val constraints = input.node.clauses.map { nInferenceContext.inferAs<WhereClauseNode, Constraint<*>>(it, AnyInferenceContext(WhereClauseNode::class.java)) }
 
-        return Next.Context(input.node.getPath().toString(OrbitMangler), typeVariables, constraints)
+        return Context(input.node.getPath().toString(OrbitMangler), typeVariables, constraints)
     }
 }

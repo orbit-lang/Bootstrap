@@ -12,6 +12,7 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.*
+import org.orbit.types.next.utils.sub
 import org.orbit.util.*
 import org.orbit.util.next.BindingScope
 import org.orbit.util.next.TypeMap
@@ -522,131 +523,6 @@ class NextTypesTests : TestCase() {
 //        assertTrue(MemberConstraint.check(ctx, f, t))
 //    }
 
-    @Test
-    fun testContextIncomplete() {
-        val v = TypeVariable("v")
-        val sut = Context("C", listOf(v), emptyList())
-        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root)
-
-        assertThrows<Exception> { sut.check(inferenceUtil, emptyList()) }
-    }
-
-    @Test
-    fun testContextCompleteEmpty() {
-        val v = TypeVariable("v")
-        val sut = Context("C", listOf(v), emptyList())
-        val t = Type("t")
-        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root)
-
-        assertTrue(sut.check(inferenceUtil, listOf(t)))
-    }
-
-    @Test
-    fun testContextCheckSame() {
-        val v = TypeVariable("v")
-        val t = Type("t")
-        val c = SameConstraint(v, t)
-        val sut = Context("C", listOf(v), listOf(c))
-        val inferenceUtil = InferenceUtil(TypeMap(), BindingScope.Root)
-
-        assertTrue(sut.check(inferenceUtil, listOf(t)))
-    }
-
-    @Test
-    fun testEqualityRefinement() {
-        val inferenceUtil = InferenceUtil.getRoot()
-        val t = Type("t")
-        val v = TypeVariable("v")
-        val sut = EqualityRefinement(v, t)
-
-        inferenceUtil.declare(v)
-        inferenceUtil.declare(t)
-
-        assertTrue(inferenceUtil.find(v.fullyQualifiedName)!! is TypeVariable)
-
-        sut.refine(inferenceUtil)
-
-        assertTrue(inferenceUtil.find(v.fullyQualifiedName)!! is Type)
-        assertEquals("t", (inferenceUtil.find(v.fullyQualifiedName)!!).fullyQualifiedName)
-    }
-
-    @Test
-    fun testEqualityRefinementDouble() {
-        val inferenceUtil = InferenceUtil.getRoot()
-        val t = Type("t")
-        val u = Type("u")
-        val v = TypeVariable("v")
-        val sut = EqualityRefinement(v, t)
-        val sut2 = EqualityRefinement(v, u)
-
-        inferenceUtil.declare(v)
-        inferenceUtil.declare(t)
-        inferenceUtil.declare(u)
-
-        sut.refine(inferenceUtil)
-
-        assertThrows<Exception> { sut2.refine(inferenceUtil) }
-    }
-
-    @Test
-    fun testEqualityRefinementBothTypeVariables() {
-        val inferenceUtil = InferenceUtil.getRoot()
-        val a = TypeVariable("a")
-        val b = TypeVariable("b")
-        val t = Type("t")
-        val sut = EqualityRefinement(a, b)
-        val sut2 = EqualityRefinement(b, t)
-
-        inferenceUtil.declare(a)
-        inferenceUtil.declare(b)
-        inferenceUtil.declare(t)
-
-        sut.refine(inferenceUtil)
-        sut2.refine(inferenceUtil)
-
-        val result = inferenceUtil.find("a")
-            ?: return fail()
-
-        assertTrue(result is Type)
-        assertEquals("t", result.fullyQualifiedName)
-    }
-
-    @Test
-    fun testEqualityRefinementCyclic() {
-        val inferenceUtil = InferenceUtil.getRoot()
-        val a = TypeVariable("a")
-        val b = TypeVariable("b")
-        val t = Type("t")
-        val sut = EqualityRefinement(a, b)
-        val sut2 = EqualityRefinement(b, a)
-
-        inferenceUtil.declare(a)
-        inferenceUtil.declare(b)
-        inferenceUtil.declare(t)
-
-        sut.refine(inferenceUtil)
-
-        assertThrows<Exception> { sut2.refine(inferenceUtil) }
-    }
-
-    @Test
-    fun testConformanceRefinement() {
-        val inferenceUtil = InferenceUtil.getRoot()
-        val t = Trait("t")
-        val v = TypeVariable("v")
-        val sut = ConformanceRefinement(v, t)
-
-        inferenceUtil.declare(v)
-        inferenceUtil.declare(t)
-
-        assertTrue(inferenceUtil.getConformance(v).isEmpty())
-
-        sut.refine(inferenceUtil)
-
-        val result = inferenceUtil.getConformance(v)
-
-        assertEquals(1, result.count())
-    }
 
     @Test
     fun testNextConstraintSub() {
@@ -654,7 +530,7 @@ class NextTypesTests : TestCase() {
         val a = TypeVariable("a")
         val b = TypeVariable("b")
         val t = Type("t")
-        val sut = Next.Same(a, b)
+        val sut = Same(a, b)
         val res = sut.sub(a, t).sub(b, t)
 
         assertEquals("t", res.a.fullyQualifiedName)
@@ -667,7 +543,7 @@ class NextTypesTests : TestCase() {
         val a = TypeVariable("a")
         val b = TypeVariable("b")
         val t = Type("t")
-        val sut = Next.Same(a, b).sub(a, t).sub(b, t)
+        val sut = Same(a, b).sub(a, t).sub(b, t)
         val res = sut.solve(ctx)
 
         assertNotEquals(res, a)
@@ -682,7 +558,7 @@ class NextTypesTests : TestCase() {
         val b = TypeVariable("b")
         val t = Type("t")
         val u = Type("u")
-        val sut = Next.Same(a, b).sub(a, t).sub(b, u)
+        val sut = Same(a, b).sub(a, t).sub(b, u)
         val res = sut.solve(ctx)
 
         assertIs<Never>(res)
@@ -695,8 +571,8 @@ class NextTypesTests : TestCase() {
         val b = TypeVariable("b")
         val t = Type("t")
         val u = Type("u")
-        val same = Next.Same(a, b)
-        val sut = Next.Context("C", listOf(a, b), listOf(same))
+        val same = Same(a, b)
+        val sut = Context("C", listOf(a, b), listOf(same))
         val res = sut.solve(ctx)
 
         assertIs<Never>(res)
@@ -713,10 +589,10 @@ class NextTypesTests : TestCase() {
         val b = TypeVariable("b")
         val t = Type("t")
         val u = Type("u")
-        val same = Next.Same(a, b)
+        val same = Same(a, b)
         val x = AbstractTypeParameter("x")
         val p = PolymorphicType<FieldAwareType>(Type("p"), listOf(x), partialFields = emptyList())
-        val context = Next.Context("C", listOf(a, b), listOf(same))
+        val context = Context("C", listOf(a, b), listOf(same))
             .sub(a, x)
             .sub(b, u)
 
@@ -735,10 +611,10 @@ class NextTypesTests : TestCase() {
         val a = TypeVariable("a")
         val b = TypeVariable("b")
         val u = Type("u")
-        val same = Next.Same(a, b)
+        val same = Same(a, b)
         val x = AbstractTypeParameter("x")
         val p = PolymorphicType<FieldAwareType>(Type("p"), listOf(x), partialFields = emptyList())
-        val context = Next.Context("C", listOf(a, b), listOf(same))
+        val context = Context("C", listOf(a, b), listOf(same))
             .sub(a to x, b to u)
 
         val sut = Extension(p, emptyList(), context)
@@ -747,7 +623,7 @@ class NextTypesTests : TestCase() {
 
         val res = sut.extend(inferenceUtil, m)
 
-        assertIs<Next.Context>(res)
+        assertIs<Context>(res)
     }
 
     @Test
@@ -755,7 +631,7 @@ class NextTypesTests : TestCase() {
         val inferenceUtil = InferenceUtil.getRoot()
         val a = AbstractTypeParameter("a")
         val t = Type("t")
-        val sut = Next.Same(a, t)
+        val sut = Same(a, t)
 
         inferenceUtil.declare(a)
         inferenceUtil.declare(t)

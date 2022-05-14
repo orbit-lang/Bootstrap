@@ -5,6 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.core.nodes.ConstructorNode
 import org.orbit.core.nodes.ExpressionNode
 import org.orbit.types.next.components.*
+import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
@@ -28,20 +29,13 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
                     Pair(idx, item)
                 }
 
-                val context = inferenceUtil.getContext(t)
+                val context = inferenceUtil.getContext(t)?.context
 
                 if (context != null) {
-                    val nContext = context.given.fold(context) { acc, next ->
-                        when (next) {
-                            is AbstractTypeParameter -> {
-                                val idx = t.indexOf(next)
-                                acc.replace(next, slice[idx].second)
-                            }
-                            else -> acc
-                        }
-                    }
+                    val nContext = t.parameters.zip(slice).fold(context) { acc, next -> acc.sub(next.first, next.second.second) }
+                    val solution = nContext.solve(inferenceUtil.toCtx())
 
-                    nContext.instantiate(inferenceUtil)
+                    if (solution is Never) throw invocation.make<TypeSystem>(solution.message, node.typeExpressionNode)
                 }
 
                 MonoUtil.monomorphise(inferenceUtil.toCtx(), t, slice, null)
