@@ -4,25 +4,12 @@ module Orb::Types::Intrinsics {
     type Symbol
 }
 
-module Orb::Meta::Kinds with Orb::Types::Intrinsics {
-    trait Kind
-}
-
 module Context with Orb::* {
     trait Tr(x Int)
     trait Tr2(n Int)
 
     type Foo
     type Bar
-
-    context Eq [A, B]
-        where A = B
-
-    context KindEq [A, B]
-        where A ^ B
-
-    context Like [A, B]
-        where A : B
 
     context BothContext [A]
         where A : Tr

@@ -11,8 +11,6 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.orbit.types.next.components.*
-import org.orbit.types.next.constraints.EqualityConstraint
-import org.orbit.types.next.constraints.EqualityConstraintApplication
 import org.orbit.types.next.inference.*
 import org.orbit.util.Invocation
 import org.orbit.util.Printer

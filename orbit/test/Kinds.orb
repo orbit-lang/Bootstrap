@@ -1,0 +1,15 @@
+module Orb::Meta::Kinds with Orb::Types::Intrinsics {
+    trait Kind
+    kind Type = 0
+    kind Trait = 0
+    kind Field = 0
+    kind Signature = 0
+
+    kind constructor Constructor [K] = K -> K
+        within K ^ 0
+
+    kind constructor Higher [K, L] = K -> L
+        within Above[K, L]
+
+    kind Functor = Higher[Constructor, Type]
+}

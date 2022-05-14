@@ -10,7 +10,7 @@ import org.orbit.types.next.components.Context
 import org.orbit.types.next.components.TypeComponent
 import org.orbit.types.next.components.TypeVariable
 import org.orbit.types.next.inference.AnyInferenceContext
-import org.orbit.types.next.inference.ITypeConstraint
+import org.orbit.types.next.components.ITypeConstraint
 import org.orbit.util.Invocation
 
 object ContextPhase : TypePhase<ContextNode, Context>, KoinComponent {

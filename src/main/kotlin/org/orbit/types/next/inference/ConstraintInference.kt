@@ -4,7 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.orbit.core.nodes.TypeBoundsOperator
 import org.orbit.core.nodes.WhereClauseExpressionNode
 import org.orbit.core.nodes.WhereClauseTypeBoundsExpressionNode
-import org.orbit.types.next.components.TypeComponent
+import org.orbit.types.next.components.*
 
 interface ConstraintInference<W: WhereClauseExpressionNode, T: TypeComponent> : Inference<W, ITypeConstraint<T>>
 

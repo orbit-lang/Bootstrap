@@ -3,11 +3,7 @@ package org.orbit.types.next.components
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
-import org.orbit.core.nodes.ContextInstantiationNode
-import org.orbit.types.next.inference.ITypeConstraint
 import org.orbit.types.next.inference.InferenceUtil
-import org.orbit.types.next.inference.Substitution
-import org.orbit.types.next.inference.TypeParameterInference
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
@@ -106,22 +102,11 @@ data class ContextInstantiation(val context: Context, val given: List<TypeCompon
 
             nConstraints.add(nConstraint)
         }
-//        val nConstraints = context.constraints.map {
-//            subs.fold(it) { acc, next ->
-//                acc.substitute(next.typeVariable, next.type)
-//            }
-//        }
 
         // TODO - Can we propagate the constraint results down through successive constraints, a la Kotlin's Smartcasts?
         val ctx = inferenceUtil.toCtx()
 
         nConstraints.forEach { it.check(ctx) }
-//        if (nConstraints.all { it.check(ctx) }) {
-//            nConstraints.forEach {
-//                val ref = it.getRefinement()
-//                ref.refine(inferenceUtil)
-//            }
-//        }
     }
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation {
