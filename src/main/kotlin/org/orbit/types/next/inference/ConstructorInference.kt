@@ -8,6 +8,7 @@ import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
+import org.orbit.util.Result
 
 object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
     private val invocation: Invocation by inject()
@@ -29,9 +30,14 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
                     Pair(idx, item)
                 }
 
-                val context = inferenceUtil.getContext(t)?.context
+                val contexts = inferenceUtil.getContexts(t)
 
-                if (context != null) {
+                if (contexts.isNotEmpty()) {
+                    val context = contexts.map { it.context }.reduce { acc, next -> when (val r = acc.merge(next)) {
+                        is Result.Success -> r.value
+                        is Result.Failure -> throw invocation.make<TypeSystem>(r.reason.message, node.typeExpressionNode)
+                    }}
+                    
                     val nContext = t.parameters.zip(slice).fold(context) { acc, next -> acc.sub(next.first, next.second.second) }
                     val solution = nContext.solve(inferenceUtil.toCtx())
 

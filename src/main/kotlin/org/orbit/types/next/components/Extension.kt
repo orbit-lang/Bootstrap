@@ -34,6 +34,7 @@ data class Extension(val extends: PolymorphicType<*>, val signatures: List<Signa
     override val fullyQualifiedName: String get() {
         return "${extends.fullyQualifiedName} + ${context.fullyQualifiedName} @$id"
     }
+
     override val isSynthetic: Boolean = false
     override val kind: Kind = IntrinsicKinds.Extension
 

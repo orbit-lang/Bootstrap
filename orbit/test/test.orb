@@ -16,13 +16,13 @@ module Context with Orb::* {
         where A : B
 
     type constructor Box<T>(value T)
-        within Eq [T, Foo]
+        within Eq[T, Foo] & Eq[T, Bar]
 
-    extension Box within Eq [T, Bar] {
-        (self Self) bar () (Bar) = self.value
-    }
+#    extension Box within Eq [T, Bar] {
+#        (self Self) bar () (Bar) = self.value
+#    }
 
     (Foo) f () () {
-        b = Box(Bar())
+        b = Box(Foo(1))
     }
 }

@@ -4,13 +4,37 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Printer
+import org.orbit.util.Result
 
-data class Context(override val fullyQualifiedName: String, val typeVariables: List<TypeComponent>, val constraints: List<Constraint<*>>) : DeclType,
-    Constraint<Context>, KoinComponent {
+data class Context(override val fullyQualifiedName: String, val typeVariables: List<TypeComponent>, val constraints: List<Constraint<*>>) : DeclType, Constraint<Context>, KoinComponent {
     private val printer: Printer by inject()
 
     override val kind: Kind = IntrinsicKinds.Context
     override val isSynthetic: Boolean = false
+
+    fun merge(other: Context): Result<Context, Never> {
+        val conflicts = conflicts(other)
+        val nTypeVariables = (typeVariables + other.typeVariables).distinctBy { it.fullyQualifiedName }
+
+        if (conflicts is Anything) return Result.Success(Context(fullyQualifiedName, nTypeVariables, constraints + other.constraints))
+
+        return Result.Failure(conflicts as Never)
+    }
+
+    override fun conflicts(with: Constraint<*>): InternalControlType = when (with) {
+        is Context -> {
+            var conflicts: InternalControlType = Anything
+            for (a in constraints) {
+                for (b in with.constraints) {
+                    conflicts += a.conflicts(b)
+                }
+            }
+
+            conflicts
+        }
+
+        else -> Anything
+    }
 
     override fun sub(old: TypeComponent, new: TypeComponent): Context
         = Context(fullyQualifiedName, typeVariables, constraints.map { it.sub(old, new) })

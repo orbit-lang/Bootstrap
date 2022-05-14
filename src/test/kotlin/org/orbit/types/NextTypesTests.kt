@@ -643,5 +643,57 @@ class NextTypesTests : TestCase() {
         assertNotEquals(res, a)
         assertEquals(res, t)
     }
+
+    @Test
+    fun testSameConflictDuplicate() {
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val sut = Same(a, b)
+        val tus = Same(a, b)
+        val res = sut.conflicts(tus)
+
+        assertIs<Never>(res)
+    }
+
+    @Test
+    fun testSameConflictReverseDuplicate() {
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val sut = Same(a, b)
+        val tus = Same(b, a)
+        val res = sut.conflicts(tus)
+
+        assertIs<Never>(res)
+    }
+
+    @Test
+    fun testSameConflictIncompatible() {
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val c = TypeVariable("c")
+        val sut = Same(a, b)
+        val tus = Same(a, c)
+        val res = sut.conflicts(tus)
+
+        assertIs<Never>(res)
+    }
+
+    @Test
+    fun testSameNoConflicts() {
+        val a = TypeVariable("a")
+        val b = TypeVariable("b")
+        val c = TypeVariable("c")
+        val d = TypeVariable("d")
+        val sut = Same(a, b)
+        val tus = Same(c, d)
+        val res = sut.conflicts(tus)
+
+        assertIs<Anything>(res)
+    }
+
+    @Test
+    fun testMergeContexts() {
+
+    }
 }
 

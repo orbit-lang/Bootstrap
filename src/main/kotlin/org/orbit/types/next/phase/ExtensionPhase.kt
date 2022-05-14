@@ -9,6 +9,7 @@ import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.AnyInferenceContext
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
+import org.orbit.util.Result
 import java.util.UUID
 
 object ExtensionStubPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
@@ -36,9 +37,14 @@ object ExtensionPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
         val nInferenceUtil = input.inferenceUtil.derive(self = extendedType)
         val extension = input.inferenceUtil.get(input.node) as? Extension
             ?: TODO("")
-        val nContext = input.inferenceUtil.getContext(extension) ?: ContextInstantiation(extension.context, emptyList())
+        val nContext = input.inferenceUtil.getContexts(extension.extends)
+            .map { it.context }
+            .reduce { acc, next -> when (val r = acc.merge(next)) {
+                is Result.Success -> r.value
+                is Result.Failure -> throw invocation.make<TypeSystem>(r.reason.message, input.node)
+            }}
 
-        val result = nContext.context.apply(nInferenceUtil)
+        val result = nContext.apply(nInferenceUtil)
 
         if (result is Never) throw invocation.make<TypeSystem>(result.message, input.node.context?.firstToken?.position ?: SourcePosition.unknown)
 
@@ -51,7 +57,7 @@ object ExtensionPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
 
         if (failures is Never) throw invocation.make<TypeSystem>("Encountered the following issues in Extension ${extension.toString(printer)}:\n\t${failures.message}", SourcePosition.unknown)
 
-        val nExtension = Extension(extension.extends, nSignatures, nContext.context)
+        val nExtension = Extension(extension.extends, nSignatures, nContext)
 
         input.inferenceUtil.addExtension(extendedType, nExtension)
 

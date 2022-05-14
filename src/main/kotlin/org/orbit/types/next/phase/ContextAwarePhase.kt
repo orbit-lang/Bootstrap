@@ -16,7 +16,7 @@ object ContextAwarePhase : TypePhase<ContextAwareNode, TypeComponent>, KoinCompo
         val contextNode = input.node.context ?: return type
         val context = input.inferenceUtil.inferAs<ContextExpressionNode, ContextInstantiation>(contextNode)
 
-        input.inferenceUtil.setContext(type, context)
+        input.inferenceUtil.addContext(type, context)
 
         return type
     }

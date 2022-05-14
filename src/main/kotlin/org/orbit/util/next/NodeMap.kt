@@ -20,7 +20,7 @@ interface ITypeMapRead : ITypeMapInterface {
     fun toCtx() : Ctx
     fun getTypeErrors() : List<Never>
     fun filter(fn: (TypeComponent) -> Boolean) : List<TypeComponent>
-    fun getContext(type: TypeComponent) : ContextInstantiation?
+    fun getContexts(type: TypeComponent) : List<ContextInstantiation>
     fun getExtensions(type: TypeComponent) : List<Extension>
 }
 
@@ -29,7 +29,7 @@ interface ITypeMapWrite : ITypeMapInterface {
     fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean = false)
     fun addConformance(type: TypeComponent, trait: ITrait)
     fun addExtension(type: TypeComponent, extension: Extension)
-    fun setContext(type: TypeComponent, context: ContextInstantiation)
+    fun addContext(type: TypeComponent, context: ContextInstantiation)
 }
 
 interface ITypeMap : ITypeMapRead, ITypeMapWrite
@@ -58,7 +58,7 @@ class TypeMap constructor(): ITypeMap {
     }
 
     private val map = mutableMapOf<String, String>()
-    private val contextMap = mutableMapOf<String, ContextInstantiation>()
+    private val contextMap = mutableMapOf<String, List<ContextInstantiation>>()
     private val visibleTypes = mutableMapOf<String, TypeComponent>()
     private val conformanceMap = mutableMapOf<String, List<String>>()
     private val extensionMap = mutableMapOf<String, List<String>>()
@@ -137,8 +137,15 @@ class TypeMap constructor(): ITypeMap {
         map[node.id] = value.inferenceKey()
     }
 
-    override fun setContext(type: TypeComponent, context: ContextInstantiation) {
-        contextMap[type.fullyQualifiedName] = context
+    override fun addContext(type: TypeComponent, context: ContextInstantiation) {
+        val key = when (type) {
+            is Extension -> type.extends.fullyQualifiedName
+            else -> type.fullyQualifiedName
+        }
+
+        val contexts = contextMap[key] ?: emptyList()
+
+        contextMap[key] = contexts + context
     }
 
     override fun get(node: Node): TypeComponent? {
@@ -147,8 +154,8 @@ class TypeMap constructor(): ITypeMap {
         return find(key)
     }
 
-    override fun getContext(type: TypeComponent): ContextInstantiation?
-        = contextMap[type.fullyQualifiedName]
+    override fun getContexts(type: TypeComponent): List<ContextInstantiation>
+        = contextMap[type.fullyQualifiedName] ?: emptyList()
 }
 
 interface IBindingScope {

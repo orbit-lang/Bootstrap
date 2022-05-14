@@ -6,14 +6,14 @@ interface IContextRead {
     fun getTypes() : List<TypeComponent>
     fun getConformanceMap() : Map<TypeComponent, List<ITrait>>
     fun getType(name: String) : TypeComponent?
-    fun getContext(type: TypeComponent) : ContextInstantiation?
+    fun getContexts(type: TypeComponent) : List<ContextInstantiation>
     fun <T: TypeComponent> getTypeAs(name: String) : T?
 }
 
 interface IContextWrite {
     fun extend(type: TypeComponent)
     fun map(key: TypeComponent, value: ITrait)
-    fun map(type: String, context: ContextInstantiation)
+    fun map(type: String, contexts: List<ContextInstantiation>)
 }
 
 interface IContext : IContextRead, IContextWrite
@@ -21,7 +21,7 @@ interface IContext : IContextRead, IContextWrite
 class Ctx constructor() : IContext {
     private val types = mutableListOf<TypeComponent>()
     private val conformanceMap = mutableMapOf<TypeComponent, List<ITrait>>()
-    private val contextMap = mutableMapOf<String, ContextInstantiation>()
+    private val contextMap = mutableMapOf<String, List<ContextInstantiation>>()
 
     private constructor(types: List<TypeComponent>, conformanceMap: Map<TypeComponent, List<ITrait>>) : this() {
         this.types.addAll(types)
@@ -30,8 +30,8 @@ class Ctx constructor() : IContext {
 
     override fun getTypes() : List<TypeComponent> = types
     override fun getConformanceMap() : Map<TypeComponent, List<ITrait>> = conformanceMap
-    override fun getContext(type: TypeComponent): ContextInstantiation?
-        = contextMap[type.fullyQualifiedName]
+    override fun getContexts(type: TypeComponent): List<ContextInstantiation>
+        = contextMap[type.fullyQualifiedName] ?: emptyList()
 
     override fun <T : TypeComponent> getTypeAs(name: String): T?
         = getType(name) as? T
@@ -101,7 +101,7 @@ class Ctx constructor() : IContext {
         else -> conformanceMap[key] = (conf + value).distinctBy { it.fullyQualifiedName }
     }
 
-    override fun map(type: String, context: ContextInstantiation) {
-        contextMap[type] = context
+    override fun map(type: String, contexts: List<ContextInstantiation>) {
+        contextMap[type] = contexts
     }
 }

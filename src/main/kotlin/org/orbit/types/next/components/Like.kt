@@ -32,13 +32,7 @@ data class Like(val a: TypeComponent, val b: TypeComponent) : Constraint<Like>, 
             else -> Never("Conformance Constraint does not hold `${a.toString(printer)} : ${b.toString(printer)}`")
         }
 
-        else -> Never(
-            "${a.toString(printer)} cannot conform to non-Trait ${b.toString(printer)} (${
-                b.kind.toString(
-                    printer
-                )
-            })"
-        )
+        else -> Never("${a.toString(printer)} cannot conform to non-Trait ${b.toString(printer)} (${b.kind.toString(printer)})")
     }
 
     override fun apply(inferenceUtil: InferenceUtil): InternalControlType = when (b) {
@@ -47,13 +41,16 @@ data class Like(val a: TypeComponent, val b: TypeComponent) : Constraint<Like>, 
             Anything
         }
 
-        else -> Never(
-            "${a.toString(printer)} cannot conform to non-Trait ${b.toString(printer)} (${
-                b.kind.toString(
-                    printer
-                )
-            })"
-        )
+        else -> Never("${a.toString(printer)} cannot conform to non-Trait ${b.toString(printer)} (${b.kind.toString(printer)})")
+    }
+
+    override fun conflicts(with: Constraint<*>): InternalControlType = when (with) {
+        is Like -> when (fullyQualifiedName) {
+            with.fullyQualifiedName -> Never("Duplicate Conformance Constraint: ${toString(printer)}")
+            else -> Anything
+        }
+
+        else -> Anything
     }
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation {

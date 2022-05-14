@@ -40,6 +40,25 @@ data class Same(val a: TypeComponent, val b: TypeComponent) : Constraint<Same>, 
         }
     }
 
+    override fun conflicts(with: Constraint<*>): InternalControlType = when (with) {
+        is Same -> when {
+            fullyQualifiedName == with.fullyQualifiedName -> Never("Duplicate Equality Constraint: ${toString(printer)}")
+            a.fullyQualifiedName == with.a.fullyQualifiedName -> when (b.fullyQualifiedName) {
+                with.b.fullyQualifiedName -> Anything
+                else -> Never("Conflicting Equality Constraints `${toString(printer)}` & `${with.toString(printer)}`")
+            }
+
+            a.fullyQualifiedName == with.b.fullyQualifiedName -> when (b.fullyQualifiedName) {
+                with.a.fullyQualifiedName -> Never("Conflicting Equality Constraints `${toString(printer)}` & `${with.toString(printer)}`")
+                else -> Anything
+            }
+
+            else -> Anything
+        }
+
+        else -> Anything
+    }
+
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation {
         TODO("Not yet implemented")
     }
