@@ -8,6 +8,7 @@ data class ExpandNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val expressionNode: ExpressionNode
-) : ConstantExpressionNode() {
+) : TypeExpressionNode() {
+    override val value: String = ""
     override fun getChildren(): List<Node> = listOf(expressionNode)
 }

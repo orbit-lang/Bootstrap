@@ -96,12 +96,18 @@ object KindEq : ITypeEq<Kind, TypeComponent> {
     }
 }
 
+object ValueEq : ITypeEq<IConstantValue<*>, TypeComponent> {
+    override fun eq(ctx: Ctx, a: IConstantValue<*>, b: TypeComponent): Boolean = when (b) {
+        is IConstantValue<*> -> AnyEq.eq(ctx, a.type, b.type) && a.value == b.value
+        else -> false
+    }
+}
+
 object AnyEq : ITypeEq<TypeComponent, TypeComponent>, KoinComponent {
     override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereference(a, b) { a, b ->
-        if (b is IValue) return@dereference eq(ctx, a, b.type)
-
         when (a) {
             is Anything -> true
+            is IConstantValue<*> -> ValueEq.eq(ctx, a, b)
             is Kind -> KindEq.eq(ctx, a, b)
             is MonomorphicType<*> -> MonoEq.eq(ctx, a, b)
             is PolymorphicType<*> -> PolyEq.eq(ctx, a, b)

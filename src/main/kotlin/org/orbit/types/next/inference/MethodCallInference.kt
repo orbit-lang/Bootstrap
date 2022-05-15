@@ -30,8 +30,12 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
                 if (matches.isEmpty())
                     throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a Field named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Bold, PrintableKey.Italics)}", node.messageIdentifier.firstToken)
 
-                val fType = inferenceUtil.find(matches.first().type.fullyQualifiedName)
-                    ?: TODO("HERE?!?!?!")
+                val t = matches.first().type
+
+                val fType = when (t) {
+                    is IConstantValue<*> -> t
+                    else -> inferenceUtil.find(matches.first().type.fullyQualifiedName)
+                } ?: TODO("HERE?!?!?!")
 
                 return fType.inferenceResult()
             } else {

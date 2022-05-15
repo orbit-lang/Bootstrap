@@ -11,7 +11,7 @@ import org.orbit.frontend.extensions.unaryPlus
 
 object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
-		val node = context.attemptAny(listOf(MirrorRule, TypeSynthesisRule, TypeIndexRule, MetaTypeRule, TypeIdentifierRule.Naked))
+		val node = context.attemptAny(listOf(MirrorRule, ExpandRule, TypeSynthesisRule, TypeIndexRule, MetaTypeRule, TypeIdentifierRule.Naked))
 			as? TypeExpressionNode
 			?: return ParseRule.Result.Failure.Rewind()
 

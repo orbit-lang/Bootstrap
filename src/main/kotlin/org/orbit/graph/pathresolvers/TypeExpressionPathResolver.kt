@@ -30,6 +30,10 @@ object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
 
 		is TypeIndexNode -> throw invocation.make<CanonicalNameResolver>("Self Index not allowed in this context", input)
 
+		is ExpandNode -> {
+			ExpandPathResolver.resolve(input, pass, environment, graph)
+		}
+
 		else -> TODO("???")
 	}
 }

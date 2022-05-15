@@ -15,6 +15,7 @@ class ConstructorPathResolver : PathResolver<ConstructorNode> {
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: ConstructorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
+		input.typeExpressionNode.annotate(input.getGraphID(), Annotations.GraphID)
 		TypeExpressionPathResolver.resolve(input.typeExpressionNode, pass, environment, graph)
 
 		val binding = environment.getBinding(input.typeExpressionNode.value, Binding.Kind.Union.entityOrConstructor)

@@ -13,14 +13,19 @@ module Orb::Core::Contexts {
         where A : B
 }
 
+module Orb::Core::Main {
+    type Main
+}
+
 module Orb::Meta {
-    trait Type
+    type Type
+    trait Trait
 }
 
 module Orb::Meta::Kinds with Orb::Meta with Orb::Core::Contexts {
     trait Kind
-    type Type : Kind
-    type Trait : Kind
+    alias Type = [] => mirror Type
+    alias Trait = [] => mirror Trait
 
     type constructor Mirror<T>(reflectedType T)
         within Impl [T, Type]
@@ -29,15 +34,8 @@ module Orb::Meta::Kinds with Orb::Meta with Orb::Core::Contexts {
 }
 
 module Context with Orb::* {
-    type Foo
 
-    type constructor Functor<F>
-        within Eq [mirror F, Kinds::Type]
+    (Main) main () () {
 
-    (Foo) f () () {
-        f = Functor<Foo>()
-
-        print expand mirror Functor
-        print expand Kinds::Type
     }
 }

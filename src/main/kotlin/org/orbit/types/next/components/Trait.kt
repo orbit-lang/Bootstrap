@@ -39,6 +39,7 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
         .map { it.input }
 
     override fun getErrorMessage(printer: Printer, type: TypeComponent): String
+        // TODO - Better error message listing Fields vs Contracts
         = "Type ${type.toString(printer)} does not implement Trait ${toString(printer)}"
 
     inline fun <reified C: Contract<*>> getTypedContracts() : List<C> = contracts.filterIsInstance<C>()
