@@ -2,12 +2,15 @@ module Orb::Types::Intrinsics {
     type Unit
     type Int
     type Symbol
+    trait Any
+}
+
+module Orb::Meta::Kinds {
+    trait Kind
 }
 
 module Context with Orb::* {
-    type Foo(x Int) : XAware
-    type Bar
-    trait XAware(x Int)
+    type Foo
 
     context Eq [A, B]
         where A = B
@@ -15,14 +18,21 @@ module Context with Orb::* {
     context Like [A, B]
         where A : B
 
-    type constructor Box<T>(value T)
-        within Eq[T, Foo] & Eq[T, Bar]
+    type constructor Type<T>(ref T)
+
+    extension Type within Eq [T, T] {
+        (self Self) kind () (Kind) = expand (mirror self.ref)
+    }
+
+#    extension Any within Like [Self, Any] {
+#    }
 
 #    extension Box within Eq [T, Bar] {
 #        (self Self) bar () (Bar) = self.value
 #    }
 
     (Foo) f () () {
-        b = Box(Foo(1))
+        t = Type(Foo)
+        print 1
     }
 }

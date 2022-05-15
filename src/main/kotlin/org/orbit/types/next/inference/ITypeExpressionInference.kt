@@ -25,6 +25,7 @@ object AnyTypeExpressionInference : ITypeExpressionInference<TypeExpressionNode,
         is TypeIdentifierNode -> TypeLiteralInference.infer(inferenceUtil, context, node)
         is MetaTypeNode -> MetaTypeInference.infer(inferenceUtil, context, node)
         is TypeIndexNode -> TypeIndexInference.infer(inferenceUtil, context, node)
+        is MirrorNode -> MirrorInference.infer(inferenceUtil, context, node)
         else -> InferenceResult.Failure(Never("Failed to infer Type Expression: ${node::class.java.simpleName}"))
     }
 }

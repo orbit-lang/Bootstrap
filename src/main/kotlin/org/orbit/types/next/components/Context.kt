@@ -16,7 +16,7 @@ data class Context(override val fullyQualifiedName: String, val typeVariables: L
         val conflicts = conflicts(other)
         val nTypeVariables = (typeVariables + other.typeVariables).distinctBy { it.fullyQualifiedName }
 
-        if (conflicts is Anything) return Result.Success(Context(fullyQualifiedName, nTypeVariables, constraints + other.constraints))
+        if (conflicts is Anything) return Result.Success(Context("$fullyQualifiedName & ${other.fullyQualifiedName}", nTypeVariables, constraints + other.constraints))
 
         return Result.Failure(conflicts as Never)
     }

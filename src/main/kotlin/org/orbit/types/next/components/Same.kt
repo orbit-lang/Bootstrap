@@ -32,13 +32,21 @@ data class Same(val a: TypeComponent, val b: TypeComponent) : Constraint<Same>, 
     }
 
     override fun apply(inferenceUtil: InferenceUtil) : InternalControlType = when (b) {
-        is ITypeParameter -> Never("Type ${a.toString(printer)} is not a concrete Type in this context")
+        a -> Anything
         else -> {
             inferenceUtil.declare(Alias(a.fullyQualifiedName, b))
-
             Anything
         }
     }
+
+//        when (b) {
+//        is ITypeParameter -> Never("Type ${a.toString(printer)} is not a concrete Type in this context")
+//        else -> {
+//            inferenceUtil.declare(Alias(a.fullyQualifiedName, b))
+//
+//            Anything
+//        }
+//    }
 
     override fun conflicts(with: Constraint<*>): InternalControlType = when (with) {
         is Same -> when {

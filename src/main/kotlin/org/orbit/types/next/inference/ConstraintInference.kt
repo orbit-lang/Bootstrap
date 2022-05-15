@@ -16,7 +16,7 @@ object TypeBoundsConstraintInference : ConstraintInference<WhereClauseTypeBounds
         return when (node.boundsType) {
             TypeBoundsOperator.Eq -> Same(leftType, rightType)
             TypeBoundsOperator.Like -> Like(leftType, rightType)
-            TypeBoundsOperator.KindEq -> KindEqConstraint(leftType, rightType)
+            TypeBoundsOperator.KindEq -> TODO("KindEq")
             is TypeBoundsOperator.UserDefined -> TODO("User Defined Constraint Operators")
         }.inferenceResult()
     }

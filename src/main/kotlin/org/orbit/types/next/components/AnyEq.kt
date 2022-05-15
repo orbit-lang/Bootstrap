@@ -1,6 +1,7 @@
 package org.orbit.types.next.components
 
 import org.koin.core.component.KoinComponent
+import org.orbit.types.next.intrinsics.Native
 
 object MonoEq : ITypeEq<MonomorphicType<*>, TypeComponent> {
     override fun eq(ctx: Ctx, a: MonomorphicType<*>, b: TypeComponent): Boolean = when (b) {
@@ -74,7 +75,8 @@ object TypeEq : ITypeEq<Type, TypeComponent> {
 
 object TraitEq : ITypeEq<Trait, TypeComponent> {
     override fun eq(ctx: Ctx, a: Trait, b: TypeComponent): Boolean = when (b) {
-        //is AbstractTypeParameter -> b.constraints.any { AnyEq.eq(ctx, a, it.target) }
+        // TODO - Vomit!
+        is Kind -> NominalEq.eq(ctx, a, Native.Traits.Kind.trait)
         is Type, is ITypeParameter -> StructuralEq.eq(ctx, a, b)
         else -> NominalEq.eq(ctx, a, b)
     }
@@ -87,12 +89,20 @@ object ParameterEq : ITypeEq<ITypeParameter, TypeComponent> {
     }
 }
 
+object KindEq : ITypeEq<Kind, TypeComponent> {
+    override fun eq(ctx: Ctx, a: Kind, b: TypeComponent): Boolean = when (b) {
+        is Kind -> NominalEq.eq(ctx, a, b)
+        else -> false
+    }
+}
+
 object AnyEq : ITypeEq<TypeComponent, TypeComponent>, KoinComponent {
     override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereference(a, b) { a, b ->
         if (b is IValue) return@dereference eq(ctx, a, b.type)
 
         when (a) {
             is Anything -> true
+            is Kind -> KindEq.eq(ctx, a, b)
             is MonomorphicType<*> -> MonoEq.eq(ctx, a, b)
             is PolymorphicType<*> -> PolyEq.eq(ctx, a, b)
             is Type -> TypeEq.eq(ctx, a, b)

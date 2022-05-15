@@ -28,8 +28,10 @@ class BlockPathResolver : PathResolver<BlockNode> {
 					is PrintNode ->
 						pathResolverUtil.resolve(node, pass, environment, graph)
 
-					is ReturnStatementNode -> result =
-						pathResolverUtil.resolve(node.valueNode.expressionNode, pass, environment, graph)
+					is ReturnStatementNode -> {
+						node.valueNode.expressionNode.annotate(input.getGraphID(), Annotations.GraphID)
+						result = pathResolverUtil.resolve(node.valueNode.expressionNode, pass, environment, graph)
+					}
 
 					is AssignmentStatementNode -> pathResolverUtil.resolve(node, pass, environment, graph)
 
