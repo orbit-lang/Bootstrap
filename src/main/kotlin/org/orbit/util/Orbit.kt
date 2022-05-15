@@ -107,6 +107,7 @@ val mainModule = module {
 		util.registerInference(ContextInstantiationInference, ContextInstantiationNode::class.java)
 		util.registerInference(ContextCompositionInference, ContextCompositionNode::class.java)
 		util.registerInference(ContextInference, ContextExpressionNode::class.java)
+		util.registerInference(PrintNodeInference, PrintNode::class.java)
 
 		util
 	}

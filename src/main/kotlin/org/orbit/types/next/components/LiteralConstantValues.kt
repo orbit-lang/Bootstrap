@@ -33,3 +33,9 @@ data class InstanceConstantValue(override val type: IType, override val value: L
         return "({$pretty} : ${type.fullyQualifiedName})"
     }
 }
+
+data class TypeConstantValue(override val value: TypeComponent) : IConstantValue<TypeComponent> {
+    override val type: TypeComponent = Native.Types.Mirror(value).type
+
+    override val fullyQualifiedName: String = "{${value.fullyQualifiedName} : ${type.fullyQualifiedName}}"
+}

@@ -22,15 +22,16 @@ object Native {
         object Symbol : Types(Modules.Intrinsics, "Symbol")
         object Main : Types(Modules.Main, "Main")
         object Array : Types(Modules.Intrinsics, "Array")
-        data class Mirror(val reflectedType: TypeComponent) : Types(Modules.Intrinsics, "Mirror::${reflectedType.getPath(OrbitMangler).toString(OrbitMangler)}")
+        data class Mirror(val reflectedType: TypeComponent) : Types(Modules.Meta, "Mirror::${reflectedType.getPath(OrbitMangler).toString(OrbitMangler)}")
 
-        val type: Type = Type(module.path + name)
+        val type: org.orbit.types.next.components.Type = Type(module.path + name)
         val path: Path get() = OrbitMangler.unmangle(name)
     }
 
     sealed class Traits(val module: Modules, val name: String) {
         object AnyType : Traits(Modules.Intrinsics, "Orb::Core::Types::AnyType")
         object Kind : Traits(Modules.Kinds, "Kind")
+        object Type : Traits(Modules.Meta, "Type")
 
         val trait: Trait = Trait(module.path + name)
     }

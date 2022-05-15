@@ -5,34 +5,39 @@ module Orb::Types::Intrinsics {
     trait Any
 }
 
-module Orb::Meta::Kinds {
+module Orb::Core::Contexts {
+    context Eq [A, B]
+        where A = B
+
+    context Impl [A, B]
+        where A : B
+}
+
+module Orb::Meta {
+    trait Type
+}
+
+module Orb::Meta::Kinds with Orb::Meta with Orb::Core::Contexts {
     trait Kind
+    type Type : Kind
+    type Trait : Kind
+
+    type constructor Mirror<T>(reflectedType T)
+        within Impl [T, Type]
+
+    (self Kind) reflect () (Kind) = mirror self
 }
 
 module Context with Orb::* {
     type Foo
 
-    context Eq [A, B]
-        where A = B
-
-    context Like [A, B]
-        where A : B
-
-    type constructor Type<T>(ref T)
-
-    extension Type within Eq [T, T] {
-        (self Self) kind () (Kind) = expand (mirror self.ref)
-    }
-
-#    extension Any within Like [Self, Any] {
-#    }
-
-#    extension Box within Eq [T, Bar] {
-#        (self Self) bar () (Bar) = self.value
-#    }
+    type constructor Functor<F>
+        within Eq [mirror F, Kinds::Type]
 
     (Foo) f () () {
-        t = Type(Foo)
-        print 1
+        f = Functor<Foo>()
+
+        print expand mirror Functor
+        print expand Kinds::Type
     }
 }

@@ -1,6 +1,7 @@
 package org.orbit.types.next.components
 
 import org.orbit.core.OrbitMangler
+import org.orbit.types.next.intrinsics.Native
 
 object StructuralEq : ITypeEq<ITrait, TypeComponent> {
     override fun eq(ctx: Ctx, a: ITrait, b: TypeComponent): Boolean = ctx.dereference(a) { a ->

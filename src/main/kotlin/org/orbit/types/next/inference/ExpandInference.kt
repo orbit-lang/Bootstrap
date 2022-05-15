@@ -29,6 +29,14 @@ object IdentifierLiteralValueInference : ConstantValueInference<IdentifierNode, 
     }
 }
 
+object TypeLiteralValueInference : ConstantValueInference<TypeExpressionNode, TypeConstantValue> {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeExpressionNode): InferenceResult {
+        val reflectedType = inferenceUtil.infer(node)
+
+        return TypeConstantValue(reflectedType).inferenceResult()
+    }
+}
+
 object InstanceLiteralValueInference : ConstantValueInference<ConstructorNode, Any> {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: ConstructorNode): InferenceResult {
         val type = ConstructorInference.infer(inferenceUtil, AnyExpressionContext, node).typeValue() as IType //inferenceUtil.inferAs<TypeExpressionNode, IType>(node.typeExpressionNode)
@@ -69,7 +77,7 @@ object AnyConstantValueInference : Inference<ExpressionNode, IConstantValue<*>>,
         is ConstructorNode -> InstanceLiteralValueInference.infer(inferenceUtil, context, node)
         is ExpandNode -> infer(inferenceUtil, context, node.expressionNode)
         is MethodCallNode -> MethodCallValueInference.infer(inferenceUtil, context, node)
-        is TypeExpressionNode -> AnyTypeExpressionInference.infer(inferenceUtil, context, node)
+        is TypeExpressionNode -> TypeLiteralValueInference.infer(inferenceUtil, context, node) //AnyTypeExpressionInference.infer(inferenceUtil, context, node)
 
         else -> throw invocation.make<TypeSystem>("Unsupported constant expression: $node", node.firstToken)
     }

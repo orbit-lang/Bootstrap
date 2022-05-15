@@ -14,15 +14,36 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
+    private fun checkContexts(inferenceUtil: InferenceUtil, node: ConstructorNode, poly: PolymorphicType<*>, given: List<Pair<Int, TypeComponent>>) {
+        val contexts = inferenceUtil.getContexts(poly)
+
+        if (contexts.isNotEmpty()) {
+            val context = contexts.map { it.context }.reduce { acc, next -> when (val r = acc.merge(next)) {
+                is Result.Success -> r.value
+                is Result.Failure -> throw invocation.make<TypeSystem>(r.reason.message, node.typeExpressionNode)
+            }}
+
+            val nContext = poly.parameters.zip(given).fold(context) { acc, next -> acc.sub(next.first, next.second.second) }
+            val solution = nContext.solve(inferenceUtil.toCtx())
+
+            if (solution is Never) throw invocation.make<TypeSystem>(solution.message, node.typeExpressionNode)
+        }
+    }
+
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: ConstructorNode): InferenceResult {
         val args = node.parameterNodes.map { inferenceUtil.infer(it) }
             .toMutableList()
 
         val source: IType = when (val t = inferenceUtil.infer(node.typeExpressionNode)) {
+            is MonomorphicType<*> -> {
+                val slice = t.concreteParameters.map { Pair(it.index, it.concreteType) }
+
+                checkContexts(inferenceUtil, node, t.polymorphicType, slice)
+
+                t
+            }
             is IType -> t
             is PolymorphicType<*> -> {
-                // We have enough information here to attempt type inference for constructor calls that do not
-                //  explicitly pass Type Parameters at the call-site
                 if (args.count() < t.parameters.count())
                     return Never("Attempting to instantiate non-Type (${t.kind.toString(printer)}) ${t.toString(printer)}").inferenceResult()
 
@@ -30,19 +51,7 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
                     Pair(idx, item)
                 }
 
-                val contexts = inferenceUtil.getContexts(t)
-
-                if (contexts.isNotEmpty()) {
-                    val context = contexts.map { it.context }.reduce { acc, next -> when (val r = acc.merge(next)) {
-                        is Result.Success -> r.value
-                        is Result.Failure -> throw invocation.make<TypeSystem>(r.reason.message, node.typeExpressionNode)
-                    }}
-                    
-                    val nContext = t.parameters.zip(slice).fold(context) { acc, next -> acc.sub(next.first, next.second.second) }
-                    val solution = nContext.solve(inferenceUtil.toCtx())
-
-                    if (solution is Never) throw invocation.make<TypeSystem>(solution.message, node.typeExpressionNode)
-                }
+                checkContexts(inferenceUtil, node, t, slice)
 
                 MonoUtil.monomorphise(inferenceUtil.toCtx(), t, slice, null)
                     .toType(printer) as IType
