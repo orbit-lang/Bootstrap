@@ -1,0 +1,83 @@
+module Orb::Types::Intrinsics {
+    type Unit
+    type Int
+    type Symbol
+    trait Any
+}
+
+module Orb::Core::Contexts {
+    context Eq [A, B]
+        where A = B
+
+    context Impl [A, B]
+        where A : B
+}
+
+module Orb::Core::Main {
+    type Main
+}
+
+module Orb::Meta {
+    type Type
+    trait Trait
+}
+
+module Orb::Meta::Kinds with Orb::Meta with Orb::Core::Contexts {
+    trait Kind
+#    alias Type = [] => mirror Orb::Meta::Type
+
+    type constructor Mirror<T>(reflectedType T)
+        within Impl [T, Type]
+
+    (Type) kind () (Kind) = mirror Self
+}
+
+module Orb::Meta::Injection {
+    trait constructor Injector<T>
+        with inject : _ -> T
+
+    trait constructor Factory<T> : Injector<T>
+    trait constructor Single<T> : Injector<T>
+        within Value [T]
+        with inject = { T }
+
+    context Inject [S, T]
+        where I of Injector<T>
+        where S = Symbol
+        where S ^ Value
+
+    extension Inject
+        with S by I::inject
+}
+
+module InjectionTest with Orb::* {
+    type URL
+    type NetworkService
+
+    (self NetworkService) request <T> (url URL) (T)
+        = doNetworkCall(url)
+
+    alias NetworkServiceInjector
+        = Single<expand NetworkService()>
+
+    context NetworkServiceContext
+        within Inject ['service, NetworkService]
+
+    (Main) main () () within NetworkServiceContext {
+        service.request(URL())
+    }
+}
+
+module Context with Orb::* {
+    context KindEq [A, B]
+        where A ^ B
+
+    type constructor Functor<F>
+        # TODO - This (mirror Mirror) is why we need Kind literals/lambdas
+        within KindEq [F, mirror Mirror]
+
+    (Main) main () () {
+        f = Functor<Int>()
+        # TODO - Context check `f = Functor<Mirror>` Type Literal, not a constructor call
+    }
+}

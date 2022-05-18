@@ -53,11 +53,15 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
 
         var types: List<IType> = TypeStubPhase.executeAll(input.inferenceUtil, typeDefs)
         var traits: List<ITrait> = TraitStubPhase.executeAll(input.inferenceUtil, traitDefs)
+        var families = FamilyPhase.executeAll(input.inferenceUtil, familyDefs)
 
         TypeConstructorStubPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
         TraitConstructorStubPhase.executeAll(input.inferenceUtil, traitConstructorDefs)
         FamilyConstructorStubPhase.executeAll(input.inferenceUtil, familyConstructorDefs)
+
         ContextPhase.executeAll(input.inferenceUtil, contexts)
+
+        TypeAliasPhase.executeAll(input.inferenceUtil, typeAliasDefs)
 
         TypeConstructorFieldsPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
 
@@ -73,7 +77,6 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         ContextAwarePhase.executeAll(input.inferenceUtil, extensions)
         TypeConstructorConformancePhase.executeAll(input.inferenceUtil, typeConstructorDefs)
 
-        var families = FamilyPhase.executeAll(input.inferenceUtil, familyDefs)
         families = FamilyExpansionPhase.executeAll(input.inferenceUtil, familyDefs)
 
         TypeConstructorConstraintsPhase.executeAll(input.inferenceUtil, typeConstructorDefs)
@@ -85,8 +88,6 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         ExtensionPhase.executeAll(input.inferenceUtil, extensions)
 
         types = TraitConformanceVerification.executeAll(input.inferenceUtil, typeDefs)
-
-        TypeAliasPhase.executeAll(input.inferenceUtil, typeAliasDefs)
 
         MethodBodyPhase.executeAll(input.inferenceUtil, methodDefs)
 

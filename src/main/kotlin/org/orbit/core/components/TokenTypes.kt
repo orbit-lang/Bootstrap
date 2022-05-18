@@ -23,8 +23,8 @@ object TokenTypes : TokenTypeProvider {
 	
     // Keywords
     object Api : TokenType("API", "api", true, false, Family.Keyword)
-    object Type : TokenType("Type(0)", "type", true, false, Family.Keyword + Family.Kind)
-    object Trait : TokenType("Trait(0)", "trait", true, false, Family.Keyword + Family.Kind)
+    object Type : TokenType("Type", "type", true, false, Family.Keyword + Family.Kind)
+    object Trait : TokenType("Trait", "trait", true, false, Family.Keyword + Family.Kind)
     object Family : TokenType("Family", "family", true, false, Family.Keyword + Family.Kind)
     object With : TokenType("With", "with", true, false, Family.Keyword)
     object Within : TokenType("Within", "within", true, false, Family.Keyword)

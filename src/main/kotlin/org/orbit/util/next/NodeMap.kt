@@ -121,7 +121,10 @@ class TypeMap constructor(): ITypeMap {
 
     override fun find(name: String): TypeComponent? = when (val type = visibleTypes[name]) {
         // Aliases can be > 1 level deep, so we recurse through until we find the root Type
-        is Alias -> find(type.target.fullyQualifiedName)
+        is Alias -> when (type.target) {
+            is Kind -> type.target
+            else -> find(type.target.fullyQualifiedName)
+        }
         else -> type
     }
 

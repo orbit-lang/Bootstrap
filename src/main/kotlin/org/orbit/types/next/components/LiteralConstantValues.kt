@@ -26,12 +26,14 @@ data class SymbolConstantValue(override val value: String) : IConstantValue<Stri
     override val type: TypeComponent = Native.Types.Symbol.type
 }
 
-data class InstanceConstantValue(override val type: IType, override val value: List<Field>) : IConstantValue<List<Field>> {
+data class InstanceConstantValue(override val type: IType, override val value: List<Field>) : IConstantValue<List<Field>>, FieldAwareType {
     override val fullyQualifiedName: String get() {
         val pretty = value.joinToString(", ") { "${it.name} : ${it.type.fullyQualifiedName}" }
 
         return "({$pretty} : ${type.fullyQualifiedName})"
     }
+
+    override fun getFields(): List<Field> = value
 }
 
 data class TypeConstantValue(override val value: TypeComponent) : IConstantValue<TypeComponent> {

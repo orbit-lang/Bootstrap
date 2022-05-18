@@ -11,24 +11,6 @@ import org.orbit.types.next.inference.TypeLiteralInferenceContext
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
-object FamilyConstructorStubPhase : EntityConstructorStubPhase<FamilyConstructorNode, TypeFamily<*>> {
-    override val invocation: Invocation by inject()
-
-    override fun run(input: TypePhaseData<FamilyConstructorNode>): PolymorphicType<TypeFamily<*>> {
-        val parameters = input.inferenceUtil.inferAllAs<TypeIdentifierNode, AbstractTypeParameter>(input.node.typeParameterNodes, TypeLiteralInferenceContext.TypeParameterContext)
-
-        parameters.forEach { input.inferenceUtil.declare(it) }
-
-        val members = input.node.entities.map {
-            TypeConstructorStubPhase.execute(TypePhaseData(input.inferenceUtil, it as TypeConstructorNode))
-        }
-
-        val baseFamily = TypeFamily(input.node.getPath(), members)
-
-        return PolymorphicType(baseFamily, parameters, partialFields = emptyList())
-    }
-}
-
 object TypeConstructorStubPhase : EntityConstructorStubPhase<TypeConstructorNode, Type> {
     override val invocation: Invocation by inject()
 

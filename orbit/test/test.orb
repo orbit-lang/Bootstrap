@@ -1,41 +1,7 @@
-module Orb::Types::Intrinsics {
-    type Unit
-    type Int
-    type Symbol
-    trait Any
-}
+module Test with Orb::* {
+    type String
 
-module Orb::Core::Contexts {
-    context Eq [A, B]
-        where A = B
-
-    context Impl [A, B]
-        where A : B
-}
-
-module Orb::Core::Main {
-    type Main
-}
-
-module Orb::Meta {
-    type Type
-    trait Trait
-}
-
-module Orb::Meta::Kinds with Orb::Meta with Orb::Core::Contexts {
-    trait Kind
-    alias Type = [] => mirror Type
-    alias Trait = [] => mirror Trait
-
-    type constructor Mirror<T>(reflectedType T)
-        within Impl [T, Type]
-
-    (self Kind) reflect () (Kind) = mirror self
-}
-
-module Context with Orb::* {
-
-    (Main) main () () {
-
+    trait Writer {
+        (Self) write (message String) _
     }
 }

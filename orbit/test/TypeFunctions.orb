@@ -1,0 +1,2 @@
+type (Context) Contains [S] _ (Self[S])
+    within Eq [S, Symbol] + Value [S]
