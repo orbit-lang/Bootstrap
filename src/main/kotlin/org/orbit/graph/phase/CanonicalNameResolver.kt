@@ -128,10 +128,15 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 
 			if (nextContainer.with.isNotEmpty()) {
 				for (withNode in nextContainer.with) {
+					if (withNode.value == nextContainer.identifier.value)
+						throw invocation.make<CanonicalNameResolver>("Container ${nextContainer.identifier.value} must not import itself! Found `with ${withNode.value}`", withNode)
+
 					if (withNode.isWildcard) {
 						val wildcardPath = OrbitMangler.unmangle(withNode.value)
 						val fullyQualifiedPart = wildcardPath.dropLast(1)
-						val matches = allContainers.filter { it.identifier.value.startsWith(fullyQualifiedPart.toString(OrbitMangler)) }
+						val matches = allContainers
+							.filter { it.identifier.value.startsWith(fullyQualifiedPart.toString(OrbitMangler)) }
+							.filterNot { it.identifier.value == nextContainer.identifier.value }
 
 						for (match in matches) {
 							if (!match.isResolved()) {

@@ -2,8 +2,6 @@ module Orb::Types::Intrinsics {
     type Unit
 }
 
-module Test with Orb::* {
-    (Unit) main _ _ {
+module Orb::Test with Orb::* {
 
-    }
 }
