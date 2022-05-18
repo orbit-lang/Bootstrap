@@ -4,6 +4,13 @@ import org.orbit.core.components.Token
 
 abstract class TypeExpressionNode : LiteralNode<String>()
 
+data class InferNode(
+	override val firstToken: Token,
+	override val lastToken: Token
+) : TypeExpressionNode() {
+	override val value: String = "_"
+}
+
 data class TypeIdentifierNode(
     override val firstToken: Token,
     override val lastToken: Token,

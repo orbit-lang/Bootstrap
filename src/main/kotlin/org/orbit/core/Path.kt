@@ -8,6 +8,7 @@ open class Path(open val relativeNames: List<String>) : AnySerializable(), AnyPr
 	companion object {
 		val empty = Path()
 		val self = Path("Self")
+		val infer = Path("_")
 	}
 
 	constructor(path: String) : this(listOf(path))

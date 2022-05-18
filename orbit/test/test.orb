@@ -5,7 +5,10 @@ module Orb::Types::Intrinsics {
 module Test with Orb::* {
     type Foo
 
-    (Foo) foo () () {
-        f = Foo(Unit())
+    (Foo) new _ _ = Foo()
+
+    (Foo) main _ _ {
+        f = Foo.new()
+        typeOf f
     }
 }

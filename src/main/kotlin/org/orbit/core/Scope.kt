@@ -130,6 +130,7 @@ class Scope(
 
 	fun get2(name: String, context: Binding.Kind? = null, graph: Graph? = null, parentVertexID: GraphEntity.Vertex.ID? = null) : BindingSearchResult {
 		if (name == "Self") return BindingSearchResult.Success(Binding.Self)
+		if (name == "_") return BindingSearchResult.Success(Binding.infer)
 
 		val path = OrbitMangler.unmangle(name)
 

@@ -1,5 +1,6 @@
 package org.orbit.types.next.inference
 
+import org.orbit.core.nodes.InferNode
 import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.types.next.components.*
@@ -21,6 +22,7 @@ object SignatureInference : Inference<MethodSignatureNode, ISignature> {
         val parameters = inferenceUtil.inferAllAs<TypeExpressionNode, TypeComponent>(parameterTypeNodes, AnyInferenceContext(TypeExpressionNode::class.java))
         val returns: TypeComponent = when (val rNode = node.returnTypeNode) {
             null -> Native.Types.Unit.type
+            is InferNode -> Infer
             else -> inferenceUtil.infer(rNode)
         }
 

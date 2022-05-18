@@ -85,7 +85,7 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 		val returnTypeNode = when (next.text) {
 			"_" -> {
 				context.consume()
-				null
+				InferNode(next, next)
 			}
 			else -> {
 				context.expect(TokenTypes.LParen)

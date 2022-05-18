@@ -29,7 +29,17 @@ object MethodBodyPhase : TypePhase<MethodDefNode, TypeComponent>, KoinComponent 
         }
 
         return when (val result = BlockInference.infer(nInferenceUtil, TypeAnnotatedInferenceContext(signature.returns, BlockNode::class.java), input.node.body)) {
-            is InferenceResult.Success<*> -> result.type
+            is InferenceResult.Success<*> -> {
+                if (signature.returns is Infer) {
+                    // The signature is telling us to update its return type as soon as we can infer it from the body
+                    // e.g. For `(Foo) foo _ _ = Foo()`, the return Type can be inferred as `Foo`
+                    val nSignature = signature.withInferredReturnType(result.type)
+
+                    input.inferenceUtil.replace(signature, nSignature)
+                }
+
+                result.type
+            }
             is InferenceResult.Failure -> result.never
         }
     }

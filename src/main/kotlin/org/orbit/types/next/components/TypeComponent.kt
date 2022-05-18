@@ -26,6 +26,17 @@ interface TypeComponent {
 fun TypeComponent.resolve(ctx: Ctx) : TypeComponent?
     = ctx.getType(fullyQualifiedName)
 
+object Infer : TypeComponent {
+    override val fullyQualifiedName: String = "_"
+    override val isSynthetic: Boolean = true
+    override val kind: Kind = IntrinsicKinds.Type
+
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
+        is Infer -> TypeRelation.Same(this, other)
+        else -> TypeRelation.Unrelated(this, other)
+    }
+}
+
 sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias, ISignature {
     override fun getFields(): List<Field> = emptyList()
 

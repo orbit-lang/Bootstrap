@@ -1,6 +1,7 @@
 package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
+import org.orbit.core.Path
 import org.orbit.core.nodes.*
 import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Binding
@@ -33,6 +34,8 @@ object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
 		is ExpandNode -> ExpandPathResolver.resolve(input, pass, environment, graph)
 
 		is MirrorNode -> MirrorPathResolver.resolve(input, pass, environment, graph)
+
+		is InferNode -> PathResolver.Result.Success(Path("_"))
 
 		else -> TODO("???")
 	}

@@ -26,6 +26,7 @@ interface ITypeMapRead : ITypeMapInterface {
 
 interface ITypeMapWrite : ITypeMapInterface {
     fun declare(type: DeclType)
+    fun replace(a: DeclType, b: DeclType)
     fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean = false)
     fun addConformance(type: TypeComponent, trait: ITrait)
     fun addExtension(type: TypeComponent, extension: Extension)
@@ -65,6 +66,10 @@ class TypeMap constructor(): ITypeMap {
 
     override fun declare(type: DeclType) {
         visibleTypes[type.fullyQualifiedName] = type
+    }
+
+    override fun replace(a: DeclType, b: DeclType) {
+        visibleTypes[a.fullyQualifiedName] = b
     }
 
     override fun toCtx(): Ctx = Ctx().apply {

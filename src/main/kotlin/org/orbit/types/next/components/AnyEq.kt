@@ -106,6 +106,7 @@ object ValueEq : ITypeEq<IConstantValue<*>, TypeComponent> {
 object AnyEq : ITypeEq<TypeComponent, TypeComponent>, KoinComponent {
     override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereference(a, b) { a, b ->
         when (a) {
+            is Infer -> true
             is Anything -> true
             is IConstantValue<*> -> ValueEq.eq(ctx, a, b)
             is Kind -> KindEq.eq(ctx, a, b)

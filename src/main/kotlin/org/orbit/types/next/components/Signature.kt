@@ -21,6 +21,9 @@ data class Signature(val relativeName: String, val receiver: TypeComponent, val 
 
     override val kind: Kind = IntrinsicKinds.Type
 
+    fun withInferredReturnType(type: TypeComponent) : Signature
+        = Signature(relativeName, receiver, parameters, type, isSynthetic)
+
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (NominalEq.eq(ctx, this, other)) {
         true -> TypeRelation.Same(this, other)
         else -> TypeRelation.Unrelated(this, other)
