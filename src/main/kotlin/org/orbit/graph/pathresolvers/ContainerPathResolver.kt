@@ -161,7 +161,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			resolveAll(contextResolver, contexts, PathResolver.Pass.Last)
 
 			if (input is ModuleNode) {
-				for (typeProjection in input.typeProjections) {
+				for (typeProjection in input.projections) {
 					TypeProjectionPathResolver.resolve(typeProjection, PathResolver.Pass.Initial, environment, graph)
 				}
 			}

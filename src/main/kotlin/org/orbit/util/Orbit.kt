@@ -6,14 +6,10 @@ import com.google.gson.GsonBuilder
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.dsl.module
-import org.orbit.backend.codegen.CodeGenFactory
-import org.orbit.core.CodeGeneratorQualifier
-import org.orbit.core.Mangler
 import org.orbit.core.Path
 import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.nodes.*
 import org.orbit.core.phase.CompilerGenerator
-import org.orbit.core.single
 import org.orbit.graph.components.*
 import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.ContextCompositionPathResolver
@@ -50,7 +46,7 @@ val mainModule = module {
 		util.registerPathResolver(IdentifierExpressionPathResolver(), IdentifierNode::class.java)
 		util.registerPathResolver(PrintPathResolver(), PrintNode::class.java)
 		util.registerPathResolver(MetaTypePathResolver, MetaTypeNode::class.java)
-		util.registerPathResolver(TypeProjectionPathResolver, TypeProjectionNode::class.java)
+		util.registerPathResolver(TypeProjectionPathResolver, ProjectionNode::class.java)
 		util.registerPathResolver(TypeExpressionPathResolver, TypeExpressionNode::class.java)
 		util.registerPathResolver(CollectionLiteralPathResolver, CollectionLiteralNode::class.java)
 		util.registerPathResolver(LambdaLiteralPathResolver, LambdaLiteralNode::class.java)

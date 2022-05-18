@@ -8,15 +8,6 @@ object StructuralEq : ITypeEq<ITrait, TypeComponent> {
         if (b is Anything) return@dereference true
         if (a !is ITrait) return@dereference false
 
-        // TODO - This is another horrifying hack that states that Type `T` always conforms to its own Interface
-//        if (a.fullyQualifiedName.endsWith("__Self__")) {
-//            val aPath = a.getPath(OrbitMangler)
-//            val bPath = b.getPath(OrbitMangler)
-//            val nPath = aPath.drop(bPath)
-//
-//            return@dereference true
-//        }
-
         val explicitConformance = ctx.getConformance(b).contains(a)
 
         when (a.contracts.isEmpty()) {
@@ -30,9 +21,9 @@ object StructuralEq : ITypeEq<ITrait, TypeComponent> {
                     a.isSynthetic && aPath.containsSubPath(bPath) && aPath.last() == "__Self__"
                 }
             }
-            else -> explicitConformance || a.contracts.all {
+            else -> a.contracts.all {
                 it.isImplemented(ctx, b) is ContractResult.Success
-            }
+            } || explicitConformance
         }
     }
 }

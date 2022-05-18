@@ -76,7 +76,7 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
         val typeAliasNodes = mutableListOf<TypeAliasNode>()
         val entityConstructorNodes = mutableListOf<EntityConstructorNode>()
         val methodDefNodes = mutableListOf<MethodDefNode>()
-        val typeProjectionNodes = mutableListOf<TypeProjectionNode>()
+        val typeProjectionNodes = mutableListOf<ProjectionNode>()
         val extensionNodes = mutableListOf<ExtensionNode>()
         val contextNodes = mutableListOf<ContextNode>()
 
@@ -109,7 +109,7 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                 }
 
                 TokenTypes.Projection -> {
-                    val projection = context.attempt(TypeProjectionRule)
+                    val projection = context.attempt(ProjectionRule)
                         ?: TODO("@ModuleRule:105")
 
                     typeProjectionNodes.add(projection)

@@ -11,18 +11,14 @@ import org.orbit.core.phase.PhaseAdapter
 import org.orbit.core.phase.getInputType
 import org.orbit.core.storeResult
 import org.orbit.graph.phase.NameResolverResult
-import org.orbit.graph.phase.measureTimeWithResult
 import org.orbit.types.next.components.ITrait
 import org.orbit.types.next.components.IType
 import org.orbit.types.next.components.Module
 import org.orbit.types.next.components.TypeComponent
 import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
-import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.next.ITypeMapRead
-import kotlin.contracts.ExperimentalContracts
-import kotlin.time.ExperimentalTime
 
 interface TypePhase<N: Node, T: TypeComponent> : Phase<TypePhaseData<N>, T> {
     fun run(input: TypePhaseData<N>) : T
@@ -44,7 +40,7 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
         val typeAliasDefs = input.node.typeAliasNodes
         val typeConstructorDefs = input.node.entityConstructors.filterIsInstance<TypeConstructorNode>()
         val traitConstructorDefs = input.node.entityConstructors.filterIsInstance<TraitConstructorNode>()
-        val typeProjections = input.node.typeProjections
+        val typeProjections = input.node.projections
         val extensions = input.node.extensions
         val methodDefs = input.node.methodDefs
         val familyDefs = input.node.entityDefs.filterIsInstance<FamilyNode>()
@@ -84,7 +80,7 @@ object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
 
         var methods = MethodStubPhase.executeAll(input.inferenceUtil, methodDefs)
 
-        TypeProjectionPhase.executeAll(input.inferenceUtil, typeProjections)
+        ProjectionPhase.executeAll(input.inferenceUtil, typeProjections)
         ExtensionPhase.executeAll(input.inferenceUtil, extensions)
 
         types = TraitConformanceVerification.executeAll(input.inferenceUtil, typeDefs)

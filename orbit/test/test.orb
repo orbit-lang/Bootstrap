@@ -1,7 +1,17 @@
+module Orb::Types::Intrinsics {
+    type Unit
+}
+
 module Test with Orb::* {
     type String
 
-    trait Writer {
-        (Self) write (message String) _
+    trait Writer(message String)
+
+    projection String(self) : Writer
+        where message = self
+
+    (Unit) main () () {
+        w = String()
+        m = w.message
     }
 }

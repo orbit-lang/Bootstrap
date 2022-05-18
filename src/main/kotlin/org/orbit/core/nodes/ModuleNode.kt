@@ -13,7 +13,7 @@ data class ModuleNode(
     override val methodDefs: List<MethodDefNode> = emptyList(),
     val typeAliasNodes: List<TypeAliasNode> = emptyList(),
     override val entityConstructors: List<EntityConstructorNode>,
-    val typeProjections: List<TypeProjectionNode>,
+    val projections: List<ProjectionNode>,
     val extensions: List<ExtensionNode> = emptyList(),
     override val contexts: List<ContextNode> = emptyList(),
     override val context: ContextExpressionNode? = null
@@ -21,7 +21,7 @@ data class ModuleNode(
     val isEmpty: Boolean get() = entityDefs.isEmpty() && methodDefs.isEmpty() && typeAliasNodes.isEmpty() && extensions.isEmpty() && contexts.isEmpty()
 
     override fun getChildren(): List<Node> = when (within) {
-        null -> listOf(identifier) + implements + with + entityDefs + methodDefs + typeAliasNodes + entityConstructors + typeProjections + extensions + contexts
-        else -> listOf(identifier, within) + implements + with + entityDefs + methodDefs + typeAliasNodes + entityConstructors + typeProjections + extensions + contexts
+        null -> listOf(identifier) + implements + with + entityDefs + methodDefs + typeAliasNodes + entityConstructors + projections + extensions + contexts
+        else -> listOf(identifier, within) + implements + with + entityDefs + methodDefs + typeAliasNodes + entityConstructors + projections + extensions + contexts
     }
 }
