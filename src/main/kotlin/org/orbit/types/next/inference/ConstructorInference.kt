@@ -75,7 +75,7 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
             if (!recovered) {
                 // TODO - Multiple constructors
                 val pretty = args.joinToString(", ") { it.toString(printer) }
-                return Never("Type ${source.toString(printer)} cannot be instantiated with arguments ($pretty)")
+                return Never("Type ${source.toString(printer)} cannot be instantiated with arguments ($pretty)", node.firstToken.position)
                     .inferenceResult()
             }
         }

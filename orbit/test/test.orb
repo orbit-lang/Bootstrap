@@ -2,6 +2,10 @@ module Orb::Types::Intrinsics {
     type Unit
 }
 
-module Orb::Test with Orb::* {
+module Test with Orb::* {
+    type Foo
 
+    (Foo) foo () () {
+        f = Foo(Unit())
+    }
 }
