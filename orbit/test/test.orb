@@ -3,15 +3,7 @@ module Orb::Types::Intrinsics {
 }
 
 module Test with Orb::* {
-    type String
+    (Unit) main _ _ {
 
-    trait Writer(message String)
-
-    projection String(self) : Writer
-        where message = self
-
-    (Unit) main () () {
-        w = String()
-        m = w.message
     }
 }

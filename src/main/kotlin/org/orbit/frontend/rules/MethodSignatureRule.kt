@@ -63,24 +63,47 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 			else -> null
 		}
 
-		val delimitedRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule)
-		val parameterNodes = context.attempt(delimitedRule)
-			?.nodes
-			?: throw context.invocation.make(Errors.MissingParameters(next.position))
+		next = context.peek()
 
-		next = context.expect(TokenTypes.LParen)
-		
-		val returnTypeNode =
-			if (context.peek().type == TokenTypes.RParen) {
-				null
-			} else {
-				context.attempt(TypeExpressionRule)
-					?: throw context.invocation.make(Errors.MissingReturnType(next.position))
+		val parameterNodes = when (next.text) {
+			"_" -> {
+				context.consume()
+				emptyList()
 			}
+
+			else -> {
+				val delimitedRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule)
+				context.attempt(delimitedRule)
+					?.nodes
+					?: throw context.invocation.make(Errors.MissingParameters(next.position))
+			}
+		}
+
+		next = context.peek()
+
+		var end = context.peek()
+		val returnTypeNode = when (next.text) {
+			"_" -> {
+				context.consume()
+				null
+			}
+			else -> {
+				context.expect(TokenTypes.LParen)
+				if (context.peek().type == TokenTypes.RParen) {
+					null
+				} else {
+					val ret = context.attempt(TypeExpressionRule)
+						?: throw context.invocation.make(Errors.MissingReturnType(next.position))
+
+					end = context.expect(TokenTypes.RParen)
+
+					ret
+				}
+			}
+		}
 
 		val id = identifierNode ?: IdentifierNode(idStart, idStart, autoName)
 
-		var end = context.expect(TokenTypes.RParen)
 		next = context.peek()
 
 		val whereClauses = mutableListOf<TypeConstraintWhereClauseNode>()
