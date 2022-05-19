@@ -10,6 +10,7 @@ import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.annotate
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.extensions.getGraphIDOrNull
 import org.orbit.types.next.intrinsics.Native
@@ -62,7 +63,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 			}
 		}
 
-		val retResult = environment.getBinding(ret, Binding.Kind.Union.entityMethodOrConstructor, graph, input.getGraphIDOrNull())
+		val retResult = environment.getBinding(ret, Binding.Kind.Union.entityMethodOrConstructorOrParameter, graph, input.getGraphIDOrNull())
 		val retPath = retResult.unwrap(this, input.returnTypeNode?.firstToken?.position ?: SourcePosition.unknown)
 		// TODO - Should method names contain parameter names as well as/instead of types?
 		// i.e. Are parameter names important/overloadable?
@@ -70,6 +71,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		input.returnTypeNode?.annotate(retPath.path, Annotations.Path)
 
 		val argPaths = input.parameterNodes.mapIndexed { idx, it ->
+			it.typeExpressionNode.annotate(graphID, Annotations.GraphID)
 			val result = TypeExpressionPathResolver.resolve(it.typeExpressionNode, pass, environment, graph)
 				.asSuccess()
 

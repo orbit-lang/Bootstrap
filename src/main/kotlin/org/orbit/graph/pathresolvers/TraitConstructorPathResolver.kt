@@ -4,6 +4,7 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.SerialIndex
 import org.orbit.core.nodes.TraitConstructorNode
 import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Binding
@@ -36,25 +37,21 @@ class TraitConstructorPathResolver(private val parentPath: Path) : PathResolver<
 
 			input.annotate(graphID, Annotations.GraphID)
 
-			for (typeParameter in input.typeParameterNodes) {
-				val nPath = path + typeParameter.value
+			for (typeParameter in input.typeParameterNodes.withIndex()) {
+				val nPath = path + typeParameter.value.value
 
-				typeParameter.annotate(nPath, Annotations.Path)
-				typeParameter.annotate(graphID, Annotations.GraphID)
+				typeParameter.value.annotate(nPath, Annotations.Path)
+				typeParameter.value.annotate(graphID, Annotations.GraphID)
+				typeParameter.value.annotate(SerialIndex(typeParameter.index), Annotations.Index)
 
-				val vertexID = graph.insert(typeParameter.value)
+				val vertexID = graph.insert(typeParameter.value.value)
 
 				graph.link(graphID, vertexID)
 
-				environment.bind(Binding.Kind.TypeParameter, typeParameter.value, nPath, vertexID)
+				environment.bind(Binding.Kind.TypeParameter, typeParameter.value.value, nPath, vertexID)
 			}
 		} else {
 			val parentGraphID = input.getGraphID()
-
-			input.typeParameterNodes.forEach { t ->
-				//environment.bind(Binding.Kind.TypeParameter, t.value, path + Path(t.value))
-			}
-
 			val methodSignaturePathResolver = MethodSignaturePathResolver()
 
 			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
@@ -63,7 +60,10 @@ class TraitConstructorPathResolver(private val parentPath: Path) : PathResolver<
 			input.signatureNodes.forEach(-partial(methodSignaturePathResolver::resolve, pass, environment, graph))
 
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
-			input.clauses.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
+			input.context?.let {
+				it.annotate(parentGraphID, Annotations.GraphID)
+				pathResolverUtil.resolve(it, pass, environment, graph)
+			}
 		}
 
 		return PathResolver.Result.Success(path)

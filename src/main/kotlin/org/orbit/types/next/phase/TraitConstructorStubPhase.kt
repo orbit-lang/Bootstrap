@@ -1,5 +1,6 @@
 package org.orbit.types.next.phase
 
+import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.getPath
@@ -19,7 +20,8 @@ object TraitConstructorStubPhase : EntityConstructorStubPhase<TraitConstructorNo
         parameters.forEach { input.inferenceUtil.declare(it) }
 
         val protoTrait = Trait(input.node.getPath())
-        val protoPoly = PolymorphicType(protoTrait, parameters, partialFields = emptyList())
+        // TODO - Trait Conformance
+        val protoPoly = PolymorphicType(protoTrait, parameters, partialFields = emptyList(), traitConformance = emptyList())
         val nInferenceUtil = input.inferenceUtil.derive(retainsTypeMap = true, retainsBindingScope = true, protoPoly)
 
         val fields = nInferenceUtil.inferAllAs<PairNode, Field>(input.node.properties,
@@ -29,7 +31,21 @@ object TraitConstructorStubPhase : EntityConstructorStubPhase<TraitConstructorNo
         val fieldContracts = fields.map { FieldContract(TypeReference(input.node.getPath()), it) }
         val baseType = Trait(input.node.getPath(), fieldContracts)
 
-        return PolymorphicType(baseType, parameters, partialFields = emptyList())
+        return PolymorphicType(baseType, parameters, partialFields = emptyList(), traitConformance = protoPoly.traitConformance)
+    }
+}
+
+object TraitConstructorSignaturesPhase : TypePhase<TraitConstructorNode, PolymorphicType<Trait>>, KoinComponent {
+    override val invocation: Invocation by inject()
+
+    override fun run(input: TypePhaseData<TraitConstructorNode>): PolymorphicType<Trait> {
+        val traitConstructor = input.inferenceUtil.inferAs<TypeIdentifierNode, PolymorphicType<Trait>>(input.node.typeIdentifierNode)
+        val nInferenceUtil = input.inferenceUtil.derive(self = traitConstructor)
+        val signatures = nInferenceUtil.inferAllAs<MethodSignatureNode, Signature>(input.node.signatureNodes, AnyInferenceContext(MethodSignatureNode::class.java))
+        val contracts = signatures.map { SignatureContract(traitConstructor.baseType, it) }
+        val nTrait = Trait(traitConstructor.baseType.fullyQualifiedName, traitConstructor.baseType.contracts + contracts, false)
+
+        return PolymorphicType(nTrait, traitConstructor.parameters, traitConstructor.traitConformance, false, traitConstructor.partialFields)
     }
 }
 
@@ -51,6 +67,6 @@ object TraitConstructorConstraintsPhase : TypePhase<TraitConstructorNode, Polymo
             }
         }
 
-        return PolymorphicType(traitConstructor.baseType, nParameters, partialFields = traitConstructor.partialFields)
+        return PolymorphicType(traitConstructor.baseType, nParameters, partialFields = traitConstructor.partialFields, traitConformance = traitConstructor.traitConformance)
     }
 }

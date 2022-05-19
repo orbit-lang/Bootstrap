@@ -40,10 +40,10 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
         else -> emptyList()
     }
 
-    override fun deriveTrait(ctx: Ctx): ITrait {
-        if (specialisedType !is Type) return Never("Cannot synthesise Trait fro Type ${specialisedType.toString(printer)}")
-
-        return InterfaceSynthesiser.synthesise(ctx, specialisedType)
+    override fun deriveTrait(ctx: Ctx): ITrait = when (specialisedType) {
+        is ITrait -> specialisedType
+        is Type -> InterfaceSynthesiser.synthesise(ctx, specialisedType)
+        else -> Never("Cannot synthesise Trait for Type ${specialisedType.toString(printer)}")
     }
 
     override fun indexOf(parameter: AbstractTypeParameter): Int

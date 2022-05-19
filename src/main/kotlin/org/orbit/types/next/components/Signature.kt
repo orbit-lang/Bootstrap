@@ -14,6 +14,15 @@ interface ISignature : DeclType {
     fun getReturnType() : TypeComponent
 }
 
+object SignatureSubstitutor : Substitutor<Signature> {
+    override fun substitute(target: Signature, old: TypeComponent, new: TypeComponent): Signature
+        = Signature(target.relativeName,
+            target.receiver.substitute(old, new),
+            target.parameters.map { it.substitute(old, new) },
+            target.returns.substitute(old, new),
+            target.isSynthetic)
+}
+
 data class Signature(val relativeName: String, val receiver: TypeComponent, val parameters: List<TypeComponent>, val returns: TypeComponent, override val isSynthetic: Boolean = false) : ISignature {
     override val fullyQualifiedName: String
         get() = (Path(receiver.fullyQualifiedName, relativeName) + Path(relativeName) + parameters.map { Path(it.fullyQualifiedName) } + OrbitMangler.unmangle(returns.fullyQualifiedName))

@@ -120,6 +120,7 @@ class TypeMap constructor(): ITypeMap {
 
     fun <T: TypeComponent> findAs(name: String) : T? = when (val type = visibleTypes[name]) {
         is Alias -> type.target as? T
+        is IConstantValue<*> -> type.type as? T
         is PolymorphicType<*> -> type.baseType as? T
         else -> type as? T
     }
@@ -128,6 +129,7 @@ class TypeMap constructor(): ITypeMap {
         // Aliases can be > 1 level deep, so we recurse through until we find the root Type
         is Alias -> when (type.target) {
             is Kind -> type.target
+            is IConstantValue<*> -> type.target.type
             else -> find(type.target.fullyQualifiedName)
         }
         else -> type

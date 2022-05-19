@@ -97,13 +97,14 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 
 		data class Union(val left: Kind, val right: Kind) : Kind {
 			companion object {
-				val anyEntityConstructor = Union(Kind.TypeConstructor, Kind.TraitConstructor)
-				val container = Union(Kind.Module, Kind.Api)
-				val entity = Union(Union(Union(Kind.Type, Kind.Trait), Kind.TypeAlias), Kind.Context)
-				val entityOrMethod = Union(entity, Kind.Method)
-				val receiver = Union(Union(entityOrMethod, anyEntityConstructor), Binding.Kind.TypeParameter)
+				val anyEntityConstructor = Union(TypeConstructor, TraitConstructor)
+				val container = Union(Module, Api)
+				val entity = Union(Union(Union(Type, Trait), TypeAlias), Context)
+				val entityOrMethod = Union(entity, Method)
+				val receiver = Union(Union(entityOrMethod, anyEntityConstructor), TypeParameter)
 				val entityOrConstructor = Union(entity, anyEntityConstructor)
 				val entityMethodOrConstructor = Union(entityOrMethod, anyEntityConstructor)
+				val entityMethodOrConstructorOrParameter = Union(entityMethodOrConstructor, TypeParameter)
 				val entityOrConstructorOrParameter = Union(entityOrConstructor, TypeParameter)
 			}
 

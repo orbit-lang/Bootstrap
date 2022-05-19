@@ -23,12 +23,11 @@ object FamilyConstructorStubPhase : EntityConstructorStubPhase<FamilyConstructor
 
         val members = input.node.entities.map {
             TypeConstructorStubPhase.execute(TypePhaseData(input.inferenceUtil, it as TypeConstructorNode))
-
-
         }
 
         val baseFamily = TypeFamily(input.node.getPath(), members)
 
-        return PolymorphicType(baseFamily, parameters, partialFields = emptyList())
+        // TODO - Trait conformance on Type Families
+        return PolymorphicType(baseFamily, parameters, partialFields = emptyList(), traitConformance = emptyList())
     }
 }

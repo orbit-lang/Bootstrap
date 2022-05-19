@@ -15,7 +15,7 @@ interface ParameterisedType : TypeComponent {
 fun ParameterisedType.contains(parameter: AbstractTypeParameter) : Boolean
     = indexOf(parameter) > -1
 
-data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: List<AbstractTypeParameter>, val traitConformance: List<ITrait> = emptyList(), override val isSynthetic: Boolean = false, val partialFields: List<Field>) : DeclType, ParameterisedType, ISignature, FieldAwareType {
+data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: List<AbstractTypeParameter>, val traitConformance: List<ITrait>, override val isSynthetic: Boolean = false, val partialFields: List<Field>) : DeclType, ParameterisedType, ISignature, FieldAwareType {
     override val fullyQualifiedName: String = baseType.fullyQualifiedName
 
     override val kind: Kind get() {

@@ -63,17 +63,15 @@ object TraitConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         next = context.peek()
 
-        val whereClauses = mutableListOf<TypeConstraintWhereClauseNode>()
-        while (next.type == TokenTypes.Where) {
-            val whereClause = context.attempt(TypeConstraintWhereClauseRule)
+        var contextExpr: ContextExpressionNode? = null
+        if (next.type == TokenTypes.Within) {
+            contextExpr = context.attempt(ContextExpressionRule)
                 ?: return ParseRule.Result.Failure.Abort
-
-            whereClauses.add(whereClause)
 
             next = context.peek()
         }
 
-        if (next.type != TokenTypes.LBrace) return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, properties = properties, clauses = whereClauses)
+        if (next.type != TokenTypes.LBrace) return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, properties = properties, context = contextExpr)
 
         val signatureNodes = context.attempt(
             DelimitedRule(
@@ -85,6 +83,6 @@ object TraitConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         end = signatureNodes.lastOrNull()?.lastToken ?: end
 
-        return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, signatureNodes, properties = properties, clauses = whereClauses)
+        return +TraitConstructorNode(start, end, traitIdentifier, typeParameters, signatureNodes, properties = properties, context = contextExpr)
     }
 }

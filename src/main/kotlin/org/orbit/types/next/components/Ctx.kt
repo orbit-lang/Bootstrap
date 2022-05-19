@@ -87,8 +87,11 @@ class Ctx constructor() : IContext {
             }
 
     fun getConformance(type: TypeComponent) : List<ITrait>
-        = conformanceMap.filter { it.key == type }
-            .values.firstOrNull() ?: emptyList()
+        = (conformanceMap.filter { it.key == type }
+            .values.firstOrNull() ?: emptyList()).map { entry -> when (entry) {
+                is MonomorphicType<*> -> entry.specialisedType as ITrait
+                else -> entry
+            }}
 
     override fun extend(type: TypeComponent) {
         if (types.none { it.fullyQualifiedName == type.fullyQualifiedName }) {

@@ -68,7 +68,6 @@ class FamilyConstructorPathResolver(private val parentPath: Path) : PathResolver
 			// TODO - Type Parameters should be uniquely mangled somehow
 			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
-			input.clauses.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
 
 			val typeResolver = TypeConstructorPathResolver(path)
 

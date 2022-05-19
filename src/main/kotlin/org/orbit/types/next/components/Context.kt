@@ -7,6 +7,10 @@ import org.orbit.util.Printer
 import org.orbit.util.Result
 
 data class Context(override val fullyQualifiedName: String, val typeVariables: List<TypeComponent>, val constraints: List<Constraint<*>>) : DeclType, Constraint<Context>, KoinComponent {
+    companion object {
+        val empty = Context("", emptyList(), emptyList())
+    }
+
     private val printer: Printer by inject()
 
     override val kind: Kind = IntrinsicKinds.Context

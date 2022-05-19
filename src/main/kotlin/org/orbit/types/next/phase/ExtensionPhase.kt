@@ -39,7 +39,7 @@ object ExtensionPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
             ?: TODO("")
         val nContext = input.inferenceUtil.getContexts(extension.extends)
             .map { it.context }
-            .reduce { acc, next -> when (val r = acc.merge(next)) {
+            .fold(Context.empty) { acc, next -> when (val r = acc.merge(next)) {
                 is Result.Success -> r.value
                 is Result.Failure -> throw invocation.make<TypeSystem>(r.reason.message, input.node)
             }}

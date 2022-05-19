@@ -4,10 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
 import org.orbit.util.Invocation
-import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
-import org.orbit.util.getKoinInstance
-import org.orbit.util.next.IAlias
 
 interface TypeComponent {
     val fullyQualifiedName: String
@@ -23,65 +20,32 @@ interface TypeComponent {
         = printer.apply(fullyQualifiedName, org.orbit.util.PrintableKey.Bold)
 }
 
+interface Substitutor<T: TypeComponent> {
+    fun substitute(target: T, old: TypeComponent, new: TypeComponent) : T
+}
+
+object TypeComponentSubstitutor : Substitutor<TypeComponent> {
+    override fun substitute(target: TypeComponent, old: TypeComponent, new: TypeComponent): TypeComponent = when (target.fullyQualifiedName) {
+        old.fullyQualifiedName -> new
+        else -> target
+    }
+}
+
+fun <T: TypeComponent> T.substitute(old: TypeComponent, new: TypeComponent, using: Substitutor<T> = TypeComponentSubstitutor as Substitutor<T>) : T
+    = using.substitute(this, old, new)
+
 fun TypeComponent.resolve(ctx: Ctx) : TypeComponent?
     = ctx.getType(fullyQualifiedName)
 
-object Infer : TypeComponent {
-    override val fullyQualifiedName: String = "_"
+data class Mirror(val reflectedType: TypeComponent) : TypeComponent {
+    override val fullyQualifiedName: String = reflectedType.fullyQualifiedName
     override val isSynthetic: Boolean = true
     override val kind: Kind = IntrinsicKinds.Type
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
-        is Infer -> TypeRelation.Same(this, other)
-        else -> TypeRelation.Unrelated(this, other)
+        is Mirror -> reflectedType.compare(ctx, other.reflectedType)
+        else -> reflectedType.compare(ctx, other)
     }
-}
-
-sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias, ISignature {
-    override fun getFields(): List<Field> = emptyList()
-
-    override fun merge(ctx: Ctx, other: ITrait): ITrait = other
-    override fun getSignature(printer: Printer): ISignature = Never("${toString(printer)} is not a Signature")
-    override fun getName(): String = ""
-    override fun getParameterTypes(): List<TypeComponent> = emptyList()
-    override fun getReceiverType(): TypeComponent = Never
-    override fun getReturnType(): TypeComponent = Never
-
-    operator fun plus(other: InternalControlType): InternalControlType
-}
-
-object Anything : InternalControlType {
-    override val fullyQualifiedName: String = "*"
-    override val isSynthetic: Boolean = true
-    override val trait: ITrait = this
-    override val input: ITrait = this
-    override val target: TypeComponent = this
-    override val contracts: List<Contract<*>> = emptyList()
-    override val kind: Kind = IntrinsicKinds.Type
-
-    override fun deriveTrait(ctx: Ctx): ITrait = Anything
-
-    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = TypeRelation.Same(this, other)
-
-    override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult
-        = ContractResult.Success(by, this)
-
-    override fun getErrorMessage(printer: Printer, type: TypeComponent): String {
-        TODO("Not yet implemented")
-    }
-
-    override fun plus(other: InternalControlType) = when (other) {
-        is Never -> other
-        else -> this
-    }
-}
-
-interface NeverType : InternalControlType {
-    val message: String
-    val position: SourcePosition
-
-    override val contracts: List<Contract<*>> get() = emptyList()
-    override val kind: Kind get() = IntrinsicKinds.Type
 }
 
 data class Never(override val message: String = "", override val position: SourcePosition = SourcePosition.unknown) : Exception(message), NeverType, ExecutableType<NeverType>, KoinComponent {

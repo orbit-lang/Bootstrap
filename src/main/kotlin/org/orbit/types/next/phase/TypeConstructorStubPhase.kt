@@ -23,7 +23,7 @@ object TypeConstructorStubPhase : EntityConstructorStubPhase<TypeConstructorNode
 
         val baseType = Type(input.node.getPath(), fields)
 
-        return PolymorphicType(baseType, parameters, partialFields = emptyList())
+        return PolymorphicType(baseType, parameters, partialFields = emptyList(), traitConformance = emptyList())
     }
 }
 

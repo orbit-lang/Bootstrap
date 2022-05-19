@@ -1,7 +1,9 @@
 package org.orbit.types.next.components
 
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.types.next.intrinsics.Native
+import org.orbit.util.Printer
 
 object MonoEq : ITypeEq<MonomorphicType<*>, TypeComponent> {
     override fun eq(ctx: Ctx, a: MonomorphicType<*>, b: TypeComponent): Boolean = when (b) {
@@ -103,7 +105,7 @@ object ValueEq : ITypeEq<IConstantValue<*>, TypeComponent> {
     }
 }
 
-object AnyEq : ITypeEq<TypeComponent, TypeComponent>, KoinComponent {
+object AnyEq : ITypeEq<TypeComponent, TypeComponent> {
     override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereference(a, b) { a, b ->
         when (a) {
             is Infer -> true
