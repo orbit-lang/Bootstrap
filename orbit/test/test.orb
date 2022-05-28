@@ -10,19 +10,14 @@ module Orb::Core::Main {
 }
 
 module Test with Orb::* {
-    trait A(x Int, y Symbol) {
-        (Self) new (n Int) (Self)
-    }
+    trait constructor A<T>(t T)
 
     type B
 
-    projection B : A
-        where x by { 1 }
-        where y = :a
-        where new by (n) in { n }
+    projection A : A<A>
+        where t = 1
 
     (Main) foo _ _ {
-        b = B()
-        c = B.new(1)
+
     }
 }

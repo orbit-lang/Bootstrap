@@ -105,7 +105,7 @@ data class Projection(val baseType: TypeComponent, val trait: ITrait, val projec
 
         signatures.forEach { inferenceUtil.declare(it) }
 
-        if (baseType !is Type) TODO("Projections on non-Types is not currently supported")
+        if (baseType !is Type) throw invocation.make<TypeSystem>("Projections on non-Types is not currently supported, found ${baseType.toString(printer)} (Kind: ${baseType.kind.toString(printer)})", SourcePosition.unknown)
 
         val nType = Type(baseType.fullyQualifiedName, baseType.getMembers() + fields, false)
 

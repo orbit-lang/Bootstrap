@@ -18,25 +18,24 @@ object ProjectionPhase : TypePhase<ProjectionNode, TypeComponent>, KoinComponent
 
     override fun run(input: TypePhaseData<ProjectionNode>): TypeComponent {
         // TODO - Extend other things: Traits, PolymorphicTypes, etc
-        val source = input.inferenceUtil.inferAs<TypeExpressionNode, IType>(input.node.typeIdentifier)
+        val source = input.inferenceUtil.infer(input.node.typeIdentifier)
         val nInferenceUtil = input.inferenceUtil.derive(retainsTypeMap = true, retainsBindingScope = true, self = source)
 
         if (input.node.instanceBinding != null) {
             nInferenceUtil.bind(input.node.instanceBinding.identifier, source)
         }
 
-        val target = nInferenceUtil.infer(input.node.traitIdentifier)
-
-        if (target !is ITrait) throw invocation.make<TypeSystem>("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${target.toString(printer)} (Kind: ${target.kind.toString(printer)})", input.node.traitIdentifier)
+        val target = when (val t = nInferenceUtil.infer(input.node.traitIdentifier)) {
+            is MonomorphicType<*> -> when (t.specialisedType) {
+                is ITrait -> t.specialisedType
+                else -> throw invocation.make<TypeSystem>("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${t.toString(printer)} (Kind: ${t.kind.toString(printer)})", input.node.traitIdentifier)
+            }
+            is ITrait -> t
+            else -> throw invocation.make<TypeSystem>("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${t.toString(printer)} (Kind: ${t.kind.toString(printer)})", input.node.traitIdentifier)
+        }
 
         // NOTE - By declaring conformance here, projected properties can refer to each other
         nInferenceUtil.addConformance(source, target)
-
-//        val signatures = (target as Trait).getTypedContracts<SignatureContract>().map {
-//            SignatureSubstitutor.substitute((it.input as Signature), target, source)
-//        }
-//
-//        signatures.forEach { nInferenceUtil.declare(it) }
 
         val projectedProperties = input.node.whereNodes
             .map { ProjectionWhereClauseInference.infer(nInferenceUtil, TypeAnnotatedInferenceContext(target, it::class.java), it) }
