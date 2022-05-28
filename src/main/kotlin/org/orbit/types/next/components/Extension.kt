@@ -39,7 +39,6 @@ data class Extension(val extends: PolymorphicType<*>, val signatures: List<Signa
     override val kind: Kind = IntrinsicKinds.Extension
 
     private val invocation: Invocation by inject()
-    private val printer: Printer by inject()
 
     fun extend(inferenceUtil: InferenceUtil, monomorphicType: MonomorphicType<TypeComponent>) : TypeComponent {
         if (monomorphicType.concreteParameters.count() != extends.parameters.count())
@@ -70,6 +69,17 @@ fun <A, B, R> List<A>.mapZip(other: List<B>, fn: (A, B) -> R) : List<R> {
         nList.add(fn(a, b))
 
         ptr++
+    }
+
+    return nList
+}
+
+fun <A, B> Collection<A>.zipWhere(other: Collection<B>, predicate: (A, B) -> Boolean) : List<Pair<A, B>> {
+    val nList = mutableListOf<Pair<A, B>>()
+    for (a in this) {
+        for (b in other) {
+            if (predicate(a, b)) nList.add(Pair(a, b))
+        }
     }
 
     return nList

@@ -14,7 +14,7 @@ data class TypeFamily<T: TypeComponent>(override val fullyQualifiedName: String,
     override val contracts: List<Contract<*>> = emptyList()
 
     override val isSynthetic: Boolean = false
-    override val kind: Kind = IntrinsicKinds.Family(members.firstOrNull()?.kind ?: IntrinsicKinds.Type)
+    override val kind: Kind = IntrinsicKinds.Family
 
     override fun merge(ctx: Ctx, other: ITrait): ITrait = other
 

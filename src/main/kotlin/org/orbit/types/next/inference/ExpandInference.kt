@@ -43,7 +43,7 @@ object InstanceLiteralValueInference : ConstantValueInference<ConstructorNode, A
         val args = node.parameterNodes.mapIndexed { idx, item ->
             val v = AnyConstantValueInference.infer(inferenceUtil, context, item)
 
-            Field(type.getFields()[idx].name, v.typeValue())
+            Field(type.getMembers()[idx].memberName, v.typeValue())
         }
 
         return InstanceConstantValue(type, args)

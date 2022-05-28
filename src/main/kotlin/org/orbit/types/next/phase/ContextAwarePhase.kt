@@ -14,7 +14,8 @@ object ContextAwarePhase : TypePhase<ContextAwareNode, TypeComponent>, KoinCompo
     override fun run(input: TypePhaseData<ContextAwareNode>): TypeComponent {
         val type = input.inferenceUtil.infer(input.node)
         val contextNode = input.node.context ?: return type
-        val context = input.inferenceUtil.inferAs<ContextExpressionNode, ContextInstantiation>(contextNode)
+        val nInferenceUtil = input.inferenceUtil.derive(self = type)
+        val context = nInferenceUtil.inferAs<ContextExpressionNode, ContextInstantiation>(contextNode)
 
         input.inferenceUtil.addContext(type, context)
 

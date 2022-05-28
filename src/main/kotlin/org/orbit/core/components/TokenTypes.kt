@@ -50,6 +50,7 @@ object TokenTypes : TokenTypeProvider {
     object Expand : TokenType("Expand", "expand", true, false, Family.Keyword)
     object Mirror : TokenType("Mirror", "mirror", true, false, Family.Keyword)
     object Context : TokenType("Context", "context", true, false, Family.Keyword)
+    object By : TokenType("By", "by", true, false, Family.Keyword)
 
     // Compile-time functions
     object Synthesise : TokenType("Synthesise", "synthesise", true, false, Family.CompileTime)
@@ -71,7 +72,7 @@ object TokenTypes : TokenTypeProvider {
             Int, Real, Context, Api, Module, Define, Defer, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias,
             Synthesise,
-            Let, Invoke, In, Of,
+            Let, Invoke, In, Of, By,
             TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,

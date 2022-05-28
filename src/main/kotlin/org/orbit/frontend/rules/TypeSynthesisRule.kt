@@ -20,8 +20,8 @@ object TypeSynthesisRule : ParseRule<TypeSynthesisNode>, KoinComponent {
 
         var next = context.peek()
         val kindToken = context.expect(TokenType.Family.Kind)
-        val kind = IntrinsicKinds.valueOf(kindToken.type)
-            ?: throw invocation.make<Parser>("First argument to compile-time function `synthesise()` must be a Kind, found ${next.text}", next)
+        val kind = IntrinsicKinds.Type //IntrinsicKinds.valueOf(kindToken.type)
+//            ?: throw invocation.make<Parser>("First argument to compile-time function `synthesise()` must be a Kind, found ${next.text}", next)
 
         next = context.peek()
         val target = context.attempt(TypeExpressionRule)

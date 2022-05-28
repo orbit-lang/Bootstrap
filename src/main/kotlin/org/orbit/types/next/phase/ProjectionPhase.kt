@@ -2,11 +2,13 @@ package org.orbit.types.next.phase
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.ProjectionNode
+import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.WhereClauseNode
 import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.AnyInferenceContext
+import org.orbit.types.next.inference.ProjectionWhereClauseInference
+import org.orbit.types.next.inference.TypeAnnotatedInferenceContext
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
@@ -27,24 +29,17 @@ object ProjectionPhase : TypePhase<ProjectionNode, TypeComponent>, KoinComponent
 
         if (target !is ITrait) throw invocation.make<TypeSystem>("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${target.toString(printer)} (Kind: ${target.kind.toString(printer)})", input.node.traitIdentifier)
 
-        val wheres = nInferenceUtil.inferAllAs<WhereClauseNode, Field>(input.node.whereNodes, AnyInferenceContext(WhereClauseNode::class.java))
+        val projectedProperties = input.node.whereNodes
+            .map { ProjectionWhereClauseInference.infer(nInferenceUtil, TypeAnnotatedInferenceContext(target, it::class.java), it) }
+            .map { it.typeValue() as ProjectedProperty<TypeComponent, Contract<TypeComponent>, Member> }
 
-        val nType: IType = Type(source.fullyQualifiedName, source.getFields() + wheres)
-        val mType: TypeComponent = when (source) {
-            is MonomorphicType<*> -> (source as MonomorphicType<IType>).with(nType)
-            else -> nType
-        }
+        val projection = Projection(source, target, projectedProperties)
 
-        input.inferenceUtil.addConformance(mType, target)
+        return when (projection.implementsProjectedTrait(nInferenceUtil.toCtx())) {
+            is ContractResult.Failure -> throw invocation.make<TypeSystem>("Type Projection ${projection.toString(printer)} is not fully implemented", input.node)
 
-        val ctx = input.inferenceUtil.toCtx()
-
-        return when (val result = target.isImplemented(ctx, mType)) {
-            is ContractResult.Success, ContractResult.None -> mType
-            is ContractResult.Failure -> throw invocation.make<TypeSystem>("Type Projection error:\n\t${result.getErrorMessage(printer, source)}", input.node)
-            is ContractResult.Group -> when (result.isSuccessGroup) {
-                true -> mType
-                else -> throw invocation.make<TypeSystem>("Type Projection errors:\n\t${result.getErrorMessage(printer, source)}", input.node)
+            else -> {
+                projection.project(input.inferenceUtil)
             }
         }
     }

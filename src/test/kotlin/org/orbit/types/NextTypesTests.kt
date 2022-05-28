@@ -6,7 +6,6 @@ import junit.framework.TestCase
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -14,8 +13,6 @@ import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.*
 import org.orbit.types.next.utils.sub
 import org.orbit.util.*
-import org.orbit.util.next.BindingScope
-import org.orbit.util.next.TypeMap
 import kotlin.test.assertNotEquals
 
 class NextTypesTests : TestCase() {
@@ -486,7 +483,7 @@ class NextTypesTests : TestCase() {
         val u = Type("u")
         val same = Same(a, b)
         val x = AbstractTypeParameter("x")
-        val p = PolymorphicType<FieldAwareType>(Type("p"), listOf(x), partialFields = emptyList())
+        val p = PolymorphicType<MemberAwareType>(Type("p"), listOf(x), partialFields = emptyList())
         val context = Context("C", listOf(a, b), listOf(same))
             .sub(a, x)
             .sub(b, u)
@@ -508,7 +505,7 @@ class NextTypesTests : TestCase() {
         val u = Type("u")
         val same = Same(a, b)
         val x = AbstractTypeParameter("x")
-        val p = PolymorphicType<FieldAwareType>(Type("p"), listOf(x), partialFields = emptyList())
+        val p = PolymorphicType<MemberAwareType>(Type("p"), listOf(x), partialFields = emptyList())
         val context = Context("C", listOf(a, b), listOf(same))
             .sub(a to x, b to u)
 

@@ -20,7 +20,7 @@ object MetaTypeInference : ITypeExpressionInference<MetaTypeNode, MonomorphicTyp
         return when (polyType.baseType) {
             is Type -> TypeMonomorphiser.monomorphise(
                 inferenceUtil.toCtx(),
-                polyType as PolymorphicType<FieldAwareType>,
+                polyType as PolymorphicType<MemberAwareType>,
                 parameters,
                 MonomorphisationContext.Any
             ).toInferenceResult(printer)

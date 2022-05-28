@@ -88,7 +88,7 @@ object TypeSynthesisInference : Inference<TypeSynthesisNode, ITrait>, KoinCompon
     private val printer: Printer by inject()
 
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeSynthesisNode): InferenceResult {
-        if (node.kind != IntrinsicKinds.Trait) throw invocation.compilerError<TypeSystem>("Only Trait synthesis is currently supported, found ${node.kind.keyword.identifier}", node)
+        if (node.kind != IntrinsicKinds.Trait) throw invocation.compilerError<TypeSystem>("Only Trait synthesis is currently supported, found ${node.kind.fullyQualifiedName}", node)
 
         val target = inferenceUtil.infer(node.targetNode)
 

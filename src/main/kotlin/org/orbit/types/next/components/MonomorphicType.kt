@@ -17,6 +17,9 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
 
     fun with(type: T) = MonomorphicType(polymorphicType, type, concreteParameters, isTotal)
 
+    override val memberName: String = fullyQualifiedName
+    override val type: TypeComponent = this
+
     override fun references(type: TypeComponent): Boolean
         = polymorphicType.references(type) || specialisedType.references(type) || concreteParameters.contains(type)
 
@@ -35,8 +38,8 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
         else -> Never
     }
 
-    override fun getFields(): List<Field> = when (specialisedType) {
-        is IType -> specialisedType.getFields()
+    override fun getMembers(): List<Member> = when (specialisedType) {
+        is IType -> specialisedType.getMembers()
         else -> emptyList()
     }
 
@@ -82,4 +85,6 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
         is Trait -> specialisedType.getErrorMessage(printer, type)
         else -> TODO("@MonomorphicType:35")
     }
+
+    override fun substitute(old: TypeComponent, new: TypeComponent): Contract<ITrait> = this
 }

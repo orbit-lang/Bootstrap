@@ -14,6 +14,9 @@ data class SignatureContract(override val trait: ITrait, override val input: ISi
         return isReceiverEq && areParametersEq && isReturnEq
     }
 
+    override fun matches(name: String): Boolean
+        = input.getName() == name
+
     override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult {
         if (by !is Type) return ContractResult.Failure(by, this)
 
@@ -23,6 +26,10 @@ data class SignatureContract(override val trait: ITrait, override val input: ISi
             true -> ContractResult.Success(by, this)
             else -> ContractResult.Failure(by, this)
         }
+    }
+
+    override fun substitute(old: TypeComponent, new: TypeComponent): Contract<ISignature> {
+        return SignatureContract(trait, SignatureSubstitutor.substitute(input as Signature, old, new))
     }
 
     override fun getErrorMessage(printer: Printer, type: TypeComponent): String

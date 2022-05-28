@@ -1,68 +1,27 @@
 module Orb::Types::Intrinsics {
     type Unit
     type Int
+    type Symbol
 }
 
-module Orb::Meta::Kinds {
-    trait Kind
-
-    type ProtoType
-    trait ProtoTrait
-    type constructor ProtoTypeConstructor <T>
-    trait constructor ProtoTraitConstructor <T>
-
-    alias Type = mirror ProtoType
-    alias Trait = mirror ProtoTrait
-    alias TypeConstructor = mirror ProtoTypeConstructor
-    alias TraitConstructor = mirror ProtoTraitConstructor
+module Orb::Core::Main {
+    type Main
 }
 
 module Test with Orb::* {
-    type Main
-    trait Nat
-    type Zero : Nat
-    type constructor Next<Nat> : Nat
-
-    context Eq [A, B]
-        where A = B
-
-    context Like [A, B]
-        where A : B
-
-    context KindEq [A, B]
-        where A ^ B
-
-    context Value [A]
-        where A ^ mirror expand 0
-
-    alias N0 = expand Zero()
-    alias N1 = expand Next<N0>()
-
-    trait constructor LessThanEqual<N, M>
-        within Like [N, Nat] + Like [M, Nat] + Value [N] + Value [M]
-
-    trait constructor Functor<F>
-        within KindEq [F, TypeConstructor]
-
-    trait constructor SemiGroup<T> {
-        (Self) combine (a T, b T) (T)
+    trait A(x Int, y Symbol) {
+        (Self) new (n Int) (Self)
     }
 
-    type IntSemiGroup : SemiGroup<Int>
-    type UnitSemiGroup : SemiGroup<Unit>
+    type B
 
-    (IntSemiGroup) combine (a Int, b Int) (Int) = a
-    (UnitSemiGroup) combine (a Unit, b Unit) () = b
-
-    type constructor List<Element>()
-
-#    type constructor ListFunctor<Element> : Functor<List<Element>>
-#
-#    extension ListFunctor {
-#        (self Self)
-#    }
+    projection B : A
+        where x by { 1 }
+        where y = :a
+        where new by { Self() }
 
     (Main) foo _ _ {
-        r = IntSemiGroup.combine(1, 2)
+        b = B()
+        c = B.new(2)
     }
 }

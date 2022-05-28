@@ -3,7 +3,6 @@ package org.orbit.types.next.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.ConstructorNode
-import org.orbit.core.nodes.ExpressionNode
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -60,13 +59,26 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
             else -> return Never("Attempting to instantiate non-Type (${t.kind.toString(printer)}) ${t.toString(printer)}").inferenceResult()
         }
 
-        if (args.count() != source.getFields().count()) {
+        // NOTE - We only need as many args as there are declared Fields on the Type under construction
+        val fields = source.getMembers().filterIsInstance<Field>()
+        if (args.count() != fields.count()) {
             var recovered = false
-            for (pair in source.getFields().withIndex()) {
-                if (pair.value.defaultValue == null) continue
-                args.add(pair.index, pair.value.type as IType)
+            for (pair in fields.withIndex()) {
+                val member = pair.value
+                if (member.defaultValue == null) continue
 
-                if (args.count() == source.getFields().count()) {
+                val idx = source.getMembers().indexOfFirst { it.memberName == member.memberName }
+                val constructorMembers = source.getMembers().filter { it is Field || it is Property }
+                if (idx != pair.index) {
+                    val delta = idx - pair.index
+                    for (i in IntRange(0, delta - 1)) {
+                        args.add(i, constructorMembers[i].type)
+                    }
+                }
+
+                args.add(idx, member.type as IType)
+
+                if (args.count() == constructorMembers.count()) {
                     recovered = true
                     break
                 }
@@ -80,8 +92,8 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
             }
         }
 
-        val nFields = source.getFields().zip(args).map {
-            Field(it.first.name, it.second)
+        val nFields = source.getMembers().zip(args).map {
+            Field(it.first.memberName, it.second)
         }
 
         val ctx = inferenceUtil.toCtx()

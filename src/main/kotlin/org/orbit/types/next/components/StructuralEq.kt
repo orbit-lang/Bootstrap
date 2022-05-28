@@ -20,6 +20,9 @@ object StructuralEq : ITypeEq<ITrait, TypeComponent> {
             else -> ctx.getConformance(b).contains(a)
         }
 
+        val extensions = ctx.getTypes().filterIsInstance<Extension>()
+        val projections = ctx.getTypes().filterIsInstance<Projection>()
+
         when (a.contracts.isEmpty()) {
             true -> when (explicitConformance) {
                 true -> true

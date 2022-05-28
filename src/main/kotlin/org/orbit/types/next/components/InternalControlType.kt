@@ -5,8 +5,10 @@ import org.orbit.util.Printer
 import org.orbit.util.next.IAlias
 
 sealed interface InternalControlType : TypeComponent, ITrait, IType, IAlias, ISignature {
-    override fun getFields(): List<Field> = emptyList()
+    override val memberName: String get() = fullyQualifiedName
+    override val type: TypeComponent get() = this
 
+    override fun getMembers(): List<Member> = emptyList()
     override fun merge(ctx: Ctx, other: ITrait): ITrait = other
     override fun getSignature(printer: Printer): ISignature = Never("${toString(printer)} is not a Signature")
     override fun getName(): String = ""
@@ -41,6 +43,8 @@ object Anything : InternalControlType {
         is Never -> other
         else -> this
     }
+
+    override fun substitute(old: TypeComponent, new: TypeComponent): Contract<ITrait> = this
 }
 
 interface NeverType : InternalControlType {
@@ -49,4 +53,5 @@ interface NeverType : InternalControlType {
 
     override val contracts: List<Contract<*>> get() = emptyList()
     override val kind: Kind get() = IntrinsicKinds.Type
+    override fun getName(): String = fullyQualifiedName
 }

@@ -2,21 +2,20 @@ package org.orbit.types.next.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.types.next.inference.TypeReference
 
 interface Entity : DeclType
 
-interface FieldAwareType : Entity {
-    fun getFields() : List<Field>
+interface MemberAwareType : Entity {
+    fun getMembers(): List<Member>
 }
 
-interface IType : FieldAwareType {
+interface IType : MemberAwareType {
     fun deriveTrait(ctx: Ctx) : ITrait
 }
 
-data class Type(override val fullyQualifiedName: String, private val fields: List<Field> = emptyList(), override val isSynthetic: Boolean = false) : IType {
-    constructor(path: Path, fields: List<Field> = emptyList(), isSynthetic: Boolean = false)
-        : this(OrbitMangler.mangle(path), fields, isSynthetic)
+data class Type(override val fullyQualifiedName: String, internal val members: List<Member> = emptyList(), override val isSynthetic: Boolean = false) : IType {
+    constructor(path: Path, members: List<Member> = emptyList(), isSynthetic: Boolean = false)
+        : this(OrbitMangler.mangle(path), members, isSynthetic)
 
     override val kind: Kind = IntrinsicKinds.Type
 
@@ -27,7 +26,7 @@ data class Type(override val fullyQualifiedName: String, private val fields: Lis
         else -> false
     }
 
-    override fun getFields(): List<Field> = fields
+    override fun getMembers(): List<Member> = members
 
     override fun deriveTrait(ctx: Ctx): ITrait = (when (_trait) {
         null -> InterfaceSynthesiser.synthesise(ctx, this)

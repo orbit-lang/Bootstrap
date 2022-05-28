@@ -6,12 +6,33 @@ import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import kotlin.math.max
 
-interface Kind : TypeComponent {
-    override val fullyQualifiedName: String
-        get() = keyword.identifier
+sealed interface Sort : TypeComponent {
+    override val fullyQualifiedName: String get() {
+        return javaClass.simpleName
+    }
 
-    val keyword: TokenType
-    val level: Int
+    override val isSynthetic: Boolean get() = false
+    override val kind: org.orbit.types.next.components.Kind get() = IntrinsicKinds.NeverKind
+
+    object Entity : Sort
+    object Kind : Sort
+    object Order : Sort
+    object Augmentation : Sort
+
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
+        is Sort -> when (fullyQualifiedName) {
+            other.fullyQualifiedName -> TypeRelation.Same(this, other)
+            else -> TypeRelation.Unrelated(this, other)
+        }
+
+        else -> TypeRelation.Unrelated(this, other)
+    }
+}
+
+interface Kind : TypeComponent {
+    override val fullyQualifiedName: String get() = javaClass.simpleName
+    override val isSynthetic: Boolean get() = false
+    override val kind: Kind get() = this
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (other) {
         is Kind -> when (other.fullyQualifiedName) {
@@ -24,59 +45,14 @@ interface Kind : TypeComponent {
 }
 
 sealed interface IntrinsicKinds : Kind {
-    object Context : IntrinsicKinds {
-        override val level: Int = Int.MAX_VALUE
-        override val keyword: TokenType = TokenTypes.Context
-    }
-
-    object Extension : IntrinsicKinds {
-        override val level: Int = Int.MAX_VALUE
-        override val keyword: TokenType = TokenTypes.Extension
-    }
-
-    object Value : IntrinsicKinds {
-        override val level: Int = -1
-        override val keyword: TokenType
-            = object : TokenType("Value", "Value", true, false, Family.Kind) {}
-    }
-
-    data class Type(override val level: Int = 0) : IntrinsicKinds {
-        override val keyword: TokenType = TokenTypes.Type
-
-        companion object : IntrinsicKinds {
-            override val keyword: TokenType = TokenTypes.Type
-            override val level: Int = 0
-        }
-    }
-
-    data class Trait(override val level: Int = 0) : IntrinsicKinds {
-        override val keyword: TokenType = TokenTypes.Trait
-
-        companion object : IntrinsicKinds {
-            override val keyword: TokenType = TokenTypes.Trait
-            override val level: Int = 0
-        }
-    }
-
-    data class Family<K: Kind>(override val kind: K) : IntrinsicKinds {
-        override val keyword: TokenType = TokenTypes.Family
-        override val level: Int = kind.level
-    }
-
-    override val kind: Kind get() = when (this) {
-        is Type, Type -> Type(level + 1)
-        is Trait, Trait -> Trait(level + 1)
-        else -> this
-    }
-
-    companion object {
-        fun values() : List<IntrinsicKinds> = listOf(Type, Trait)
-
-        fun valueOf(keyword: TokenType) : Kind?
-            = values().firstOrNull { it.keyword == keyword }
-    }
-
-    override val isSynthetic: Boolean get() = false
+    object NeverKind : IntrinsicKinds
+    object Context : IntrinsicKinds
+    object Extension : IntrinsicKinds
+    object Projection : IntrinsicKinds
+    object Value : IntrinsicKinds
+    object Type : IntrinsicKinds
+    object Trait : IntrinsicKinds
+    object Family : IntrinsicKinds
 }
 
 fun Kind.toString(printer: Printer) : String
@@ -88,12 +64,8 @@ interface CompositeKind : Kind {
 
 data class Product(val left: Kind, val right: Kind) : CompositeKind {
     override val fullyQualifiedName: String = "${left.fullyQualifiedName} + ${right.fullyQualifiedName}"
-    override val level: Int = max(left.level, right.level)
     override val isSynthetic: Boolean = true
     override val op: String = "+"
-
-    override val kind: Kind = this
-    override val keyword: TokenType = TokenTypes.Type
 }
 
 fun Product.toString(printer: Printer) : String {
@@ -102,12 +74,10 @@ fun Product.toString(printer: Printer) : String {
 
 data class Sum(val left: Kind, val right: Kind) : CompositeKind {
     override val fullyQualifiedName: String = "${left.fullyQualifiedName} * ${right.fullyQualifiedName}"
-    override val level: Int = max(left.level, right.level)
     override val isSynthetic: Boolean = true
     override val op: String = "*"
 
     override val kind: Kind = this
-    override val keyword: TokenType = TokenTypes.Type
 }
 
 data class TupleKind(val elements: List<Kind>) : Kind {
@@ -115,11 +85,8 @@ data class TupleKind(val elements: List<Kind>) : Kind {
         return elements.joinToString(", ") { it.kind.fullyQualifiedName }
     }
 
-    override val level: Int = elements.maxOf { it.level }
     override val isSynthetic: Boolean = true
-
     override val kind: Kind = this
-    override val keyword: TokenType = TokenTypes.Type
 }
 
 fun Sum.toString(printer: Printer) : String {
@@ -127,12 +94,11 @@ fun Sum.toString(printer: Printer) : String {
 }
 
 data class HigherKind(val from: Kind, val to: Kind) : Kind {
+    companion object {
+        val typeConstructor1 = HigherKind(IntrinsicKinds.Type, IntrinsicKinds.Type)
+    }
+
     override val fullyQualifiedName: String = "(${from.fullyQualifiedName}) -> (${to.fullyQualifiedName})"
-    override val level: Int = from.level + 1
     override val isSynthetic: Boolean = true
-
     override val kind: Kind = this
-
-    override val keyword: TokenType
-        get() = TokenTypes.HigherKind(level)
 }

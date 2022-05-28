@@ -43,4 +43,6 @@ interface Contract<T: TypeComponent> {
 
     fun isImplemented(ctx: Ctx, by: TypeComponent) : ContractResult
     fun getErrorMessage(printer: Printer, type: TypeComponent) : String
+    fun matches(name: String) : Boolean = false
+    fun substitute(old: TypeComponent, new: TypeComponent) : Contract<T> = this
 }

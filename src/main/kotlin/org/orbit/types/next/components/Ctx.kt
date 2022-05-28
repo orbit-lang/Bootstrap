@@ -80,11 +80,20 @@ class Ctx constructor() : IContext {
         return Ctx(distinctTypes, distinctConformance)
     }
 
-    fun getSignatures(type: Type) : List<ISignature>
-        = types.filterIsInstance<Signature>()
-            .filter {
-                AnyEq.eq(this, it.getReceiverType(), type)
-            }
+    fun getSignatures(type: Type) : List<ISignature> {
+        val baseSignatures = types.filterIsInstance<Signature>().filter {
+            AnyEq.eq(this, it.getReceiverType(), type)
+        }
+
+        val extendedSignatures = types.filterIsInstance<Extension>().flatMap { it.signatures }
+        val projectedSignatures = types.filterIsInstance<Projection>().flatMap {
+            val m = it.projectedProperties.map { p -> p.project() }
+
+            m.filterIsInstance<Signature>()
+        }
+
+        return baseSignatures + extendedSignatures + projectedSignatures
+    }
 
     fun getConformance(type: TypeComponent) : List<ITrait>
         = (conformanceMap.filter { it.key == type }

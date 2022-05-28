@@ -14,7 +14,6 @@ interface TypeComponent {
     fun compare(ctx: Ctx, other: TypeComponent) : TypeRelation
     fun inferenceKey() : String = fullyQualifiedName
     fun references(type: TypeComponent) : Boolean = type.fullyQualifiedName == fullyQualifiedName
-//    fun toJson() : JsonObject
 
     fun toString(printer: Printer) : String
         = printer.apply(fullyQualifiedName, org.orbit.util.PrintableKey.Bold)
@@ -75,6 +74,8 @@ data class Never(override val message: String = "", override val position: Sourc
             is Anything -> this
             else -> other
         }
+
+        override fun substitute(old: TypeComponent, new: TypeComponent): Contract<ITrait> = this
     }
 
     private val invocation: Invocation by inject()
@@ -103,6 +104,8 @@ data class Never(override val message: String = "", override val position: Sourc
         is Never -> Never(message + "\n" + other.message)
         else -> this
     }
+
+    override fun substitute(old: TypeComponent, new: TypeComponent): Contract<ITrait> = this
 }
 
 fun List<Never>.combine(message: String) : Never {

@@ -34,7 +34,7 @@ interface ITypeRef : ValueType, ITrait, IType, ISignature {
         else -> type.deriveTrait(ctx)
     }
 
-    override fun getFields(): List<Field> = emptyList()
+    override fun getMembers(): List<Member> = emptyList()
 
     override fun merge(ctx: Ctx, other: ITrait): ITrait {
         val t = ctx.getType(fullyQualifiedName) ?: return Never
@@ -74,12 +74,22 @@ data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
     constructor(path: Path) : this(path.toString(OrbitMangler))
 
     override val kind: Kind = IntrinsicKinds.Type
+    override val memberName: String
+        get() = TODO("Not yet implemented")
+    override val type: TypeComponent
+        get() = TODO("Not yet implemented")
 
     companion object : ITypeRef {
         override val fullyQualifiedName: String
             get() = throw RuntimeException("FATAL - Naked Type Reference")
         override val isSynthetic: Boolean
             get() = throw RuntimeException("FATAL - Naked Type Reference")
+
+        override val memberName: String
+            get() = TODO("Not yet implemented")
+
+        override val type: TypeComponent
+            get() = TODO("Not yet implemented")
 
         override val kind: Kind = IntrinsicKinds.Type
 

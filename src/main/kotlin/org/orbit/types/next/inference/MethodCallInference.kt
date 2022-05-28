@@ -2,13 +2,10 @@ package org.orbit.types.next.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.AnySerializable
 import org.orbit.core.OrbitMangler
 import org.orbit.core.SerialSignature
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.MethodCallNode
-import org.orbit.core.phase.flatMapNotNull
-import org.orbit.graph.extensions.annotate
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -23,9 +20,9 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
         val receiver = inferenceUtil.infer(node.receiverExpression)
 
         if (node.isPropertyAccess) {
-            if (receiver is FieldAwareType) {
-                val matches = receiver.getFields()
-                    .filter { it.name == node.messageIdentifier.identifier }
+            if (receiver is MemberAwareType) {
+                val matches = receiver.getMembers()
+                    .filter { it.memberName == node.messageIdentifier.identifier }
 
                 if (matches.isEmpty())
                     throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a Field named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Bold, PrintableKey.Italics)}", node.messageIdentifier.firstToken)
@@ -107,7 +104,7 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
             Never("Cannot call method ${signature.toString(printer)} with arguments ($calleePretty), expected ($signaturePretty)")
         }
 
-        if (callableInterface.contracts.count() != calleeType.getFields().count())
+        if (callableInterface.contracts.count() != calleeType.getMembers().count())
             return onFailure().inferenceResult()
 
         node.annotate(SerialSignature(signature), Annotations.Signature)

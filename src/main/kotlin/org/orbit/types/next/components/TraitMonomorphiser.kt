@@ -51,7 +51,7 @@ object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int
             val resolved = when (it.input.type) {
                 is ITypeRef -> FieldContract(
                     it.trait,
-                    Field(it.input.name, ctx.getType(it.input.type.fullyQualifiedName)!!, it.input.defaultValue)
+                    Field(it.input.memberName, ctx.getType(it.input.type.fullyQualifiedName)!!, it.input.defaultValue)
                 )
                 else -> it
             }
@@ -60,7 +60,7 @@ object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int
             when (resolved.input.type is AbstractTypeParameter) {
                 true -> when (val e = over.firstOrNull { o -> o.first == idx }) {
                     null -> it
-                    else -> FieldContract(TypeReference(nPath), Field(it.input.name, e.second))
+                    else -> FieldContract(TypeReference(nPath), Field(it.input.memberName, e.second))
                 }
                 else -> it
             }

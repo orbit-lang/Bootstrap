@@ -92,8 +92,8 @@ data class EqualityConstraint<T: TypeComponent>(private val left: SelfIndex, pri
         if (idx == -1) return null
 
         val result = when (input.baseType) {
-            is Type -> TypeMonomorphiser.monomorphise(ctx, input as PolymorphicType<FieldAwareType>, listOf(idx + right), MonomorphisationContext.Any)
-            is MonomorphicType<*> -> TypeMonomorphiser.monomorphise(ctx, input.baseType.polymorphicType as PolymorphicType<FieldAwareType>, input.baseType.concreteParameters.map { Pair(it.index, it.concreteType) } + listOf(input.baseType.concreteParameters.count() + right), MonomorphisationContext.Any)
+            is Type -> TypeMonomorphiser.monomorphise(ctx, input as PolymorphicType<MemberAwareType>, listOf(idx + right), MonomorphisationContext.Any)
+            is MonomorphicType<*> -> TypeMonomorphiser.monomorphise(ctx, input.baseType.polymorphicType as PolymorphicType<MemberAwareType>, input.baseType.concreteParameters.map { Pair(it.index, it.concreteType) } + listOf(input.baseType.concreteParameters.count() + right), MonomorphisationContext.Any)
             else -> TODO("@EqualityConstraint:33")
         }
 

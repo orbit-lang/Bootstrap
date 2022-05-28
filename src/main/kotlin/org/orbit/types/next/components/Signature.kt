@@ -5,11 +5,11 @@ import org.orbit.core.Path
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 
-interface ISignature : DeclType {
+interface ISignature : DeclType, Member {
     fun getSignature(printer: Printer) : ISignature
     fun getSignatureTypeParameters() : List<AbstractTypeParameter> = emptyList()
-    fun getName() : String
     fun getReceiverType() : TypeComponent
+    fun getName() : String
     fun getParameterTypes() : List<TypeComponent>
     fun getReturnType() : TypeComponent
 }
@@ -29,6 +29,8 @@ data class Signature(val relativeName: String, val receiver: TypeComponent, val 
             .toString(OrbitMangler)
 
     override val kind: Kind = IntrinsicKinds.Type
+    override val memberName: String = relativeName
+    override val type: TypeComponent = this
 
     fun withInferredReturnType(type: TypeComponent) : Signature
         = Signature(relativeName, receiver, parameters, type, isSynthetic)

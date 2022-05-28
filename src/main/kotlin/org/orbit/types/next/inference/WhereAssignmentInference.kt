@@ -52,3 +52,11 @@ object WhereAssignmentInference : Inference<AssignmentStatementNode, Field> {
             .inferenceResult()
     }
 }
+
+object WhereClauseByExpressionInference : Inference<WhereClauseByExpressionNode, Func> {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: WhereClauseByExpressionNode): InferenceResult {
+        val lambda = inferenceUtil.inferAs<LambdaLiteralNode, Func>(node.lambdaExpression)
+
+        return lambda.inferenceResult()
+    }
+}

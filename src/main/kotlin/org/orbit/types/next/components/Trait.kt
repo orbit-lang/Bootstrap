@@ -22,7 +22,7 @@ fun List<ITrait>.mergeAll(ctx: Ctx) : ITrait = fold(Anything as ITrait) { acc, n
     }
 }
 
-data class Trait(override val fullyQualifiedName: String, override val contracts: List<Contract<*>> = emptyList(), override val isSynthetic: Boolean = false) : ITrait, FieldAwareType {
+data class Trait(override val fullyQualifiedName: String, override val contracts: List<Contract<*>> = emptyList(), override val isSynthetic: Boolean = false) : ITrait, MemberAwareType {
     constructor(path: Path, contracts: List<Contract<*>> = emptyList(), isSynthetic: Boolean = false) : this(path.toString(OrbitMangler), contracts, isSynthetic)
 
     override val trait: Trait = this
@@ -35,7 +35,7 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
         else -> ContractResult.Failure(by, this)
     }
 
-    override fun getFields(): List<Field> = contracts.filterIsInstance<FieldContract>()
+    override fun getMembers(): List<Member> = contracts.filterIsInstance<FieldContract>()
         .map { it.input }
 
     override fun getErrorMessage(printer: Printer, type: TypeComponent): String
@@ -50,7 +50,7 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
         val nFieldContracts = mutableListOf<FieldContract>()
         for (f1 in getTypedContracts<FieldContract>()) {
             for (f2 in other.getTypedContracts(FieldContract::class.java)) {
-                if (f1.input.name == f2.input.name) {
+                if (f1.input.memberName == f2.input.memberName) {
                     if (AnyEq.eq(ctx, f1.input, f2.input)) {
                         // Name is the same, types are related
                         // We need the least specific of the two here

@@ -14,6 +14,7 @@ import java.util.UUID
 
 object ExtensionStubPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
     override val invocation: Invocation by inject()
+    private val printer: Printer by inject()
 
     override fun run(input: TypePhaseData<ExtensionNode>): Extension {
         val extends = input.inferenceUtil.infer(input.node.targetTypeNode)
@@ -23,7 +24,7 @@ object ExtensionStubPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
 
         return when (extends) {
             is PolymorphicType<*> -> Extension(extends, signatures, Context(UUID.randomUUID().toString(), emptyList(), emptyList()))
-            else -> TODO("Extensions on non-Poly Types")
+            else -> throw invocation.make<TypeSystem>("Only Types of Kind level >= 1 may be extended (e.g. Kind: ${HigherKind.typeConstructor1.toString(printer)}), found ${extends.toString(printer)} (Kind: ${extends.kind.toString(printer)})", input.node.targetTypeNode)
         }
     }
 }
@@ -35,8 +36,7 @@ object ExtensionPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
     override fun run(input: TypePhaseData<ExtensionNode>): Extension {
         val extendedType = input.inferenceUtil.infer(input.node.targetTypeNode)
         val nInferenceUtil = input.inferenceUtil.derive(self = extendedType)
-        val extension = input.inferenceUtil.get(input.node) as? Extension
-            ?: TODO("")
+        val extension = input.inferenceUtil.get(input.node) as Extension
         val nContext = input.inferenceUtil.getContexts(extension.extends)
             .map { it.context }
             .fold(Context.empty) { acc, next -> when (val r = acc.merge(next)) {

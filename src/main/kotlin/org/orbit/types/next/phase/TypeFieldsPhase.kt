@@ -23,7 +23,7 @@ object TypeFieldsPhase : TypePhase<TypeDefNode, IType>, KoinComponent {
         val nInferenceUtil = input.inferenceUtil.derive(retainsTypeMap = true, retainsBindingScope = true, TypeReference(typeStub.fullyQualifiedName))
         val fields = nInferenceUtil.inferAllAs<PairNode, Field>(input.node.propertyPairs, AnyInferenceContext(PairNode::class.java))
 
-        val grouped = fields.groupBy { it.name }
+        val grouped = fields.groupBy { it.memberName }
 
         for (group in grouped) {
             if (group.value.count() > 1) {

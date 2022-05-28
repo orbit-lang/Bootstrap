@@ -65,4 +65,7 @@ data class Func(override val takes: VectorType, override val returns: TypeCompon
         is Lambda -> curry().compare(ctx, other)
         else -> TypeRelation.Unrelated(this, other)
     }
+
+    fun toSignature(name: String, receiver: TypeComponent) : ISignature
+        = Signature(name, receiver, takes.elements, returns)
 }

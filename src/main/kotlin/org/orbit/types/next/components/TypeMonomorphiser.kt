@@ -12,7 +12,7 @@ import org.orbit.util.Printer
 fun List<Pair<Int, TypeComponent>>.toConcreteParameters(given: List<AbstractTypeParameter>) : List<ConcreteTypeParameter>
     = map { ConcreteTypeParameter(it.first, given[it.first], it.second) }
 
-object TypeMonomorphiser : Monomorphiser<PolymorphicType<FieldAwareType>, List<Pair<Int, TypeComponent>>, FieldAwareType>, KoinComponent {
+object TypeMonomorphiser : Monomorphiser<PolymorphicType<MemberAwareType>, List<Pair<Int, TypeComponent>>, MemberAwareType>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
@@ -21,7 +21,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<FieldAwareType>, List<P
     fun getPolymorphicSource(type: TypeComponent) : MonomorphicType<*>?
         = monos[type.fullyQualifiedName]
 
-    override fun monomorphise(ctx: Ctx, input: PolymorphicType<FieldAwareType>, over: List<Pair<Int, TypeComponent>>, context: MonomorphisationContext): MonomorphisationResult<FieldAwareType> {
+    override fun monomorphise(ctx: Ctx, input: PolymorphicType<MemberAwareType>, over: List<Pair<Int, TypeComponent>>, context: MonomorphisationContext): MonomorphisationResult<MemberAwareType> {
         if (over.count() > input.parameters.count()) return MonomorphisationResult.Failure(input.baseType)
 
         // TODO - Assuming Polytype is total for the time being
@@ -50,9 +50,13 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<FieldAwareType>, List<P
             }
         }
 
-        val nFields = input.baseType.getFields().map {
+        val nFields = input.baseType.getMembers().map {
             val resolved = when (it.type) {
-                is ITypeRef -> Field(it.name, ctx.getType(it.type.fullyQualifiedName)!!, it.defaultValue)
+                is ITypeRef -> when (it) {
+                    is Field -> Field(it.memberName, ctx.getType(it.type.fullyQualifiedName)!!, it.defaultValue)
+                    is Property -> Property(it.memberName, Func(it.lambda.takes, ctx.getType(it.type.fullyQualifiedName)!!))
+                    else -> TODO("!!!")
+                }
                 else -> it
             }
 
@@ -60,7 +64,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<FieldAwareType>, List<P
             when (resolved.type is AbstractTypeParameter) {
                 true -> when (val e = over.firstOrNull { o -> o.first == idx }) {
                     null -> resolved
-                    else -> Field(resolved.name, e.second)
+                    else -> Field(resolved.memberName, e.second)
                 }
                 else -> resolved
             }
@@ -80,7 +84,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<FieldAwareType>, List<P
             else -> {
                 val delta = input.parameters.count() - over.count()
                 val unresolvedParameters = input.parameters.slice(IntRange(delta, input.parameters.count() - 1))
-                val nPoly = PolymorphicType(MonomorphicType(input, nType, over.toConcreteParameters(input.parameters), false) as FieldAwareType, unresolvedParameters, partialFields = nFields, traitConformance = input.traitConformance)
+                val nPoly = PolymorphicType(MonomorphicType(input, nType, over.toConcreteParameters(input.parameters), false) as MemberAwareType, unresolvedParameters, partialFields = nFields, traitConformance = input.traitConformance)
 
                 MonomorphisationResult.Partial(nPoly)
             }
@@ -92,7 +96,7 @@ object MonoUtil : KoinComponent {
     private val printer: Printer by inject()
 
     fun monomorphise(ctx: Ctx, polyType: PolymorphicType<*>, parameters: List<Pair<Int, TypeComponent>>, selfType: TypeComponent?) : MonomorphisationResult<*> = when (polyType.baseType) {
-        is Type -> TypeMonomorphiser.monomorphise(ctx, polyType as PolymorphicType<FieldAwareType>, parameters, MonomorphisationContext.Any)
+        is Type -> TypeMonomorphiser.monomorphise(ctx, polyType as PolymorphicType<MemberAwareType>, parameters, MonomorphisationContext.Any)
 
         is Trait -> TraitMonomorphiser.monomorphise(ctx, polyType as PolymorphicType<ITrait>, parameters, MonomorphisationContext.TraitConformance(selfType))
 

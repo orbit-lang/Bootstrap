@@ -1,9 +1,6 @@
 package org.orbit.types.next.components
 
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import org.orbit.types.next.intrinsics.Native
-import org.orbit.util.Printer
 
 object MonoEq : ITypeEq<MonomorphicType<*>, TypeComponent> {
     override fun eq(ctx: Ctx, a: MonomorphicType<*>, b: TypeComponent): Boolean = when (b) {
@@ -63,9 +60,9 @@ object TypeEq : ITypeEq<Type, TypeComponent> {
             null -> false
             else -> AnyEq.eq(ctx, mono, b)
         }
-        is PolymorphicType<*> -> when (a.getFields().count() == b.partialFields.count()) {
+        is PolymorphicType<*> -> when (a.getMembers().count() == b.partialFields.count()) {
             true -> {
-                val zip = b.partialFields.zip(a.getFields()).map { Pair(it.first.type as AbstractTypeParameter, it.second.type) }
+                val zip = b.partialFields.zip(a.getMembers()).map { Pair(it.first.type as AbstractTypeParameter, it.second.type) }
 
                 zip.all { AnyEq.eq(ctx, it.first, it.second) }
             }
