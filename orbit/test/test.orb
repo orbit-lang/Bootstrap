@@ -2,6 +2,7 @@ module Orb::Types::Intrinsics {
     type Unit
     type Int
     type Symbol
+    trait AnyType
 }
 
 module Orb::Core::Main {
@@ -11,6 +12,7 @@ module Orb::Core::Main {
 module Test with Orb::* {
     trait A(x Int, y Symbol) {
         (Self) new (n Int) (Self)
+        (self Self) getX (a Int, b Int) (Int)
     }
 
     type B
@@ -19,9 +21,10 @@ module Test with Orb::* {
         where x by { 1 }
         where y = :a
         where new by { Self() }
+        where getX by (s, a, b) in { 1 }
 
     (Main) foo _ _ {
         b = B()
-        c = B.new(2)
+        c = B.new(1)
     }
 }

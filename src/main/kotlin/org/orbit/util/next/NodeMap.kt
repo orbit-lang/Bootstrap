@@ -65,6 +65,10 @@ class TypeMap constructor(): ITypeMap {
     private val extensionMap = mutableMapOf<String, List<String>>()
 
     override fun declare(type: DeclType) {
+        val ex = visibleTypes[type.fullyQualifiedName] as? DeclType
+
+        if (ex != null && ex.isWeakenedBy(type)) return
+
         visibleTypes[type.fullyQualifiedName] = type
     }
 
@@ -169,7 +173,7 @@ class TypeMap constructor(): ITypeMap {
 }
 
 interface IBindingScope {
-    fun bind(name: String, type: TypeComponent)
+    fun bind(name: String, type: TypeComponent, overwrite: Boolean = true)
     fun getType(name: String) : TypeComponent?
 }
 
@@ -179,7 +183,20 @@ sealed class BindingScope : IBindingScope {
 
     private val bindings = mutableMapOf<String, TypeComponent>()
 
-    override fun bind(name: String, type: TypeComponent) {
+    fun allBindings() : Map<String, TypeComponent>
+        = bindings
+
+    fun derive() : IBindingScope {
+        val nBindingScope = Leaf(this)
+
+        allBindings().forEach { (k, v) -> nBindingScope.bind(k, v) }
+
+        return nBindingScope
+    }
+
+    override fun bind(name: String, type: TypeComponent, overwrite: Boolean) {
+        if (bindings[name] != null && !overwrite) return
+
         bindings[name] = type
     }
 

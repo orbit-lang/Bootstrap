@@ -13,6 +13,11 @@ interface ITrait : Entity, Contract<ITrait> {
 
     fun merge(ctx: Ctx, other: ITrait) : ITrait
     fun <C: Contract<*>> getTypedContracts(clazz: Class<C>) : List<C> = contracts.filterIsInstance(clazz)
+
+    override fun isWeakenedBy(other: DeclType): Boolean = when (other) {
+        is ITrait -> other.fullyQualifiedName == fullyQualifiedName && other.contracts.count() < contracts.count()
+        else -> false
+    }
 }
 
 fun List<ITrait>.mergeAll(ctx: Ctx) : ITrait = fold(Anything as ITrait) { acc, next ->

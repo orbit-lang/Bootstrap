@@ -73,6 +73,13 @@ object TypeEq : ITypeEq<Type, TypeComponent> {
 }
 
 object TraitEq : ITypeEq<Trait, TypeComponent> {
+    fun weakEq(ctx: Ctx, a: Trait, b: TypeComponent): Boolean = when (b) {
+        // TODO - Vomit!
+        is Kind -> NominalEq.eq(ctx, a, Native.Traits.Kind.trait)
+        is Type, is ITypeParameter -> StructuralEq.weakEq(ctx, a, b)
+        else -> NominalEq.eq(ctx, a, b)
+    }
+
     override fun eq(ctx: Ctx, a: Trait, b: TypeComponent): Boolean = when (b) {
         // TODO - Vomit!
         is Kind -> NominalEq.eq(ctx, a, Native.Traits.Kind.trait)
@@ -103,8 +110,27 @@ object ValueEq : ITypeEq<IConstantValue<*>, TypeComponent> {
 }
 
 object AnyEq : ITypeEq<TypeComponent, TypeComponent> {
-    override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereference(a, b) { a, b ->
+    fun weakEq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereference(a, b) { a, b ->
         when (a) {
+            is Infer -> true
+            is Anything -> true
+            is IConstantValue<*> -> ValueEq.eq(ctx, a, b)
+            is Kind -> KindEq.eq(ctx, a, b)
+            is MonomorphicType<*> -> MonoEq.eq(ctx, a, b)
+            is PolymorphicType<*> -> PolyEq.eq(ctx, a, b)
+            is Type -> TypeEq.eq(ctx, a, b)
+            is Trait -> TraitEq.weakEq(ctx, a, b)
+            is TypeFamily<*> -> FamilyEq.eq(ctx, a, b)
+            is ITypeParameter -> ParameterEq.eq(ctx, a, b)
+            else -> NominalEq.eq(ctx, a, b)
+        }
+    }
+
+    override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean {
+        val a = ctx.deref(a)
+        val b = ctx.deref(b)
+
+        return when (a) {
             is Infer -> true
             is Anything -> true
             is IConstantValue<*> -> ValueEq.eq(ctx, a, b)

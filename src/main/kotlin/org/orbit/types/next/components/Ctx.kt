@@ -40,22 +40,18 @@ class Ctx constructor() : IContext {
         return types.find { it.fullyQualifiedName == name }
     }
 
-    private fun deref(ref: TypeComponent) : TypeComponent = when (ref) {
+    fun deref(ref: TypeComponent) : TypeComponent = when (ref) {
         is TypeReference -> types.find { it.fullyQualifiedName == ref.fullyQualifiedName }!!
         else -> ref
     }
 
-    fun <R> dereference(ref: TypeComponent, block: (TypeComponent) -> R) : R = when (ref) {
-        is TypeReference -> {
-            val type = types.find { it.fullyQualifiedName == ref.fullyQualifiedName }!!
+    fun <T: TypeComponent, R> dereference(ref: T, block: (T) -> R) : R {
+        val type = types.find { it.fullyQualifiedName == ref.fullyQualifiedName } ?: return block(ref)
 
-            block(type)
-        }
-
-        else -> block(ref)
+        return block(type as T)
     }
 
-    fun <R> dereference(a: TypeComponent, b: TypeComponent, block: (TypeComponent,TypeComponent) -> R) : R {
+    fun <R> dereference(a: TypeComponent, b: TypeComponent, block: (TypeComponent, TypeComponent) -> R) : R {
         val nA = deref(a)
         val nB = deref(b)
 

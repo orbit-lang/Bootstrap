@@ -21,20 +21,30 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
 
         if (node.isPropertyAccess) {
             if (receiver is MemberAwareType) {
-                val matches = receiver.getMembers()
-                    .filter { it.memberName == node.messageIdentifier.identifier }
+                return inferenceUtil.toCtx().dereference(receiver) { receiver ->
+                    val matches = receiver.getMembers()
+                        .filter { it.memberName == node.messageIdentifier.identifier }
 
-                if (matches.isEmpty())
-                    throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a Field named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Bold, PrintableKey.Italics)}", node.messageIdentifier.firstToken)
+                    if (matches.isEmpty())
+                        throw invocation.make<TypeSystem>(
+                            "Receiver ${receiver.toString(printer)} does not expose a Field named ${
+                                printer.apply(
+                                    node.messageIdentifier.identifier,
+                                    PrintableKey.Bold,
+                                    PrintableKey.Italics
+                                )
+                            }", node.messageIdentifier.firstToken
+                        )
 
-                val t = matches.first().type
+                    val t = matches.first().type
 
-                val fType = when (t) {
-                    is IConstantValue<*> -> t
-                    else -> inferenceUtil.find(matches.first().type.fullyQualifiedName)
-                } ?: TODO("HERE?!?!?!")
+                    val fType = when (t) {
+                        is IConstantValue<*> -> t
+                        else -> inferenceUtil.find(matches.first().type.fullyQualifiedName)
+                    } ?: TODO("HERE?!?!?!")
 
-                return fType.inferenceResult()
+                    return@dereference fType.inferenceResult()
+                }
             } else {
                 throw invocation.make<TypeSystem>("Cannot invoke Field `${printer.apply(node.messageIdentifier.identifier, PrintableKey.Italics, PrintableKey.Bold)}` on Type ${receiver.toString(printer)} (${receiver.kind.toString(printer)})", node.receiverExpression)
             }

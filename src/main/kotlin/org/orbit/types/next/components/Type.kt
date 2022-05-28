@@ -21,6 +21,11 @@ data class Type(override val fullyQualifiedName: String, internal val members: L
 
     private var _trait: ITrait? = null
 
+    override fun isWeakenedBy(other: DeclType): Boolean = when (other) {
+        is Type -> other.fullyQualifiedName == fullyQualifiedName && other.members.count() < members.count()
+        else -> false
+    }
+
     override fun equals(other: Any?): Boolean = when (other) {
         is Type -> fullyQualifiedName == other.fullyQualifiedName
         else -> false

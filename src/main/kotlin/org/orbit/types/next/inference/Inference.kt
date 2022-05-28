@@ -192,7 +192,7 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         }
 
         val nBindingScope: IBindingScope = when (retainsBindingScope) {
-            true -> BindingScope.Leaf(bindingScope)
+            true -> (bindingScope as BindingScope).derive()
             else -> BindingScope.Leaf(BindingScope.Root)
         }
 

@@ -114,7 +114,10 @@ fun List<Never>.combine(message: String) : Never {
     return Never(message + "\n\t$pretty")
 }
 
-interface DeclType : TypeComponent
+interface DeclType : TypeComponent {
+    fun isWeakenedBy(other: DeclType) : Boolean = false
+}
+
 interface ValueType : TypeComponent
 
 interface VectorType : ValueType, Collection<TypeComponent> {

@@ -61,7 +61,7 @@ object LambdaLiteralInference : LiteralInference<LambdaLiteralNode, Func>, KoinC
             nInferenceUtil.set(it, field.type)
             nInferenceUtil.set(it.typeExpressionNode, field.type)
 
-            nInferenceUtil.bind(it.identifierNode.identifier, field.type)
+            nInferenceUtil.bind(it.identifierNode.identifier, field.type, false)
 
             field
         }

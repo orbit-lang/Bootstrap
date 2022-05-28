@@ -41,6 +41,9 @@ data class StoredProjectedProperty(val field: Field) : ProjectedProperty<Field, 
     }
 
     override fun project(): Field = field
+
+    override fun toString(printer: Printer): String
+        = field.toString(printer)
 }
 
 data class ComputedProjectedProperty(val field: Field, val lambda: Func) : ProjectedProperty<Field, FieldContract, Property> {
@@ -127,6 +130,10 @@ data class Projection(val baseType: TypeComponent, val trait: ITrait, val projec
         val implementsSignatures = signatureContracts.fold(ContractResult.None as ContractResult) { acc, next ->
             val projectedField = projectedProperties.onlyOrNull { b -> b.propertyName == next.input.getName() }
                 ?: throw invocation.make<TypeSystem>("Projection does not satisfy Signature Contract ${next.input.toString(printer)}", SourcePosition.unknown)
+
+            if (projectedField.project() !is ISignature) {
+                throw invocation.make<TypeSystem>("Signature ${next.input.toString(printer)} cannot be projected as Field ${projectedField.toString(printer)}", SourcePosition.unknown)
+            }
 
             acc + projectedField.satisfies(ctx, next as Contract<TypeComponent>)
         }

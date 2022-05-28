@@ -29,6 +29,15 @@ object ProjectionPhase : TypePhase<ProjectionNode, TypeComponent>, KoinComponent
 
         if (target !is ITrait) throw invocation.make<TypeSystem>("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${target.toString(printer)} (Kind: ${target.kind.toString(printer)})", input.node.traitIdentifier)
 
+        // NOTE - By declaring conformance here, projected properties can refer to each other
+        nInferenceUtil.addConformance(source, target)
+
+//        val signatures = (target as Trait).getTypedContracts<SignatureContract>().map {
+//            SignatureSubstitutor.substitute((it.input as Signature), target, source)
+//        }
+//
+//        signatures.forEach { nInferenceUtil.declare(it) }
+
         val projectedProperties = input.node.whereNodes
             .map { ProjectionWhereClauseInference.infer(nInferenceUtil, TypeAnnotatedInferenceContext(target, it::class.java), it) }
             .map { it.typeValue() as ProjectedProperty<TypeComponent, Contract<TypeComponent>, Member> }
