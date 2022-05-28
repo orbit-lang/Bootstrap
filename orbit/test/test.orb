@@ -12,7 +12,6 @@ module Orb::Core::Main {
 module Test with Orb::* {
     trait A(x Int, y Symbol) {
         (Self) new (n Int) (Self)
-        (self Self) getX (a Int, b Int) (Int)
     }
 
     type B
@@ -20,8 +19,7 @@ module Test with Orb::* {
     projection B : A
         where x by { 1 }
         where y = :a
-        where new by { Self() }
-        where getX by (s, a, b) in { 1 }
+        where new by (n) in { n }
 
     (Main) foo _ _ {
         b = B()

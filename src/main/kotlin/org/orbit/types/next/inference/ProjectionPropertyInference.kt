@@ -6,6 +6,7 @@ import org.orbit.core.nodes.*
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.types.next.utils.mapOnly
+import org.orbit.types.next.utils.onlyOrNull
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
@@ -72,15 +73,30 @@ object ComputedPropertyInference : ProjectionPropertyInference<WhereClauseByExpr
                 throw invocation.make<TypeSystem>("Projected Signature ${printer.apply(node.identifierNode.identifier, PrintableKey.Bold, PrintableKey.Italics)} must return expected Type ${signature.getReturnType().toString(printer)}, found ${lambda.returns.toString(printer)}", node.lambdaExpression)
         }
 
-        return trait.contracts.mapOnly({ when (val contract = it) {
-            is FieldContract -> contract.input.memberName == node.identifierNode.identifier
-            is SignatureContract -> contract.input.getName() == node.identifierNode.identifier
+        val contract = trait.contracts.onlyOrNull {
+            when (it) {
+                is FieldContract -> it.input.memberName == node.identifierNode.identifier
+                is SignatureContract -> it.input.getName() == node.identifierNode.identifier
+                else -> TODO("!!!")
+            }
+        }
+
+        return when (contract) {
+            null -> throw invocation.make<TypeSystem>("Projection target ${trait.toString(printer)} does not declare projectable member ${printer.apply(node.identifierNode.identifier, PrintableKey.Italics, PrintableKey.Bold)}", node.identifierNode)
+            is FieldContract -> ComputedProjectedProperty(contract.input, lambda)
+            is SignatureContract -> ProjectedSignatureProperty(contract.input.getName(), trait, lambda)
             else -> TODO("!!!")
-        }}) { when (it) {
-            is FieldContract -> ComputedProjectedProperty(it.input, lambda)
-            is SignatureContract -> ProjectedSignatureProperty(it.input.getName(), trait, lambda)
-            else -> TODO("!!!")
-        }}.inferenceResult()
+        }.inferenceResult()
+
+//        return trait.contracts.mapOnly({ when (val contract = it) {
+//            is FieldContract -> contract.input.memberName == node.identifierNode.identifier
+//            is SignatureContract -> contract.input.getName() == node.identifierNode.identifier
+//            else -> TODO("!!!")
+//        }}) { when (it) {
+//            is FieldContract -> ComputedProjectedProperty(it.input, lambda)
+//            is SignatureContract -> ProjectedSignatureProperty(it.input.getName(), trait, lambda)
+//            else -> TODO("!!!")
+//        }}.inferenceResult()
     }
 }
 
