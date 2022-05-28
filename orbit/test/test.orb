@@ -10,12 +10,11 @@ module Orb::Core::Main {
 }
 
 module Test with Orb::* {
-    trait constructor A<T>(t T)
+    trait A(x Int)
 
     type B
 
-    projection A : A<A>
-        where t = 1
+    projection B : B
 
     (Main) foo _ _ {
 

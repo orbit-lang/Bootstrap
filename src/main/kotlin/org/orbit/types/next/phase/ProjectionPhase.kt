@@ -2,6 +2,7 @@ package org.orbit.types.next.phase
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.ProjectionNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.WhereClauseNode
@@ -19,6 +20,9 @@ object ProjectionPhase : TypePhase<ProjectionNode, TypeComponent>, KoinComponent
     override fun run(input: TypePhaseData<ProjectionNode>): TypeComponent {
         // TODO - Extend other things: Traits, PolymorphicTypes, etc
         val source = input.inferenceUtil.infer(input.node.typeIdentifier)
+
+        if (source !is Type) throw invocation.make<TypeSystem>("Projections on non-Types is not currently supported, found ${source.toString(printer)} (Kind: ${source.kind.toString(printer)})", SourcePosition.unknown)
+
         val nInferenceUtil = input.inferenceUtil.derive(retainsTypeMap = true, retainsBindingScope = true, self = source)
 
         if (input.node.instanceBinding != null) {
@@ -28,10 +32,10 @@ object ProjectionPhase : TypePhase<ProjectionNode, TypeComponent>, KoinComponent
         val target = when (val t = nInferenceUtil.infer(input.node.traitIdentifier)) {
             is MonomorphicType<*> -> when (t.specialisedType) {
                 is ITrait -> t.specialisedType
-                else -> throw invocation.make<TypeSystem>("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${t.toString(printer)} (Kind: ${t.kind.toString(printer)})", input.node.traitIdentifier)
+                else -> throw invocation.make<TypeSystem>("Only Trait-like components may appear on the right-hand side of a Projection, found ${t.toString(printer)} (Kind: ${t.kind.toString(printer)})", input.node.traitIdentifier)
             }
             is ITrait -> t
-            else -> throw invocation.make<TypeSystem>("Only Trait-like components may appear on the right-hand side of a Type Projection, found ${t.toString(printer)} (Kind: ${t.kind.toString(printer)})", input.node.traitIdentifier)
+            else -> throw invocation.make<TypeSystem>("Only Trait-like components may appear on the right-hand side of a Projection, found ${t.toString(printer)} (Kind: ${t.kind.toString(printer)})", input.node.traitIdentifier)
         }
 
         // NOTE - By declaring conformance here, projected properties can refer to each other
