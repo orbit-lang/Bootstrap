@@ -122,7 +122,7 @@ data class Projection(val baseType: TypeComponent, val trait: ITrait, val projec
 
         val implementsFields = fieldContracts.fold(ContractResult.None as ContractResult) { acc, next ->
             val projectedField = projectedProperties.onlyOrNull { b -> b.propertyName == next.input.memberName }
-                ?: throw invocation.make<TypeSystem>("Projection does not satisfy Field Contract ${next.input.toString(printer)}", SourcePosition.unknown)
+                ?: throw invocation.make<TypeSystem>("Projection on ${baseType.toString(printer)} does not satisfy Field Contract ${next.input.toString(printer)}", SourcePosition.unknown)
 
             acc + projectedField.satisfies(ctx, next as Contract<TypeComponent>)
         }

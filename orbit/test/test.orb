@@ -14,7 +14,7 @@ module Test with Orb::* {
 
     type B
 
-    projection B : B
+    projection B : A
 
     (Main) foo _ _ {
 
