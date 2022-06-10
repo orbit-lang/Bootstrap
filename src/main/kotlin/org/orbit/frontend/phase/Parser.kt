@@ -117,6 +117,18 @@ class Parser(
 		return marked
 	}
 
+	fun expectOrNull(type: TokenType, where: (Token) -> Boolean) : Token? {
+		val next = expectOrNull(type) ?: return null
+
+		return when (where(next)) {
+			true -> next
+			else -> null
+		}
+	}
+
+	fun expect(type: TokenType, where: (Token) -> Boolean) : Token
+		= expectOrNull(type, where)!!
+
 	fun expectOrNull(type: TokenType, consume: Boolean = true) : Token? {
 		if (!hasMore && isRepl) return null
 		if (!hasMore) throw Errors.NoMoreTokens
