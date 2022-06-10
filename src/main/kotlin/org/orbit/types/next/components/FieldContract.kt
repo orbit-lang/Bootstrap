@@ -30,7 +30,10 @@ data class FieldContract(override val trait: ITrait, override val input: Field) 
 
         val match = allMembers.onlyOrNull { it.memberName == input.memberName && when (it) {
             is Field -> AnyEq.eq(ctx, input.type, it.type)
-            is Property -> AnyEq.eq(ctx, input.type, it.lambda.returns)
+            is Property -> when (input.type) {
+                is Func -> AnyEq.eq(ctx, input.type, it.lambda)
+                else -> AnyEq.eq(ctx, input.type, it.lambda.returns)
+            }
             else -> TODO("!!!")
         }}
 
