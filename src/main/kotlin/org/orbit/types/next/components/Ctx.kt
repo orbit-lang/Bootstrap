@@ -41,7 +41,7 @@ class Ctx constructor() : IContext {
     }
 
     fun deref(ref: TypeComponent) : TypeComponent = when (ref) {
-        is TypeReference -> types.find { it.fullyQualifiedName == ref.fullyQualifiedName }!!
+        is TypeReference -> types.find { it.fullyQualifiedName == ref.fullyQualifiedName } ?: ref
         else -> ref
     }
 
