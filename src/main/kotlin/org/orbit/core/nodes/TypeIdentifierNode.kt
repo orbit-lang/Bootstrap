@@ -1,6 +1,8 @@
 package org.orbit.core.nodes
 
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
+import org.orbit.core.components.TokenTypes
 
 abstract class TypeExpressionNode : LiteralNode<String>()
 
@@ -18,8 +20,17 @@ data class TypeIdentifierNode(
     val typeParametersNode: TypeParametersNode = TypeParametersNode(firstToken, lastToken)
 ) : TypeExpressionNode(), LValueTypeParameter {
 	companion object {
+		private val nullToken = Token(TokenTypes.TypeIdentifier, "AnyType", SourcePosition.unknown)
+		private val anyTypeIdentifierNode = TypeIdentifierNode(nullToken, nullToken, "AnyType")
+
 		fun unit(token: Token) : TypeIdentifierNode
 			= TypeIdentifierNode(token, token, "Orb::Types::Intrinsics::Unit")
+
+		fun hole(token: Token) : TypeIdentifierNode
+			= TypeIdentifierNode(token, token, "_")
+
+		fun any(): TypeIdentifierNode
+			= anyTypeIdentifierNode
 	}
 
 	override val name: TypeIdentifierNode = this
