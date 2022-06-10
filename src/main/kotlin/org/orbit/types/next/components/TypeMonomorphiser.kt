@@ -53,7 +53,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<MemberAwareType>, List<
         val nFields = input.baseType.getMembers().map {
             val resolved = when (it.type) {
                 is ITypeRef -> when (it) {
-                    is Field -> Field(it.memberName, ctx.getType(it.type.fullyQualifiedName)!!, it.defaultValue)
+                    is Field -> Field(it.memberName, ctx.getType(it.type.fullyQualifiedName) ?: it.type, it.defaultValue)
                     is Property -> Property(it.memberName, Func(it.lambda.takes, ctx.getType(it.type.fullyQualifiedName)!!))
                     else -> TODO("!!!")
                 }
