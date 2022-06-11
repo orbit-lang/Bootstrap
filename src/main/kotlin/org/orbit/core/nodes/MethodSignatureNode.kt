@@ -11,7 +11,8 @@ data class MethodSignatureNode(
     val parameterNodes: List<PairNode>,
     val returnTypeNode: TypeExpressionNode?,
 	val typeParameters: TypeParametersNode? = null,
-	val typeConstraints: List<TypeConstraintWhereClauseNode> = emptyList()
+	val typeConstraints: List<TypeConstraintWhereClauseNode> = emptyList(),
+	val isInstanceMethod: Boolean
 ) : Node() {
 	inline fun <reified T: AnySerializable> annotateParameter(idx: Int, value: T, tag: Annotations) {
 		parameterNodes[idx].annotate(value, tag)

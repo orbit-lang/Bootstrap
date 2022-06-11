@@ -1,9 +1,40 @@
-module Test {
-    type A
-    type Z
-    type B(a A = A(), z Z = Z(), a2 A = A())
+module Orb::Types::Intrinsics {
+    type Unit
+    type Int
 
-    (A) a _ _ {
-        b = B(_, _, A())
+    trait IntRepresentable {
+        (self Self) intRepresentation () (Int)
+    }
+
+    projection Int : IntRepresentable
+        where intRepresentation by () in self
+}
+
+module Test with Orb::* {
+    type StatusCode(code Int)
+    type Byte(n Int)
+
+    projection StatusCode : IntRepresentable
+        where intRepresentation by () in { self.code }
+
+    projection Byte : IntRepresentable
+        where intRepresentation by () in { self.n }
+
+    (self Int) statusCodeValue () (StatusCode) = StatusCode(self)
+    (self Int) byteValue () (Byte) = Byte(self)
+
+    (StatusCode) display (sc StatusCode) (IntRepresentable) = sc
+    (Byte) display (b Byte) (IntRepresentable) = b
+
+    (Unit) add (a IntRepresentable, b IntRepresentable) (IntRepresentable) = a
+
+    (Int) main _ _ {
+        s = StatusCode(1)
+        b = Byte(2)
+        i = 3
+
+        x = Unit.add(s, b)
+        y = Unit.add(b, i)
+        z = Unit.add(s, i)
     }
 }

@@ -6,6 +6,8 @@ import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 
 interface ISignature : DeclType, Member {
+    val isInstanceMethod: Boolean
+
     fun getSignature(printer: Printer) : ISignature
     fun getSignatureTypeParameters() : List<AbstractTypeParameter> = emptyList()
     fun getReceiverType() : TypeComponent
@@ -20,10 +22,11 @@ object SignatureSubstitutor : Substitutor<Signature> {
             target.receiver.substitute(old, new),
             target.parameters.map { it.substitute(old, new) },
             target.returns.substitute(old, new),
-            target.isSynthetic)
+            target.isSynthetic,
+            target.isInstanceMethod)
 }
 
-data class Signature(val relativeName: String, val receiver: TypeComponent, val parameters: List<TypeComponent>, val returns: TypeComponent, override val isSynthetic: Boolean = false) : ISignature {
+data class Signature(val relativeName: String, val receiver: TypeComponent, val parameters: List<TypeComponent>, val returns: TypeComponent, override val isSynthetic: Boolean = false, override val isInstanceMethod: Boolean) : ISignature {
     override val fullyQualifiedName: String
         get() = (Path(receiver.fullyQualifiedName, relativeName) + Path(relativeName) + parameters.map { Path(it.fullyQualifiedName) } + OrbitMangler.unmangle(returns.fullyQualifiedName))
             .toString(OrbitMangler)
@@ -33,7 +36,7 @@ data class Signature(val relativeName: String, val receiver: TypeComponent, val 
     override val type: TypeComponent = this
 
     fun withInferredReturnType(type: TypeComponent) : Signature
-        = Signature(relativeName, receiver, parameters, type, isSynthetic)
+        = Signature(relativeName, receiver, parameters, type, isSynthetic, isInstanceMethod)
 
     override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation = when (NominalEq.eq(ctx, this, other)) {
         true -> TypeRelation.Same(this, other)

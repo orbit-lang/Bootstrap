@@ -81,7 +81,7 @@ class Ctx constructor() : IContext {
 
     fun getSignatures(type: Type) : List<ISignature> {
         val baseSignatures = types.filterIsInstance<Signature>().filter {
-            AnyEq.eq(this, it.getReceiverType(), type)
+            AnyEq.weakEq(this, it.getReceiverType(), type)
         }
 
         val extendedSignatures = types.filterIsInstance<Extension>().flatMap { it.signatures }

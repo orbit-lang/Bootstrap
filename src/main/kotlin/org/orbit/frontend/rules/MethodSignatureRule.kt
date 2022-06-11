@@ -40,6 +40,7 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 
 		val receiverNode = context.attemptAny(PairRule, TypeExpressionRule)
 			?: throw context.invocation.make(Errors.MissingReceiver(context.peek().position))
+		val isInstanceMethod = receiverNode.first != null
 
 		context.expect(TokenTypes.RParen)
 
@@ -122,8 +123,8 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 		}
 
 		return +when(receiverNode.first) {
-			null -> MethodSignatureNode(start, end, id, receiverNode.second!!, parameterNodes, returnTypeNode, typeParameters, whereClauses)
-			else -> MethodSignatureNode(start, end, id, receiverNode.first!!.typeExpressionNode, listOf(receiverNode.first!!).plus(parameterNodes), returnTypeNode, typeParameters, whereClauses)
+			null -> MethodSignatureNode(start, end, id, receiverNode.second!!, parameterNodes, returnTypeNode, typeParameters, whereClauses, isInstanceMethod)
+			else -> MethodSignatureNode(start, end, id, receiverNode.first!!.typeExpressionNode, listOf(receiverNode.first!!).plus(parameterNodes), returnTypeNode, typeParameters, whereClauses, isInstanceMethod)
 		}
 	}
 }

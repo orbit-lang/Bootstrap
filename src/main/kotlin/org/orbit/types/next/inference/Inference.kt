@@ -29,6 +29,9 @@ fun TypeComponent.inferenceResult() : InferenceResult = when (this) {
 }
 
 interface ITypeRef : ValueType, ITrait, IType, ISignature {
+    override val isInstanceMethod: Boolean
+        get() = false
+
     override fun deriveTrait(ctx: Ctx): ITrait = when (val type = ctx.getTypeAs<IType>(fullyQualifiedName)) {
         null -> Never
         else -> type.deriveTrait(ctx)

@@ -26,7 +26,7 @@ object SignatureInference : Inference<MethodSignatureNode, ISignature> {
             else -> inferenceUtil.infer(rNode)
         }
 
-        val signature = Signature(node.identifierNode.identifier, receiver, parameters, returns)
+        val signature = Signature(node.identifierNode.identifier, receiver, parameters, returns, isInstanceMethod = node.isInstanceMethod)
 
         return when (typeParameters.isEmpty()) {
             true -> signature

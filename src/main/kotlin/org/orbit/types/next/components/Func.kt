@@ -67,5 +67,5 @@ data class Func(override val takes: VectorType, override val returns: TypeCompon
     }
 
     fun toSignature(name: String, receiver: TypeComponent) : ISignature
-        = Signature(name, receiver, takes.elements, returns)
+        = Signature(name, receiver, takes.elements, returns, isInstanceMethod = false)
 }

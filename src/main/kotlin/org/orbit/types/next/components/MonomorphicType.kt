@@ -12,8 +12,8 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
     override val isSynthetic: Boolean = true
 
     override val contracts: List<Contract<*>> = emptyList()
-
     override val kind: Kind = specialisedType.kind
+    override val isInstanceMethod: Boolean = false
 
     fun with(type: T) = MonomorphicType(polymorphicType, type, concreteParameters, isTotal)
 

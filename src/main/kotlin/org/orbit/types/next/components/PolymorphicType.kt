@@ -19,6 +19,7 @@ data class PolymorphicType<T: TypeComponent>(val baseType: T, val parameters: Li
     override val fullyQualifiedName: String = baseType.fullyQualifiedName
     override val type: TypeComponent = this
     override val memberName: String = fullyQualifiedName
+    override val isInstanceMethod: Boolean = false
 
     override val kind: Kind get() {
         val parameterKinds = parameters.map { it.kind }

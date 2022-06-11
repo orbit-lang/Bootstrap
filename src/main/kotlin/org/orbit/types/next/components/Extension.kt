@@ -25,7 +25,7 @@ fun Signature.sub(a: TypeComponent, b: TypeComponent) : Signature {
         else -> returns
     }
 
-    return Signature(relativeName, nReceiver, nParams, nReturns, false)
+    return Signature(relativeName, nReceiver, nParams, nReturns, false, isInstanceMethod)
 }
 
 data class Extension(val extends: PolymorphicType<*>, val signatures: List<Signature>, val context: Context) : DeclType, KoinComponent {

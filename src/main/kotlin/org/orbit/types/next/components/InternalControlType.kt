@@ -27,6 +27,7 @@ object Anything : InternalControlType {
     override val target: TypeComponent = this
     override val contracts: List<Contract<*>> = emptyList()
     override val kind: Kind = IntrinsicKinds.Type
+    override val isInstanceMethod: Boolean = false
 
     override fun deriveTrait(ctx: Ctx): ITrait = Anything
 
@@ -50,6 +51,9 @@ object Anything : InternalControlType {
 interface NeverType : InternalControlType {
     val message: String
     val position: SourcePosition
+
+    override val isInstanceMethod: Boolean
+        get() = false
 
     override val contracts: List<Contract<*>> get() = emptyList()
     override val kind: Kind get() = IntrinsicKinds.Type

@@ -12,6 +12,12 @@ import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 
+data class ProjectedPropertyInferenceContext<N: Node>(val projection: Projection, val clazz: Class<N>) : InferenceContext {
+    override val nodeType: Class<out Node> = clazz
+
+    override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
+}
+
 interface ProjectionPropertyInference<W: WhereClauseExpressionNode> : Inference<W, ProjectedProperty<TypeComponent, Contract<TypeComponent>, Member>>
 
 object StoredPropertyInference : ProjectionPropertyInference<AssignmentStatementNode> {
@@ -28,8 +34,11 @@ object ComputedPropertyInference : ProjectionPropertyInference<WhereClauseByExpr
     private val printer: Printer by inject()
 
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: WhereClauseByExpressionNode): InferenceResult {
-        val trait = (context as? TypeAnnotatedInferenceContext<*>)?.typeAnnotation as? Trait
-            ?: TODO("@ComputedPropertyInference:21")
+        val projection = (context as? ProjectedPropertyInferenceContext<*>)?.projection
+            ?: TODO("@ComputedPropertyInference:38")
+        val trait = projection.trait as? Trait
+            ?: TODO("@ComputedPropertyInference:40")
+
         val signature = trait.getTypedContracts<SignatureContract>()
             .map { it.input }
             .firstOrNull { it.getName() == node.identifierNode.identifier }
@@ -41,7 +50,15 @@ object ComputedPropertyInference : ProjectionPropertyInference<WhereClauseByExpr
                 val declaredBindings = node.lambdaExpression.bindings
 
                 when (declaredBindings.count()) {
-                    0 -> inferenceUtil
+                    0 -> {
+                        val nInferenceUtil = inferenceUtil.derive()
+                        if (signature.isInstanceMethod) {
+                            // TODO - This feels too much like "compiler magic"
+                            nInferenceUtil.bind("self", projection.baseType)
+                        }
+
+                        nInferenceUtil
+                    }
                     expectedBindings.count() -> {
                         val declaredTypes = declaredBindings.mapIndexed { idx, node ->
                             val type = expectedBindings[idx]
@@ -51,6 +68,11 @@ object ComputedPropertyInference : ProjectionPropertyInference<WhereClauseByExpr
                         val nInferenceUtil = inferenceUtil.derive()
 
                         declaredTypes.forEach { nInferenceUtil.bind(it.first, it.second) }
+
+                        if (signature.isInstanceMethod) {
+                            // TODO - This feels too much like "compiler magic"
+                            nInferenceUtil.bind("self", signature.getReceiverType())
+                        }
 
                         nInferenceUtil
                     }
@@ -87,16 +109,6 @@ object ComputedPropertyInference : ProjectionPropertyInference<WhereClauseByExpr
             is SignatureContract -> ProjectedSignatureProperty(contract.input.getName(), trait, lambda)
             else -> TODO("!!!")
         }.inferenceResult()
-
-//        return trait.contracts.mapOnly({ when (val contract = it) {
-//            is FieldContract -> contract.input.memberName == node.identifierNode.identifier
-//            is SignatureContract -> contract.input.getName() == node.identifierNode.identifier
-//            else -> TODO("!!!")
-//        }}) { when (it) {
-//            is FieldContract -> ComputedProjectedProperty(it.input, lambda)
-//            is SignatureContract -> ProjectedSignatureProperty(it.input.getName(), trait, lambda)
-//            else -> TODO("!!!")
-//        }}.inferenceResult()
     }
 }
 

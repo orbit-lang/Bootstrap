@@ -24,7 +24,7 @@ object SignatureMonomorphiser : Monomorphiser<PolymorphicType<Signature>, List<T
             else -> over[returnsIdx]
         }
 
-        val nSignature = Signature(input.baseType.relativeName, nReceiver, nParams, nReturns, true)
+        val nSignature = Signature(input.baseType.relativeName, nReceiver, nParams, nReturns, true, input.isInstanceMethod)
 
         return MonomorphisationResult.Total(MonomorphicType(input, nSignature, over.mapIndexed { idx, item -> ConcreteTypeParameter(idx, input.parameters[idx], item) }, true))
     }

@@ -69,7 +69,7 @@ data class ProjectedSignatureProperty(val name: String, val self: TypeComponent,
 
     override fun satisfies(ctx: Ctx, contract: SignatureContract): ContractResult {
         val nameEq = contract.input.getName() == name
-        val typeEq = AnyEq.eq(ctx, contract.input, lambda.toSignature(name, contract.input.getReceiverType()))
+        val typeEq = AnyEq.eq(ctx, contract.input.getReturnType(), lambda.returns) //lambda.toSignature(name, contract.input.getReceiverType()))
 
         return when (nameEq && typeEq) {
             true -> ContractResult.Success(lambda, contract)
@@ -85,7 +85,7 @@ data class Projection(val baseType: TypeComponent, val trait: ITrait, val projec
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    override val fullyQualifiedName: String = "${baseType.fullyQualifiedName} ⥅ ${trait.fullyQualifiedName}"
+    override val fullyQualifiedName: String = "(${baseType.fullyQualifiedName} ⥅ ${trait.fullyQualifiedName})"
     override val kind: Kind = IntrinsicKinds.Projection
     override val isSynthetic: Boolean = false
 
@@ -122,14 +122,14 @@ data class Projection(val baseType: TypeComponent, val trait: ITrait, val projec
 
         val implementsFields = fieldContracts.fold(ContractResult.None as ContractResult) { acc, next ->
             val projectedField = projectedProperties.onlyOrNull { b -> b.propertyName == next.input.memberName }
-                ?: throw invocation.make<TypeSystem>("Projection on ${baseType.toString(printer)} does not satisfy Field Contract ${next.input.toString(printer)}", SourcePosition.unknown)
+                ?: throw invocation.make<TypeSystem>("Projection ${toString(printer)} does not satisfy Field Contract ${next.input.toString(printer)}", SourcePosition.unknown)
 
             acc + projectedField.satisfies(ctx, next as Contract<TypeComponent>)
         }
 
         val implementsSignatures = signatureContracts.fold(ContractResult.None as ContractResult) { acc, next ->
             val projectedField = projectedProperties.onlyOrNull { b -> b.propertyName == next.input.getName() }
-                ?: throw invocation.make<TypeSystem>("Projection does not satisfy Signature Contract ${next.input.toString(printer)}", SourcePosition.unknown)
+                ?: throw invocation.make<TypeSystem>("Projection ${toString(printer)} does not satisfy Signature Contract ${next.input.toString(printer)}", SourcePosition.unknown)
 
             if (projectedField.project() !is ISignature) {
                 throw invocation.make<TypeSystem>("Signature ${next.input.toString(printer)} cannot be projected as Field ${projectedField.toString(printer)}", SourcePosition.unknown)

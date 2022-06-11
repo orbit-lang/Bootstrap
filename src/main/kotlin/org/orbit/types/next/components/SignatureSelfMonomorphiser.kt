@@ -21,7 +21,7 @@ object SignatureSelfMonomorphiser : Monomorphiser<Signature, TypeComponent, Sign
             else -> input.returns
         }
 
-        val nSignature = Signature(input.relativeName, nReceiver, nParameters, nReturns, true)
+        val nSignature = Signature(input.relativeName, nReceiver, nParameters, nReturns, true, input.isInstanceMethod)
 
         return MonomorphisationResult.Total(nSignature)
     }

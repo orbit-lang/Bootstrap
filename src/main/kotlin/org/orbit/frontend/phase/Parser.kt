@@ -109,12 +109,19 @@ class Parser(
 		}
 	}
 
+	private fun mark(token: Token) {
+		if (markedTokens == null) return
+		if (markedTokens!!.contains(token)) return
+
+		markedTokens?.add(token)
+	}
+
 	fun consume() : Token {
 		if (!hasMore && isRepl) return Token(TokenTypes.EOS, "", SourcePosition.unknown)
 		if (!hasMore) throw Errors.NoMoreTokens
 		
 		return tokens.removeAt(0).apply {
-			markedTokens?.add(this)
+			mark(this)
 
 			if (isRecording) {
 				recordedTokens.add(this)

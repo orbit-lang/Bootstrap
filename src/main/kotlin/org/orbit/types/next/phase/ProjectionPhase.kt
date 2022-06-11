@@ -8,6 +8,7 @@ import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.WhereClauseNode
 import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.AnyInferenceContext
+import org.orbit.types.next.inference.ProjectedPropertyInferenceContext
 import org.orbit.types.next.inference.ProjectionWhereClauseInference
 import org.orbit.types.next.inference.TypeAnnotatedInferenceContext
 import org.orbit.util.Invocation
@@ -41,17 +42,19 @@ object ProjectionPhase : TypePhase<ProjectionNode, TypeComponent>, KoinComponent
         // NOTE - By declaring conformance here, projected properties can refer to each other
         nInferenceUtil.addConformance(source, target)
 
+        val projection = Projection(source, target, emptyList())
+
         val projectedProperties = input.node.whereNodes
-            .map { ProjectionWhereClauseInference.infer(nInferenceUtil, TypeAnnotatedInferenceContext(target, it::class.java), it) }
+            .map { ProjectionWhereClauseInference.infer(nInferenceUtil, ProjectedPropertyInferenceContext(projection, it::class.java), it) }
             .map { it.typeValue() as ProjectedProperty<TypeComponent, Contract<TypeComponent>, Member> }
 
-        val projection = Projection(source, target, projectedProperties)
+        val nProjection = Projection(source, target, projectedProperties)
 
-        return when (projection.implementsProjectedTrait(nInferenceUtil.toCtx())) {
-            is ContractResult.Failure -> throw invocation.make<TypeSystem>("Type Projection ${projection.toString(printer)} is not fully implemented", input.node)
+        return when (nProjection.implementsProjectedTrait(nInferenceUtil.toCtx())) {
+            is ContractResult.Failure -> throw invocation.make<TypeSystem>("Type Projection ${nProjection.toString(printer)} is not fully implemented", input.node)
 
             else -> {
-                projection.project(input.inferenceUtil)
+                nProjection.project(input.inferenceUtil)
             }
         }
     }

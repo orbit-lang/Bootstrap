@@ -30,7 +30,8 @@ object ReferenceCallRule : CallRule<ReferenceCallNode> {
 
 object MethodCallRule : CallRule<MethodCallNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val receiverExpression = context.attempt(ExpressionRule.defaultValue)
+        val receiverExpression = context.attemptAny(listOf(TypeExpressionRule, ExpressionRule.defaultValue))
+            as? ExpressionNode
             ?: throw context.invocation.make<Parser>("TODO", context.peek())
 
         var next = context.peek()
