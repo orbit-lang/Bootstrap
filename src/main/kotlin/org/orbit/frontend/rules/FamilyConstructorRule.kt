@@ -72,7 +72,7 @@ object FamilyConstructorRule : ParseRule<FamilyConstructorNode>, KoinComponent {
 
         val members = mutableListOf<TypeConstructorNode>()
         while (next.type != TokenTypes.RBrace) {
-            val member = context.attemptAny(TypeConstructorRule, TypeDefRule())
+            val member = context.attemptAny(TypeConstructorRule, TypeDefRule)
                 ?: throw invocation.make<Parser>("Expected Type in body of `family constructor`", next)
 
             val typeConstructorNode = when (member.first) {

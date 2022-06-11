@@ -10,18 +10,12 @@ import org.orbit.frontend.extensions.unaryPlus
 
 interface EntityParseRule<E: EntityDefNode> : PrefixPhaseAnnotatedParseRule<E> {
 	companion object {
-		val moduleTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, ProjectionRule, TraitConstructorRule, TypeAliasRule, TypeDefRule(), TraitDefRule(), FamilyConstructorRule, FamilyRule)
-		val apiTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, TraitConstructorRule, TypeAliasRule, TypeDefRule.required, TraitDefRule.required, TypeDefRule(), TraitDefRule())
+		val moduleTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, ProjectionRule, TraitConstructorRule, TypeAliasRule, TypeDefRule, TraitDefRule, FamilyConstructorRule, FamilyRule)
+		val apiTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, TraitConstructorRule, TypeAliasRule, TraitDefRule, TypeDefRule, TraitDefRule)
 	}
-
-	val isRequired: Boolean
 }
 
-class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<TypeDefNode> {
-	companion object {
-		val required = TypeDefRule(true)
-	}
-
+object TypeDefRule : EntityParseRule<TypeDefNode> {
 	sealed class Errors {
 		data class MissingName(override val sourcePosition: SourcePosition)
 			: ParseError("Type definition requires a name", sourcePosition)
@@ -31,18 +25,13 @@ class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<Ty
 	}
 
 	override fun parse(context: Parser) : ParseRule.Result {
-		val start = when (isRequired) {
-			true -> context.expect(TokenTypes.Required, true)
-			else -> context.expect(TokenTypes.Type)
-		}
-
-		if (isRequired) context.expect(TokenTypes.Type)
+		val start = context.expect(TokenTypes.Type)
 
 		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue, true)
 			?: throw context.invocation.make(Errors.MissingName(start.position))
 
 		var next = context.peek()
-		var propertyPairs = emptyList<PairNode>()
+		val propertyPairs = mutableListOf<ParameterNode>()
 
 		// The last token in this TypeDef could be in a number of different places.
 		// By default, it is the typeIdentifierNode's last token (assumes `type A`)
@@ -54,7 +43,7 @@ class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<Ty
 				context.consume()
 				context.consume()
 
-				return +TypeDefNode(start, end, isRequired, typeIdentifierNode)
+				return +TypeDefNode(start, end, typeIdentifierNode)
 			}
 
 			// NOTE - We have an ambiguous grammar here.
@@ -80,7 +69,7 @@ class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<Ty
 				// This is the ambiguous case described above.
 				// We can jump out here, safe in the knowledge that
 				// doing a lookahead parse did not affect the main token stack
-				return +TypeDefNode(start, end, isRequired, typeIdentifierNode)
+				return +TypeDefNode(start, end, typeIdentifierNode)
 			} catch (_: Exception) {
 				// This is not a real parse error; it just means this isn't the ambiguous case (see above).
 				// fallthrough
@@ -90,10 +79,10 @@ class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<Ty
 			context.consume()
 
 			while (true) {
-				val propertyPair = context.attempt(PairRule)
-					?: throw context.invocation.make(TypeDefRule.Errors.MissingPair(start.position))
+				val propertyPair = context.attempt(ParameterRule)
+					?: throw context.invocation.make(Errors.MissingPair(start.position))
 
-				propertyPairs += propertyPair
+				propertyPairs.add(propertyPair)
 
 				next = context.peek()
 
@@ -111,7 +100,7 @@ class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<Ty
 
 		next = context.peek()
 
-		var traitConformances = mutableListOf<TypeExpressionNode>()
+		val traitConformances = mutableListOf<TypeExpressionNode>()
 
 		if (next.type == TokenTypes.Colon) {
 			context.consume()
@@ -152,12 +141,12 @@ class TypeDefRule(override val isRequired: Boolean = false) : EntityParseRule<Ty
 			*/
 
 			// TODO - Swap MethodSignatureRule out for MethodDefRule
-			val bodyNode = context.attempt(BlockRule(TraitDefRule(isRequired), TypeDefRule(isRequired), MethodSignatureRule(false)), true)
+			val bodyNode = context.attempt(BlockRule(TraitDefRule, TypeDefRule, MethodSignatureRule(false)), true)
 				?: TODO("@TypeDefRule:128")
 
-			return +TypeDefNode(start, bodyNode.lastToken, isRequired, typeIdentifierNode, propertyPairs, traitConformances, bodyNode)
+			return +TypeDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode)
 		}
 		
-		return +TypeDefNode(start, end, isRequired, typeIdentifierNode, propertyPairs, traitConformances)
+		return +TypeDefNode(start, end, typeIdentifierNode, propertyPairs, traitConformances)
 	}
 }

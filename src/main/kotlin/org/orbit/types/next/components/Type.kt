@@ -14,6 +14,10 @@ interface IType : MemberAwareType {
 }
 
 data class Type(override val fullyQualifiedName: String, internal val members: List<Member> = emptyList(), override val isSynthetic: Boolean = false) : IType {
+    companion object {
+        val hole = Type("_")
+    }
+
     constructor(path: Path, members: List<Member> = emptyList(), isSynthetic: Boolean = false)
         : this(OrbitMangler.mangle(path), members, isSynthetic)
 

@@ -24,7 +24,7 @@ object TraitConstructorStubPhase : EntityConstructorStubPhase<TraitConstructorNo
         val protoPoly = PolymorphicType(protoTrait, parameters, partialFields = emptyList(), traitConformance = emptyList())
         val nInferenceUtil = input.inferenceUtil.derive(retainsTypeMap = true, retainsBindingScope = true, protoPoly)
 
-        val fields = nInferenceUtil.inferAllAs<PairNode, Field>(input.node.properties,
+        val fields = nInferenceUtil.inferAllAs<ParameterNode, Field>(input.node.properties,
             AnyInferenceContext(PairNode::class.java)
         )
 

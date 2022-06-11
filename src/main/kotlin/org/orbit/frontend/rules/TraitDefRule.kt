@@ -1,29 +1,19 @@
 package org.orbit.frontend.rules
 
-import org.orbit.core.nodes.MethodSignatureNode
-import org.orbit.core.nodes.PairNode
-import org.orbit.core.nodes.TraitDefNode
-import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.frontend.phase.Parser
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.*
 import org.orbit.frontend.extensions.unaryPlus
 
-class TraitDefRule(override val isRequired: Boolean = false) : EntityParseRule<TraitDefNode> {
-	companion object {
-		val required = TraitDefRule(true)
-	}
-
+object TraitDefRule : EntityParseRule<TraitDefNode> {
 	override fun parse(context: Parser) : ParseRule.Result {
-		val start = when (isRequired) {
-			true -> context.expect(TokenTypes.Required, true)
-			else -> context.expect(TokenTypes.Trait)
-		}
+		val start = context.expect(TokenTypes.Trait)
 		
 		val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
 			?: TODO("@TraitDefRule:18")
 
 		var next = context.peek()
-		val propertyPairs = mutableListOf<PairNode>()
+		val propertyPairs = mutableListOf<ParameterNode>()
 
 		var end = typeIdentifierNode.lastToken
 
@@ -33,7 +23,7 @@ class TraitDefRule(override val isRequired: Boolean = false) : EntityParseRule<T
 				context.consume()
 				context.consume()
 
-				return +TraitDefNode(start, end, isRequired, typeIdentifierNode)
+				return +TraitDefNode(start, end, typeIdentifierNode)
 			}
 
 			// NOTE - Same ambiguity as TypeDef
@@ -42,7 +32,7 @@ class TraitDefRule(override val isRequired: Boolean = false) : EntityParseRule<T
 			try {
 				lookaheadParser.execute(Parser.InputType(context.tokens))
 
-				return +TraitDefNode(start, end, isRequired, typeIdentifierNode)
+				return +TraitDefNode(start, end, typeIdentifierNode)
 			} catch (_: Exception) {
 				// fallthrough
 			}
@@ -50,7 +40,7 @@ class TraitDefRule(override val isRequired: Boolean = false) : EntityParseRule<T
 			context.consume()
 
 			while (true) {
-				val propertyPair = context.attempt(PairRule)
+				val propertyPair = context.attempt(ParameterRule)
 					?: TODO("@TraitDefRule:41")
 
 				propertyPairs.add(propertyPair)
@@ -68,7 +58,7 @@ class TraitDefRule(override val isRequired: Boolean = false) : EntityParseRule<T
 
 		next = context.peek()
 
-		var traitConformances = mutableListOf<TypeIdentifierNode>()
+		val traitConformances = mutableListOf<TypeIdentifierNode>()
 
 		if (next.type == TokenTypes.Colon) {
 			context.consume()
@@ -104,11 +94,9 @@ class TraitDefRule(override val isRequired: Boolean = false) : EntityParseRule<T
 				?: TODO("TraitDefRule:91")
 
 			@Suppress("UNCHECKED_CAST")
-			return +TraitDefNode(start, bodyNode.lastToken, isRequired, typeIdentifierNode, propertyPairs, traitConformances, bodyNode.body as List<MethodSignatureNode>)
+			return +TraitDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode.body as List<MethodSignatureNode>)
 		}
 		
-		return +TraitDefNode(start, end, isRequired,
-			typeIdentifierNode,
-			propertyPairs, traitConformances)
+		return +TraitDefNode(start, end, typeIdentifierNode, propertyPairs, traitConformances)
 	}
 }

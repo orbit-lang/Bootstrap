@@ -19,7 +19,7 @@ object TypeConstructorStubPhase : EntityConstructorStubPhase<TypeConstructorNode
 
         parameters.forEach { input.inferenceUtil.declare(it) }
 
-        val fields = input.inferenceUtil.inferAllAs<PairNode, Field>(input.node.properties, AnyInferenceContext(PairNode::class.java))
+        val fields = input.inferenceUtil.inferAllAs<ParameterNode, Field>(input.node.properties, AnyInferenceContext(PairNode::class.java))
 
         val baseType = Type(input.node.getPath(), fields)
 

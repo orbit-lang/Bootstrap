@@ -200,7 +200,10 @@ sealed class BindingScope : IBindingScope {
         bindings[name] = type
     }
 
-    override fun getType(name: String) : TypeComponent? = bindings[name]
+    override fun getType(name: String) : TypeComponent? = when (name) {
+        "_" -> Type.hole
+        else -> bindings[name]
+    }
 }
 
 fun IBindingScope.getTypeOrNever(name: String) : TypeComponent = when (val type = getType(name)) {

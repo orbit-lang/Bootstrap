@@ -51,8 +51,8 @@ object TraitConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         next = context.peek()
 
-        val properties: List<PairNode> = if (next.type == TokenTypes.LParen) {
-            val propertiesRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule, TokenTypes.Comma)
+        val properties: List<ParameterNode> = if (next.type == TokenTypes.LParen) {
+            val propertiesRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ParameterRule, TokenTypes.Comma)
             val propertiesResult = context.attempt(propertiesRule)
                 ?: return ParseRule.Result.Failure.Rewind(emptyList())
 

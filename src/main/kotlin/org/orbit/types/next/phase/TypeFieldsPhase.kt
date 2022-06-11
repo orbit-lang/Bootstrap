@@ -3,6 +3,7 @@ package org.orbit.types.next.phase
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.PairNode
+import org.orbit.core.nodes.ParameterNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.types.next.components.Field
@@ -21,7 +22,7 @@ object TypeFieldsPhase : TypePhase<TypeDefNode, IType>, KoinComponent {
     override fun run(input: TypePhaseData<TypeDefNode>): IType {
         val typeStub = input.inferenceUtil.inferAs<TypeDefNode, IType>(input.node)
         val nInferenceUtil = input.inferenceUtil.derive(retainsTypeMap = true, retainsBindingScope = true, TypeReference(typeStub.fullyQualifiedName))
-        val fields = nInferenceUtil.inferAllAs<PairNode, Field>(input.node.propertyPairs, AnyInferenceContext(PairNode::class.java))
+        val fields = nInferenceUtil.inferAllAs<ParameterNode, Field>(input.node.properties, AnyInferenceContext(PairNode::class.java))
 
         val grouped = fields.groupBy { it.memberName }
 
@@ -44,7 +45,7 @@ object TypeConstructorFieldsPhase : TypePhase<TypeConstructorNode, PolymorphicTy
         val stub = input.inferenceUtil.inferAs<TypeConstructorNode, PolymorphicType<*>>(input.node)
         val nInferenceUtil = input.inferenceUtil.derive(self = TypeReference(stub.fullyQualifiedName))
         val fields = input.node.properties.map {
-            val type = nInferenceUtil.infer(it.typeExpressionNode)
+            val type = nInferenceUtil.infer(it.typeNode)
 
             Field(it.identifierNode.identifier, type)
         }

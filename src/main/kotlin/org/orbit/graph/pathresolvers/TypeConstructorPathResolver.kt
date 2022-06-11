@@ -66,7 +66,11 @@ class FamilyConstructorPathResolver(private val parentPath: Path) : PathResolver
 
 			// This is a really disgusting hack to allow for multiple type parameters with the same name
 			// TODO - Type Parameters should be uniquely mangled somehow
-			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
+			input.properties.forEach {
+				it.typeNode.annotate(parentGraphID, Annotations.GraphID)
+				it.defaultValue?.annotate(parentGraphID, Annotations.GraphID)
+			}
+
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
 
 			val typeResolver = TypeConstructorPathResolver(path)
@@ -79,8 +83,8 @@ class FamilyConstructorPathResolver(private val parentPath: Path) : PathResolver
 				typeResolver.resolve(it as TypeConstructorNode, PathResolver.Pass.Last, environment, graph)
 			}
 
-			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
-			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
+//			input.properties.forEach { it.typeNode.annotate(parentGraphID, Annotations.GraphID) }
+//			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
 
 			input.context?.let { pathResolverUtil.resolve(it, pass, environment, graph) }
 		}
@@ -143,7 +147,10 @@ class TypeConstructorPathResolver(
 
 			// This is a really disgusting hack to allow for multiple type parameters with the same name
 			// TODO - Type Parameters should be uniquely mangled somehow
-			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
+			input.properties.forEach {
+				it.typeNode.annotate(parentGraphID, Annotations.GraphID)
+				it.defaultValue?.annotate(parentGraphID, Annotations.GraphID)
+			}
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
 			input.clauses.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
 			input.context?.let {

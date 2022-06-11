@@ -2,7 +2,13 @@ package org.orbit.types.next.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.ExpressionNode
+import org.orbit.types.next.inference.InferenceUtil
+import org.orbit.types.next.phase.TypeSystem
+import org.orbit.util.Invocation
+import org.orbit.util.Printer
+import org.orbit.util.getKoinInstance
 
 interface WhereClauseType : TypeComponent
 
@@ -20,7 +26,7 @@ private object PropertySubstitutor : Substitutor<Property> {
 
 private object FieldSubstituor : Substitutor<Field> {
     override fun substitute(target: Field, old: TypeComponent, new: TypeComponent): Field = when (target.type.fullyQualifiedName) {
-        old.fullyQualifiedName -> Field(target.memberName, new)
+        old.fullyQualifiedName -> Field(target.memberName, new, target.defaultValue)
         else -> target
     }
 }
@@ -47,8 +53,21 @@ data class Property(override val memberName: String, val lambda: Func) : Member 
     fun toField() : Field = Field(memberName, lambda.returns)
 }
 
-data class Field(override val memberName: String, override val type: TypeComponent, val defaultValue: ExpressionNode? = null) : Member {
+data class Field(override val memberName: String, override val type: TypeComponent, val defaultValue: TypeComponent? = null) : Member {
     constructor(path: Path, type: TypeComponent) : this(OrbitMangler.mangle(path), type)
+
+    init {
+        if (defaultValue != null) {
+            val inferenceUtil = getKoinInstance<InferenceUtil>()
+
+            if (!AnyEq.eq(inferenceUtil.toCtx(), type, defaultValue)) {
+                val invocation = getKoinInstance<Invocation>()
+                val printer = getKoinInstance<Printer>()
+
+                throw invocation.make<TypeSystem>("Default value has wrong type. Expected ${type.toString(printer)}, found ${defaultValue.toString(printer)}", SourcePosition.unknown)
+            }
+        }
+    }
 
     override val kind: Kind = IntrinsicKinds.Type
 

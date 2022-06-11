@@ -8,7 +8,7 @@ abstract class EntityConstructorNode : TopLevelDeclarationNode(PathResolver.Pass
     abstract val typeParameterNodes: List<TypeIdentifierNode>
     abstract val traitConformance: List<TypeExpressionNode>
     abstract val clauses: List<TypeConstraintWhereClauseNode>
-    abstract val properties: List<PairNode>
+    abstract val properties: List<ParameterNode>
 
     override fun getChildren(): List<Node> = when (context) {
         null -> listOf(typeIdentifierNode) + typeParameterNodes + clauses + traitConformance + properties
@@ -24,7 +24,7 @@ data class TypeConstructorNode(
     override val typeIdentifierNode: TypeIdentifierNode,
     override val typeParameterNodes: List<TypeIdentifierNode>,
     override val traitConformance: List<TypeExpressionNode> = emptyList(),
-    override val properties: List<PairNode> = emptyList(),
+    override val properties: List<ParameterNode> = emptyList(),
     override val clauses: List<TypeConstraintWhereClauseNode> = emptyList(),
     override val context: ContextExpressionNode? = null
 ): EntityConstructorNode() {
@@ -41,7 +41,7 @@ data class TraitConstructorNode(
     val signatureNodes: List<MethodSignatureNode> = emptyList(),
     override val traitConformance: List<TypeExpressionNode> = emptyList(),
     override val clauses: List<TypeConstraintWhereClauseNode> = emptyList(),
-    override val properties: List<PairNode> = emptyList(),
+    override val properties: List<ParameterNode> = emptyList(),
     val instances: List<TypeDefNode> = emptyList(),
     override val context: ContextExpressionNode? = null
 ): EntityConstructorNode() {
@@ -64,7 +64,7 @@ data class FamilyConstructorNode(
     override val typeParameterNodes: List<TypeIdentifierNode>,
     override val traitConformance: List<TypeExpressionNode> = emptyList(),
     override val clauses: List<TypeConstraintWhereClauseNode> = emptyList(),
-    override val properties: List<PairNode>,
+    override val properties: List<ParameterNode>,
     val entities: List<EntityConstructorNode>,
     override val context: ContextExpressionNode? = null
 ) : EntityConstructorNode() {

@@ -60,14 +60,8 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 
 		for (entityNode in entityDefNodes) {
 			when (entityNode) {
-				is TypeDefNode -> when (entityNode.isRequired) {
-					true -> requiredTypes.add(entityNode)
-					else -> standardTypes.add(entityNode)
-				}
-				is TraitDefNode -> when (entityNode.isRequired) {
-					true -> requiredTraits.add(entityNode)
-					else -> standardTraits.add(entityNode)
-				}
+				is TypeDefNode -> standardTypes.add(entityNode)
+				is TraitDefNode -> standardTraits.add(entityNode)
 			}
 		}
 

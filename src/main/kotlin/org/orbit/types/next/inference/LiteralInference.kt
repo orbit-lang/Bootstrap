@@ -56,10 +56,10 @@ object LambdaLiteralInference : LiteralInference<LambdaLiteralNode, Func>, KoinC
         // TODO - Can we inject a `Self` type into a lambda body?
         val nInferenceUtil = inferenceUtil.derive()
         val parameterTypes = node.bindings.map {
-            val field = nInferenceUtil.inferAs<PairNode, Field>(it)
+            val field = nInferenceUtil.inferAs<ParameterNode, Field>(it)
 
             nInferenceUtil.set(it, field.type)
-            nInferenceUtil.set(it.typeExpressionNode, field.type)
+            nInferenceUtil.set(it.typeNode, field.type)
 
             nInferenceUtil.bind(it.identifierNode.identifier, field.type, false)
 

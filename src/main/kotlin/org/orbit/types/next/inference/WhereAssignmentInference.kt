@@ -48,7 +48,7 @@ object WhereAssignmentInference : Inference<AssignmentStatementNode, Field> {
         val name = node.identifier.identifier
         val type = inferenceUtil.infer(node.value, AnyExpressionContext)
 
-        return Field(name, type, node.value)
+        return Field(name, type, type)
             .inferenceResult()
     }
 }

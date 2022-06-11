@@ -36,9 +36,10 @@ class TraitDefPathResolver(
 				environment.bind(Binding.Kind.Ephemeral, it.name.value, path + Path(it.name.value))
 			}
 
-			input.propertyPairs.forEach {
+			input.properties.forEach {
 				it.annotate(graphID, Annotations.GraphID)
-				it.typeExpressionNode.annotate(graphID, Annotations.GraphID)
+				it.typeNode.annotate(graphID, Annotations.GraphID)
+				it.defaultValue?.annotate(graphID, Annotations.GraphID)
 			}
 
 			input.signatures.forEach { it.annotate(graphID, Annotations.GraphID) }
@@ -49,7 +50,7 @@ class TraitDefPathResolver(
 
 			pathResolverUtil.resolveAll(input.traitConformances, pass, environment, graph)
 			pathResolverUtil.resolveAll(input.signatures, pass, environment, graph)
-			pathResolverUtil.resolveAll(input.propertyPairs, pass, environment, graph)
+			pathResolverUtil.resolveAll(input.properties, pass, environment, graph)
 
 			path
 		}

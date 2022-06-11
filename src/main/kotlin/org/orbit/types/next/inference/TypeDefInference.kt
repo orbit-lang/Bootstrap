@@ -5,6 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.PairNode
+import org.orbit.core.nodes.ParameterNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.types.next.components.*
 import org.orbit.util.PrintableKey
@@ -16,14 +17,14 @@ object TypeDefInference : Inference<TypeDefNode, Type>, KoinComponent {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: TypeDefNode): InferenceResult {
         val type = Type(node.getPath())
 
-        val fields = node.propertyPairs.map {
-            if (it.typeExpressionNode.getPath().toString(OrbitMangler) == type.fullyQualifiedName) {
-                val pretty = printer.apply(it.typeExpressionNode.getPath(), PrintableKey.Bold)
+        val fields = node.properties.map {
+            if (it.typeNode.getPath().toString(OrbitMangler) == type.fullyQualifiedName) {
+                val pretty = printer.apply(it.typeNode.getPath(), PrintableKey.Bold)
                 return@infer Never("Type ${type.toString(printer)} must not declare fields of its own type, found field '${it.identifierNode.identifier}' of type $pretty",it.firstToken.position)
                     .inferenceResult()
             }
 
-            val field = inferenceUtil.inferAs<PairNode, Field>(it)
+            val field = inferenceUtil.inferAs<ParameterNode, Field>(it)
 
             field
         }

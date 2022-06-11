@@ -10,7 +10,6 @@ import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.getGraphID
-import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
 class FamilyPathResolver(private val parentPath: Path) : PathResolver<FamilyNode> {
@@ -21,13 +20,7 @@ class FamilyPathResolver(private val parentPath: Path) : PathResolver<FamilyNode
             val path = parentPath + Path(input.familyIdentifierNode.value)
 
             input.annotate(path, Annotations.Path)
-
-            val kind = when (input.isRequired) {
-                true -> Binding.Kind.RequiredType
-                false -> Binding.Kind.Type
-            }
-
-            environment.bind(kind, input.familyIdentifierNode.value, path)
+            environment.bind(Binding.Kind.Type, input.familyIdentifierNode.value, path)
 
             val parentGraphID = graph.find(parentPath.toString(OrbitMangler))
             val graphID = graph.insert(input.familyIdentifierNode.value)
@@ -35,9 +28,10 @@ class FamilyPathResolver(private val parentPath: Path) : PathResolver<FamilyNode
             graph.link(parentGraphID, graphID)
 
             input.annotate(graphID, Annotations.GraphID)
-            input.propertyPairs.forEach {
+            input.properties.forEach {
                 it.annotate(graphID, Annotations.GraphID)
-                it.typeExpressionNode.annotate(graphID, Annotations.GraphID)
+                it.typeNode.annotate(graphID, Annotations.GraphID)
+                it.defaultValue?.annotate(graphID, Annotations.GraphID)
             }
 
             path

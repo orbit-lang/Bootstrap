@@ -29,7 +29,7 @@ object FamilyRule : ParseRule<FamilyNode>, KoinComponent {
                 val member = context.attempt(TypeIdentifierRule.Naked)
                     ?: return ParseRule.Result.Failure.Abort
 
-                members.add(TypeDefNode(member.firstToken, member.lastToken, false, member))
+                members.add(TypeDefNode(member.firstToken, member.lastToken, member))
 
                 next = context.peek()
 
@@ -48,7 +48,7 @@ object FamilyRule : ParseRule<FamilyNode>, KoinComponent {
 
         val members = mutableListOf<TypeDefNode>()
         while (next.type != TokenTypes.RBrace) {
-            val member = context.attempt(TypeDefRule())
+            val member = context.attempt(TypeDefRule)
                 ?: throw invocation.make<Parser>("Expected Type in body of `family`", next)
 
             members.add(member)

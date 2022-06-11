@@ -18,7 +18,7 @@ object StoredPropertyInference : ProjectionPropertyInference<AssignmentStatement
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: AssignmentStatementNode): InferenceResult {
         val type = inferenceUtil.infer(node.value)
 
-        return StoredProjectedProperty(Field(node.identifier.identifier, type, node.value))
+        return StoredProjectedProperty(Field(node.identifier.identifier, type, type))
             .inferenceResult()
     }
 }
@@ -55,7 +55,7 @@ object ComputedPropertyInference : ProjectionPropertyInference<WhereClauseByExpr
                         nInferenceUtil
                     }
                     else -> {
-                        val declaredTypes = declaredBindings.map { inferenceUtil.infer(it.typeExpressionNode) }
+                        val declaredTypes = declaredBindings.map { inferenceUtil.infer(it.typeNode) }
                         val prettyExpected = expectedBindings.joinToString(", ") { Field("_", it).toString(printer) }
                         val prettyDeclared = declaredBindings.mapIndexed { index, pair -> "(${pair.identifierNode.identifier}: ${declaredTypes[index].toString(printer)})" }
                             .joinToString(", ")

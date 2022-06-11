@@ -1,28 +1,9 @@
-module Orb::Types::Intrinsics {
-    type Unit
-    type Int
-    type Symbol
-    trait AnyType
-}
+module Test {
+    type A
+    type Z
+    type B(a A = A(), z Z = Z(), a2 A = A())
 
-module Orb::Core::Main {
-    type Main
-}
-
-module Test with Orb::* {
-    context Eq [A, B]
-        where A = B
-
-    type constructor Pair<A, B>(a A, b B)
-        within Eq [A, B]
-
-    (Int) add (x Int, y Int) _ {
-        z = x
-        return { z }
-    }
-
-    (Main) foo _ _ {
-        g = Int.add(1, 2)
-        typeOf g
+    (A) a _ _ {
+        b = B(_, _, A())
     }
 }

@@ -67,9 +67,9 @@ object TypeConstructorRule : ParseRule<EntityConstructorNode>, KoinComponent {
 
         next = context.peek()
 
-        var properties: List<PairNode> = emptyList()
+        var properties: List<ParameterNode> = emptyList()
         if (next.type == TokenTypes.LParen) {
-            val propertiesRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule)
+            val propertiesRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ParameterRule)
             val delimitedNode = context.attempt(propertiesRule)
                 ?: throw invocation.make<Parser>("Expected property list after type constructor", next)
 

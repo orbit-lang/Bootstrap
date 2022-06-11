@@ -2,6 +2,7 @@ package org.orbit.types.next.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.ConstructorNode
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
@@ -57,6 +58,18 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
             }
 
             else -> return Never("Attempting to instantiate non-Type (${t.kind.toString(printer)}) ${t.toString(printer)}").inferenceResult()
+        }
+
+        val argsClone = args.toList()
+        for (arg in argsClone.withIndex()) {
+            if (arg.value === Type.hole) {
+                val member = source.getMembers()[arg.index]
+
+                if (member !is Field) throw invocation.make<TypeSystem>("Type ${source.toString(printer)} does not declare a default value for field ${member.toString(printer)}", SourcePosition.unknown)
+                if (member.defaultValue == null) throw invocation.make<TypeSystem>("Type ${source.toString(printer)} does not declare a default value for field ${member.toString(printer)}", SourcePosition.unknown)
+
+                args[arg.index] = member.defaultValue
+            }
         }
 
         // NOTE - We only need as many args as there are declared Fields on the Type under construction

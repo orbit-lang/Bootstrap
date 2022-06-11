@@ -1,45 +1,24 @@
 package org.orbit.frontend.rules
 
-import org.orbit.core.nodes.ConstructorNode
-import org.orbit.core.nodes.ExpressionNode
-import org.orbit.frontend.phase.Parser
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.ConstructorNode
 import org.orbit.frontend.extensions.parseTrailing
+import org.orbit.frontend.phase.Parser
 
-class ConstructorRule : ValueRule<ConstructorNode> {
+object ConstructorRule : ValueRule<ConstructorNode> {
     override fun parse(context: Parser) : ParseRule.Result {
+        context.mark()
         val typeIdentifier = context.attempt(TypeExpressionRule)
             ?: return ParseRule.Result.Failure.Rewind()
+        val recorded = context.end()
+        val next = context.peek()
 
-        context.expectOrNull(TokenTypes.LParen)
-            ?: return ParseRule.Result.Failure.Rewind(listOf(typeIdentifier.firstToken))
+        if (next.type != TokenTypes.LParen) return ParseRule.Result.Failure.Rewind(recorded)
 
-        var next = context.peek()
+        val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)
+        val delimResult = context.attempt(delim)
+            ?: return ParseRule.Result.Failure.Abort
 
-        if (next.type == TokenTypes.RParen) {
-            val last = context.consume()
-
-            return parseTrailing(context, ConstructorNode(typeIdentifier.firstToken, last, typeIdentifier, emptyList()))
-        }
-
-        val parameterNodes = mutableListOf<ExpressionNode>()
-        while (next.type != TokenTypes.RParen) {
-            val expressionNode = context.attemptAny(ExpressionRule.defaultValue)
-                as? ExpressionNode
-                ?: return ParseRule.Result.Failure.Abort
-
-            parameterNodes.add(expressionNode)
-
-            next = context.peek()
-
-            if (next.type == TokenTypes.Comma) {
-                context.consume()
-                next = context.peek()
-            }
-        }
-
-        val last = context.expect(TokenTypes.RParen)
-
-        return parseTrailing(context, ConstructorNode(typeIdentifier.firstToken, last, typeIdentifier, parameterNodes))
+        return parseTrailing(context, ConstructorNode(typeIdentifier.firstToken, delimResult.lastToken, typeIdentifier, delimResult.nodes))
     }
 }

@@ -24,12 +24,7 @@ class TypeDefPathResolver(
 
 			input.annotate(path, Annotations.Path)
 
-			val kind = when (input.isRequired) {
-				true -> Binding.Kind.RequiredType
-				false -> Binding.Kind.Type
-			}
-
-			environment.bind(kind, input.typeIdentifierNode.value, path)
+			environment.bind(Binding.Kind.Type, input.typeIdentifierNode.value, path)
 
 			val parentGraphID = graph.find(parentPath.toString(OrbitMangler))
 			val graphID = graph.insert(input.typeIdentifierNode.value)
@@ -37,9 +32,10 @@ class TypeDefPathResolver(
 			graph.link(parentGraphID, graphID)
 
 			input.annotate(graphID, Annotations.GraphID)
-			input.propertyPairs.forEach {
+			input.properties.forEach {
 				it.annotate(graphID, Annotations.GraphID)
-				it.typeExpressionNode.annotate(graphID, Annotations.GraphID)
+				it.typeNode.annotate(graphID, Annotations.GraphID)
+				it.defaultValue?.annotate(graphID, Annotations.GraphID)
 			}
 
 			input.traitConformances.forEach {
@@ -51,7 +47,7 @@ class TypeDefPathResolver(
 			val path = input.getPath()
 
 			pathResolverUtil.resolveAll(input.traitConformances, pass, environment, graph)
-			pathResolverUtil.resolveAll(input.propertyPairs, pass, environment, graph)
+			pathResolverUtil.resolveAll(input.properties, pass, environment, graph)
 
 			path
 		}

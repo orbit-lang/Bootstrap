@@ -1,6 +1,7 @@
 package org.orbit.types.next.components
 
 import org.orbit.types.next.inference.TypeReference
+import org.orbit.types.next.intrinsics.Native
 
 interface IContextRead {
     fun getTypes() : List<TypeComponent>
@@ -37,6 +38,8 @@ class Ctx constructor() : IContext {
         = getType(name) as? T
 
     override fun getType(name: String): TypeComponent? {
+        if (name == "_") return Type.hole
+
         return types.find { it.fullyQualifiedName == name }
     }
 

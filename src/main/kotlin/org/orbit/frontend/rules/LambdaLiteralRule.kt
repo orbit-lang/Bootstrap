@@ -48,7 +48,7 @@ private object SingleParameterLambdaLiteralRule : ValueRule<LambdaLiteralNode> {
 
                     if (next.type != TokenTypes.In) return ParseRule.Result.Failure.Rewind(listOf(name.firstToken))
 
-                    listOf(PairNode(start, start, name, type))
+                    listOf(ParameterNode(start, start, name, type, null))
                 }
             }
 
@@ -80,7 +80,7 @@ private object UntypedParametersLambdaLiteralRule : ValueRule<LambdaLiteralNode>
 
         context.expect(TokenTypes.In)
 
-        val bindings = delimResult.nodes.map { PairNode(it.firstToken, it.lastToken, it, TypeIdentifierNode.any()) }
+        val bindings = delimResult.nodes.map { ParameterNode(it.firstToken, it.lastToken, it, TypeIdentifierNode.any(), null) }
         val body = context.attempt(LambdaLiteralBodyRule)
             ?: return ParseRule.Result.Failure.Abort
 
@@ -91,7 +91,7 @@ private object UntypedParametersLambdaLiteralRule : ValueRule<LambdaLiteralNode>
 private object TypedParametersLambdaLiteralRule : ValueRule<LambdaLiteralNode> {
     override fun parse(context: Parser): ParseRule.Result {
         context.mark()
-        val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule)
+        val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ParameterRule)
         val delimResult = context.attempt(delim)
         val recorded = context.end()
 

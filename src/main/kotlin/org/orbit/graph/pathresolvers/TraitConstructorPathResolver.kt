@@ -54,7 +54,10 @@ class TraitConstructorPathResolver(private val parentPath: Path) : PathResolver<
 			val parentGraphID = input.getGraphID()
 			val methodSignaturePathResolver = MethodSignaturePathResolver()
 
-			input.properties.forEach { it.typeExpressionNode.annotate(parentGraphID, Annotations.GraphID) }
+			input.properties.forEach {
+				it.typeNode.annotate(parentGraphID, Annotations.GraphID)
+				it.defaultValue?.annotate(parentGraphID, Annotations.GraphID)
+			}
 
 			input.signatureNodes.forEach { it.annotate(parentGraphID, Annotations.GraphID) }
 			input.signatureNodes.forEach(-partial(methodSignaturePathResolver::resolve, pass, environment, graph))
