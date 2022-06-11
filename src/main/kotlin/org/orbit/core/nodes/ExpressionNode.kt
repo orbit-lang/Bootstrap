@@ -9,7 +9,10 @@ import org.orbit.core.components.Token
 	only really "exist" nominally, that have no unique
 	behaviour of their own (at least at parse-time).
 */
-abstract class ExpressionNode : Node()
+abstract class ExpressionNode : Node() {
+	fun toBlockNode() : BlockNode
+		= BlockNode(firstToken, lastToken, listOf(this))
+}
 
 data class RValueNode(
     override val firstToken: Token,

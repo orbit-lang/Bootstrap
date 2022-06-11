@@ -52,13 +52,27 @@ class Parser(
 	private var recordedTokens = mutableListOf<Token>()
 	private var completeTokens = emptyList<Token>()
 
+	private var markedTokens: MutableList<Token>? = null
+
 	init {
 	    registerAdapter(LexerAdapter)
 		registerAdapter(FrontendAdapter)
 	}
 
-	var hasMore: Boolean = false
+	val hasMore: Boolean
 		get() = tokens.isNotEmpty()
+
+	fun mark() {
+		markedTokens = mutableListOf()
+	}
+
+	fun end() : List<Token> {
+		val result = markedTokens
+
+		markedTokens = null
+
+		return result ?: emptyList()
+	}
 
 	fun peekAll(lookahead: Int) : List<Token> {
 		val tokens = mutableListOf<Token>()
@@ -100,6 +114,8 @@ class Parser(
 		if (!hasMore) throw Errors.NoMoreTokens
 		
 		return tokens.removeAt(0).apply {
+			markedTokens?.add(this)
+
 			if (isRecording) {
 				recordedTokens.add(this)
 			}

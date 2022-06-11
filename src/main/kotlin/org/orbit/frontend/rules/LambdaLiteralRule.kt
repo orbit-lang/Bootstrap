@@ -1,52 +1,119 @@
 package org.orbit.frontend.rules
 
-import org.orbit.core.components.SourcePosition
-import org.orbit.core.components.Token
-import org.orbit.core.nodes.BlockNode
-import org.orbit.core.nodes.LambdaLiteralNode
-import org.orbit.core.nodes.PairNode
-import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.*
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
-object LambdaLiteralRule : ValueRule<LambdaLiteralNode> {
-    private val nullToken = Token(TokenTypes.TypeIdentifier, "AnyType", SourcePosition.unknown)
-    private val anyTypeIdentifierNode = TypeIdentifierNode(nullToken, nullToken, "AnyType")
+private object LambdaLiteralBodyRule : ParseRule<BlockNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val node = context.attemptAny(listOf(BlockRule.lambda, ExpressionRule.singleExpressionBodyRule))
+            ?: return ParseRule.Result.Failure.Abort
 
+        val body = when (node) {
+            is BlockNode -> node
+            is ExpressionNode -> node.toBlockNode()
+            else -> TODO("@LambdaLiteralRule:16")
+        }
+
+        return +body
+    }
+}
+
+private object ParameterlessLambdaLiteralRule : ValueRule<LambdaLiteralNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.peek()
 
-        if (start.type == TokenTypes.LBrace) {
-            // This lambda has no parameters
-            val body = context.attempt(BlockRule.lambda)
-                ?: TODO("@LambdaLiteralRule:23")
+        if (start.type != TokenTypes.LBrace) return ParseRule.Result.Failure.Abort
 
-            return +LambdaLiteralNode(body.firstToken, body.lastToken, emptyList(), body)
+        val body = context.attempt(BlockRule.lambda)
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +LambdaLiteralNode(start, body.lastToken, emptyList(), body)
+    }
+}
+
+private object SingleParameterLambdaLiteralRule : ValueRule<LambdaLiteralNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        context.mark()
+        val start = context.peek()
+
+        val bindings = when (start.type) {
+            TokenTypes.Identifier -> when (start.text) {
+                "_" -> emptyList()
+                else -> {
+                    val name = context.attempt(IdentifierRule)!!
+                    val type = TypeIdentifierNode.any()
+                    val next = context.peek()
+
+                    if (next.type != TokenTypes.In) return ParseRule.Result.Failure.Rewind(listOf(name.firstToken))
+
+                    listOf(PairNode(start, start, name, type))
+                }
+            }
+
+            else -> return ParseRule.Result.Failure.Abort
         }
 
-        val delimitedRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, EitherRule(PairRule, IdentifierRule))
-        val delimitedNode = context.attempt(delimitedRule)
-            ?: return ParseRule.Result.Failure.Rewind()
+        val recorded = context.end()
+
+        if (context.peek().type != TokenTypes.In) return ParseRule.Result.Failure.Rewind(recorded)
 
         context.expect(TokenTypes.In)
 
-        val next = context.peek()
-        var body = context.attempt(when (next.type) {
-            TokenTypes.LBrace -> BlockRule.lambda
-            else -> ExpressionRule.defaultValue
-        }) ?: TODO("@LambdaLiteralRule:17")
+        val body = context.attempt(LambdaLiteralBodyRule)
+            ?: return ParseRule.Result.Failure.Abort
 
-        body = when (body) {
-            is BlockNode -> body
-            else -> BlockNode(body.firstToken, body.lastToken, listOf(body))
-        }
+        return +LambdaLiteralNode(start, body.lastToken, bindings, body)
+    }
+}
 
-        val bindings = delimitedNode.nodes.map { when (it.isRight) {
-            true -> PairNode(it.rightNode!!.firstToken, it.rightNode!!.lastToken, it.rightNode!!, anyTypeIdentifierNode)
-            else -> it.leftNode!!
-        }}
+private object UntypedParametersLambdaLiteralRule : ValueRule<LambdaLiteralNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        context.mark()
+        val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, IdentifierRule)
+        val delimResult = context.attempt(delim)
+        val recorded = context.end()
 
-        return +LambdaLiteralNode(delimitedNode.firstToken, body.lastToken, bindings, body)
+        if (delimResult == null) return ParseRule.Result.Failure.Rewind(recorded)
+        if (context.peek().type != TokenTypes.In) return ParseRule.Result.Failure.Rewind(recorded)
+
+        context.expect(TokenTypes.In)
+
+        val bindings = delimResult.nodes.map { PairNode(it.firstToken, it.lastToken, it, TypeIdentifierNode.any()) }
+        val body = context.attempt(LambdaLiteralBodyRule)
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +LambdaLiteralNode(delimResult.firstToken, body.lastToken, bindings, body)
+    }
+}
+
+private object TypedParametersLambdaLiteralRule : ValueRule<LambdaLiteralNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        context.mark()
+        val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, PairRule)
+        val delimResult = context.attempt(delim)
+        val recorded = context.end()
+
+        if (delimResult == null) return ParseRule.Result.Failure.Rewind(recorded)
+        if (context.peek().type != TokenTypes.In) return ParseRule.Result.Failure.Rewind(recorded)
+
+        context.expect(TokenTypes.In)
+
+        val bindings = delimResult.nodes
+        val body = context.attempt(LambdaLiteralBodyRule)
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +LambdaLiteralNode(delimResult.firstToken, body.lastToken, bindings, body)
+    }
+}
+
+object LambdaLiteralRule : ValueRule<LambdaLiteralNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val node = context.attemptAny(listOf(ParameterlessLambdaLiteralRule, SingleParameterLambdaLiteralRule, TypedParametersLambdaLiteralRule, UntypedParametersLambdaLiteralRule))
+            as? LambdaLiteralNode
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +node
     }
 }

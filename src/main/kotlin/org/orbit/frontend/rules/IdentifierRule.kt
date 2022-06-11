@@ -10,9 +10,6 @@ object IdentifierRule : ValueRule<IdentifierNode> {
 		val start = context.expectOrNull(TokenTypes.Identifier)
 			?: return ParseRule.Result.Failure.Rewind()
 
-		if (context.peek().type == TokenTypes.In)
-			return ParseRule.Result.Failure.Rewind(listOf(start))
-
 		return +IdentifierNode(start, start, start.text)
 	}
 }

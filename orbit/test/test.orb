@@ -10,13 +10,19 @@ module Orb::Core::Main {
 }
 
 module Test with Orb::* {
-    trait A(x Int)
+    context Eq [A, B]
+        where A = B
 
-    type B
+    type constructor Pair<A, B>(a A, b B)
+        within Eq [A, B]
 
-    projection B : A
+    (Int) add (x Int, y Int) _ {
+        z = x
+        return { z }
+    }
 
     (Main) foo _ _ {
-
+        g = Int.add(1, 2)
+        typeOf g
     }
 }
