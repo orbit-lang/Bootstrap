@@ -146,10 +146,7 @@ object AnyEq : ITypeEq<TypeComponent, TypeComponent> {
             is Kind -> KindEq.eq(ctx, a, b)
             is MonomorphicType<*> -> MonoEq.eq(ctx, a, b)
             is PolymorphicType<*> -> PolyEq.eq(ctx, a, b)
-            is Type -> when (b) {
-                is Trait -> TraitEq.weakEq(ctx, b, a)
-                else -> TypeEq.eq(ctx, a, b)
-            }
+            is Type -> TypeEq.eq(ctx, a, b)
             is Trait -> TraitEq.eq(ctx, a, b)
             is TypeFamily<*> -> FamilyEq.eq(ctx, a, b)
             is ITypeParameter -> ParameterEq.eq(ctx, a, b)

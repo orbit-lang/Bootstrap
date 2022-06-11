@@ -26,7 +26,8 @@ module Test with Orb::* {
     (StatusCode) display (sc StatusCode) (IntRepresentable) = sc
     (Byte) display (b Byte) (IntRepresentable) = b
 
-    (Unit) add (a IntRepresentable, b IntRepresentable) (IntRepresentable) = a
+    (Unit) add (a IntRepresentable, b IntRepresentable) (IntRepresentable)
+        = a.intRepresentation()
 
     (Int) main _ _ {
         s = StatusCode(1)
