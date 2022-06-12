@@ -103,6 +103,7 @@ object AnyExpressionInference : Inference<ExpressionNode, TypeComponent> {
         is RValueNode -> inferenceUtil.infer(node.expressionNode, context.clone(node.expressionNode::class.java)).inferenceResult()
         is ExpandNode -> AnyConstantValueInference.infer(inferenceUtil, context, node.expressionNode)
         is MirrorNode -> MirrorInference.infer(inferenceUtil, context, node)
+        is MethodReferenceNode -> MethodReferenceInference.infer(inferenceUtil, context, node)
         else -> Never("Cannot infer type of non-Expression node ${node::class.java.simpleName}", node.firstToken.position)
             .inferenceResult()
     }

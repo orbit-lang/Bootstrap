@@ -41,7 +41,8 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
                     val fType = when (t) {
                         is IConstantValue<*> -> t
                         else -> inferenceUtil.find(matches.first().type.fullyQualifiedName)
-                    } ?: TODO("HERE?!?!?!")
+                    }
+                        ?: TODO("HERE?!?!?!")
 
                     return@dereference fType.inferenceResult()
                 }

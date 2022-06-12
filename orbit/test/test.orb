@@ -1,46 +1,20 @@
 module Orb::Types::Intrinsics {
     type Unit
     type Int
+}
 
-    trait IntRepresentable {
-        (self Self) intRepresentation () (Int)
-    }
-
-    projection Int : IntRepresentable
-        where intRepresentation by () in self
+module Orb::Core::Main {
+    type Main
 }
 
 module Test with Orb::* {
     type StatusCode(code Int)
-    type Byte(n Int)
 
-    projection StatusCode : IntRepresentable
-        where intRepresentation by () in { self.code }
+    (self StatusCode) intValue () (Int) = (self.code)
 
-    projection Byte : IntRepresentable
-        where intRepresentation by () in { self.n }
-
-    (self Int) statusCodeValue () (StatusCode) = StatusCode(self)
-    (self Int) byteValue () (Byte) = Byte(self)
-
-    (StatusCode) display (sc StatusCode) (IntRepresentable) = sc
-    (Byte) display (b Byte) (IntRepresentable) = b
-
-    (IntRepresentable) add (a IntRepresentable, b IntRepresentable) (IntRepresentable)
-        = Self.intRepresentation(a)
-
-    (Int) main _ _ {
-        s = StatusCode(1)
-        b = Byte(2)
-        i = 3
-        u = Unit()
-
-        x = StatusCode.add(s, b)
-        y = Byte.add(b, i)
-        z = Int.add(s, i)
-
-        typeOf x
-        typeOf y
-        typeOf z
+    (self Main) main _ _ {
+        sc = StatusCode(_)
+        iv = StatusCode::intValue
+        r = invoke iv(sc)
     }
 }

@@ -8,13 +8,15 @@ import org.orbit.frontend.extensions.unaryPlus
 
 object MethodReferenceRule : ValueRule<MethodReferenceNode> {
     override fun parse(context: Parser): ParseRule.Result {
+        context.mark()
         val start = context.expectOrNull(TokenTypes.TypeIdentifier)
             ?: return ParseRule.Result.Failure.Rewind()
+        val recorded = context.end()
 
         val typeIdentifier = TypeIdentifierNode(start, start, start.text)
+        val next = context.peek()
 
-        context.expectOrNull(TokenTypes.Colon)
-            ?: return ParseRule.Result.Failure.Rewind(listOf(typeIdentifier.firstToken))
+        if (next.type != TokenTypes.Colon) ParseRule.Result.Failure.Rewind(recorded)
 
         context.expect(TokenTypes.Colon)
         context.expect(TokenTypes.Colon)

@@ -86,7 +86,7 @@ class Ctx constructor() : IContext {
         return Ctx(distinctTypes, distinctConformance)
     }
 
-    fun getSignatures(type: Type) : List<ISignature> {
+    fun getSignatures(type: TypeComponent) : List<ISignature> {
         val baseSignatures = types.filterIsInstance<Signature>().filter {
             AnyEq.weakEq(this, it.getReceiverType(), type)
         }

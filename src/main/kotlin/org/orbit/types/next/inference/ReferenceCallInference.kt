@@ -19,7 +19,7 @@ object ReferenceCallInference : Inference<ReferenceCallNode, TypeComponent>, Koi
         // NOTE - For now, a zero-parameter Lambda is represented by `(_) -> R` where _ is Never
         // TODO - zero-parameter Lambdas should encode their `takes` as `Unit`
         if (lambda.takes is NeverType && arguments.isEmpty()) return lambda.returns.inferenceResult()
-        if (lambda.takes is NeverType) return Never("Cannot invoke Lambda ${lambda.toString(printer)} with arguments $pretty").inferenceResult()
+        if (lambda.takes is NeverType) return Never("Cannot invoke Lambda ${lambda.toString(printer)} with arguments ($pretty)").inferenceResult()
 
         // Use the same trick as MethodCallInference
         val callableInterface = lambda.derive( )
@@ -31,7 +31,7 @@ object ReferenceCallInference : Inference<ReferenceCallNode, TypeComponent>, Koi
         val onFailure = {
             val lambdaPretty = lambda.takes.elements.joinToString(", ") { it.toString(printer) }
 
-            Never("Cannot invoke Lambda ${lambda.toString(printer)} with $pretty, expected $lambdaPretty", node.referenceNode.firstToken.position)
+            Never("Cannot invoke Lambda ${lambda.toString(printer)} with ($pretty), expected ($lambdaPretty)", node.referenceNode.firstToken.position)
         }
 
         return when (val r = callableInterface.isImplemented(inferenceUtil.toCtx(), calleeType)) {

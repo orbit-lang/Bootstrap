@@ -62,6 +62,7 @@ val mainModule = module {
 		util.registerPathResolver(ContextCompositionPathResolver, ContextCompositionNode::class.java)
 		util.registerPathResolver(WhereClauseByExpressionPathResolver, WhereClauseByExpressionNode::class.java)
 		util.registerPathResolver(ParameterNodePathResolver, ParameterNode::class.java)
+		util.registerPathResolver(MethodReferencePathResolver, MethodReferenceNode::class.java)
 
 		util
 	}
@@ -107,6 +108,7 @@ val mainModule = module {
 		util.registerInference(ContextInference, ContextExpressionNode::class.java)
 		util.registerInference(PrintNodeInference, PrintNode::class.java)
 		util.registerInference(WhereClauseByExpressionInference, WhereClauseByExpressionNode::class.java)
+		util.registerInference(MethodReferenceInference, MethodReferenceNode::class.java)
 
 		util
 	}

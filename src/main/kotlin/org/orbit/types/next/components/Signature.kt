@@ -16,6 +16,8 @@ interface ISignature : DeclType, Member {
     fun getReturnType() : TypeComponent
 }
 
+fun ISignature.toFunc() : Func = Func(getParameterTypes(), getReturnType())
+
 object SignatureSubstitutor : Substitutor<Signature> {
     override fun substitute(target: Signature, old: TypeComponent, new: TypeComponent): Signature
         = Signature(target.relativeName,

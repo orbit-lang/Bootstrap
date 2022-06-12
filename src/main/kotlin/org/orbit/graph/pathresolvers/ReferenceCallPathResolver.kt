@@ -19,7 +19,10 @@ object ReferenceCallPathResolver : PathResolver<ReferenceCallNode>, KoinComponen
         input.referenceNode.annotate(input.getGraphID(), Annotations.GraphID)
         val reference = pathResolverUtil.resolve(input.referenceNode, pass, environment, graph)
 
-        input.parameterNodes.forEach { pathResolverUtil.resolve(it, pass, environment, graph) }
+        input.parameterNodes.forEach {
+            it.annotate(input.getGraphID(), Annotations.GraphID)
+            pathResolverUtil.resolve(it, pass, environment, graph)
+        }
 
         return reference
     }
