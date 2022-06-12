@@ -53,6 +53,7 @@ sealed interface IntrinsicKinds : Kind {
     object Type : IntrinsicKinds
     object Trait : IntrinsicKinds
     object Family : IntrinsicKinds
+    object Operator : IntrinsicKinds
 }
 
 fun Kind.toString(printer: Printer) : String

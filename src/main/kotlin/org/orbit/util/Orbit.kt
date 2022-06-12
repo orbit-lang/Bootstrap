@@ -109,6 +109,7 @@ val mainModule = module {
 		util.registerInference(PrintNodeInference, PrintNode::class.java)
 		util.registerInference(WhereClauseByExpressionInference, WhereClauseByExpressionNode::class.java)
 		util.registerInference(MethodReferenceInference, MethodReferenceNode::class.java)
+		util.registerInference(BinaryExpressionInference, BinaryExpressionNode::class.java)
 
 		util
 	}

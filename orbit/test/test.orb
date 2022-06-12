@@ -8,13 +8,10 @@ module Orb::Core::Main {
 }
 
 module Test with Orb::* {
-    type StatusCode(code Int)
-
-    (self StatusCode) intValue () (Int) = (self.code)
+#    operator add by `+` (a Int, b Int) (Int)
+#        by BootstrapOperator
 
     (self Main) main _ _ {
-        sc = StatusCode(_)
-        iv = StatusCode::intValue
-        r = invoke iv(sc)
+        i = 1 + 1
     }
 }
