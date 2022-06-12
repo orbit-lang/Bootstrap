@@ -13,7 +13,7 @@ object BinaryExpressionRule : ValueRule<BinaryExpressionNode> {
         val leftExpression = context.attempt(ExpressionRule.defaultValue, true)
             ?: TODO("@BinaryExpressionRule:12")
 
-        val operator = context.expect(TokenTypes.Operator)
+        val operator = context.expect(TokenTypes.OperatorSymbol)
         val rightExpressionRule = context.attempt(ExpressionRule.defaultValue, true)
             ?: TODO("@BinaryExpressionRule:16")
 
@@ -23,7 +23,7 @@ object BinaryExpressionRule : ValueRule<BinaryExpressionNode> {
 
 class PartialExpressionRule(private val leftExpression: ExpressionNode) : ValueRule<BinaryExpressionNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val op = context.expect(TokenTypes.Operator)
+        val op = context.expect(TokenTypes.OperatorSymbol)
         val rightExpression = context.attempt(ExpressionRule.defaultValue)
             ?: TODO("@BinaryExpressionRule:26")
 

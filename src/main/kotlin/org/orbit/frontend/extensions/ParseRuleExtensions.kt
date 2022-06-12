@@ -15,7 +15,7 @@ fun <N: Node> ParseRule<N>.parseTrailing(context: Parser, result: ExpressionNode
         val partialCallRule = PartialCallRule(result)
 
         return partialCallRule.execute(context)
-    } else if (next.type == TokenTypes.Operator) {
+    } else if (next.type == TokenTypes.OperatorSymbol) {
         val partialExpressionRule = PartialExpressionRule(result)
 
         return partialExpressionRule.execute(context)

@@ -28,8 +28,8 @@ object KindConstructorRule : KindExpressionRule {
 
         val elements = expr.nodes.map { it.kind }
 
-        val op1 = context.expect(TokenTypes.Operator)
-        val op2 = context.expect(TokenTypes.Operator)
+        val op1 = context.expect(TokenTypes.OperatorSymbol)
+        val op2 = context.expect(TokenTypes.OperatorSymbol)
         val op = op1.text + op2.text
 
         if (op != "->") return ParseRule.Result.Failure.Abort

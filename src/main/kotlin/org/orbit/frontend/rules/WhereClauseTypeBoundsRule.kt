@@ -11,7 +11,7 @@ object WhereClauseTypeBoundsRule : WhereClauseExpressionRule<WhereClauseTypeBoun
         val sourceType = context.attempt(TypeExpressionRule)
             ?: TODO("@TypeProjectionRule:17")
 
-        val op = context.expectAny(TokenTypes.Operator, TokenTypes.Assignment, TokenTypes.Colon, TokenTypes.Identifier, consumes = true)
+        val op = context.expectAny(TokenTypes.OperatorSymbol, TokenTypes.Assignment, TokenTypes.Colon, TokenTypes.Identifier, consumes = true)
         val boundsType = TypeBoundsOperator.valueOf(op)
 
         val targetType = context.attempt(TypeExpressionRule)

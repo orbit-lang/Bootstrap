@@ -7,7 +7,7 @@ import org.orbit.frontend.phase.Parser
 
 object UnaryExpressionRule : ValueRule<UnaryExpressionNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val operator = context.expect(TokenTypes.Operator)
+        val operator = context.expect(TokenTypes.OperatorSymbol)
         val operandExpression = context.attempt(ExpressionRule.defaultValue)
             ?: TODO("@UnaryExpressionRule:15")
 

@@ -44,7 +44,7 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 			return parseTrailing(context, expr)
 		}
 
-		if (next.type == TokenTypes.Operator) {
+		if (next.type == TokenTypes.OperatorSymbol) {
 			try {
 				val partialExpressionRule = PartialExpressionRule(expr)
 

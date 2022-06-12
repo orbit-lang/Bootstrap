@@ -124,6 +124,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			val familyResolver = FamilyPathResolver(containerPath)
 			val familyConstructorResolver = FamilyConstructorPathResolver(containerPath)
 			val contextResolver = ContextPathResolver(containerPath)
+			val operatorResolver = OperatorDefPathResolver(containerPath)
 
 			val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
 			val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
@@ -133,6 +134,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			val families = input.search<FamilyNode>()
 			val familyConstructors = input.search<FamilyConstructorNode>()
 			val contexts = input.contexts
+			val opDefs = input.operatorDefs
 
 			// Run a first pass over all types & traits that resolves just their own paths
 			// (ignoring properties and trait conformance etc)
@@ -159,6 +161,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			resolveAll(traitConstructorResolver, traitConstructors, PathResolver.Pass.Last)
 			resolveAll(familyConstructorResolver, familyConstructors, PathResolver.Pass.Last)
 			resolveAll(contextResolver, contexts, PathResolver.Pass.Last)
+			resolveAll(operatorResolver, opDefs, PathResolver.Pass.Last)
 
 			if (input is ModuleNode) {
 				for (typeProjection in input.projections) {

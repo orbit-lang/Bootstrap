@@ -1,6 +1,7 @@
 module Orb::Types::Intrinsics {
     type Unit
     type Int
+    type Symbol
 }
 
 module Orb::Core::Main {
@@ -8,10 +9,14 @@ module Orb::Core::Main {
 }
 
 module Test with Orb::* {
-#    operator add by `+` (a Int, b Int) (Int)
-#        by BootstrapOperator
+    (Int) choose (a Int, b Int) (Int) = a
+    (Int) choose2 (a Int, b Symbol) (Int) = a
+
+    infix operator choose `?` by Int::choose
+    infix operator choose `???` by Int::choose2
 
     (self Main) main _ _ {
-        i = 1 + 1
+        i = 1 ??? :a
+        j = 1 ? 1
     }
 }

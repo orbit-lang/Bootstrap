@@ -14,9 +14,10 @@ object TokenTypes : TokenTypeProvider {
     object LAngle : TokenType("LAngle", "\\<", true, false, Family.Enclosing)
     object RAngle : TokenType("RAngle", "\\>", true, false, Family.Enclosing)
     object Assignment : TokenType("Assignment", "\\=", true, false, Family.Op)
-    object Operator : TokenType("Operator", "[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|]", true, false, Family.Op)
+    object OperatorSymbol : TokenType("OperatorSymbol", "[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|]+", true, false, Family.Op)
     object Annotation : TokenType("Annotation", "@", true, false, Family.Op)
     object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false, Family.White)
+    object BackTick : TokenType("Backtick", "`", true, false, Family.Op)
 
 	// Comments
     object MultiLineComment : TokenType("MultiLineComment", "\\/\\*.**\\/", true, false, Family.Comment)
@@ -52,6 +53,8 @@ object TokenTypes : TokenTypeProvider {
     object Context : TokenType("Context", "\\bcontext\\b", true, false, Family.Keyword)
     object By : TokenType("By", "\\bby\\b", true, false, Family.Keyword)
     object To : TokenType("To", "\\bto\\b", true, false, Family.Keyword)
+    object Fixity : TokenType("Fixity", "\\b(in|pre|post)fix\\b", true, false, Family.Keyword)
+    object Operator : TokenType("Operator", "\\boperator\\b", true, false, Family.Keyword)
 
     // Compile-time functions
     object Synthesise : TokenType("Synthesise", "\\bsynthesise\\b", true, false, Family.CompileTime)
@@ -71,14 +74,14 @@ object TokenTypes : TokenTypeProvider {
         // Generally, the order of this list matters!
         return listOf(
             Int, Real, Context, Api, Module, Define, Defer, Observe, Where, Print,
-            Required, Projection, Extension, Constructor, Alias,
+            Required, Projection, Extension, Constructor, Alias, Operator,
             Synthesise,
-            Let, Invoke, In, Of, By, To,
+            Fixity, Let, Invoke, In, Of, By, To,
             TypeIdentifier,
             Colon, Comma, Dot, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
             Expand, Mirror, TypeOf, Type, Trait, Within, With, Return, Family,
-            Operator, Identifier
+            BackTick, OperatorSymbol, Identifier
         )
     }
 }

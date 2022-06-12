@@ -44,7 +44,7 @@ object ContextInstantiationRule : ParseRule<ContextExpressionNode>, KoinComponen
 
         next = context.peek()
 
-        if (next.type == TokenTypes.Operator) {
+        if (next.type == TokenTypes.OperatorSymbol) {
             val op = when (val op = IntrinsicContextCompositionOperator.valueOfOrNull(next.text)) {
                 null -> UserDefinedContextCompositionOperator(next.text)
                 else -> op

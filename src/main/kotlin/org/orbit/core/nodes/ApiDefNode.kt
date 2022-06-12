@@ -19,6 +19,7 @@ sealed class ContainerNode : TopLevelDeclarationNode(PathResolver.Pass.Last) {
 	abstract val methodDefs: List<MethodDefNode>
 	abstract val entityConstructors: List<EntityConstructorNode>
 	abstract val contexts: List<ContextNode>
+	abstract val operatorDefs: List<OperatorDefNode>
 }
 
 data class ApiDefNode(
@@ -32,7 +33,8 @@ data class ApiDefNode(
 	override val with: List<TypeIdentifierNode>,
 	val standardEntityDefs: List<EntityDefNode>,
 	override val entityConstructors: List<EntityConstructorNode>,
-	override val context: ContextExpressionNode? = null
+	override val context: ContextExpressionNode? = null,
+	override val operatorDefs: List<OperatorDefNode> = emptyList()
 ) : ContainerNode() {
 	override val contexts: List<ContextNode> = emptyList()
 
