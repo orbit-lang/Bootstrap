@@ -50,35 +50,91 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
             }
         }
 
+        val arguments = inferenceUtil.inferAll(node.parameterNodes, AnyExpressionContext)
+
+        if (receiver is Trait) {
+            val candidates = receiver.getTypedContracts<SignatureContract>()
+                .map { it.input as Signature }
+                .filter { it.relativeName == node.messageIdentifier.identifier }
+
+            if (candidates.count() == 1) {
+                val candidate = candidates[0]
+                val zip = candidate.parameters.zip(arguments)
+                var count = 0
+                for (z in zip) {
+                    if (AnyEq.eq(inferenceUtil.toCtx(), z.first, z.second)) {
+                        count += 1
+                    }
+                }
+
+                if (count == zip.count()) {
+                    return candidates[0].returns.inferenceResult()
+                }
+            }
+        }
+
         var candidateSignatures = inferenceUtil.getTypeMap().filter {
             it is Signature
                 && it.relativeName == node.messageIdentifier.identifier
-                && AnyEq.eq(inferenceUtil.toCtx(), receiver, it.receiver)
+                && (AnyEq.eq(inferenceUtil.toCtx(), receiver, it.receiver)
+                    || AnyEq.eq(inferenceUtil.toCtx(), it.receiver, receiver))
         }
 
         if (candidateSignatures.isEmpty()) {
-            // TODO - Extensions on anything
-            val mono = receiver as? MonomorphicType<TypeComponent>
-                ?: throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a method named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Italics, PrintableKey.Bold)}", node.messageIdentifier.firstToken)
+            if (receiver is SyntheticType) {
+                val contracts = receiver.trait.getTypedContracts<SignatureContract>()
+                    .map { it.input as Signature }
 
-            val extensions = inferenceUtil.getExtensions(mono.polymorphicType)
-
-            val candidateExtensions = extensions.mapNotNull {
-                when (it.extend(inferenceUtil, mono)) {
-                    is Never -> null
-                    else -> it
+                for (sig in contracts) {
+                    if (sig.relativeName == node.messageIdentifier.identifier) {
+                        if (AnyEq.eq(inferenceUtil.toCtx(), receiver, sig.receiver)) {
+                            candidateSignatures = listOf(sig)
+                            break
+                        }
+                    }
                 }
-            }
+            } else {
+                // TODO - Extensions on anything
+                val mono = receiver as? MonomorphicType<TypeComponent>
+                    ?: throw invocation.make<TypeSystem>(
+                        "Receiver ${receiver.toString(printer)} does not expose a method named ${
+                            printer.apply(
+                                node.messageIdentifier.identifier,
+                                PrintableKey.Italics,
+                                PrintableKey.Bold
+                            )
+                        }", node.messageIdentifier.firstToken
+                    )
 
-            candidateSignatures = candidateExtensions.flatMap {
-                it.signatures.mapNotNull { s -> when (s.relativeName) {
-                    node.messageIdentifier.identifier -> s.sub(mono.polymorphicType, mono)
-                    else -> null
-                }}
-            }
+                val extensions = inferenceUtil.getExtensions(mono.polymorphicType)
 
-            if (candidateSignatures.isEmpty()) {
-                throw invocation.make<TypeSystem>("Receiver ${receiver.toString(printer)} does not expose a method named ${printer.apply(node.messageIdentifier.identifier, PrintableKey.Italics, PrintableKey.Bold)}", node.messageIdentifier.firstToken)
+                val candidateExtensions = extensions.mapNotNull {
+                    when (it.extend(inferenceUtil, mono)) {
+                        is Never -> null
+                        else -> it
+                    }
+                }
+
+                candidateSignatures = candidateExtensions.flatMap {
+                    it.signatures.mapNotNull { s ->
+                        when (s.relativeName) {
+                            node.messageIdentifier.identifier -> s.sub(mono.polymorphicType, mono)
+                            else -> null
+                        }
+                    }
+                }
+
+                if (candidateSignatures.isEmpty()) {
+                    throw invocation.make<TypeSystem>(
+                        "Receiver ${receiver.toString(printer)} does not expose a method named ${
+                            printer.apply(
+                                node.messageIdentifier.identifier,
+                                PrintableKey.Italics,
+                                PrintableKey.Bold
+                            )
+                        }", node.messageIdentifier.firstToken
+                    )
+                }
             }
         }
 
@@ -89,7 +145,6 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
         }
 
         val signature = candidateSignatures[0] as Signature
-        val arguments = inferenceUtil.inferAll(node.parameterNodes, AnyExpressionContext)
 
         /**
          * NOTE - This idea is kind of nuts, but it seems to work pretty well.
@@ -129,3 +184,7 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
         }.inferenceResult()
     }
 }
+
+//data class SyntheticCall(val receiver: TypeComponent, val parameters: List<TypeComponent>, val returns: TypeComponent) : TypeComponent {
+//
+//}

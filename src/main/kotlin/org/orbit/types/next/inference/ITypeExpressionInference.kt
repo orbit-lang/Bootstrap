@@ -3,6 +3,7 @@ package org.orbit.types.next.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
 import org.orbit.core.getPath
 import org.orbit.core.nodes.*
 import org.orbit.types.next.components.*
@@ -48,7 +49,14 @@ object TypeLiteralInference : ITypeExpressionInference<TypeIdentifierNode, TypeC
                 .type.inferenceResult()
         }
 
-        else -> inferenceUtil.find<TypeSystem>(node.getPath(), invocation, node).inferenceResult()
+        else -> {
+            if (node.getPath() == Path.self) {
+                inferenceUtil.self?.inferenceResult()
+                    ?: TODO("!!!")
+            } else {
+                inferenceUtil.find<TypeSystem>(node.getPath(), invocation, node).inferenceResult()
+            }
+        }
     }
 }
 

@@ -26,21 +26,16 @@ module Test with Orb::* {
     (StatusCode) display (sc StatusCode) (IntRepresentable) = sc
     (Byte) display (b Byte) (IntRepresentable) = b
 
-    (IntRepresentable) add (a IntRepresentable, b IntRepresentable) (IntRepresentable)
-        = Self.intRepresentation(a)
+    (Unit) add (a IntRepresentable, b IntRepresentable) (IntRepresentable)
+        = a.intRepresentation()
 
     (Int) main _ _ {
         s = StatusCode(1)
         b = Byte(2)
         i = 3
-        u = Unit()
 
-        x = StatusCode.add(s, b)
-        y = Byte.add(b, i)
-        z = Int.add(s, i)
-
-        typeOf x
-        typeOf y
-        typeOf z
+        x = Unit.add(s, b)
+        y = Unit.add(b, i)
+        z = Unit.add(s, i)
     }
 }

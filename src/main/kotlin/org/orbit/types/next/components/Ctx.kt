@@ -48,6 +48,13 @@ class Ctx constructor() : IContext {
         else -> ref
     }
 
+    fun <A: TypeComponent, B: TypeComponent, R> deref(ref1: TypeComponent, ref2: TypeComponent, block: (A, B) -> R) : R {
+        val nA = deref(ref1) as A
+        val nB = deref(ref2) as B
+
+        return block(nA, nB)
+    }
+
     fun <T: TypeComponent, R> dereference(ref: T, block: (T) -> R) : R {
         val type = types.find { it.fullyQualifiedName == ref.fullyQualifiedName } ?: return block(ref)
 

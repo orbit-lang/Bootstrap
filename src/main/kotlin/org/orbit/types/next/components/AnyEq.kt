@@ -1,7 +1,29 @@
 package org.orbit.types.next.components
 
 import org.orbit.types.next.intrinsics.Native
-import org.orbit.util.alsoIf
+
+object EqMemo {
+    private val memo = mutableMapOf<String, Boolean>()
+
+    fun <A: TypeComponent, B: TypeComponent> memoise(block: (A, B) -> Boolean) : (A, B) -> Boolean {
+        return { a, b ->
+            val key = a.fullyQualifiedName + b.fullyQualifiedName
+
+            when (val m = memo[key]) {
+                null -> {
+                    val result = block(a, b)
+
+                    if (result) {
+                        memo[key] = result
+                    }
+
+                    result
+                }
+                else -> m
+            }
+        }
+    }
+}
 
 object MonoEq : ITypeEq<MonomorphicType<*>, TypeComponent> {
     override fun eq(ctx: Ctx, a: MonomorphicType<*>, b: TypeComponent): Boolean = when (b) {
@@ -111,12 +133,7 @@ object ValueEq : ITypeEq<IConstantValue<*>, TypeComponent> {
 }
 
 object AnyEq : ITypeEq<TypeComponent, TypeComponent> {
-    private val memo = mutableMapOf<String, Boolean>()
-
-    fun weakEq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereference(a, b) { a, b ->
-        val key = a.fullyQualifiedName + b.fullyQualifiedName
-        if (memo[key] != null) return@dereference true
-
+    fun weakEq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereference(a, b, EqMemo.memoise { a, b ->
         when (a) {
             is Infer -> true
             is Anything -> true
@@ -129,17 +146,15 @@ object AnyEq : ITypeEq<TypeComponent, TypeComponent> {
             is TypeFamily<*> -> FamilyEq.eq(ctx, a, b)
             is ITypeParameter -> ParameterEq.eq(ctx, a, b)
             else -> NominalEq.eq(ctx, a, b)
-        }.alsoIf { memo[key] = true; true }
-    }
+        }
+    })
 
-    override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean {
-        val key = a.fullyQualifiedName + b.fullyQualifiedName
-        if (memo[key] != null) return true
-
-        val a = ctx.deref(a)
-        val b = ctx.deref(b)
-
-        return when (a) {
+    override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.deref(a, b, EqMemo.memoise { a, b ->
+        when (a) {
+            is SyntheticType -> when (b) {
+                is Trait -> NominalEq.eq(ctx, a.trait, b)
+                else -> false
+            }
             is Infer -> true
             is Anything -> true
             is IConstantValue<*> -> ValueEq.eq(ctx, a, b)
@@ -147,10 +162,13 @@ object AnyEq : ITypeEq<TypeComponent, TypeComponent> {
             is MonomorphicType<*> -> MonoEq.eq(ctx, a, b)
             is PolymorphicType<*> -> PolyEq.eq(ctx, a, b)
             is Type -> TypeEq.eq(ctx, a, b)
-            is Trait -> TraitEq.eq(ctx, a, b)
+            is Trait -> when (b) {
+                is SyntheticType -> NominalEq.eq(ctx, b.trait, a)
+                else -> TraitEq.eq(ctx, a, b)
+            }
             is TypeFamily<*> -> FamilyEq.eq(ctx, a, b)
             is ITypeParameter -> ParameterEq.eq(ctx, a, b)
             else -> NominalEq.eq(ctx, a, b)
-        }.alsoIf { memo[key] = true; true }
-    }
+        }
+    })
 }

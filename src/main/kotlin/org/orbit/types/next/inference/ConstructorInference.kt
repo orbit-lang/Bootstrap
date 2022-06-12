@@ -119,7 +119,10 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
             ContractResult.None -> source
             is ContractResult.Success -> source
             is ContractResult.Failure -> Never("Type Projection error:\n\t${result.getErrorMessage(printer, source)}")
-            is ContractResult.Group -> Never("Type Projection errors:\n\t${result.getErrorMessage(printer, source)}")
+            is ContractResult.Group -> when (result.isSuccessGroup) {
+                true -> source
+                else -> Never("Type Projection errors:\n\t${result.getErrorMessage(printer, source)}")
+            }
         }.inferenceResult()
     }
 }

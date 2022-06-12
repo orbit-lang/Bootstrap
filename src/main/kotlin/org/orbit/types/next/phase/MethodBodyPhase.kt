@@ -6,9 +6,9 @@ import org.orbit.core.nodes.BlockNode
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.types.next.components.*
-import org.orbit.types.next.inference.TypeAnnotatedInferenceContext
 import org.orbit.types.next.inference.BlockInference
 import org.orbit.types.next.inference.InferenceResult
+import org.orbit.types.next.inference.TypeAnnotatedInferenceContext
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
@@ -21,8 +21,16 @@ object MethodBodyPhase : TypePhase<MethodDefNode, TypeComponent>, KoinComponent 
     }
 
     private fun typeCheckMethodBody(input: TypePhaseData<MethodDefNode>, signature: Signature) : TypeComponent {
-        val nInferenceUtil = input.inferenceUtil.derive(self = signature.receiver)
+        var nInferenceUtil = input.inferenceUtil.derive(self = signature.receiver)
         val params = input.node.signature.parameterNodes.zip(signature.parameters)
+
+        if (signature.receiver is Trait) {
+            val nReceiver = signature.receiver.synthesise()
+
+            nInferenceUtil = nInferenceUtil.derive(self = nReceiver)
+        }
+
+//        for ()
 
         params.forEach {
             nInferenceUtil.bind(it.first.identifierNode.identifier, it.second)
@@ -40,6 +48,7 @@ object MethodBodyPhase : TypePhase<MethodDefNode, TypeComponent>, KoinComponent 
 
                 result.type
             }
+
             is InferenceResult.Failure -> result.never
         }
     }

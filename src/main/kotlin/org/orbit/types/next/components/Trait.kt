@@ -35,10 +35,14 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
 
     override val kind: Kind = IntrinsicKinds.Trait
 
-    override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult = when (StructuralEq.eq(ctx, this, by)) {
-        true -> ContractResult.Success(by, this)
-        else -> ContractResult.Failure(by, this)
+    override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult = contracts.fold(ContractResult.None as ContractResult) { acc, next ->
+        acc + next.isImplemented(ctx, by)
     }
+
+//    override fun isImplemented(ctx: Ctx, by: TypeComponent): ContractResult = when (StructuralEq.eq(ctx, this, by)) {
+//        true -> ContractResult.Success(by, this)
+//        else -> ContractResult.Failure(by, this)
+//    }
 
     override fun getMembers(): List<Member> = contracts.filterIsInstance<FieldContract>()
         .map { it.input }
@@ -48,6 +52,8 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
         = "Type ${type.toString(printer)} does not implement Trait ${toString(printer)}"
 
     inline fun <reified C: Contract<*>> getTypedContracts() : List<C> = contracts.filterIsInstance<C>()
+
+    fun synthesise() : SyntheticType = SyntheticType(this)
 
     override fun merge(ctx: Ctx, other: ITrait) : ITrait {
         val printer: Printer = getKoinInstance()
@@ -101,5 +107,15 @@ data class Trait(override val fullyQualifiedName: String, override val contracts
     override fun equals(other: Any?): Boolean = when (other) {
         is Trait -> fullyQualifiedName == other.fullyQualifiedName
         else -> false
+    }
+}
+
+data class SyntheticType(val trait: Trait) : TypeComponent {
+    override val fullyQualifiedName: String = java.util.UUID.randomUUID().toString()
+    override val isSynthetic: Boolean = true
+    override val kind: Kind = IntrinsicKinds.Type
+
+    override fun compare(ctx: Ctx, other: TypeComponent): TypeRelation {
+        TODO("Not yet implemented")
     }
 }
