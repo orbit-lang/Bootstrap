@@ -4,17 +4,17 @@ object TokenTypes : TokenTypeProvider {
     // Symbols
     object Colon : TokenType("Colon", "\\:", true, false, Family.Op)
     object Comma : TokenType("Comma", "\\,", true, false, Family.Op)
-    object Dot : TokenType("Dot", "\\.", true, false, Family.Op)
+//    object Dot : TokenType("Dot", "\\.", true, false, Family.Op)
     object LParen : TokenType("LParen", "\\(", true, false, Family.Enclosing)
     object RParen : TokenType("RParen", "\\)", true, false, Family.Enclosing)
     object LBracket : TokenType("LBracket", "\\[", true, false, Family.Enclosing)
     object RBracket : TokenType("RBracket", "\\]", true, false, Family.Enclosing)
     object LBrace : TokenType("LBrace", "\\{", true, false, Family.Enclosing)
     object RBrace : TokenType("RBrace", "\\}", true, false, Family.Enclosing)
-    object LAngle : TokenType("LAngle", "\\<", true, false, Family.Enclosing)
-    object RAngle : TokenType("RAngle", "\\>", true, false, Family.Enclosing)
+//    object LAngle : TokenType("LAngle", "\\<", true, false, Family.Enclosing)
+//    object RAngle : TokenType("RAngle", "\\>", true, false, Family.Enclosing)
     object Assignment : TokenType("Assignment", "\\=", true, false, Family.Op)
-    object OperatorSymbol : TokenType("OperatorSymbol", "[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|]+", true, false, Family.Op)
+    object OperatorSymbol : TokenType("OperatorSymbol", "[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|\\.]+", true, false, Family.Op)
     object Annotation : TokenType("Annotation", "@", true, false, Family.Op)
     object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false, Family.White)
     object BackTick : TokenType("Backtick", "`", true, false, Family.Op)
@@ -55,6 +55,7 @@ object TokenTypes : TokenTypeProvider {
     object To : TokenType("To", "\\bto\\b", true, false, Family.Keyword)
     object Fixity : TokenType("Fixity", "\\b(in|pre|post)fix\\b", true, false, Family.Keyword)
     object Operator : TokenType("Operator", "\\boperator\\b", true, false, Family.Keyword)
+    object Call : TokenType("Call", "call", true, false, Family.Keyword)
 
     // Compile-time functions
     object Synthesise : TokenType("Synthesise", "\\bsynthesise\\b", true, false, Family.CompileTime)
@@ -69,6 +70,11 @@ object TokenTypes : TokenTypeProvider {
 
     data class HigherKind(val level: kotlin.Int) : TokenType("Type($level)", "", true, false, TokenType.Family.Kind)
 
+    // Virtuals
+    val Dot = VirtualTokenType(".")
+    val LAngle = VirtualTokenType("<")
+    val RAngle = VirtualTokenType(">")
+
     override fun getTokenTypes() : List<TokenType> {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
@@ -76,10 +82,11 @@ object TokenTypes : TokenTypeProvider {
             Int, Real, Context, Api, Module, Define, Defer, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias, Operator,
             Synthesise,
+            Call,
             Fixity, Let, Invoke, In, Of, By, To,
             TypeIdentifier,
-            Colon, Comma, Dot, Assignment, Annotation, Whitespace,
-            LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
+            Colon, Comma, Assignment, Annotation, Whitespace,
+            LParen, RParen, LBracket, RBracket, LBrace, RBrace,
             Expand, Mirror, TypeOf, Type, Trait, Within, With, Return, Family,
             BackTick, OperatorSymbol, Identifier
         )

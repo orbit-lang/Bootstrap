@@ -11,7 +11,10 @@ import org.orbit.core.phase.PhaseAdapter
 import org.orbit.core.phase.getInputType
 import org.orbit.core.storeResult
 import org.orbit.graph.phase.NameResolverResult
-import org.orbit.types.next.components.*
+import org.orbit.types.next.components.ITrait
+import org.orbit.types.next.components.IType
+import org.orbit.types.next.components.Module
+import org.orbit.types.next.components.TypeComponent
 import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
@@ -27,29 +30,6 @@ interface TypePhase<N: Node, T: TypeComponent> : Phase<TypePhaseData<N>, T> {
 
 fun <N: Node, T: TypeComponent> TypePhase<N, T>.executeAll(inferenceUtil: InferenceUtil, nodes: List<N>) : List<T>
     = nodes.map { execute(TypePhaseData(inferenceUtil, it)) }
-
-object OperatorDeclarationPhase : TypePhase<OperatorDefNode, Operator>, KoinComponent {
-    override val invocation: Invocation by inject()
-    private val printer: Printer by inject()
-
-    private fun runInfix(input: TypePhaseData<OperatorDefNode>) : InfixOperator {
-        val methodRef = input.inferenceUtil.inferAs<MethodReferenceNode, Func>(input.node.methodReferenceNode)
-
-        if (methodRef.takes.count() != 2) {
-            throw invocation.make<TypeSystem>("Infix Operators accept exactly 2 parameters, found ${methodRef.takes.count()} via reference to method ${methodRef.toString(printer)}", input.node.methodReferenceNode)
-        }
-
-        val lhs = methodRef.takes.nth(0)
-        val rhs = methodRef.takes.nth(1)
-
-        return InfixOperator(input.node.identifierNode.identifier, input.node.symbol, lhs, rhs, methodRef.returns)
-    }
-
-    override fun run(input: TypePhaseData<OperatorDefNode>): Operator = when (input.node.fixity) {
-        OperatorFixity.Infix -> runInfix(input)
-        else -> TODO("Unsupported Operator Fixity: ${input.node.fixity}")
-    }
-}
 
 object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
     override val invocation: Invocation by inject()

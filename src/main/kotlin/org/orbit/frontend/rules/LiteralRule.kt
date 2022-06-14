@@ -11,7 +11,7 @@ import org.orbit.frontend.extensions.unaryPlus
 class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRule<RValueNode> {
 	private companion object {
 		val Default = arrayOf<ValueRule<*>>(
-			MethodReferenceRule,
+			InvokableReferenceRule,
 			TypeIdentifierRule.Naked,
 			IdentifierRule,
 			IntLiteralRule,
@@ -30,7 +30,7 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRul
 
 		val next = context.peek()
 
-		if (next.type == TokenTypes.LAngle) {
+		if (TokenTypes.LAngle(next)) {
 			val typeParametersNode = TypeParametersRule_Old(true)
 				.execute(context)
 				.unwrap<ParseRule.Result.Success<TypeParametersNode>>()

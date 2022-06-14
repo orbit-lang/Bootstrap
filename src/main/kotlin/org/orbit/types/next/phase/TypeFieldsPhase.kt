@@ -6,10 +6,7 @@ import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.ParameterNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.core.nodes.TypeDefNode
-import org.orbit.types.next.components.Field
-import org.orbit.types.next.components.IType
-import org.orbit.types.next.components.PolymorphicType
-import org.orbit.types.next.components.Type
+import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.AnyInferenceContext
 import org.orbit.types.next.inference.TypeReference
 import org.orbit.util.Invocation
@@ -34,7 +31,12 @@ object TypeFieldsPhase : TypePhase<TypeDefNode, IType>, KoinComponent {
             }
         }
 
-        return Type(typeStub.fullyQualifiedName, fields)
+        val nType = Type(typeStub.fullyQualifiedName, fields)
+        val primaryConstructor = Constructor(nType, fields.map { it.type })
+
+        input.inferenceUtil.declare(primaryConstructor)
+
+        return nType
     }
 }
 

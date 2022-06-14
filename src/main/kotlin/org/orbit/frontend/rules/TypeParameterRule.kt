@@ -93,7 +93,7 @@ class TypeParametersRule_Old(private val isRValueContext: Boolean) : ParseRule<T
 		val start = context.expect(TokenTypes.LAngle)
 
 		var next = context.peek()
-		if (next.type == TokenTypes.RAngle) {
+		if (TokenTypes.RAngle(next)) {
 			// Empty generic expression is meaningless
 			// TODO - Could `<>` mean same as `<*>` in Kotlin?
 			TODO("@TypeParameterRule:64")
@@ -103,7 +103,7 @@ class TypeParametersRule_Old(private val isRValueContext: Boolean) : ParseRule<T
 
 		val lookaheadParser = Parser(context.invocation, DependentTypeParameterRule)
 
-		while (next.type != TokenTypes.RAngle) {
+		while (TokenTypes.RAngle(next)) {
 			// Parsing precedence is critical here, must check for `<N Int>` style expressions before `N` or `N: Int`,
 			// otherwise we end up with an ambiguity in the grammar
 			if (isRValueContext) {

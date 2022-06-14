@@ -14,15 +14,15 @@ object MetaTypeRule : ValueRule<MetaTypeNode> {
 
             var next = context.peek()
 
-            if (next.type != TokenTypes.LAngle)
+            if (!TokenTypes.LAngle(next))
                 return@record ParseRule.Result.Failure.Rewind(recordedTokens)
 
             context.consume()
 
             val typeParameters = mutableListOf<TypeExpressionNode>()
 
-            if (context.peek().type != TokenTypes.RAngle) {
-                while (next.type != TokenTypes.RAngle) {
+            if (!TokenTypes.RAngle(context.peek())) {
+                while (!TokenTypes.RAngle(next)) {
                     // TODO - Allow for recursive meta type parameters here?
                     val typeParameter = context.attempt(TypeExpressionRule)
                         ?: return@record ParseRule.Result.Failure.Rewind(recordedTokens)

@@ -8,7 +8,7 @@ import org.orbit.frontend.extensions.unaryPlus
 object ObserverRule : ParseRule<ObserverNode> {
     override fun parse(context: Parser) : ParseRule.Result {
         val start = context.expect(TokenTypes.Observe)
-        val identifier = context.attempt(MethodReferenceRule)
+        val identifier = context.attempt(InvokableReferenceRule)
             ?: throw context.invocation.make<Parser>("Expected identifier for observer", context.peek().position)
 
         return +ObserverNode(start, identifier.lastToken, identifier)

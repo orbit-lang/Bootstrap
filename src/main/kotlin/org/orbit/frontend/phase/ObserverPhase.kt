@@ -29,7 +29,7 @@ class ObserverPhase(override val invocation: Invocation) : ReifiedPhase<SourcePr
             }
 
             is Scope.BindingSearchResult.Multiple -> {
-                val fullPath = Path(observerNode.observerIdentifierNode.typeIdentifierNode.value,
+                val fullPath = Path(observerNode.observerIdentifierNode.typeExpressionNode.value,
                     observerNode.observerIdentifierNode.identifierNode.identifier)
 
                 val matches = match.results.filter { it.path.matchPartial(fullPath) }

@@ -30,58 +30,28 @@ object ReferenceCallRule : CallRule<ReferenceCallNode> {
 
 object MethodCallRule : CallRule<MethodCallNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val receiverExpression = context.attemptAny(listOf(TypeExpressionRule, ExpressionRule.defaultValue))
+        val start = context.expect(TokenTypes.Call)
+        val receiver = context.attemptAny(listOf(TypeExpressionRule, ExpressionRule.defaultValue))
             as? ExpressionNode
             ?: throw context.invocation.make<Parser>("TODO", context.peek())
 
-        var next = context.peek()
+//        context.expect(TokenTypes.Dot)
 
-        if (receiverExpression is MethodCallNode && next.type != TokenTypes.Dot) {
-            return +receiverExpression
-        }
+        val message = context.attempt(IdentifierRule)
+            ?: TODO("HJEKHJASD F")
 
-        context.expectOrNull(TokenTypes.Dot)
-            ?: return ParseRule.Result.Failure.Rewind(listOf(receiverExpression.firstToken))
-
-        val methodIdentifier = context.attempt(IdentifierRule)
-            ?: throw context.invocation.make<Parser>("Expected method name", context.peek())
-
-        next = context.peek()
+        val next = context.peek()
 
         if (next.type != TokenTypes.LParen) {
-            // This looks like a parameter-less call, which is property access
-            return parseTrailing(context, MethodCallNode(receiverExpression.firstToken, methodIdentifier.lastToken, receiverExpression, methodIdentifier, emptyList(), true))
+            val end = context.consume()
+            return +MethodCallNode(start, end, receiver, message, emptyList(), true)
         }
 
-        // We're now parsing a method call
-        // Eat the opening '('
-        context.consume()
+        val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)
+        val delimResult = context.attempt(delim)
+            ?: TODO("HERE!!@£")
 
-        next = context.peek()
-
-        if (next.type == TokenTypes.RParen) {
-            context.consume()
-            return +MethodCallNode(receiverExpression.firstToken, methodIdentifier.lastToken, receiverExpression, methodIdentifier, emptyList())
-        }
-
-        val parameterNodes = mutableListOf<ExpressionNode>()
-        while (next.type != TokenTypes.RParen) {
-            val expression = context.attempt(ExpressionRule.defaultValue)
-                ?: throw context.invocation.make<Parser>("Method call parameters must be expressions", next.position)
-
-            parameterNodes.add(expression)
-
-            next = context.peek()
-
-            if (next.type == TokenTypes.Comma) {
-                context.consume()
-                next = context.peek()
-            }
-        }
-
-        val last = context.expect(TokenTypes.RParen)
-
-        return parseTrailing(context, MethodCallNode(receiverExpression.firstToken, last, receiverExpression, methodIdentifier, parameterNodes))
+        return +MethodCallNode(start, delimResult.lastToken, receiver, message, delimResult.nodes, false)
     }
 }
 

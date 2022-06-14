@@ -14,8 +14,8 @@ object MethodReferencePathResolver : PathResolver<MethodReferenceNode> {
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: MethodReferenceNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        input.typeIdentifierNode.annotate(input.getGraphID(), Annotations.GraphID)
+        input.typeExpressionNode.annotate(input.getGraphID(), Annotations.GraphID)
 
-        return pathResolverUtil.resolve(input.typeIdentifierNode, pass, environment, graph)
+        return pathResolverUtil.resolve(input.typeExpressionNode, pass, environment, graph)
     }
 }

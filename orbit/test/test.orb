@@ -2,6 +2,8 @@ module Orb::Types::Intrinsics {
     type Unit
     type Int
     type Symbol
+
+#    infix operator plus `+` by intrinsicFunction(Int::add(Int,Int))
 }
 
 module Orb::Core::Main {
@@ -15,8 +17,17 @@ module Test with Orb::* {
     infix operator choose `?` by Int::choose
     infix operator choose `???` by Int::choose2
 
+    type Range(start Int, end Int)
+
+    infix operator range `...` by ::Range
+    infix operator range `...` by Range::combine
+
+    (Range) combine (a Range, b Range) (Range) = Range(a.start, b.end)
+
+    (self Int) foo (b Int) (Int) = (self ? b)
+
     (self Main) main _ _ {
-        i = 1 ??? :a
-        j = 1 ? 1
+        a = 1 ... 2
+        b = (1 ... 2) ... (2 ... 2)
     }
 }

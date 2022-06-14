@@ -1,12 +1,22 @@
 package org.orbit.core.nodes
 
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
+import org.orbit.core.components.TokenTypes
 
 data class IdentifierNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val identifier: String
 ) : ConstantExpressionNode(), ValueRepresentableNode {
+    companion object {
+        val init = IdentifierNode(
+            Token(TokenTypes.Identifier, "__init__", SourcePosition.unknown),
+            Token(TokenTypes.Identifier, "__init__", SourcePosition.unknown),
+            "__init__"
+        )
+    }
+
 	override fun getChildren() : List<Node> {
 		return emptyList()
 	}

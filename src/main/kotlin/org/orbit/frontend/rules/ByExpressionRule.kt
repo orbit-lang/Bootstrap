@@ -8,7 +8,7 @@ import org.orbit.frontend.phase.Parser
 
 data class ByExpressionRule<N: Node>(private val rhsRule: ParseRule<N>) : ParseRule<ByExpressionNode<N>> {
     companion object {
-        val methodReference = ByExpressionRule(MethodReferenceRule)
+        val methodReference = ByExpressionRule(InvokableReferenceRule)
     }
 
     override fun parse(context: Parser): ParseRule.Result {

@@ -11,7 +11,7 @@ import org.orbit.frontend.rules.PartialExpressionRule
 fun <N: Node> ParseRule<N>.parseTrailing(context: Parser, result: ExpressionNode) : ParseRule.Result {
     val next = context.peek()
 
-    if (next.type == TokenTypes.Dot) {
+    if (TokenTypes.Dot(next)) {
         val partialCallRule = PartialCallRule(result)
 
         return partialCallRule.execute(context)

@@ -1,14 +1,11 @@
 package org.orbit.frontend.phase
 
 import org.orbit.core.*
-import org.orbit.core.components.SourcePosition
-import org.orbit.core.components.Token
-import org.orbit.core.components.TokenType
+import org.orbit.core.components.*
 import org.orbit.core.nodes.Node
 import org.orbit.core.phase.AdaptablePhase
 import org.orbit.core.phase.PhaseAdapter
 import org.orbit.frontend.components.ParseError
-import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.util.*
@@ -148,6 +145,20 @@ class Parser(
 			else -> null
 		}
 	}
+
+	fun expectOrNull(type: VirtualTokenType): Token?
+		= expectOrNull(type.getPredicate())
+
+	fun expect(type: VirtualTokenType): Token
+		= expectOrNull(type)!!
+
+	fun expectOrNull(where: (Token) -> Boolean) : Token? = when (where(peek())) {
+		true -> consume()
+		else -> null
+	}
+
+	fun expect(where: (Token) -> Boolean) : Token
+		= expectOrNull(where)!!
 
 	fun expect(type: TokenType, where: (Token) -> Boolean) : Token
 		= expectOrNull(type, where)!!

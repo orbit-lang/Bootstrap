@@ -5,10 +5,11 @@ import org.orbit.core.components.Token
 data class MethodReferenceNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val typeIdentifierNode: TypeIdentifierNode,
+    val isConstructor: Boolean,
+    val typeExpressionNode: TypeExpressionNode,
     val identifierNode: IdentifierNode
 ) : ExpressionNode() {
     override fun getChildren(): List<Node> {
-        return listOf(typeIdentifierNode, identifierNode)
+        return listOf(typeExpressionNode, identifierNode)
     }
 }

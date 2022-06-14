@@ -27,7 +27,7 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 			: ParseError("Expected receiver type (T) or (t T) following '(' in method signature", sourcePosition)
 		
 		data class MissingParameters(override val sourcePosition: SourcePosition)
-			: ParseError("Expected parameter list following '(' in method signature", sourcePosition)
+			: ParseError("	Expected parameter list following '(' in method signature", sourcePosition)
 
 		data class MissingReturnType(override val sourcePosition: SourcePosition)
 			: ParseError("Expected return type following '(' in method signature", sourcePosition)
@@ -55,8 +55,8 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 
 		var next = context.peek()
 
-		val typeParameters: TypeParametersNode? = when (next.type) {
-			TokenTypes.LAngle -> {
+		val typeParameters: TypeParametersNode? = when {
+			TokenTypes.LAngle(next) -> {
 				context.attempt(TypeParametersRule)
 					?: throw invocation.make<Parser>("~TODO~", next)
 			}
