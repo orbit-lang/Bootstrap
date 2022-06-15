@@ -17,10 +17,6 @@ object TokenTypes : TokenTypeProvider {
     object OperatorSymbol : TokenType("OperatorSymbol", "((?:`[^`]+`)|(?:\\.{2,})|(?:[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|]+))", true, false, Family.Op)
     object Annotation : TokenType("Annotation", "@", true, false, Family.Op)
     object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false, Family.White)
-//    object BackTick : TokenType("Backtick", "`", true, false, Family.Op)
-
-	// Comments
-    object MultiLineComment : TokenType("MultiLineComment", "\\/\\*.**\\/", true, false, Family.Comment)
 	
     // Keywords
     object Api : TokenType("API", "\\bapi\\b", true, false, Family.Keyword)
@@ -39,8 +35,6 @@ object TokenTypes : TokenTypeProvider {
     object Projection : TokenType("Projection", "\\bprojection\\b", true, false, Family.Keyword)
     object Extension : TokenType("Extension", "\\bextension\\b", true, false, Family.Keyword)
     object Alias : TokenType("Alias", "\\balias\\b", true, false, Family.Keyword)
-    // NOTE - This is kind of dirty, but if we want arbitrary keywords, we need a way to make the lexer
-    // avoid recognising them in regular identifiers, e.g. a variable named "observeSomething"
     object Observe : TokenType("Observer", "\\bobserve\\b", true, false, Family.Keyword)
     object Where : TokenType("Where", "\\bwhere\\b", true, false, Family.Keyword)
     object Let : TokenType("Let", "\\blet\\b", true, false, Family.Keyword)
@@ -68,8 +62,6 @@ object TokenTypes : TokenTypeProvider {
     object Symbol : TokenType("Symbol", "\\:[a-zA-Z_]+[a-zA-Z0-9_]*", false, false, Family.Id)
     object EOS : TokenType("", "", true, false, Family.White)
 
-    data class HigherKind(val level: kotlin.Int) : TokenType("Type($level)", "", true, false, TokenType.Family.Kind)
-
     override fun getTokenTypes() : List<TokenType> {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
@@ -83,7 +75,7 @@ object TokenTypes : TokenTypeProvider {
             Colon, Comma, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
             Expand, Mirror, TypeOf, Type, Trait, Within, With, Return, Family,
-            /*BackTick,*/ OperatorSymbol, Identifier, Dot
+            OperatorSymbol, Identifier, Dot
         )
     }
 }

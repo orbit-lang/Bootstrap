@@ -57,9 +57,8 @@ class Scope(
 			}
 		}
 
-		class None(val simpleName: String, val contextualKind: Binding.Kind? = null) : BindingSearchResult() {
+		class None(val simpleName: String, private val contextualKind: Binding.Kind? = null) : BindingSearchResult() {
 			override fun unwrap(phase: Phase<*, *>, sourcePosition: SourcePosition): Binding {
-				// TODO - Is simpleName a hard requirement here?
 				phase.invocation.reportError(BindingNotFound(phase::class.java, sourcePosition, simpleName, contextualKind))
 				throw Exception("Unreachable")
 			}
@@ -266,12 +265,8 @@ class Scope(
 					0 -> BindingSearchResult.None(simpleName)
 					1 -> BindingSearchResult.Success(refined[0])
 					else -> {
-						// We can try to resolve this conflict automatically by giving priority
-						// to a binding if it exists in the current scope
-						// TODO - This doesn't work, but the idea is good
 						for (binding in matches) {
 							if (bindings.contains(binding)) {
-								// TODO - We should probably raise a warning about potential conflicts here
 								return BindingSearchResult.Success(binding)
 							}
 						}

@@ -36,7 +36,7 @@ sealed class CodeGeneratorQualifier(val implementationExtension: String, val hea
 		fun valueOf(name: String) = when (name) {
 			"Swift" -> Swift
 			"C" -> C
-			else -> TODO("")
+			else -> throw NotImplementedError("Unsupported code generation target: $name")
 		}
 	}
 }

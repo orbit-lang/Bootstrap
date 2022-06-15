@@ -27,11 +27,11 @@ open class CompilationScheme(entries: List<CompilationSchemeEntry>) : MutableLis
 	}
 
 	override fun previous(): CompilationSchemeEntry {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override fun previousIndex(): Int {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 
 	override fun add(element: CompilationSchemeEntry) {
@@ -45,6 +45,6 @@ open class CompilationScheme(entries: List<CompilationSchemeEntry>) : MutableLis
 	}
 
 	override fun set(element: CompilationSchemeEntry) {
-		TODO("Not yet implemented")
+		throw NotImplementedError()
 	}
 }

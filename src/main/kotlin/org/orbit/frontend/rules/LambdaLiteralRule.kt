@@ -1,11 +1,16 @@
 package org.orbit.frontend.rules
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.*
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
+import org.orbit.util.Invocation
 
-private object LambdaLiteralBodyRule : ParseRule<BlockNode> {
+private object LambdaLiteralBodyRule : ParseRule<BlockNode>, KoinComponent {
+    private val invocation: Invocation by inject()
+
     override fun parse(context: Parser): ParseRule.Result {
         val node = context.attemptAny(listOf(BlockRule.lambda, ExpressionRule.singleExpressionBodyRule))
             ?: return ParseRule.Result.Failure.Abort
@@ -13,7 +18,7 @@ private object LambdaLiteralBodyRule : ParseRule<BlockNode> {
         val body = when (node) {
             is BlockNode -> node
             is ExpressionNode -> node.toBlockNode()
-            else -> TODO("@LambdaLiteralRule:16")
+            else -> throw invocation.make<Parser>("Expected either a block or a single expression as Lambda body", node)
         }
 
         return +body

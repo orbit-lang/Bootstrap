@@ -39,7 +39,6 @@ data class TypeIdentifierNode(
 		get() = value.endsWith("*")
 
 	override fun equals(other: Any?): Boolean = when (other) {
-		// TODO - Revisit equality when we get to implementing generics
 		is TypeIdentifierNode -> value == other.value
 		else -> false
 	}

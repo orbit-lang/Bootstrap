@@ -74,6 +74,6 @@ data class FamilyConstructorNode(
     }
 
     override fun extend(given: List<TypeIdentifierNode>): EntityConstructorNode {
-        TODO("Not yet implemented")
+        throw NotImplementedError()
     }
 }

@@ -52,9 +52,8 @@ class CommentParser(override val invocation: Invocation) :
 							inComment = false
 						}
 					} else if (char == '/') {
-						// TODO - For now, I'm disabling nested multline comments for ease of implementation
 						if (isNextChar('*')) {
-							throw Exception("Nested multline comments are not currently supported")
+							throw Exception("Nested multiline comments are not currently supported")
 						}
 					} else if (char.isNewline()) {
 						// We need to preserve newlines inside comments so

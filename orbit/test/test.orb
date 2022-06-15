@@ -24,16 +24,18 @@ module Orb::Meta::Quotes with Orb::Compiler::* with Orb::More::* {
 }
 
 module Test with Orb::* {
-    type Range(start Int, end Int)
+    trait constructor Option<T>() {
+        (self Self) unwrap () (T)
+    }
 
-    (Range) forceUnwrap (r Range) (Int) = (r.start)
-    (Range) inRange (i Int, r Range) (Int) = (r.end)
+    type constructor None<T>() : Option<T>
+    type constructor Some<T>(value T) : Option<T>
 
-    infix operator inclusiveRange ... by ::Range
-    postfix operator forceUnwrap ! by Range::forceUnwrap
-    infix operator inRange `in` by Range::inRange
+#    postfix operator forceUnwrap ! by Option::unwrap
 
     (self Main) main _ _ {
-        i = (1 `in` (0 ... 10))!
+        s = Some(1)
+
+        typeOf s.unwrap()
     }
 }

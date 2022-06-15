@@ -19,7 +19,7 @@ open class Path(open val relativeNames: List<String>) : AnySerializable(), AnyPr
 	open operator fun plus(other: Path) : Path {
 		val a = relativeNames.toList()
 		val b = other.relativeNames.toList()
-		// NOTE - Really?!
+
 		return Path(a + b)
 	}
 

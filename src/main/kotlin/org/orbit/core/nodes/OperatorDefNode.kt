@@ -25,7 +25,7 @@ data class OperatorDefNode(
     val methodReferenceNode: MethodReferenceNode
 ) : TopLevelDeclarationNode(PathResolver.Pass.Initial) {
     override val context: ContextExpressionNode?
-        get() = TODO("Not yet implemented")
+        get() = throw NotImplementedError()
 
     override fun getChildren(): List<Node>
         = listOf(identifierNode, methodReferenceNode)

@@ -1,13 +1,18 @@
 package org.orbit.frontend.rules
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.core.nodes.*
 import org.orbit.frontend.phase.Parser
 import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
+import org.orbit.util.Invocation
 
 interface ValueRule<E: ExpressionNode> : ParseRule<E>
 
-class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<ExpressionNode> {
+class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<ExpressionNode>, KoinComponent {
+	private val invocation: Invocation by inject()
+
 	companion object {
 		val defaultValue = ExpressionRule(
 			MirrorRule,
@@ -30,9 +35,9 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 
 		val lhs = when (start.type) {
 			TokenTypes.LParen -> {
-				context.expect(TokenTypes.LParen)
+				val tok = context.expect(TokenTypes.LParen)
 				val expr = context.attempt(ExpressionRule(*valueRules))
-					?: TODO("HRIOIKLHASDF")
+					?: throw invocation.make<Parser>("Expected expression after open parenthesis", tok)
 				context.expect(TokenTypes.RParen)
 				expr
 			}
@@ -42,14 +47,16 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 				val op = context.consume()
 				val expr = context.attemptAny(*valueRules)
 					as? ExpressionNode
-					?: TODO("KJ LDJ")
+					?: throw invocation.make<Parser>("Expected expression after Prefix Operator", op)
 
 				UnaryExpressionNode(op, expr.lastToken, op.text, expr, OperatorFixity.Prefix)
 			}
 
 			else -> context.attemptAny(*valueRules)
 				as? ExpressionNode
-				?: context.protected<ExpressionNode> { TODO("KL:JFASD8: ${start.type}") }
+				?: context.protected<ExpressionNode> {
+					throw invocation.make<Parser>("Expected expression", context.peek())
+				}
 		}
 
 		var next = context.peek()
@@ -57,14 +64,14 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 		if (next.type == TokenTypes.Dot) {
 			context.consume()
 			val message = context.attempt(IdentifierRule)
-				?: TODO("JKL:JFIO *(Y")
+				?: throw invocation.make<Parser>("Expected Identifier after on right-hand side of call expression", context.peek())
 
 			next = context.peek()
 
 			if (next.type == TokenTypes.LParen) {
-				val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)
+				val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, defaultValue)
 				val delimResult = context.attempt(delim)
-					?: TODO("lj ;klsj df")
+					?: throw invocation.make<Parser>("Expected argument list after open parenthesis", context.peek())
 
 				return +MethodCallNode(start, delimResult.lastToken, lhs!!, message, delimResult.nodes, false)
 			}
@@ -95,9 +102,9 @@ class ExpressionRule(vararg val valueRules: ValueRule<*>) : ParseRule<Expression
 			while (next.type == TokenTypes.OperatorSymbol) {
 				val nOp = context.consume()
 				val expr = context.attempt(defaultValue)
-					?: TODO("HKFJSDLKF*")
-				bin = BinaryExpressionNode(start, expr.lastToken, nOp.text, bin, expr)
+					?: throw invocation.make<Parser>("Expected expression on right-hand side of binary expression", context.peek())
 
+				bin = BinaryExpressionNode(start, expr.lastToken, nOp.text, bin, expr)
 				next = context.peek()
 			}
 

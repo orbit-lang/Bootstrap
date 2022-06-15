@@ -6,8 +6,6 @@ import org.orbit.serial.Serial
 
 interface ValueRepresentableNode
 
-// NOTE: Literals might work better as annotations controlled
-// and owned by a phase, rather than baked in like this
 abstract class LiteralNode<T> : ConstantExpressionNode(), Serial, ValueRepresentableNode {
     abstract val value: T
 
@@ -29,8 +27,6 @@ data class IntLiteralNode(
 		: this(f, l, Pair(width, value))
 
 	// Ints are 32 bit by default
-	// TODO - We could be clever and set the width
-	// to be the smallest power of 2 that fits `value`
 	constructor(f: Token, l: Token, value: Int)
 		: this(f, l, Pair(32, value))
 }

@@ -23,7 +23,6 @@ object MetaTypeRule : ValueRule<MetaTypeNode> {
 
             if (context.peek().type != TokenTypes.RAngle) {
                 while (next.type != TokenTypes.RAngle) {
-                    // TODO - Allow for recursive meta type parameters here?
                     val typeParameter = context.attempt(TypeExpressionRule)
                         ?: return@record ParseRule.Result.Failure.Rewind(recordedTokens)
 

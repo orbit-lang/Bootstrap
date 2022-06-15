@@ -55,7 +55,7 @@ object ContextInstantiationRule : ParseRule<ContextExpressionNode>, KoinComponen
             val leftContext = ContextInstantiationNode(contextIdentifier.firstToken, delim.lastToken, contextIdentifier, delim.nodes)
             val rightContext = context.attemptAny(ContextExpressionRule.any)
                 as? ContextExpressionNode
-                ?: TODO("Context Composition Rule - Missing Right-hand Side")
+                ?: throw invocation.make<Parser>("Expected expression on right-hand side of Context Instantiation", leftContext.lastToken)
 
             return +ContextCompositionNode(contextIdentifier.firstToken, rightContext.lastToken, op, leftContext, rightContext)
         }
