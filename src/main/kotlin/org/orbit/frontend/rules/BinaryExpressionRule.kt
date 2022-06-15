@@ -1,9 +1,7 @@
 package org.orbit.frontend.rules
 
-import org.orbit.core.nodes.BinaryExpressionNode
-import org.orbit.core.nodes.ExpressionNode
 import org.orbit.core.components.TokenTypes
-import org.orbit.frontend.extensions.parseTrailing
+import org.orbit.core.nodes.BinaryExpressionNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
@@ -21,12 +19,12 @@ object BinaryExpressionRule : ValueRule<BinaryExpressionNode> {
     }
 }
 
-class PartialExpressionRule(private val leftExpression: ExpressionNode) : ValueRule<BinaryExpressionNode> {
-    override fun parse(context: Parser): ParseRule.Result {
-        val op = context.expect(TokenTypes.OperatorSymbol)
-        val rightExpression = context.attempt(ExpressionRule.defaultValue)
-            ?: TODO("@BinaryExpressionRule:26")
-
-        return parseTrailing(context, BinaryExpressionNode(op, rightExpression.lastToken, op.text, leftExpression, rightExpression))
-    }
-}
+//class PartialExpressionRule(private val leftExpression: ExpressionNode) : ValueRule<BinaryExpressionNode> {
+//    override fun parse(context: Parser): ParseRule.Result {
+//        val op = context.expect(TokenTypes.OperatorSymbol)
+//        val rightExpression = context.attempt(ExpressionRule.defaultValue)
+//            ?: TODO("@BinaryExpressionRule:26")
+//
+//        return parseTrailing(context, BinaryExpressionNode(op, rightExpression.lastToken, op.text, leftExpression, rightExpression))
+//    }
+//}

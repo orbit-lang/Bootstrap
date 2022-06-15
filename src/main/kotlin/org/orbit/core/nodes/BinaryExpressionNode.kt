@@ -18,7 +18,8 @@ data class UnaryExpressionNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val operator: String,
-    val operand: ExpressionNode
+    val operand: ExpressionNode,
+    val fixity: OperatorFixity
 ) : ExpressionNode() {
 	override fun getChildren(): List<Node> {
 		return listOf(operand)

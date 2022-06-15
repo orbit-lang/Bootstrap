@@ -55,8 +55,8 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 
 		var next = context.peek()
 
-		val typeParameters: TypeParametersNode? = when {
-			TokenTypes.LAngle(next) -> {
+		val typeParameters: TypeParametersNode? = when(next.type) {
+			TokenTypes.LAngle -> {
 				context.attempt(TypeParametersRule)
 					?: throw invocation.make<Parser>("~TODO~", next)
 			}

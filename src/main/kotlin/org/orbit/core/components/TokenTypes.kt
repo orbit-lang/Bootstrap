@@ -4,20 +4,20 @@ object TokenTypes : TokenTypeProvider {
     // Symbols
     object Colon : TokenType("Colon", "\\:", true, false, Family.Op)
     object Comma : TokenType("Comma", "\\,", true, false, Family.Op)
-//    object Dot : TokenType("Dot", "\\.", true, false, Family.Op)
+    object Dot : TokenType("Dot", "\\.", true, false, Family.Op)
     object LParen : TokenType("LParen", "\\(", true, false, Family.Enclosing)
     object RParen : TokenType("RParen", "\\)", true, false, Family.Enclosing)
     object LBracket : TokenType("LBracket", "\\[", true, false, Family.Enclosing)
     object RBracket : TokenType("RBracket", "\\]", true, false, Family.Enclosing)
     object LBrace : TokenType("LBrace", "\\{", true, false, Family.Enclosing)
     object RBrace : TokenType("RBrace", "\\}", true, false, Family.Enclosing)
-//    object LAngle : TokenType("LAngle", "\\<", true, false, Family.Enclosing)
-//    object RAngle : TokenType("RAngle", "\\>", true, false, Family.Enclosing)
+    object LAngle : TokenType("LAngle", "\\<", true, false, Family.Enclosing)
+    object RAngle : TokenType("RAngle", "\\>", true, false, Family.Enclosing)
     object Assignment : TokenType("Assignment", "\\=", true, false, Family.Op)
-    object OperatorSymbol : TokenType("OperatorSymbol", "[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|\\.]+", true, false, Family.Op)
+    object OperatorSymbol : TokenType("OperatorSymbol", "((?:`[^`]+`)|(?:\\.{2,})|(?:[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|]+))", true, false, Family.Op)
     object Annotation : TokenType("Annotation", "@", true, false, Family.Op)
     object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false, Family.White)
-    object BackTick : TokenType("Backtick", "`", true, false, Family.Op)
+//    object BackTick : TokenType("Backtick", "`", true, false, Family.Op)
 
 	// Comments
     object MultiLineComment : TokenType("MultiLineComment", "\\/\\*.**\\/", true, false, Family.Comment)
@@ -70,11 +70,6 @@ object TokenTypes : TokenTypeProvider {
 
     data class HigherKind(val level: kotlin.Int) : TokenType("Type($level)", "", true, false, TokenType.Family.Kind)
 
-    // Virtuals
-    val Dot = VirtualTokenType(".")
-    val LAngle = VirtualTokenType("<")
-    val RAngle = VirtualTokenType(">")
-
     override fun getTokenTypes() : List<TokenType> {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
@@ -86,9 +81,9 @@ object TokenTypes : TokenTypeProvider {
             Fixity, Let, Invoke, In, Of, By, To,
             TypeIdentifier,
             Colon, Comma, Assignment, Annotation, Whitespace,
-            LParen, RParen, LBracket, RBracket, LBrace, RBrace,
+            LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
             Expand, Mirror, TypeOf, Type, Trait, Within, With, Return, Family,
-            BackTick, OperatorSymbol, Identifier
+            /*BackTick,*/ OperatorSymbol, Identifier, Dot
         )
     }
 }

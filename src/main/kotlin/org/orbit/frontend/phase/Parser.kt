@@ -50,6 +50,7 @@ class Parser(
 	private var completeTokens = emptyList<Token>()
 
 	private var markedTokens: MutableList<Token>? = null
+	private var protection: Boolean = false
 
 	init {
 	    registerAdapter(LexerAdapter)
@@ -58,6 +59,15 @@ class Parser(
 
 	val hasMore: Boolean
 		get() = tokens.isNotEmpty()
+
+	fun setThrowProtection(onOff: Boolean) {
+		protection = onOff
+	}
+
+	fun <R> protected(exp: () -> Exception): R? = when (protection) {
+		true -> null
+		else -> throw exp()
+	}
 
 	fun mark() {
 		markedTokens = mutableListOf()
@@ -92,8 +102,10 @@ class Parser(
 	fun peek(lookahead: Int = 0) : Token {
 		if (isRepl && tokens.isEmpty()) return Token(TokenTypes.EOS, "", SourcePosition.unknown)
 
-		return tokens.getOrNull(lookahead)
+		val tok = tokens.getOrNull(lookahead)
 			?: throw Errors.NoMoreTokens
+
+		return tok
 	}
 
 	fun <T> record(block: (List<Token>) -> T) : T {
@@ -145,12 +157,6 @@ class Parser(
 			else -> null
 		}
 	}
-
-	fun expectOrNull(type: VirtualTokenType): Token?
-		= expectOrNull(type.getPredicate())
-
-	fun expect(type: VirtualTokenType): Token
-		= expectOrNull(type)!!
 
 	fun expectOrNull(where: (Token) -> Boolean) : Token? = when (where(peek())) {
 		true -> consume()

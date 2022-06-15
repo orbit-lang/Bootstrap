@@ -42,7 +42,7 @@ val mainModule = module {
 		util.registerPathResolver(SymbolLiteralPathResolver, SymbolLiteralNode::class.java)
 		util.registerPathResolver(IntLiteralPathResolver, IntLiteralNode::class.java)
 		util.registerPathResolver(BinaryExpressionResolver(), BinaryExpressionNode::class.java)
-		util.registerPathResolver(UnaryExpressionResolver(), UnaryExpressionNode::class.java)
+		util.registerPathResolver(UnaryExpressionPathResolver(), UnaryExpressionNode::class.java)
 		util.registerPathResolver(IdentifierExpressionPathResolver(), IdentifierNode::class.java)
 		util.registerPathResolver(PrintPathResolver(), PrintNode::class.java)
 		util.registerPathResolver(MetaTypePathResolver, MetaTypeNode::class.java)
@@ -110,6 +110,7 @@ val mainModule = module {
 		util.registerInference(WhereClauseByExpressionInference, WhereClauseByExpressionNode::class.java)
 		util.registerInference(MethodReferenceInference, MethodReferenceNode::class.java)
 		util.registerInference(BinaryExpressionInference, BinaryExpressionNode::class.java)
+		util.registerInference(UnaryExpressionInference, UnaryExpressionNode::class.java)
 
 		util
 	}

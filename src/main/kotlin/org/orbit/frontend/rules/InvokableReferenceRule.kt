@@ -1,5 +1,6 @@
 package org.orbit.frontend.rules
 
+import jdk.nashorn.internal.parser.TokenType
 import org.orbit.core.nodes.MethodReferenceNode
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.frontend.phase.Parser
@@ -32,8 +33,9 @@ object MethodReferenceRule : ValueRule<MethodReferenceNode> {
 object ConstructorReferenceRule : ValueRule<MethodReferenceNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.peek()
+        val next = context.peek(1)
 
-        if (start.type != TokenTypes.Colon) return ParseRule.Result.Failure.Abort
+        if (start.type != TokenTypes.Colon || next.type != TokenTypes.Colon) return ParseRule.Result.Failure.Abort
 
         context.expect(TokenTypes.Colon)
         context.expect(TokenTypes.Colon)

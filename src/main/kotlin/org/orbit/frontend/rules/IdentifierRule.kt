@@ -7,8 +7,11 @@ import org.orbit.frontend.extensions.unaryPlus
 
 object IdentifierRule : ValueRule<IdentifierNode> {
 	override fun parse(context: Parser) : ParseRule.Result {
-		val start = context.expectOrNull(TokenTypes.Identifier)
-			?: return ParseRule.Result.Failure.Rewind()
+		var start = context.peek()
+
+		if (start.type != TokenTypes.Identifier) return ParseRule.Result.Failure.Abort
+
+		start = context.expect(TokenTypes.Identifier)
 
 		return +IdentifierNode(start, start, start.text)
 	}

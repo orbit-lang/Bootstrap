@@ -16,15 +16,16 @@ object BinaryExpressionInference : Inference<BinaryExpressionNode, TypeComponent
     private val printer: Printer by inject()
 
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: BinaryExpressionNode): InferenceResult {
-        val leftType = inferenceUtil.infer(node.left)
-        val rightType = inferenceUtil.infer(node.right)
         var ops = inferenceUtil.getTypeMap()
             .filter { it is InfixOperator && it.symbol == node.operator }
-            as List<InfixOperator>
+                as List<InfixOperator>
 
         if (ops.count() == 0) {
             throw invocation.make<TypeSystem>("No Infix Operator declared for symbol ${printer.apply(node.operator, PrintableKey.Bold, PrintableKey.Italics)}", node)
         }
+
+        val leftType = inferenceUtil.infer(node.left)
+        val rightType = inferenceUtil.infer(node.right)
 
         val ctx = inferenceUtil.toCtx()
 

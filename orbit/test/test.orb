@@ -2,32 +2,38 @@ module Orb::Types::Intrinsics {
     type Unit
     type Int
     type Symbol
-
-#    infix operator plus `+` by intrinsicFunction(Int::add(Int,Int))
 }
 
 module Orb::Core::Main {
     type Main
 }
 
+module Orb::Compiler::Frontend::Components {
+    trait Node
+
+    type IdentifierNode(text Symbol) : Node
+}
+
+module Orb::More::Contexts {
+    context Eq [A, B] where A = B
+    context Like [A, B] where A : B
+}
+
+module Orb::Meta::Quotes with Orb::Compiler::* with Orb::More::* {
+    type constructor QuotedSymbol<N>(node N) within Like [N, Node]
+}
+
 module Test with Orb::* {
-    (Int) choose (a Int, b Int) (Int) = a
-    (Int) choose2 (a Int, b Symbol) (Int) = a
-
-    infix operator choose `?` by Int::choose
-    infix operator choose `???` by Int::choose2
-
     type Range(start Int, end Int)
 
-    infix operator range `...` by ::Range
-    infix operator range `...` by Range::combine
+    (Range) forceUnwrap (r Range) (Int) = (r.start)
+    (Range) inRange (i Int, r Range) (Int) = (r.end)
 
-    (Range) combine (a Range, b Range) (Range) = Range(a.start, b.end)
-
-    (self Int) foo (b Int) (Int) = (self ? b)
+    infix operator inclusiveRange ... by ::Range
+    postfix operator forceUnwrap ! by Range::forceUnwrap
+    infix operator inRange `in` by Range::inRange
 
     (self Main) main _ _ {
-        a = 1 ... 2
-        b = (1 ... 2) ... (2 ... 2)
+        i = (1 `in` (0 ... 10))!
     }
 }

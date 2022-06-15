@@ -24,7 +24,7 @@ object FamilyConstructorRule : ParseRule<FamilyConstructorNode>, KoinComponent {
 
         next = context.peek()
 
-        if (!TokenTypes.LAngle(next)) {
+        if (next.type != TokenTypes.LAngle) {
             // TODO - Parse sum types. Type constructors without type params are allowed,
             //  but you must have at least 1 case constructor, otherwise it doesn't do anything!
             context.forceThrow = true
@@ -38,7 +38,7 @@ object FamilyConstructorRule : ParseRule<FamilyConstructorNode>, KoinComponent {
         next = context.peek()
 
         val typeParameters = mutableListOf<TypeIdentifierNode>()
-        while (!TokenTypes.RAngle(next)) {
+        while (next.type != TokenTypes.RAngle) {
             val typeParameter = context.attempt(TypeIdentifierRule.Naked)
                 ?: throw invocation.make<Parser>("", context.peek())
 
@@ -52,7 +52,7 @@ object FamilyConstructorRule : ParseRule<FamilyConstructorNode>, KoinComponent {
             }
         }
 
-        var end = context.expect(TokenTypes.RAngle.getPredicate())
+        var end = context.expect(TokenTypes.RAngle)
 
         next = context.peek()
 
