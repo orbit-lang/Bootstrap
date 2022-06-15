@@ -31,11 +31,17 @@ module Test with Orb::* {
     type constructor None<T>() : Option<T>
     type constructor Some<T>(value T) : Option<T>
 
-#    postfix operator forceUnwrap ! by Option::unwrap
+    projection None<Int> : Option<Int>
+
+    type Guard(value Option<Int>)
+
+    (self Guard) else (i Int) (Int) = i
+
+    prefix operator guard `guard` by ::Guard
+    infix operator else `else` by Guard::else
 
     (self Main) main _ _ {
         s = Some(1)
-
-        typeOf s.unwrap()
+        t = `guard` s
     }
 }

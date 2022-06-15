@@ -49,7 +49,7 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<Ex
 					as? ExpressionNode
 					?: throw invocation.make<Parser>("Expected expression after Prefix Operator", op)
 
-				UnaryExpressionNode(op, expr.lastToken, op.text, expr, OperatorFixity.Prefix)
+				UnaryExpressionNode(op, expr.lastToken, op.text.replace("`", ""), expr, OperatorFixity.Prefix)
 			}
 
 			else -> context.attemptAny(*valueRules)
