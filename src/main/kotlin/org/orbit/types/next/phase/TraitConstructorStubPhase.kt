@@ -1,12 +1,14 @@
 package org.orbit.types.next.phase
 
-import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.getPath
 import org.orbit.core.nodes.*
 import org.orbit.types.next.components.*
-import org.orbit.types.next.inference.*
+import org.orbit.types.next.inference.AnyInferenceContext
+import org.orbit.types.next.inference.TypeConstraint
+import org.orbit.types.next.inference.TypeLiteralInferenceContext
+import org.orbit.types.next.inference.TypeReference
 import org.orbit.util.Invocation
 
 object TraitConstructorStubPhase : EntityConstructorStubPhase<TraitConstructorNode, Trait>, KoinComponent {

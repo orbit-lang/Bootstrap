@@ -8,6 +8,7 @@ import org.orbit.types.next.phase.TypeSystem
 import org.orbit.types.next.utils.onlyOrNull
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
+import org.orbit.util.next.TypeMap
 
 interface ProjectedProperty<P: TypeComponent, C: Contract<P>, M: Member> : TypeComponent {
     val propertyName: String
@@ -91,6 +92,7 @@ data class Projection(val baseType: TypeComponent, val trait: ITrait, val projec
 
     fun project(inferenceUtil: InferenceUtil) : Type {
         inferenceUtil.addConformance(baseType, trait)
+//        TypeMap.addGlobalConformance(baseType, trait)
 
         val fields = trait.contracts
             .zipWhere(projectedProperties) { a, b -> a.matches(b.propertyName)  }
@@ -105,7 +107,7 @@ data class Projection(val baseType: TypeComponent, val trait: ITrait, val projec
 
         signatures.forEach { inferenceUtil.declare(it) }
 
-        if (baseType !is Type) throw invocation.make<TypeSystem>("Projections on non-Types is not currently supported, found ${baseType.toString(printer)} (Kind: ${baseType.kind.toString(printer)})", SourcePosition.unknown)
+        if (baseType !is IType) throw invocation.make<TypeSystem>("Projections on non-Types is not currently supported, found ${baseType.toString(printer)} (Kind: ${baseType.kind.toString(printer)})", SourcePosition.unknown)
 
         val nType = Type(baseType.fullyQualifiedName, baseType.getMembers() + fields, false)
 

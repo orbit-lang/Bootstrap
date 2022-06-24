@@ -22,7 +22,8 @@ object ProjectionPhase : TypePhase<ProjectionNode, TypeComponent>, KoinComponent
         // TODO - Extend other things: Traits, PolymorphicTypes, etc
         val source = input.inferenceUtil.infer(input.node.typeIdentifier)
 
-        if (source !is Type) throw invocation.make<TypeSystem>("Projections on non-Types is not currently supported, found ${source.toString(printer)} (Kind: ${source.kind.toString(printer)})", SourcePosition.unknown)
+        if (source !is IType)
+            throw invocation.make<TypeSystem>("Projections on non-Types is not currently supported, found ${source.toString(printer)} (Kind: ${source.kind.toString(printer)})", SourcePosition.unknown)
 
         val nInferenceUtil = input.inferenceUtil.derive(retainsTypeMap = true, retainsBindingScope = true, self = source)
 
@@ -41,6 +42,7 @@ object ProjectionPhase : TypePhase<ProjectionNode, TypeComponent>, KoinComponent
 
         // NOTE - By declaring conformance here, projected properties can refer to each other
         nInferenceUtil.addConformance(source, target)
+        input.inferenceUtil.addConformance(source, target)
 
         val projection = Projection(source, target, emptyList())
 

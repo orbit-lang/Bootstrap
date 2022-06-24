@@ -55,7 +55,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<MemberAwareType>, List<
                 is ITypeRef -> when (it) {
                     is Field -> Field(it.memberName, ctx.getType(it.type.fullyQualifiedName) ?: it.type, it.defaultValue)
                     is Property -> Property(it.memberName, Func(it.lambda.takes, ctx.getType(it.type.fullyQualifiedName)!!))
-                    else -> TODO("!!!")
+                    else -> TODO("!!! ${it}")
                 }
                 else -> it
             }
@@ -79,6 +79,7 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<MemberAwareType>, List<
             true -> {
                 val mono = MonomorphicType(input, nType, over.toConcreteParameters(input.parameters), isTotal = true)
                 monos[nType.fullyQualifiedName] = mono
+
                 MonomorphisationResult.Total(mono)
             }
             else -> {

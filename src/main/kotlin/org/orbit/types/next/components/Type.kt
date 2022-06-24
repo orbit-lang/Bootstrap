@@ -13,7 +13,7 @@ interface IType : MemberAwareType {
     fun deriveTrait(ctx: Ctx) : ITrait
 }
 
-data class Type(override val fullyQualifiedName: String, internal val members: List<Member> = emptyList(), override val isSynthetic: Boolean = false) : IType {
+data class Type(override val fullyQualifiedName: String, internal val members: List<Member> = emptyList(), override val isSynthetic: Boolean = false) : IType, ConstructableType {
     companion object {
         val hole = Type("_")
     }
@@ -24,6 +24,9 @@ data class Type(override val fullyQualifiedName: String, internal val members: L
     override val kind: Kind = IntrinsicKinds.Type
 
     private var _trait: ITrait? = null
+
+    override fun getPrimaryConstructor(): Constructor
+        = Constructor(this, members.filterIsInstance<Field>().map { it.type })
 
     override fun isWeakenedBy(other: DeclType): Boolean = when (other) {
         is Type -> other.fullyQualifiedName == fullyQualifiedName && other.members.count() < members.count()

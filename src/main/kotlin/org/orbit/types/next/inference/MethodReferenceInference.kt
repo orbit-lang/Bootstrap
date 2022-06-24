@@ -33,7 +33,16 @@ object MethodReferenceInference : Inference<MethodReferenceNode, Func>, KoinComp
     private fun inferConstructorRef(inferenceUtil: InferenceUtil, node: MethodReferenceNode): InferenceResult {
         val type = inferenceUtil.infer(node.typeExpressionNode)
         val ctx = inferenceUtil.toCtx()
-        val all = ctx.getTypes().filter { it is Constructor && NominalEq.eq(ctx, type, it.type) } as List<Constructor>
+        val dynamicConstructors = when (type) {
+            is MonomorphicType<*> -> when (type.specialisedType) {
+                is ConstructableType -> listOf(type.getPrimaryConstructor())
+                else -> emptyList()
+            }
+
+            else -> emptyList()
+        }
+
+        val all = (ctx.getTypes().filter { it is Constructor && NominalEq.eq(ctx, type, it.type) } as List<Constructor>) + dynamicConstructors
 
         if (all.count() == 0) {
             throw invocation.make<TypeSystem>("Type ${type.toString(printer)} does not expose a constructor named ${printer.apply(node.identifierNode.identifier, PrintableKey.Italics, PrintableKey.Bold)}", node.identifierNode)

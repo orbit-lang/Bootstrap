@@ -1,16 +1,10 @@
 package org.orbit.types.next.inference
 
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.Node
 import org.orbit.types.next.components.*
-import org.orbit.types.next.phase.TypeSystem
-import org.orbit.util.Invocation
 import org.orbit.util.Printer
-import org.orbit.util.getKoinInstance
-import org.orbit.util.next.*
 import java.lang.RuntimeException
 
 sealed interface InferenceResult {
@@ -73,14 +67,13 @@ interface ITypeRef : ValueType, ITrait, IType, ISignature {
     }
 }
 
-data class TypeReference(override val fullyQualifiedName: String) : ITypeRef {
-    constructor(path: Path) : this(path.toString(OrbitMangler))
+data class TypeReference(override val fullyQualifiedName: String, val originalType: TypeComponent? = null) : ITypeRef {
+    constructor(path: Path, originalType: TypeComponent? = null) : this(path.toString(OrbitMangler), originalType)
 
     override val kind: Kind = IntrinsicKinds.Type
     override val memberName: String
         get() = TODO("Not yet implemented")
-    override val type: TypeComponent
-        get() = TODO("Not yet implemented")
+    override val type: TypeComponent = this
 
     companion object : ITypeRef {
         override val fullyQualifiedName: String
@@ -165,86 +158,3 @@ data class AnyInferenceContext(override val nodeType: Class<out Node>) : Inferen
     }
 }
 
-class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBindingScope, val self: TypeComponent? = null) : KoinComponent, ITypeMap by typeMap, IBindingScope by bindingScope {
-    companion object {
-        fun getRoot() : InferenceUtil
-            = InferenceUtil(TypeMap(), BindingScope.Root, null)
-    }
-
-    private val inferences = mutableMapOf<InferenceContext, Inference<*, *>>()
-    private val invocation: Invocation by inject()
-
-    fun <N: Node> registerInference(inference: Inference<N, *>, context: InferenceContext) {
-        inferences[context] = inference
-    }
-
-    fun <N: Node> registerInference(inference: Inference<N, *>, nodeType: Class<N>) {
-        inferences[AnyInferenceContext(nodeType)] = inference
-    }
-
-    private fun registerAllInferences(from: InferenceUtil) {
-        inferences.putAll(from.inferences)
-    }
-
-    fun getTypeMap() : ITypeMapRead = typeMap
-
-    fun derive(retainsTypeMap: Boolean = true, retainsBindingScope: Boolean = true, self: TypeComponent? = null) : InferenceUtil {
-        val nTypeMap = when (retainsTypeMap) {
-            true -> TypeMap(typeMap as TypeMap)
-            else -> TypeMap()
-        }
-
-        val nBindingScope: IBindingScope = when (retainsBindingScope) {
-            true -> (bindingScope as BindingScope).derive()
-            else -> BindingScope.Leaf(BindingScope.Root)
-        }
-
-        val nInferenceUtil = InferenceUtil(nTypeMap, nBindingScope, self)
-
-        nInferenceUtil.registerAllInferences(this)
-
-        self?.let {
-            nInferenceUtil.declare(Alias("Self", it))
-        }
-
-        return nInferenceUtil
-    }
-
-    fun <N: Node> infer(node: N, context: InferenceContext = AnyInferenceContext(node::class.java), autoCaptureType: Boolean = true) : TypeComponent {
-        val t = typeMap.get(node)
-
-        if (t != null) {
-            return t
-        }
-
-        val inference = inferences[context] as? Inference<N, *>
-            ?: inferences[AnyInferenceContext(node::class.java)] as? Inference<N, *>
-            ?: throw invocation.compilerError<TypeSystem>("Inference class not registered for node: $node\nin context: $context", node)
-
-        return when (val result = inference.infer(this, context, node)) {
-            is InferenceResult.Success<*> -> result.type.apply {
-                if (context is TypeAnnotatedInferenceContext<*>) {
-                    if (!AnyEq.eq(toCtx(), context.typeAnnotation, this)) {
-                        val printer: Printer = getKoinInstance()
-                        return Never("Inferred Type ${this.toString(printer)} does not match Type Annotation ${context.typeAnnotation.toString(printer)}", node.firstToken.position)
-                    }
-                }
-
-                if (autoCaptureType) typeMap.set(node, this)
-            }
-
-            is InferenceResult.Failure -> throw invocation.make<TypeSystem>(result.never.message, result.never.position)
-        }
-    }
-
-    inline fun <N: Node, reified T: TypeComponent> inferAsOrNull(node: N, context: InferenceContext = AnyInferenceContext(node::class.java)) : T?
-        = infer(node, context) as? T
-
-    inline fun <N: Node, reified T: TypeComponent> inferAs(node: N, context: InferenceContext = AnyInferenceContext(node::class.java)) : T
-        = inferAsOrNull(node, context)!!
-
-    fun inferAll(nodes: List<Node>, context: InferenceContext) : List<TypeComponent> = nodes.map { infer(it, context) }
-
-    inline fun <N: Node, reified T: TypeComponent> inferAllAs(nodes: List<N>, context: InferenceContext) : List<T>
-        = nodes.map { inferAs(it, context) }
-}

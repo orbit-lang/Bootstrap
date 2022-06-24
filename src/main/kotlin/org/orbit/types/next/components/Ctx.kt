@@ -44,7 +44,10 @@ class Ctx constructor() : IContext {
     }
 
     fun deref(ref: TypeComponent) : TypeComponent = when (ref) {
-        is TypeReference -> types.find { it.fullyQualifiedName == ref.fullyQualifiedName } ?: ref
+        is TypeReference -> when (val o = ref.originalType) {
+            null -> types.find { it.fullyQualifiedName == ref.fullyQualifiedName } ?: ref
+            else -> o
+        }
         else -> ref
     }
 
@@ -102,7 +105,7 @@ class Ctx constructor() : IContext {
     }
 
     fun getConformance(type: TypeComponent) : List<ITrait>
-        = (conformanceMap.filter { it.key == type }
+        = ((conformanceMap).filter { it.key == type }
             .values.firstOrNull() ?: emptyList()).map { entry -> when (entry) {
                 is MonomorphicType<*> -> entry.specialisedType as ITrait
                 else -> entry

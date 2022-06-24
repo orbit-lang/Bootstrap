@@ -26,7 +26,9 @@ object UnaryExpressionInference : Inference<UnaryExpressionNode, UnaryOperator>,
 
         val ctx = inferenceUtil.toCtx()
 
-        ops = ops.filter { AnyEq.eq(ctx, operand, it.operand) }
+        ops = ops.filter {
+            AnyEq.eq(ctx, operand, it.operand)
+        }
 
         if (ops.count() == 0) {
             throw invocation.make<TypeSystem>("No ${node.fixity} Operator declared for symbol ${printer.apply(node.operator, PrintableKey.Bold, PrintableKey.Italics)} and operand type (${operand.toString(printer)})", node)

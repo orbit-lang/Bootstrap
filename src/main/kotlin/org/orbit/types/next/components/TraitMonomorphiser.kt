@@ -10,8 +10,7 @@ import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
-object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int, TypeComponent>>, ITrait>,
-    KoinComponent {
+object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int, TypeComponent>>, ITrait>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
@@ -82,9 +81,7 @@ object TraitMonomorphiser : Monomorphiser<PolymorphicType<ITrait>, List<Pair<Int
         nTrait = Trait(nPath, nFieldContracts + nSignatureContracts, true)
 
         return when (input.parameters.count() == over.count()) {
-            true -> MonomorphisationResult.Total(
-                MonomorphicType(input, nTrait, over.toConcreteParameters(input.parameters), true)
-            )
+            true -> MonomorphisationResult.Total(MonomorphicType(input, nTrait, over.toConcreteParameters(input.parameters), true))
             else -> {
                 if (context is MonomorphisationContext.TraitConformance) {
                     val pretty = input.parameters.joinToString(", ") { it.toString(printer) }

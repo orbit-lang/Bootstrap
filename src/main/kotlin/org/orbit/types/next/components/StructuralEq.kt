@@ -42,7 +42,11 @@ object StructuralEq : ITypeEq<ITrait, TypeComponent> {
 
         val explicitConformance = when (b) {
             is TypeConstantValue -> return@memoise eq(ctx, a, b.value) || eq(ctx, a, b.type)
-            is MonomorphicType<*> -> ctx.getConformance(b.specialisedType).contains(a) || b.polymorphicType.traitConformance.contains(a)
+            is MonomorphicType<*> -> when (a) {
+                is MonomorphicType<*> -> ctx.getConformance(b).contains(a.trait)
+                else -> ctx.getConformance(b.specialisedType).contains(a)
+                    || b.polymorphicType.traitConformance.contains(a)
+            }
             is Mirror -> ctx.getConformance(b.reflectedType).contains(a)
             is IConstantValue<*> -> ctx.getConformance(b.type).contains(a)
             else -> ctx.getConformance(b).contains(a)

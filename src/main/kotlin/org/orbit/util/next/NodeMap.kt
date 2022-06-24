@@ -7,6 +7,7 @@ import org.orbit.core.nodes.Node
 import org.orbit.core.phase.Phase
 import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.ITypeRef
+import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
@@ -51,6 +52,7 @@ interface IAlias : DeclType {
 
 class TypeMap constructor(): ITypeMap {
     constructor(other: TypeMap) : this() {
+        this.parent = other
         this.map.putAll(other.map)
         this.contextMap.putAll(other.contextMap)
         this.visibleTypes.putAll(other.visibleTypes)
@@ -63,6 +65,7 @@ class TypeMap constructor(): ITypeMap {
     private val visibleTypes = mutableMapOf<String, TypeComponent>()
     private val conformanceMap = mutableMapOf<String, List<String>>()
     private val extensionMap = mutableMapOf<String, List<String>>()
+    private var parent: TypeMap? = null
 
     override fun declare(type: DeclType) {
         val ex = visibleTypes[type.fullyQualifiedName] as? DeclType
@@ -70,6 +73,8 @@ class TypeMap constructor(): ITypeMap {
         if (ex != null && ex.isWeakenedBy(type)) return
 
         visibleTypes[type.fullyQualifiedName] = type
+
+        parent?.declare(type)
     }
 
     override fun replace(a: DeclType, b: DeclType) {
@@ -98,7 +103,9 @@ class TypeMap constructor(): ITypeMap {
         val conformance = conformanceMap[type.fullyQualifiedName]
             ?: emptyList()
 
-        conformanceMap[type.fullyQualifiedName] = conformance + trait.fullyQualifiedName
+        conformanceMap[type.fullyQualifiedName] = (conformance + trait.fullyQualifiedName).distinctBy { it }
+
+        parent?.addConformance(type, trait)
     }
 
     override fun addExtension(type: TypeComponent, extension: Extension) {
@@ -111,8 +118,9 @@ class TypeMap constructor(): ITypeMap {
     override fun getConformance(type: TypeComponent): List<ITrait> {
         val conformance = conformanceMap[type.fullyQualifiedName]
             ?: return emptyList()
+        val pConformance = parent?.getConformance(type) ?: emptyList()
 
-        return conformance.mapNotNull(::findAs)
+        return conformance.mapNotNull { findAs<ITrait>(it) } + pConformance
     }
 
     override fun getExtensions(type: TypeComponent): List<Extension> {

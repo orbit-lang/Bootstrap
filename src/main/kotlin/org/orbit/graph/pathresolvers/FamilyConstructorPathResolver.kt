@@ -5,6 +5,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.SerialIndex
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.FamilyConstructorNode
 import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.core.nodes.TypeConstructorNode
 import org.orbit.graph.components.Binding
@@ -16,14 +17,11 @@ import org.orbit.util.Invocation
 import org.orbit.util.dispose
 import org.orbit.util.partial
 
-// TODO - Unify this with TypeConstructorPathResolver; they do the same thing
-class TypeConstructorPathResolver(
-	private val parentPath: Path
-) : PathResolver<TypeConstructorNode> {
+class FamilyConstructorPathResolver(private val parentPath: Path) : PathResolver<FamilyConstructorNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: TypeConstructorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+	override fun resolve(input: FamilyConstructorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
 		val path = parentPath + Path(input.typeIdentifierNode.value)
 
 		if (pass == PathResolver.Pass.Initial) {
@@ -74,12 +72,23 @@ class TypeConstructorPathResolver(
 				it.typeNode.annotate(parentGraphID, Annotations.GraphID)
 				it.defaultValue?.annotate(parentGraphID, Annotations.GraphID)
 			}
+
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
-			input.clauses.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
-			input.context?.let {
-				it.annotate(parentGraphID, Annotations.GraphID)
-				pathResolverUtil.resolve(it, pass, environment, graph)
+
+			val typeResolver = TypeConstructorPathResolver(path)
+
+			input.entities.forEach {
+				typeResolver.resolve(it as TypeConstructorNode, PathResolver.Pass.Initial, environment, graph)
 			}
+
+			input.entities.forEach {
+				typeResolver.resolve(it as TypeConstructorNode, PathResolver.Pass.Last, environment, graph)
+			}
+
+//			input.properties.forEach { it.typeNode.annotate(parentGraphID, Annotations.GraphID) }
+//			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
+
+			input.context?.let { pathResolverUtil.resolve(it, pass, environment, graph) }
 		}
 
 		return PathResolver.Result.Success(path)

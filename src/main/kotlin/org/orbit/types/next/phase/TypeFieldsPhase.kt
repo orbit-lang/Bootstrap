@@ -52,6 +52,8 @@ object TypeConstructorFieldsPhase : TypePhase<TypeConstructorNode, PolymorphicTy
             Field(it.identifierNode.identifier, type)
         }
 
-        return stub.withPartialFields(fields)
+        val nType = Type(stub.baseType.fullyQualifiedName, fields)
+
+        return PolymorphicType(nType, stub.parameters, stub.traitConformance, stub.isSynthetic, fields)
     }
 }

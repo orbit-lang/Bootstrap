@@ -8,6 +8,7 @@ import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.AnyInferenceContext
 import org.orbit.types.next.inference.TypeConstraint
 import org.orbit.types.next.inference.TypeLiteralInferenceContext
+import org.orbit.types.next.inference.TypeReference
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
@@ -19,7 +20,8 @@ object TypeConstructorStubPhase : EntityConstructorStubPhase<TypeConstructorNode
 
         parameters.forEach { input.inferenceUtil.declare(it) }
 
-        val fields = input.inferenceUtil.inferAllAs<ParameterNode, Field>(input.node.properties, AnyInferenceContext(PairNode::class.java))
+        //val fields = input.inferenceUtil.inferAllAs<ParameterNode, Field>(input.node.properties, AnyInferenceContext(PairNode::class.java))
+        val fields = input.node.properties.map { TypeReference(it.typeNode.getPath()) }
 
         val baseType = Type(input.node.getPath(), fields)
 

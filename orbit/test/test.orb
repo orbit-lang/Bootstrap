@@ -1,47 +1,15 @@
 module Orb::Types::Intrinsics {
     type Unit
-    type Int
-    type Symbol
-}
-
-module Orb::Core::Main {
-    type Main
-}
-
-module Orb::Compiler::Frontend::Components {
-    trait Node
-
-    type IdentifierNode(text Symbol) : Node
-}
-
-module Orb::More::Contexts {
-    context Eq [A, B] where A = B
-    context Like [A, B] where A : B
-}
-
-module Orb::Meta::Quotes with Orb::Compiler::* with Orb::More::* {
-    type constructor QuotedSymbol<N>(node N) within Like [N, Node]
 }
 
 module Test with Orb::* {
-    trait constructor Option<T>() {
-        (self Self) unwrap () (T)
-    }
+    type constructor A<T>(a T)
+    type constructor B<T>(b A<T>)
+    type C
 
-    type constructor None<T>() : Option<T>
-    type constructor Some<T>(value T) : Option<T>
+    alias D = B<C>
 
-    projection None<Int> : Option<Int>
-
-    type Guard(value Option<Int>)
-
-    (self Guard) else (i Int) (Int) = i
-
-    prefix operator guard `guard` by ::Guard
-    infix operator else `else` by Guard::else
-
-    (self Main) main _ _ {
-        s = Some(1)
-        t = `guard` s
+    (D) main () () {
+        d = D(C())
     }
 }

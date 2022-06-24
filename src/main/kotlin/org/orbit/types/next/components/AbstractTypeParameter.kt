@@ -46,3 +46,10 @@ data class ConcreteTypeParameter(override val index: Int, val abstractTypeParame
         else -> concreteType.compare(ctx, other)
     }
 }
+
+object ConcreteTypeParameterSubstitutor : Substitutor<ConcreteTypeParameter> {
+    override fun substitute(target: ConcreteTypeParameter, old: TypeComponent, new: TypeComponent): ConcreteTypeParameter = when (target.concreteType.fullyQualifiedName) {
+        old.fullyQualifiedName -> ConcreteTypeParameter(target.index, target.abstractTypeParameter, new)
+        else -> target
+    }
+}

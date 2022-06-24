@@ -28,7 +28,11 @@ object EqMemo {
 object MonoEq : ITypeEq<MonomorphicType<*>, TypeComponent> {
     override fun eq(ctx: Ctx, a: MonomorphicType<*>, b: TypeComponent): Boolean = when (b) {
         is MonomorphicType<*> -> {
-            val polyEq = AnyEq.eq(ctx, a.polymorphicType, b.polymorphicType)
+            val polyEq = when (b.specialisedType) {
+                is Trait -> StructuralEq.eq(ctx, b, a)
+                else -> AnyEq.eq(ctx, a.polymorphicType, b.polymorphicType)
+            }
+
             val paramsEq = a.concreteParameters.count() == b.concreteParameters.count()
                 && a.concreteParameters.zip(b.concreteParameters).all { AnyEq.eq(ctx, it.first, it.second) }
 
@@ -149,7 +153,7 @@ object AnyEq : ITypeEq<TypeComponent, TypeComponent> {
         }
     })
 
-    override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.deref(a, b, EqMemo.memoise { a, b ->
+    override fun eq(ctx: Ctx, a: TypeComponent, b: TypeComponent): Boolean = ctx.dereference(a, b, EqMemo.memoise { a, b ->
         when (a) {
             is SyntheticType -> when (b) {
                 is Trait -> NominalEq.eq(ctx, a.trait, b)

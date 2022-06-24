@@ -16,3 +16,7 @@ data class Constructor(val type: TypeComponent, val parameters: List<TypeCompone
         TODO("Not yet implemented")
     }
 }
+
+interface ConstructableType : TypeComponent {
+    fun getPrimaryConstructor() : Constructor
+}

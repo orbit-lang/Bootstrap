@@ -2,10 +2,19 @@ package org.orbit.types.next.components
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.components.SourcePosition
+import org.orbit.types.next.phase.TypeSystem
+import org.orbit.util.Invocation
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 
-data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<ConcreteTypeParameter>, val isTotal: Boolean) : IType, ITrait, ParameterisedType, ISignature, KoinComponent {
+class MonoSubstitutor<T: TypeComponent> : Substitutor<MonomorphicType<T>> {
+    override fun substitute(target: MonomorphicType<T>, old: TypeComponent, new: TypeComponent): MonomorphicType<T> {
+        return MonomorphicType(target.polymorphicType, target.specialisedType, target.concreteParameters.map { it.substitute(old, new, ConcreteTypeParameterSubstitutor) }, target.isTotal)
+    }
+}
+
+data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicType<T>, val specialisedType: T, val concreteParameters: List<ConcreteTypeParameter>, val isTotal: Boolean) : IType, ITrait, ParameterisedType, ISignature, ConstructableType, KoinComponent {
     private val printer: Printer by inject()
 
     override val fullyQualifiedName: String = specialisedType.fullyQualifiedName
@@ -19,6 +28,15 @@ data class MonomorphicType<T: TypeComponent>(val polymorphicType: PolymorphicTyp
 
     override val memberName: String = fullyQualifiedName
     override val type: TypeComponent = this
+
+    override fun getPrimaryConstructor(): Constructor = when (specialisedType) {
+        is ConstructableType -> Constructor(specialisedType, concreteParameters.map { it.concreteType })
+        else -> {
+            val invocation = getKoinInstance<Invocation>()
+
+            throw invocation.make<TypeSystem>("Cannot derive a Primary Constructor for ${toString(printer)} (${specialisedType.kind.toString(printer)})", SourcePosition.unknown)
+        }
+    }
 
     override fun references(type: TypeComponent): Boolean
         = polymorphicType.references(type) || specialisedType.references(type) || concreteParameters.contains(type)
