@@ -19,7 +19,6 @@ module Test with Orb::* {
 
     context Value [v] where KindEq[v, Kinds::Value]
     context ConstValue [v, T] where Value[v] + AssertEq [typeOf v, T]
-
     context MaxUse(v Var) [c] where ConstValue[c, Int] ensures v.useCount() < c
 
     context List [Element] {
@@ -35,13 +34,59 @@ module Test with Orb::* {
 
     }
 
+    context Comparable [T] {
+        family Comparison {
+            type Equal(a T, b T)
+            type GreaterThan(a T, b T)
+            type LessThan(a T, b T)
+        }
+
+        trait Comparator {
+            (Self) compare (a T, b T) (Comparison)
+        }
+
+        (self T) greaterThan (other T) (Bool) = self > other
+        (self T) lessThan (other T) (Bool) = self < other
+    }
+
+    projection Int : Comparator within Comparable [Int] {
+        (Self) compare (a Int, b Int) (Comparison) =
+    }
+
+    context RangeExpressible [T] within T : Comparable {
+        type Range(start T, end T)
+
+        (self Range) contains (element T) (Bool)
+            = element >= self.start && element <= self.end
+    }
+
+    case operator GreaterThan `>` [T] within T : Comparable by T::greaterThan
+    case operator InRange `in` [T] within RangeExpressible [T] by Range::contains
+
+    (Unit) foo (x Int) (Bool) = partial select x {
+        case x = true # Identity pattern - OK, typeOf x == typeOf x && returns Bool
+        case 1 = true # ConstValue pattern - OK, typeOF 1 == typeOf x && returns Bool
+        case > 99 = true # Infix Operator pattern - OK, typeOf x > 99 == typeOf x && returns Bool
+        case in 3 to 33 = false # Range pattern - OK, typeOf x in Range(3, 33) == typeOf x && returns Bool
+        case ::add(5) as y = select y case 7 = true else false # Nested pattern - OK, typeOf 7 == typeOf x && returns Bool
+        case(mustHandle) ::pow(x) # Case Propagation pattern - OK, typeOf x.pow(x) == typeOf x && returns Case<Int>
+        case Box(value) = false # Destructuring pattern - Error: `x` of Type `Int` will never match case `Box(value)`
+    }
+
     (D) main () () {
-        d = D(C()) within MaxUse [1]
+        d = D(C()) within MaxUse [d, 1]
 
         o = Some(123) # OK, context `Option [Int]` can be inferred
         l = List() # Error: `Complete Context cannot be inferred for List, please specify parameters`
 
         d.release() # OK
         d.release() # Error: `d` no longer exists in this Context
+
+        n = foo(5) # Error: `foo` propagates case `mustHandle : Int` which is not handled
+
+        m = foo(5) by select as x {
+            case mustHandle = false
+            else !x  # This case is optional, by default it just returns the result of foo(5)
+        }
     }
 }
