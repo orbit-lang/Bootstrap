@@ -25,21 +25,24 @@ private object PropertySubstitutor : Substitutor<Property> {
 }
 
 private object FieldSubstituor : Substitutor<Field> {
-    override fun substitute(target: Field, old: TypeComponent, new: TypeComponent): Field = when (target.type) {
-        is MonomorphicType<*> -> {
-            val nType = target.type.substitute(old, new, MonoSubstitutor())
-
-            when (nType.fullyQualifiedName) {
-                old.fullyQualifiedName -> Field(target.memberName, new, target.defaultValue)
-                else -> target
-            }
-        }
-
-        else -> when (target.type.fullyQualifiedName) {
-            old.fullyQualifiedName -> Field(target.memberName, new, target.defaultValue)
-            else -> target
-        }
+    override fun substitute(target: Field, old: TypeComponent, new: TypeComponent): Field {
+        return target
     }
+//    override fun substitute(target: Field, old: TypeComponent, new: TypeComponent): Field = when (target.type) {
+////        is MonomorphicType<*> -> {
+////            val nType = target.type.substitute(old, new, MonoSubstitutor())
+////
+////            when (nType.fullyQualifiedName) {
+////                old.fullyQualifiedName -> Field(target.memberName, new, target.defaultValue)
+////                else -> target
+////            }
+////        }
+//
+////        else -> when (target.type.fullyQualifiedName) {
+////            old.fullyQualifiedName -> Field(target.memberName, new, target.defaultValue)
+////            else -> target
+////        }
+//    }
 }
 
 object MemberSubstituor : Substitutor<Member> {

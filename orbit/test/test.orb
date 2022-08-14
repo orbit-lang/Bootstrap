@@ -9,7 +9,39 @@ module Test with Orb::* {
 
     alias D = B<C>
 
+    (self D) release () () within Defer { +{self}.use() } {
+        # ...
+    }
+
+    type Var()
+
+    context KindEq [k, K] where k ^ K
+
+    context Value [v] where KindEq[v, Kinds::Value]
+    context ConstValue [v, T] where Value[v] + AssertEq [typeOf v, T]
+
+    context MaxUse(v Var) [c] where ConstValue[c, Int] ensures v.useCount() < c
+
+    context List [Element] {
+        type List(elements [Element])
+    }
+
+    context Option [Value] {
+        type None
+        type Some(value Value)
+    }
+
+    extension List within AssertEq [Element, Int] {
+
+    }
+
     (D) main () () {
-        d = D(C())
+        d = D(C()) within MaxUse [1]
+
+        o = Some(123) # OK, context `Option [Int]` can be inferred
+        l = List() # Error: `Complete Context cannot be inferred for List, please specify parameters`
+
+        d.release() # OK
+        d.release() # Error: `d` no longer exists in this Context
     }
 }

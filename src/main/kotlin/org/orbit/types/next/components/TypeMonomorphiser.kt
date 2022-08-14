@@ -50,15 +50,23 @@ object TypeMonomorphiser : Monomorphiser<PolymorphicType<MemberAwareType>, List<
             }
         }
 
+        val nCtx = input.parameters.zip(over).fold(ctx) { acc, next ->
+            acc.replacing(next.first, next.second.second)
+        }
+
         val nFields = input.baseType.getMembers().map {
-            val resolved = when (it.type) {
+            var resolved = when (it.type) {
                 is ITypeRef -> when (it) {
-                    is Field -> Field(it.memberName, ctx.getType(it.type.fullyQualifiedName) ?: it.type, it.defaultValue)
-                    is Property -> Property(it.memberName, Func(it.lambda.takes, ctx.getType(it.type.fullyQualifiedName)!!))
-                    else -> TODO("!!! ${it}")
+                    is Field -> Field(it.memberName, nCtx.getType(it.type.fullyQualifiedName) ?: it.type, it.defaultValue)
+                    is Property -> Property(it.memberName, Func(it.lambda.takes, nCtx.getType(it.type.fullyQualifiedName)!!))
+                    else -> TODO("!!! $it")
                 }
                 else -> it
             }
+
+//            resolved = when (resolved) {
+//                is MonomorphicType<*> -> MonoSubstitutor<TypeComponent>(nCtx).substitute(resolved, )
+//            }
 
             val idx = input.parameters.indexOf(resolved.type)
             when (resolved.type is AbstractTypeParameter) {

@@ -8,9 +8,16 @@ import org.orbit.util.Invocation
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 
-class MonoSubstitutor<T: TypeComponent> : Substitutor<MonomorphicType<T>> {
+class MonoSubstitutor<T: TypeComponent>(private val ctx: Ctx) : Substitutor<MonomorphicType<T>> {
     override fun substitute(target: MonomorphicType<T>, old: TypeComponent, new: TypeComponent): MonomorphicType<T> {
-        return MonomorphicType(target.polymorphicType, target.specialisedType, target.concreteParameters.map { it.substitute(old, new, ConcreteTypeParameterSubstitutor) }, target.isTotal)
+        val nConcrete = target.concreteParameters.map { it.substitute(old, new, ConcreteTypeParameterSubstitutor) }
+            .mapIndexed { idx, elem -> Pair(idx, elem.concreteType) }
+        val nMono = TypeMonomorphiser.monomorphise(ctx, target.polymorphicType as PolymorphicType<MemberAwareType>, nConcrete, MonomorphisationContext.Any)
+
+        return when (nMono) {
+            is MonomorphisationResult.Total<*, *> -> nMono.result as MonomorphicType<T>
+            else -> TODO("!±!E")
+        }
     }
 }
 

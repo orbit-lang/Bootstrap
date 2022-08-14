@@ -29,6 +29,15 @@ class Ctx constructor() : IContext {
         this.conformanceMap.putAll(conformanceMap)
     }
 
+    fun replacing(old: TypeComponent, new: TypeComponent) : Ctx {
+        val nTypes = types.map { when (it.fullyQualifiedName) {
+            old.fullyQualifiedName -> Alias(old.fullyQualifiedName, new)
+            else -> it
+        }}
+
+        return Ctx(nTypes, conformanceMap)
+    }
+
     override fun getTypes() : List<TypeComponent> = types
     override fun getConformanceMap() : Map<TypeComponent, List<ITrait>> = conformanceMap
     override fun getContexts(type: TypeComponent): List<ContextInstantiation>

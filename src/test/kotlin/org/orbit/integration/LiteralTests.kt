@@ -10,6 +10,7 @@ import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.rules.LiteralRule
 import org.orbit.util.OrbitException
 import org.orbit.util.assertIs
+import org.orbit.util.assertThrows
 import java.math.BigInteger
 
 internal class LiteralTests : IntegrationTest {
