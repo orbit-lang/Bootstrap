@@ -11,6 +11,9 @@ typealias AnyEntity = Types3Tests.IType.Entity<*>
 typealias AnyArrow = Types3Tests.IType.IArrow<*>
 typealias AnyExpr = Types3Tests.Expr<*>
 
+fun <S: Types3Tests.Substitutable<S>> List<S>.substituteAll(substitution: Types3Tests.Substitution) : List<S>
+    = map { it.substitute(substitution) }
+
 class Types3Tests {
     sealed interface IType<T: IType<T>> : Substitutable<T> {
         interface UnifiableType<Self: UnifiableType<Self>> : IType<Self> {
@@ -88,7 +91,126 @@ class Types3Tests {
             }
         }
 
+        sealed interface IConstructor<T: AnyType> : IArrow<IConstructor<T>> {
+            val constructedType: T
+        }
+
+        sealed interface ICompositeType<Self: ICompositeType<Self>> : Entity<Self>
+
+        sealed interface IIndexType<I, Self: IIndexType<I, Self>> : IType<Self> {
+            fun getElement(at: I) : AnyType
+        }
+
+        interface IConstructableType<Self: IConstructableType<Self>> : IType<Self> {
+            fun getConstructors() : List<IConstructor<Self>>
+        }
+
+        sealed interface IProductType<I, Self: IProductType<I, Self>> : ICompositeType<Self>, IIndexType<I, Self>
+        sealed interface ISumType<Self: ISumType<Self>> : ICompositeType<Self>, IIndexType<AnyType, Self>
+
+        data class Tuple(val elementTypes: List<AnyType>) : IProductType<Int, Tuple> {
+            constructor(first: AnyType, second: AnyType) : this(listOf(first, second))
+
+            override val id: String = "(${elementTypes.joinToString(" & ") { it.id }})"
+
+            val numberOfElements: Int
+                get() = elementTypes.count()
+
+            init {
+                if (numberOfElements < 2) throw Exception("A Tuple must have at least 2 elements")
+            }
+
+            override fun getElement(at: Int): AnyType = when (at < numberOfElements) {
+                true -> elementTypes[at]
+                else -> Never("Attempt to retrieve element from Tuple of size $numberOfElements at index $at")
+            }
+
+            override fun substitute(substitution: Substitution): Tuple
+                = Tuple(elementTypes.substituteAll(substitution))
+
+            override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
+                is Tuple -> Tuple(this, other)
+                else -> Never("Cannot unify Types $id & ${other.id}")
+            }
+        }
+
+        data class Struct(val members: List<Member>) : IProductType<String, Struct>, IConstructableType<Struct> {
+            override val id: String = "{${members.joinToString("; ") { it.id }}}"
+
+            override fun getElement(at: String): AnyType
+                = members.first { it.name == at }
+
+            override fun getConstructors(): List<IConstructor<Struct>>
+                = listOf(StructConstructor(this, members))
+
+            override fun substitute(substitution: Substitution): Struct
+                = Struct(members.substituteAll(substitution))
+
+            override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
+                is Struct -> Union(this, other)
+                else -> Never("Cannot unify Types $id & ${other.id}")
+            }
+        }
+
+        data class StructConstructor(override val constructedType: Struct, val args: List<Member>) : IConstructor<Struct> {
+            override val id: String = "(${args.joinToString(", ") { it.id }}) -> ${constructedType.id}"
+
+            override fun getDomain(): List<AnyType> = args.map { it.type }
+            override fun getCodomain(): AnyType = constructedType
+
+            override fun curry(): IArrow<*> = this
+
+            override fun substitute(substitution: Substitution): IConstructor<Struct>
+                = StructConstructor(constructedType.substitute(substitution), args.substituteAll(substitution))
+
+            override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = Never("Cannot unify Types $id & ${other.id}")
+
+            override fun never(args: List<AnyType>): Never
+                = Never("Cannot construct Type ${constructedType.id} with arguments (${args.joinToString("; ") { it.id }})")
+        }
+
+        data class UnionConstructor(override val constructedType: Union, val arg: AnyType) : IConstructor<Union> {
+            override val id: String = "(${arg.id}) -> ${constructedType.id}"
+
+            override fun getDomain(): List<AnyType> = listOf(arg)
+            override fun getCodomain(): AnyType = constructedType.getElement(arg)
+
+            override fun curry(): IArrow<*> = this
+
+            override fun substitute(substitution: Substitution): IConstructor<Union>
+                = UnionConstructor(constructedType.substitute(substitution), arg.substitute(substitution))
+
+            override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = Never("Cannot unify Types $id & ${other.id}")
+
+            override fun never(args: List<AnyType>): Never
+                = Never("Union Type ${constructedType.id} cannot be constructed with argument ${arg.id}")
+        }
+
+        data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IConstructableType<Union> {
+            override val id: String = "(${left.id} | ${right.id})"
+
+            override fun getElement(at: AnyType): AnyType = when (at) {
+                left -> left
+                right -> right
+                else -> Never("Sum Type $id will never contain a value of Type ${at.id}")
+            }
+
+            override fun getConstructors(): List<IConstructor<Union>>
+                = listOf(left, right).map { UnionConstructor(this, it) }
+
+            override fun substitute(substitution: Substitution): Union
+                = Union(left.substitute(substitution), right.substitute(substitution))
+
+            override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
+                is Union -> Union(this, other)
+                else -> Never("Cannot unify Types $id & ${other.id}")
+            }
+        }
+
         sealed interface IArrow<Self: IArrow<Self>> : UnifiableType<Self> {
+            fun getDomain() : List<AnyType>
+            fun getCodomain() : AnyType
+
             fun curry() : IArrow<*>
             fun never(args: List<AnyType>) : IType.Never
 
@@ -97,6 +219,7 @@ class Types3Tests {
                 is Arrow1 -> curry()
                 is Arrow2 -> curry().curry()
                 is Arrow3 -> curry().curry().curry()
+                else -> Arrow0(this)
             }
 
             override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*>
@@ -105,6 +228,9 @@ class Types3Tests {
 
         data class Arrow0(val gives: IType<*>) : IArrow<Arrow0> {
             override val id: String = "() -> ${gives.id}"
+
+            override fun getDomain(): List<AnyType> = emptyList()
+            override fun getCodomain(): AnyType = gives
 
             override fun substitute(substitution: Substitution): Arrow0
                 = Arrow0(gives.substitute(substitution))
@@ -118,6 +244,9 @@ class Types3Tests {
         data class Arrow1(val takes: IType<*>, val gives: IType<*>) : IArrow<Arrow1> {
             override val id: String = "(${takes.id}) -> ${gives.id}"
 
+            override fun getDomain(): List<AnyType> = listOf(takes)
+            override fun getCodomain(): AnyType = gives
+
             override fun substitute(substitution: Substitution): Arrow1
                 = Arrow1(takes.substitute(substitution), gives.substitute(substitution))
 
@@ -129,6 +258,9 @@ class Types3Tests {
 
         data class Arrow2(val a: IType<*>, val b: IType<*>, val gives: IType<*>) : IArrow<Arrow2> {
             override val id: String = "(${a.id}, ${b.id}) -> ${gives.id}"
+
+            override fun getDomain(): List<AnyType> = listOf(a, b)
+            override fun getCodomain(): AnyType = gives
 
             override fun substitute(substitution: Substitution): Arrow2
                 = Arrow2(a.substitute(substitution), b.substitute(substitution), gives.substitute(substitution))
@@ -142,6 +274,9 @@ class Types3Tests {
 
         data class Arrow3(val a: IType<*>, val b: IType<*>, val c: IType<*>, val gives: IType<*>) : IArrow<Arrow3> {
             override val id: String = "(${a.id}, ${b.id}, ${c.id}) -> ${gives.id}"
+
+            override fun getDomain(): List<AnyType> = listOf(a, b, c)
+            override fun getCodomain(): AnyType = gives
 
             override fun substitute(substitution: Substitution): Arrow3
                 = Arrow3(a.substitute(substitution), b.substitute(substitution), c.substitute(substitution), gives.substitute(substitution))
@@ -394,14 +529,8 @@ class Types3Tests {
             override fun toString(): String = "`case ? == $expr`"
         }
 
-        data class TypeEqPattern(val type: AnyType) : IPattern {
-            override fun substitute(substitution: Substitution): IPattern = this
-            override fun infer(env: Env): IType<*> = type
-            override fun match(env: Env, target: AnyExpr): MatchResult = when (TypeUtils.check(env, target, type)) {
-                true -> MatchResult.ReachablePattern(env.extend(Decl.Cache(target, type)))
-                else -> MatchResult.UnreachablePattern(IType.Never("Unreachable match: $target is not of Type ${type.id}"))
-            }
-        }
+//        data class ConstructorPattern(val type: IType.Type, val) {
+//        }
 
         data class Case(val pattern: IPattern, val block: Block) : Expr<Case> {
             override fun substitute(substitution: Substitution): Case
@@ -437,50 +566,21 @@ class Types3Tests {
 
             override fun toString(): String = "${arrow.id}(${args.joinToString(", ") { it.toString() }})"
 
-            private fun infer0(arrow0: IType.Arrow0): AnyType = arrow0.gives
+            override fun infer(env: Env): IType<*> {
+                val exit = { arrow.never(args.map { it.infer(env) }) }
+                val domain = arrow.getDomain()
 
-            private fun infer1(env: Env, arrow1: IType.Arrow1): AnyType = when (TypeUtils.check(env, args[0], arrow1.takes)) {
-                true -> arrow1.gives
-                else -> arrow1.never(args.map { it.infer(env) })
-            }
+                if (args.count() != domain.count()) return exit()
 
-            private fun infer2(env: Env, arrow2: IType.Arrow2): AnyType {
-                val exit = { arrow2.never(args.map { it.infer(env) }) }
+                val checked = args.zip(domain).fold(true) { acc, next ->
+                    if (!acc) return exit()
 
-                val checkA = TypeUtils.check(env, args[0], arrow2.a)
+                    acc && TypeUtils.check(env, next.first, next.second)
+                }
 
-                if (!checkA) return exit()
+                if (!checked) return exit()
 
-                val checkB = TypeUtils.check(env, args[1], arrow2.b)
-
-                if (!checkB) return exit()
-
-                return arrow2.gives
-            }
-
-            private fun infer3(env: Env, arrow3: IType.Arrow3): AnyType {
-                val exit = { arrow3.never(args.map { it.infer(env) }) }
-
-                val checkA = TypeUtils.check(env, args[0], arrow3.a)
-
-                if (!checkA) return exit()
-
-                val checkB = TypeUtils.check(env, args[1], arrow3.b)
-
-                if (!checkB) return exit()
-
-                val checkC = TypeUtils.check(env, args[2], arrow3.c)
-
-                if (!checkC) return exit()
-
-                return arrow3.gives
-            }
-
-            override fun infer(env: Env): IType<*> = when (arrow) {
-                is IType.Arrow0 -> infer0(arrow)
-                is IType.Arrow1 -> infer1(env, arrow)
-                is IType.Arrow2 -> infer2(env, arrow)
-                is IType.Arrow3 -> infer3(env, arrow)
+                return arrow.getCodomain()
             }
         }
     }
@@ -1304,5 +1404,47 @@ class Types3Tests {
         val res = sut.match(env, Expr.Var("x"))
 
         assertIs<Expr.MatchResult.ReachablePattern>(res)
+    }
+
+    @Test
+    fun `Union Constructors fail when invoked with mismatched args`() {
+        val a = IType.Type("A")
+        val b = IType.Type("B")
+        val u = IType.Union(a, b)
+        val env = Env(listOf(a, b, u))
+        val cons = u.getConstructors()
+
+        assertEquals(2, cons.count())
+
+        val sut1 = Expr.Invoke(cons[0], Expr.TypeLiteral("B"))
+        val res1 = sut1.infer(env)
+
+        assertIs<IType.Never>(res1)
+
+        val sut2 = Expr.Invoke(cons[1], Expr.TypeLiteral("A"))
+        val res2 = sut2.infer(env)
+
+        assertIs<IType.Never>(res2)
+    }
+
+    @Test
+    fun `Union Constructors succeed when invoked with expected args`() {
+        val a = IType.Type("A")
+        val b = IType.Type("B")
+        val u = IType.Union(a, b)
+        val env = Env(listOf(a, b, u))
+        val cons = u.getConstructors()
+
+        assertEquals(2, cons.count())
+
+        val sut1 = Expr.Invoke(cons[0], Expr.TypeLiteral("A"))
+        val res1 = sut1.infer(env)
+
+        assertTrue(res1 === a)
+
+        val sut2 = Expr.Invoke(cons[1], Expr.TypeLiteral("B"))
+        val res2 = sut2.infer(env)
+
+        assertTrue(res2 === b)
     }
 }

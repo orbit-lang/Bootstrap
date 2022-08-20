@@ -28,7 +28,7 @@ data class NodeAnnotation<T: AnySerializable>(val tag: NodeAnnotationTag<T>?, va
 
 interface ScopedNode
 
-sealed class Node {
+abstract class Node {
 	abstract val firstToken: Token
 	abstract val lastToken: Token
 
