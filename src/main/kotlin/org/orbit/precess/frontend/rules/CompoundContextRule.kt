@@ -4,27 +4,35 @@ import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.precess.frontend.components.TokenTypes
-import org.orbit.precess.frontend.components.nodes.CompoundContextNode
+import org.orbit.precess.frontend.components.nodes.CompoundContextCallNode
 
-object CompoundContextRule : ParseRule<CompoundContextNode> {
+object CompoundContextRule : ParseRule<CompoundContextCallNode> {
+    // TODO - Simplify
     override fun parse(context: Parser): ParseRule.Result {
-        val ctx = context.attempt(ContextLiteralRule)
+        context.mark()
+        val ctx = context.attempt(ContextCallRule)
             ?: return ParseRule.Result.Failure.Abort
 
-        if (!context.hasMore) return ParseRule.Result.Failure.Rewind(listOf(ctx.firstToken))
+        val recorded = context.end()
 
-        val plus = context.expect(TokenTypes.Extend)
-        val head = context.attempt(ContextLiteralRule)
-            ?: return ParseRule.Result.Failure.Rewind(listOf(ctx.firstToken, plus))
-
-        val rhs = mutableListOf(head)
-
-        if (!context.hasMore) return +CompoundContextNode(ctx.firstToken, head.lastToken, ctx, listOf(head))
+        if (!context.hasMore) return ParseRule.Result.Failure.Rewind(recorded)
 
         var next = context.peek()
+
+        if (next.type != TokenTypes.Extend) return ParseRule.Result.Failure.Rewind(recorded)
+
+        val plus = context.expect(TokenTypes.Extend)
+        val head = context.attempt(ContextCallRule)
+            ?: return ParseRule.Result.Failure.Rewind(listOf(ctx.firstToken, plus))
+
+        val rhs = mutableListOf(ctx, head)
+
+        if (!context.hasMore) return +CompoundContextCallNode(ctx.firstToken, head.lastToken, listOf(head))
+
+        next = context.peek()
         while (next.type == TokenTypes.Extend) {
             context.consume()
-            val nextContext = context.attempt(ContextLiteralRule)
+            val nextContext = context.attempt(ContextCallRule)
                 ?: return ParseRule.Result.Failure.Abort
 
             rhs.add(nextContext)
@@ -34,6 +42,6 @@ object CompoundContextRule : ParseRule<CompoundContextNode> {
             next = context.peek()
         }
 
-        return +CompoundContextNode(ctx.firstToken, rhs.last().lastToken, ctx, rhs)
+        return +CompoundContextCallNode(ctx.firstToken, rhs.last().lastToken, rhs)
     }
 }

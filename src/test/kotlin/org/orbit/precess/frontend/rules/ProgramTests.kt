@@ -20,13 +20,14 @@ internal class ProgramTests : PrecessParserTest() {
     @Test
     fun `Accepts multi line program`() {
         val res = parse("""
-            ∆e' = ∆e => ∆e + T
-            ∆e'' = ∆e => ∆e + t:∆e.T
-            ∆es = ∆e => ∆e + ∆e' + ∆e''
-            P = ∆e => check (∆e.t, ∆e.T) in ∆e
-            run P(∆e)
+            ∆T = ∆e => ∆e + T
+            ∆U = ∆e => ∆e + U
+            ∆t = ∆e => ∆e + t:∆e.T
+            ∆tTU = ∆e => ∆T(∆e) + ∆U(∆e) + ∆tT(∆e)
+            P = ∆e => check (∆e.t, ∆e.U)
+            run P(∆tTU(∆∆))
         """.trimIndent(), ProgramRule)
 
-        assertEquals(5, res.statements.count())
+        assertEquals(6, res.statements.count())
     }
 }

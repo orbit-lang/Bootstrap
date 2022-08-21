@@ -26,7 +26,6 @@ internal class ArrowTests : PrecessParserTest() {
         assertTrue(res.domain is TypeLookupNode)
         assertEquals("T", (res.domain as TypeLookupNode).type.typeId)
 
-        assertTrue(res.codomain is ArrowNode)
         assertEquals("T", ((res.codomain as ArrowNode).domain as TypeLookupNode).type.typeId)
         assertEquals("T", ((res.codomain as ArrowNode).codomain as TypeLookupNode).type.typeId)
     }

@@ -7,6 +7,10 @@ data class Token(
     val text: String,
     val position: SourcePosition
 ) : Serializable {
+	companion object {
+		val empty = Token(TokenTypes.Type, "", SourcePosition.unknown)
+	}
+
 	override fun equals(other: Any?): Boolean = when (other) {
 		is Token -> {
 			if (other.position == position && other.type != type) {

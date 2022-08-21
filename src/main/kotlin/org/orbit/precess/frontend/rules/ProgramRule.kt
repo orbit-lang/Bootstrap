@@ -8,11 +8,14 @@ import org.orbit.precess.frontend.components.nodes.StatementNode
 
 object ProgramRule : ParseRule<ProgramNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val statements = mutableListOf<StatementNode>()
+        val statements = mutableListOf<StatementNode<*>>()
         while (context.hasMore) {
             val statement = context.attemptAny(listOf(ContextLetRule, PropositionRule, RunRule))
-                as? StatementNode
-                ?: return ParseRule.Result.Failure.Abort
+                ?: return ParseRule.Result.Failure.Throw("No statement", context.peek())
+
+            if (statement !is StatementNode<*>) {
+                return ParseRule.Result.Failure.Throw("No statement $statement", context.peek())
+            }
 
             statements.add(statement)
         }

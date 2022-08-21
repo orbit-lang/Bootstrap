@@ -12,4 +12,22 @@ internal class PropositionCallTests : PrecessParserTest() {
         assertEquals("∆e", res.context.toString())
         assertEquals("P(∆e)", res.toString())
     }
+
+    @Test
+    fun `Accepts inner Context call`() {
+        val res = parse("P(∆e(∆∆))", PropositionCallRule)
+
+        assertEquals("P", res.propId)
+        assertEquals("∆e(∆∆)", res.context.toString())
+        assertEquals("P(∆e(∆∆))", res.toString())
+    }
+
+    @Test
+    fun `Accepts inner compound Context`() {
+        val res = parse("P(∆e(∆∆) + ∆f(∆∆))", PropositionCallRule)
+
+        assertEquals("P", res.propId)
+        assertEquals("∆e(∆∆) + ∆f(∆∆)", res.context.toString())
+        assertEquals("P(∆e(∆∆) + ∆f(∆∆))", res.toString())
+    }
 }

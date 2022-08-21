@@ -1,5 +1,8 @@
 package org.orbit.precess.backend.components
 
+import org.orbit.precess.backend.utils.AnyExpr
+import org.orbit.precess.backend.utils.AnyType
+
 sealed interface Decl {
     data class Clone(val cloneElements: Boolean = true, val cloneRefs: Boolean = true) : Decl {
         override fun exists(env: Env): Boolean = false
@@ -14,6 +17,12 @@ sealed interface Decl {
                 else -> Env(emptyList(), emptyList(), env.contracts, env.projections, env.expressionCache)
             }
         }
+    }
+
+    data class Merge(val root: Env) : Decl {
+        override fun exists(env: Env): Boolean = true
+        override fun xtend(env: Env): Env
+            = Env(root.elements + env.elements, root.refs + env.refs, root.contracts + env.contracts, root.projections + env.projections, root.expressionCache + env.expressionCache)
     }
 
     data class DenyElement(private val id: String) : Decl {
@@ -44,7 +53,7 @@ sealed interface Decl {
     data class Assignment(val name: String, val expr: Expr<*>) : Decl {
         override fun exists(env: Env): Boolean = env.refs.any { it.name == name }
         override fun xtend(env: Env): Env {
-            val type = expr.infer(env) as? IType.Entity<*> ?: TODO()
+            val type = expr.infer(env) as? IType.Entity<*> ?: TODO("HERE")
 
             return Env(
                 env.elements,

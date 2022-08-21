@@ -35,12 +35,12 @@ internal class ContextLetTests : PrecessParserTest() {
     }
 
     @Test
-    fun `Accepts Compount Context let`() {
-        val res = parse("∆id = ∆e => ∆e + ∆A + ∆a + ∆f", ContextLetRule)
+    fun `Accepts Compound Context let`() {
+        val res = parse("∆id = ∆e => ∆A(∆e) + ∆a(∆e) + ∆f(∆e)", ContextLetRule)
 
         assertEquals("∆id", res.nContext.toString())
         assertEquals("∆e", res.enclosing.toString())
-        assertEquals("(∆e + ∆A + ∆a + ∆f)", res.expr.toString())
-        assertEquals("∆id = ∆e => (∆e + ∆A + ∆a + ∆f)", res.toString())
+        assertEquals("∆A(∆e) + ∆a(∆e) + ∆f(∆e)", res.expr.toString())
+        assertEquals("∆id = ∆e => ∆A(∆e) + ∆a(∆e) + ∆f(∆e)", res.toString())
     }
 }

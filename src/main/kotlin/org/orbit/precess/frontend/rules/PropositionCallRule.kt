@@ -4,6 +4,7 @@ import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.precess.frontend.components.TokenTypes
+import org.orbit.precess.frontend.components.nodes.ContextExprNode
 import org.orbit.precess.frontend.components.nodes.PropositionCallNode
 
 object PropositionCallRule : ParseRule<PropositionCallNode> {
@@ -12,7 +13,8 @@ object PropositionCallRule : ParseRule<PropositionCallNode> {
 
         context.expect(TokenTypes.LParen)
 
-        val ctx = context.attempt(ContextLiteralRule)
+        val ctx = context.attemptAny(listOf(CompoundContextRule, ContextCallRule, ContextLiteralRule))
+            as? ContextExprNode<*>
             ?: return ParseRule.Result.Failure.Abort
 
         context.expect(TokenTypes.RParen)

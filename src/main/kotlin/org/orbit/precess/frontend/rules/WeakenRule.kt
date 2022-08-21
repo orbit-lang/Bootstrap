@@ -16,6 +16,10 @@ object WeakenRule : ParseRule<WeakenNode<*>> {
 
         if (!context.hasMore) return ParseRule.Result.Failure.Rewind(listOf(ctx.firstToken))
 
+        val next = context.peek()
+
+        if (next.type != TokenTypes.Extend) return ParseRule.Result.Failure.Rewind(listOf(ctx.firstToken))
+
         val plus = context.expect(TokenTypes.Extend)
 
         val literal = context.attemptAny(listOf(TypeLiteralRule, BindingLiteralRule))

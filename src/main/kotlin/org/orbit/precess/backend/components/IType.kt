@@ -1,5 +1,7 @@
 package org.orbit.precess.backend.components
 
+import org.orbit.precess.backend.utils.*
+
 sealed interface IType<T : IType<T>> : Substitutable<T> {
     interface UnifiableType<Self : UnifiableType<Self>> : IType<Self> {
         fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*>
@@ -17,6 +19,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun substitute(substitution: Substitution): Never = this
         override fun equals(other: Any?): Boolean = this === other
+        operator fun plus(other: Never) : Never = Never("$message\n${other.message}")
     }
 
     object Unit : Entity<Unit> {

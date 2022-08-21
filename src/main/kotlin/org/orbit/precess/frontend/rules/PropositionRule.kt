@@ -6,6 +6,7 @@ import org.orbit.frontend.rules.ParseRule
 import org.orbit.precess.frontend.components.TokenTypes
 import org.orbit.precess.frontend.components.nodes.ExprNode
 import org.orbit.precess.frontend.components.nodes.PropositionNode
+import org.orbit.precess.frontend.components.nodes.PropositionStatementNode
 
 object PropositionRule : ParseRule<PropositionNode> {
     override fun parse(context: Parser): ParseRule.Result {
@@ -18,8 +19,8 @@ object PropositionRule : ParseRule<PropositionNode> {
 
         context.expect(TokenTypes.FatArrow)
 
-        val body = context.attemptAny(listOf(CheckRule, PropositionCallRule, ContextLiteralRule))
-            as? ExprNode
+        val body = context.attemptAny(listOf(CheckRule, PropositionCallRule))
+            as? PropositionStatementNode<*>
             ?: return ParseRule.Result.Failure.Abort
 
         return +PropositionNode(id, body.lastToken, id.text, eCtx, body)

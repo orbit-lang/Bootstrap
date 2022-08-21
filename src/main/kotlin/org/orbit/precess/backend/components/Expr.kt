@@ -1,5 +1,7 @@
 package org.orbit.precess.backend.components
 
+import org.orbit.precess.backend.utils.*
+
 sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
     data class Var(val name: String) : Expr<Var> {
         override fun substitute(substitution: Substitution): Var = Var(name)
@@ -14,6 +16,12 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
         override fun substitute(substitution: Substitution): TypeLiteral = this
         override fun infer(env: Env): IType<*> = env.getElement(name)!!
         override fun toString(): String = "`Type<$name>`"
+    }
+
+    data class ArrowLiteral(val arrow: AnyArrow) : Expr<ArrowLiteral> {
+        override fun substitute(substitution: Substitution): ArrowLiteral = this
+        override fun infer(env: Env): IType<*> = arrow
+        override fun toString(): String = "Type<${arrow.id}>"
     }
 
     data class Block(val body: List<AnyExpr>) : Expr<Block> {
@@ -121,5 +129,11 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
 
             return arrow.getCodomain()
         }
+    }
+
+    data class Symbol(val name: String) : Expr<Symbol> {
+        override fun substitute(substitution: Substitution): Symbol = this
+        override fun infer(env: Env): IType<*> = IType.Never("TODO - Symbol")
+        override fun toString(): String = name
     }
 }

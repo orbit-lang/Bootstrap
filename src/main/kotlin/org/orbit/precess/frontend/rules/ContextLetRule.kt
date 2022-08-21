@@ -20,7 +20,7 @@ object ContextLetRule : ParseRule<ContextLetNode> {
         context.expect(TokenTypes.FatArrow)
 
         val expr = context.attemptAny(listOf(WeakenRule, CompoundContextRule, ContextLiteralRule))
-            as? ContextExprNode
+            as? ContextExprNode<*>
             ?: return ParseRule.Result.Failure.Abort
 
         return +ContextLetNode(nCtx.firstToken, expr.lastToken, nCtx, eCtx, expr)

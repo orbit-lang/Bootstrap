@@ -4,7 +4,7 @@ import org.orbit.core.components.TokenType
 import org.orbit.core.components.TokenTypeProvider
 
 object TokenTypes : TokenTypeProvider {
-    object Delta : TokenType("Delta", "∆[a-zA-Z]+[a-zA-Z0-9\\']*", true, false, TokenType.Family.Id)
+    object Delta : TokenType("Delta", "(∆∆|∆[a-zA-Z]+[a-zA-Z0-9\\']*)", true, false, TokenType.Family.Id)
     object RefId : TokenType("Ref", "[a-z]+[a-zA-Z0-9_]*", true, false, TokenType.Family.Id)
     object TypeId : TokenType("Type", "[A-Z]+[a-zA-Z0-9_]*", true, false, TokenType.Family.Id)
     object Check : TokenType("Check", "check", true, false, TokenType.Family.Keyword)

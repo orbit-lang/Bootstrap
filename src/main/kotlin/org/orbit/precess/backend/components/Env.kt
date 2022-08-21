@@ -1,5 +1,6 @@
 package org.orbit.precess.backend.components
 
+import org.orbit.precess.backend.utils.AnyType
 import kotlin.reflect.KProperty
 
 data class Env(
@@ -8,7 +9,7 @@ data class Env(
     val contracts: List<Contract> = emptyList(),
     val projections: List<Projection> = emptyList(),
     val expressionCache: Map<String, AnyType> = emptyMap()
-) {
+) : IType<Env> {
     companion object {
         private var current: Env = Env()
 
@@ -55,6 +56,10 @@ data class Env(
 
     internal constructor(type: IType<*>, ref: Ref) : this(listOf(type), listOf(ref))
 
+    override val id: String = "∆"
+
+    override fun substitute(substitution: Substitution): Env = this
+
     private fun <T> protect(protector: Protector<T>, block: () -> T): T = protector.protect(block)
 
     fun getRef(of: String): Ref? = protect(Protector.RefProtector) {
@@ -90,6 +95,8 @@ data class Env(
 
     fun extend(decl: Decl): Env = decl.extend(this)
 
+
+
     fun denyElement(id: String): Env {
         val nElements = elements.map {
             when (it.id) {
@@ -120,4 +127,7 @@ data class Env(
             is Contract.ContractResult.Violated -> result.reason.panic()
         }
     }
+
+    operator fun plus(other: Env) : Env
+        = other.extend(Decl.Merge(this))
 }

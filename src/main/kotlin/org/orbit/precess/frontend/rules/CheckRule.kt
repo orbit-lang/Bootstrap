@@ -3,6 +3,7 @@ package org.orbit.precess.frontend.rules
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ParseRule
+import org.orbit.precess.backend.utils.AnyType
 import org.orbit.precess.frontend.components.TokenTypes
 import org.orbit.precess.frontend.components.nodes.CheckNode
 import org.orbit.precess.frontend.components.nodes.ExprNode
@@ -27,11 +28,6 @@ object CheckRule : ParseRule<CheckNode> {
 
         context.expect(TokenTypes.RParen)
 
-        context.expect(TokenTypes.In)
-
-        val ctx = context.attempt(ContextLiteralRule)
-            ?: return ParseRule.Result.Failure.Abort
-
-        return +CheckNode(start, ctx.lastToken, ctx, expr, type)
+        return +CheckNode(start, type.lastToken, expr, type)
     }
 }
