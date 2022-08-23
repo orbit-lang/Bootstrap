@@ -60,7 +60,7 @@ sealed interface Decl {
     data class Assignment(val name: String, val expr: Expr<*>) : Decl {
         override fun exists(env: Env): Boolean = env.refs.any { it.name == name }
         override fun xtend(env: Env): Env {
-            val type = expr.infer(env) as? IType.Entity<*> ?: TODO("HERE")
+            val type = expr.infer(env)
 
             return Env(env.elements, env.refs + Ref(name, type), env.contracts, env.projections, env.expressionCache)
         }

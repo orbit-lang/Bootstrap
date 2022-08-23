@@ -15,7 +15,7 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
     data class TypeLiteral(val name: String) : Expr<TypeLiteral> {
         override fun substitute(substitution: Substitution): TypeLiteral = this
         override fun infer(env: Env): IType<*> = env.getElement(name) ?: IType.Never("Unknown Type `$name` in current context: `$env`")
-        override fun toString(): String = "`Type<$name>`"
+        override fun toString(): String = "∆.$name"
     }
 
     data class ArrowLiteral(val domainExpr: AnyExpr, val codomainExpr: AnyExpr) : Expr<ArrowLiteral> {

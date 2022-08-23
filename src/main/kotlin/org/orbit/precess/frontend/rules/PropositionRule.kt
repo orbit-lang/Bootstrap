@@ -6,7 +6,6 @@ import org.orbit.frontend.rules.ParseRule
 import org.orbit.precess.frontend.components.TokenTypes
 import org.orbit.precess.frontend.components.nodes.PropositionExpressionNode
 import org.orbit.precess.frontend.components.nodes.PropositionNode
-import org.orbit.precess.frontend.components.nodes.PropositionStatementNode
 
 object PropositionRule : ParseRule<PropositionNode> {
     override fun parse(context: Parser): ParseRule.Result {
