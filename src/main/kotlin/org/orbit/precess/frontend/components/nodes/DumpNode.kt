@@ -6,10 +6,14 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.phase.Interpreter
 import org.orbit.precess.backend.phase.Proposition
 import org.orbit.precess.backend.phase.PropositionResult
-import org.orbit.precess.backend.utils.AnyType
 
-data class ContextLiteralNode(override val firstToken: Token, override val lastToken: Token) : PropositionExpressionNode() {
+data class DumpNode(override val firstToken: Token, override val lastToken: Token) : PropositionStatementNode<DumpNode>() {
     override fun getChildren(): List<Node> = emptyList()
-    override fun toString(): String = "∆"
-    override fun getProposition(interpreter: Interpreter, env: Env): Proposition = { PropositionResult.True(it) }
+    override fun toString(): String = "dump(∆)"
+
+    override fun getProposition(interpreter: Interpreter): Proposition = { env ->
+        println(env)
+
+        PropositionResult.True(env)
+    }
 }

@@ -16,7 +16,7 @@ internal class TypeLiteralNodeTest {
         assertTrue(env.elements.isEmpty())
 
         val interpreter = Interpreter()
-        val res = sut.walk(interpreter).invoke(env)
+        val res = env.extend(sut.getDecl(env))
 
         assertEquals(1, res.elements.count())
         assertEquals("T", res.elements[0].id)

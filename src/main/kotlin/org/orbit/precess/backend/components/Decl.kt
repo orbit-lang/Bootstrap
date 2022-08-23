@@ -21,8 +21,15 @@ sealed interface Decl {
 
     data class Merge(val root: Env) : Decl {
         override fun exists(env: Env): Boolean = true
-        override fun xtend(env: Env): Env
-            = Env(root.elements + env.elements, root.refs + env.refs, root.contracts + env.contracts, root.projections + env.projections, root.expressionCache + env.expressionCache)
+        override fun xtend(env: Env): Env {
+            val nElements = (root.elements + env.elements).distinctBy { it.id }
+            val nRefs = (root.refs + env.refs).distinctBy { it.uniqueId }
+            val nContracts = (root.contracts + env.contracts)
+            val nProjections = (root.projections + env.projections)
+            val nExpressionCache = (root.expressionCache + env.expressionCache)
+
+            return Env(nElements, nRefs, nContracts, nProjections, nExpressionCache)
+        }
     }
 
     data class DenyElement(private val id: String) : Decl {

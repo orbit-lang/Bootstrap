@@ -6,10 +6,10 @@ import kotlin.test.assertEquals
 internal class RefExprTests : PrecessParserTest() {
     @Test
     fun `Accepts valid input`() {
-        val res = parse("∆e.t", RefExprRule)
+        val res = parse("∆.t", RefExprRule)
 
-        assertEquals("∆e", res.context.toString())
+        assertEquals("∆", res.context.toString())
         assertEquals("t", res.ref.toString())
-        assertEquals("∆e.t", res.toString())
+        assertEquals("∆.t", res.toString())
     }
 }

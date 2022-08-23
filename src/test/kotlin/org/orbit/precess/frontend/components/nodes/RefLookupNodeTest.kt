@@ -15,14 +15,10 @@ internal class RefLookupNodeTest {
     @Test
     fun `Rejects undefined ref`() {
         val env = Env()
-        val interpreter = Interpreter()
-
-        interpreter.addContext("∆∆") { env }
-
-        val ctx = ContextLiteralNode(Token.empty, Token.empty, "∆∆")
+        val ctx = ContextLiteralNode(Token.empty, Token.empty)
         val ref = RefLiteralNode(Token.empty, Token.empty, "a")
         val sut = RefLookupNode(Token.empty, Token.empty, ctx, ref)
-        val res = sut.infer(interpreter, env)
+        val res = sut.getExpression(env).infer(env)
 
         assertIs<IType.Never>(res)
     }
@@ -30,17 +26,15 @@ internal class RefLookupNodeTest {
     @Test
     fun `Accepts defined ref`() {
         val env = Env()
+            .extend(Decl.Type(IType.Type("T"), emptyMap()))
+            .extend(Decl.Assignment("a", Expr.TypeLiteral("T")))
+
         val interpreter = Interpreter()
 
-        interpreter.addContext("∆∆") {
-            env.extend(Decl.Type(IType.Type("T"), emptyMap()))
-                .extend(Decl.Assignment("a", Expr.TypeLiteral("T")))
-        }
-
-        val ctx = ContextLiteralNode(Token.empty, Token.empty, "∆∆")
+        val ctx = ContextLiteralNode(Token.empty, Token.empty)
         val ref = RefLiteralNode(Token.empty, Token.empty, "a")
         val sut = RefLookupNode(Token.empty, Token.empty, ctx, ref)
-        val res = sut.infer(interpreter, env)
+        val res = sut.getExpression(env).infer(env)
 
         assertTrue(res is IType.Type)
         assertEquals("T", res.id)

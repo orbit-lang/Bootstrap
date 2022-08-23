@@ -8,8 +8,23 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
     }
 
     sealed interface Entity<E : Entity<E>> : UnifiableType<E>
+    sealed interface IMetaType<M: IMetaType<M>> : Entity<M> {
+        fun toBoolean() : Boolean = when (this) {
+            is Always -> true
+            is Never -> false
+        }
 
-    data class Never(val message: String, override val id: String = "!") : Entity<Never> {
+        operator fun plus(other: IMetaType<*>) : IMetaType<*>
+    }
+
+    object Always : IMetaType<Always> {
+        override val id: String = "*"
+        override fun substitute(substitution: Substitution): Always = this
+        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = other
+        override fun plus(other: IMetaType<*>): IMetaType<*> = other
+    }
+
+    data class Never(val message: String, override val id: String = "!") : IMetaType<Never>, IArrow<Never> {
         fun panic(): Nothing = throw RuntimeException(message)
 
         override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
@@ -17,9 +32,18 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             else -> this
         }
 
+        override fun getDomain(): List<AnyType> = emptyList()
+        override fun getCodomain(): AnyType = this
+        override fun curry(): IArrow<*> = this
+        override fun never(args: List<AnyType>): Never = this
+
         override fun substitute(substitution: Substitution): Never = this
         override fun equals(other: Any?): Boolean = this === other
         operator fun plus(other: Never) : Never = Never("$message\n${other.message}")
+        override fun plus(other: IMetaType<*>): IMetaType<*> = when (other) {
+            is Always -> this
+            is Never -> this + other
+        }
     }
 
     object Unit : Entity<Unit> {

@@ -22,6 +22,6 @@ object TypeLookupRule : ParseRule<TypeLookupNode> {
         val type = context.attempt(TypeLiteralRule)
             ?: return ParseRule.Result.Failure.Abort
 
-        return +TypeLookupNode(ctx.firstToken, type.lastToken, ctx, type)
+        return +TypeLookupNode(ctx.firstToken, type.lastToken, type)
     }
 }

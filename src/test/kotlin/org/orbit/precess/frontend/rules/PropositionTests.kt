@@ -6,19 +6,19 @@ import kotlin.test.assertEquals
 internal class PropositionTests : PrecessParserTest() {
     @Test
     fun `Accepts valid check body`() {
-        val res = parse("P = ∆e => check(∆e.a, ∆e.A)", PropositionRule)
+        val res = parse("P => check(∆.a, ∆.A)", PropositionRule)
 
         assertEquals("P", res.propId)
-        assertEquals("∆e", res.enclosing.toString())
-        assertEquals("check(∆e.a, ∆e.A)", res.body.toString())
+        assertEquals("check(∆.a, ∆.A)", res.body.toString())
+        assertEquals("P => check(∆.a, ∆.A)", res.toString())
     }
 
     @Test
     fun `Accepts valid prop call body`() {
-        val res = parse("P = ∆e => Q(∆e)", PropositionRule)
+        val res = parse("P => Q(∆)", PropositionRule)
 
         assertEquals("P", res.propId)
-        assertEquals("∆e", res.enclosing.toString())
-        assertEquals("Q(∆e)", res.body.toString())
+        assertEquals("Q(∆)", res.body.toString())
+        assertEquals("P => Q(∆)", res.toString())
     }
 }

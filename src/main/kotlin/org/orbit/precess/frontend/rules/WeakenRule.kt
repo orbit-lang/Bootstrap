@@ -9,7 +9,7 @@ import org.orbit.precess.frontend.components.nodes.RefLiteralNode
 import org.orbit.precess.frontend.components.nodes.TypeLiteralNode
 import org.orbit.precess.frontend.components.nodes.WeakenNode
 
-object WeakenRule : ParseRule<WeakenNode<*>> {
+object WeakenRule : ParseRule<WeakenNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val ctx = context.attempt(ContextLiteralRule)
             ?: return ParseRule.Result.Failure.Abort

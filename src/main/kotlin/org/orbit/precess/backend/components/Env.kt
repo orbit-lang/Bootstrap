@@ -93,9 +93,8 @@ data class Env(
 
     fun getMembers(of: IType.Type): List<IType.Member> = getDeclaredMembers(of) + getProjectedMembers(of)
 
-    fun extend(decl: Decl): Env = decl.extend(this)
-
-
+    fun extend(decl: Decl): Env
+        = decl.extend(this)
 
     fun denyElement(id: String): Env {
         val nElements = elements.map {
@@ -130,4 +129,9 @@ data class Env(
 
     operator fun plus(other: Env) : Env
         = other.extend(Decl.Merge(this))
+
+    override fun toString(): String
+        = """
+            ${elements.joinToString("; ") { it.id }}
+        """.trimIndent()
 }

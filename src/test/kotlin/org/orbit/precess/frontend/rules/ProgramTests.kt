@@ -12,7 +12,7 @@ internal class ProgramTests : PrecessParserTest() {
 
     @Test
     fun `Accepts single line program`() {
-        val res = parse("∆e2 = ∆e => ∆e", ProgramRule)
+        val res = parse("ID => ∆", ProgramRule)
 
         assertEquals(1, res.statements.count())
     }
@@ -20,12 +20,12 @@ internal class ProgramTests : PrecessParserTest() {
     @Test
     fun `Accepts multi line program`() {
         val res = parse("""
-            ∆T = ∆e => ∆e + T
-            ∆U = ∆e => ∆e + U
-            ∆t = ∆e => ∆e + t:∆e.T
-            ∆tTU = ∆e => ∆T(∆e) + ∆U(∆e) + ∆tT(∆e)
-            P = ∆e => check (∆e.t, ∆e.U)
-            run P(∆tTU(∆∆))
+            MkT => ∆ + T
+            MkU => ∆ + U
+            MktT => ∆ + t:∆.T
+            MktTU => MkT(∆) & MkU(∆) & MktT(∆)
+            P => check (∆.t, ∆.U)
+            run P(MktTU(∆))
         """.trimIndent(), ProgramRule)
 
         assertEquals(6, res.statements.count())

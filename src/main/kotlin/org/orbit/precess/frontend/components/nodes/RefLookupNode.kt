@@ -6,16 +6,12 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.Expr
 import org.orbit.precess.backend.components.IType
 import org.orbit.precess.backend.phase.Interpreter
-import org.orbit.precess.backend.utils.AnyExpr
 import org.orbit.precess.backend.utils.AnyType
 
-data class RefLookupNode(override val firstToken: Token, override val lastToken: Token, val context: ContextLiteralNode, val ref: RefLiteralNode) : ExprNode() {
+data class RefLookupNode(override val firstToken: Token, override val lastToken: Token, val context: ContextLiteralNode, val ref: RefLiteralNode) : TermExpressionNode<Expr.Var>() {
     override fun getChildren(): List<Node> = listOf(context, ref)
     override fun toString(): String = "$context.$ref"
 
-    override fun infer(interpreter: Interpreter, env: Env): AnyType {
-        val rEnv = interpreter.getContext(context.contextId)
-
-        return rEnv?.invoke(env)?.getRef(ref.refId)?.type ?: IType.Never("Unknown ref $ref")
-    }
+    override fun getExpression(env: Env): Expr.Var
+        = Expr.Var(ref.refId)
 }

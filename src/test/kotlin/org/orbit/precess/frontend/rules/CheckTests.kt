@@ -6,10 +6,10 @@ import kotlin.test.assertEquals
 internal class CheckTests : PrecessParserTest() {
     @Test
     fun `Accepts valid input`() {
-        val res = parse("check(∆e.t, ∆e.T)", CheckRule)
+        val res = parse("check(∆.t, ∆.T)", CheckRule)
 
-        assertEquals("∆e.t", res.lhs.toString())
-        assertEquals("∆e.T", res.rhs.toString())
-        assertEquals("check(∆e.t, ∆e.T)", res.toString())
+        assertEquals("∆.t", res.lhs.toString())
+        assertEquals("∆.T", res.rhs.toString())
+        assertEquals("check(∆.t, ∆.T)", res.toString())
     }
 }

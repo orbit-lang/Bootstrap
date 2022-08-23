@@ -10,6 +10,6 @@ object ContextLiteralRule : ParseRule<ContextLiteralNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.Delta)
 
-        return +ContextLiteralNode(start, start, start.text)
+        return +ContextLiteralNode(start, start)
     }
 }

@@ -6,8 +6,8 @@ import kotlin.test.assertEquals
 internal class ContextLiteralTests : PrecessParserTest() {
     @Test
     fun `Accepts valid ids`() {
-        val res1 = parse("∆e", ContextLiteralRule)
+        val res1 = parse("∆", ContextLiteralRule)
 
-        assertEquals("∆e", res1.contextId)
+        assertEquals("∆", res1.toString())
     }
 }

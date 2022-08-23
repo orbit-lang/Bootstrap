@@ -15,7 +15,7 @@ object CompoundPropositionCallRule : ParseRule<CompoundPropositionCallNode> {
 
         val recorded = context.end()
 
-        if (!context.hasMore) return ParseRule.Result.Failure.Abort
+        if (!context.hasMore) return ParseRule.Result.Failure.Rewind(recorded)
 
         var next = context.peek()
 

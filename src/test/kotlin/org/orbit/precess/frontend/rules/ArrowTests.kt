@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 internal class ArrowTests : PrecessParserTest() {
     @Test
     fun `Accepts simple valid Arrow`() {
-        val res = parse("(∆e.T) -> ∆e.T", ArrowRule)
+        val res = parse("(∆.T) -> ∆.T", ArrowRule)
 
         assertTrue(res.domain is TypeLookupNode)
         assertEquals("T", (res.domain as TypeLookupNode).type.typeId)
@@ -21,7 +21,7 @@ internal class ArrowTests : PrecessParserTest() {
 
     @Test
     fun `Accepts curried Arrow`() {
-        val res = parse("(∆e.T) -> (∆e.T) -> ∆e.T", ArrowRule)
+        val res = parse("(∆.T) -> (∆.T) -> ∆.T", ArrowRule)
 
         assertTrue(res.domain is TypeLookupNode)
         assertEquals("T", (res.domain as TypeLookupNode).type.typeId)
