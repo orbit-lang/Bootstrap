@@ -20,9 +20,9 @@ data class SummonValueNode(override val firstToken: Token, override val lastToke
         val matches = env.refs.filter { it.type == matchType }
 
         return when (matches.count()) {
-            0 -> DeclResult.Failure(IType.Never("Cannot summon value of Type `$matchType` from current context: `$env`"))
+            0 -> DeclResult.Failure(IType.Never("Cannot summon value of Type `${matchType.id}` from current context: `$env`"))
             1 -> Decl.Alias(ref.refId, matches[0]).toSuccess()
-            else -> DeclResult.Failure(IType.Never("Cannot summon value of Type `$matchType` because multiple refs match in current context: `$env`"))
+            else -> DeclResult.Failure(IType.Never("Cannot summon value of Type `${matchType.id}` because multiple refs match in current context: `$env`"))
         }
     }
 }

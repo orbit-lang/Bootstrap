@@ -65,7 +65,7 @@ internal class ProgramUtilsTest {
 
 //    @Test
 //    fun `Isolate single test`() {
-//        val file = File("./precess-tests/fail/summon_value.typ")
+//        val file = File("./precess-tests/fail/summon_value_multiple.typ")
 //        val sourceProvider = readTestFile(file.absolutePath)
 //
 //        ProgramUtils.run(sourceProvider)

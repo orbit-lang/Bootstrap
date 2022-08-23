@@ -130,8 +130,15 @@ data class Env(
     operator fun plus(other: Env) : Env
         = other.extend(Decl.Merge(this))
 
+    private fun prettyPrint() : String {
+        val allTypes = elements.joinToString(", ") { it.id }
+        val allRefs = refs.joinToString(", ")
+
+        return "{$allTypes ; $allRefs}"
+    }
+
     override fun toString(): String = when (elements.isEmpty()) {
         true -> "{}"
-        else -> "{${elements.joinToString("; ") { it.id }}}"
+        else -> prettyPrint()
     }
 }
