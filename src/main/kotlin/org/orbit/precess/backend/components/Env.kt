@@ -5,7 +5,7 @@ import kotlin.reflect.KProperty
 
 data class Env(
     val elements: List<IType<*>> = emptyList(),
-    val refs: List<Ref> = emptyList(),
+    val refs: List<IRef> = emptyList(),
     val contracts: List<Contract> = emptyList(),
     val projections: List<Projection> = emptyList(),
     val expressionCache: Map<String, AnyType> = emptyMap()
@@ -54,7 +54,7 @@ data class Env(
         fun <T> panic(never: IType.Never): T = never.panic()
     }
 
-    internal constructor(type: IType<*>, ref: Ref) : this(listOf(type), listOf(ref))
+    internal constructor(type: IType<*>, ref: IRef) : this(listOf(type), listOf(ref))
 
     override val id: String = "∆"
 
@@ -62,7 +62,7 @@ data class Env(
 
     private fun <T> protect(protector: Protector<T>, block: () -> T): T = protector.protect(block)
 
-    fun getRef(of: String): Ref? = protect(Protector.RefProtector) {
+    fun getRef(of: String): IRef? = protect(Protector.RefProtector) {
         refs.firstOrNull { it.name == of }
             // NOTE - A lookup for a defined Ref `r` bumps its use count
             ?.consume()
@@ -130,8 +130,8 @@ data class Env(
     operator fun plus(other: Env) : Env
         = other.extend(Decl.Merge(this))
 
-    override fun toString(): String
-        = """
-            ${elements.joinToString("; ") { it.id }}
-        """.trimIndent()
+    override fun toString(): String = when (elements.isEmpty()) {
+        true -> "{}"
+        else -> "{${elements.joinToString("; ") { it.id }}}"
+    }
 }

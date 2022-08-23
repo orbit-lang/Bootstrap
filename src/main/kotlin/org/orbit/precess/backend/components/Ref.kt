@@ -1,14 +1,34 @@
 package org.orbit.precess.backend.components
 
-class Ref(val name: String, val type: IType.Entity<*>) {
+import org.orbit.precess.backend.utils.AnyEntity
+
+interface IRef {
+    val name: String
+    val type: AnyEntity
+    val uniqueId: String
+
+    fun getHistory() : List<RefEntry>
+    fun consume() : Ref
+}
+
+inline fun <reified E : RefEntry> IRef.getHistoryInstances(): List<E> = getHistory().filterIsInstance<E>()
+
+class Ref(override val name: String, override val type: AnyEntity) : IRef {
     private val history = mutableListOf<RefEntry>()
 
-    val uniqueId: String = "$name:${type.id}"
+    override val uniqueId: String = "$name:${type.id}"
 
-    fun getHistory(): List<RefEntry> = history
-    inline fun <reified E : RefEntry> getHistoryInstances(): List<E> = getHistory().filterIsInstance<E>()
+    override fun getHistory(): List<RefEntry> = history
 
-    fun consume(): Ref = apply {
+    override fun consume(): Ref = apply {
         history.add(RefEntry.Use(this))
     }
+}
+
+data class Alias(override val name: String, val ref: IRef) : IRef {
+    override val type: AnyEntity = ref.type
+    override val uniqueId: String = "$name:${ref.type.id}"
+
+    override fun getHistory(): List<RefEntry> = ref.getHistory()
+    override fun consume(): Ref = ref.consume()
 }

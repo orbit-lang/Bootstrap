@@ -12,6 +12,6 @@ data class RefLookupNode(override val firstToken: Token, override val lastToken:
     override fun getChildren(): List<Node> = listOf(context, ref)
     override fun toString(): String = "$context.$ref"
 
-    override fun getExpression(env: Env): Expr.Var
+    override fun getExpression(): Expr.Var
         = Expr.Var(ref.refId)
 }

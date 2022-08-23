@@ -4,10 +4,7 @@ import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.precess.frontend.components.TokenTypes
-import org.orbit.precess.frontend.components.nodes.BindingLiteralNode
-import org.orbit.precess.frontend.components.nodes.RefLiteralNode
-import org.orbit.precess.frontend.components.nodes.TypeLiteralNode
-import org.orbit.precess.frontend.components.nodes.WeakenNode
+import org.orbit.precess.frontend.components.nodes.*
 
 object WeakenRule : ParseRule<WeakenNode> {
     override fun parse(context: Parser): ParseRule.Result {
@@ -22,13 +19,9 @@ object WeakenRule : ParseRule<WeakenNode> {
 
         val plus = context.expect(TokenTypes.Extend)
 
-        val literal = context.attemptAny(listOf(TypeLiteralRule, BindingLiteralRule))
+        val literal = context.attempt(AnyDeclRule)
             ?: return ParseRule.Result.Failure.Rewind(listOf(ctx.firstToken, plus))
 
-        return when (literal) {
-            is TypeLiteralNode -> +WeakenNode(ctx.firstToken, literal.lastToken, ctx, literal)
-            is BindingLiteralNode -> +WeakenNode(ctx.firstToken, literal.lastToken, ctx, literal)
-            else -> TODO()
-        }
+        return +WeakenNode(ctx.firstToken, literal.lastToken, ctx, literal)
     }
 }

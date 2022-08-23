@@ -12,7 +12,9 @@ object TokenTypes : TokenTypeProvider {
     object Dump : TokenType("Dump", "dump", true, false, TokenType.Family.Keyword)
     object Exists : TokenType("Exists", "exists", true, false, TokenType.Family.Keyword)
     object In : TokenType("In", "in", true, false, TokenType.Family.Keyword)
+    object As : TokenType("As", "as", true, false, TokenType.Family.Keyword)
     object Run : TokenType("Run", "run", true, false, TokenType.Family.Keyword)
+    object SummonValue : TokenType("SummonValue", "summonValue", true, false, TokenType.Family.Keyword)
     object Assign : TokenType("Assign", "\\=", true, false, TokenType.Family.Keyword)
     object FatArrow : TokenType("FatArrow", "\\=\\>", true, false, TokenType.Family.Keyword)
     object Arrow : TokenType("Arrow", "\\-\\>", true, false, TokenType.Family.Keyword)
@@ -28,6 +30,6 @@ object TokenTypes : TokenTypeProvider {
     object Comma : TokenType("Comma", "\\,", true, false, TokenType.Family.Op)
 
     override fun getTokenTypes(): List<TokenType> = listOf(
-        Check, Infer, In, Run, Dump, Exists, Delta, RefId, TypeId, Check, FatArrow, Arrow, Assign, Bind, LParen, RParen, LBrace, RBrace, Extend, Dot, Comma, And, Or
+        Check, Infer, In, As, Run, Dump, Exists, Delta, SummonValue, RefId, TypeId, Check, FatArrow, Arrow, Assign, Bind, LParen, RParen, LBrace, RBrace, Extend, Dot, Comma, And, Or
     )
 }

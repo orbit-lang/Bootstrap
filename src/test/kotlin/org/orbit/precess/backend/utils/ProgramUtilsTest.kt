@@ -62,4 +62,12 @@ internal class ProgramUtilsTest {
             assertThrows<Exception> { ProgramUtils.run(sourceProvider) }
         }
     }
+
+//    @Test
+//    fun `Isolate single test`() {
+//        val file = File("./precess-tests/fail/summon_value.typ")
+//        val sourceProvider = readTestFile(file.absolutePath)
+//
+//        ProgramUtils.run(sourceProvider)
+//    }
 }

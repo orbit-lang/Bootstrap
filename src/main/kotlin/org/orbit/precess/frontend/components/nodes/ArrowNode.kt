@@ -13,10 +13,10 @@ data class ArrowNode(override val firstToken: Token, override val lastToken: Tok
     override fun getChildren(): List<Node> = listOf(domain, codomain)
     override fun toString(): String = "($domain) -> $codomain"
 
-    override fun getExpression(env: Env): Expr.ArrowLiteral {
-        val dType = domain.getExpression(env).infer(env)
-        val cType = codomain.getExpression(env).infer(env)
+    override fun getExpression(): Expr.ArrowLiteral {
+        val dType = domain.getExpression()
+        val cType = codomain.getExpression()
 
-        return Expr.ArrowLiteral(IType.Arrow1(dType, cType))
+        return Expr.ArrowLiteral(dType, cType)
     }
 }

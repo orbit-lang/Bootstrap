@@ -13,6 +13,6 @@ data class TypeLookupNode(override val firstToken: Token, override val lastToken
     override fun getChildren(): List<Node> = listOf(type)
     override fun toString(): String = "∆.$type"
 
-    override fun getExpression(env: Env): Expr.TypeLiteral
+    override fun getExpression(): Expr.TypeLiteral
         = Expr.TypeLiteral(type.typeId)
 }

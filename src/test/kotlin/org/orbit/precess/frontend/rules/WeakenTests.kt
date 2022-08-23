@@ -27,4 +27,13 @@ internal class WeakenTests : PrecessParserTest() {
     fun `Rejects Ref Literal`() {
         assertThrows<Exception> { parse("∆ + t", WeakenRule) }
     }
+
+    @Test
+    fun `Accepts summonValue`() {
+        val res = parse("∆ + summonValue ∆.T as t", WeakenRule)
+
+        assertEquals("∆", res.context.toString())
+        assertEquals("summonValue ∆.T as t", res.decl.toString())
+        assertEquals("∆ + summonValue ∆.T as t", res.toString())
+    }
 }

@@ -18,7 +18,7 @@ internal class RefLookupNodeTest {
         val ctx = ContextLiteralNode(Token.empty, Token.empty)
         val ref = RefLiteralNode(Token.empty, Token.empty, "a")
         val sut = RefLookupNode(Token.empty, Token.empty, ctx, ref)
-        val res = sut.getExpression(env).infer(env)
+        val res = sut.getExpression().infer(env)
 
         assertIs<IType.Never>(res)
     }
@@ -29,12 +29,10 @@ internal class RefLookupNodeTest {
             .extend(Decl.Type(IType.Type("T"), emptyMap()))
             .extend(Decl.Assignment("a", Expr.TypeLiteral("T")))
 
-        val interpreter = Interpreter()
-
         val ctx = ContextLiteralNode(Token.empty, Token.empty)
         val ref = RefLiteralNode(Token.empty, Token.empty, "a")
         val sut = RefLookupNode(Token.empty, Token.empty, ctx, ref)
-        val res = sut.getExpression(env).infer(env)
+        val res = sut.getExpression().infer(env)
 
         assertTrue(res is IType.Type)
         assertEquals("T", res.id)

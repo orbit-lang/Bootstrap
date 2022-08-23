@@ -62,13 +62,16 @@ sealed interface Decl {
         override fun xtend(env: Env): Env {
             val type = expr.infer(env) as? IType.Entity<*> ?: TODO("HERE")
 
-            return Env(
-                env.elements,
-                env.refs + Ref(name, type),
-                env.contracts,
-                env.projections,
-                env.expressionCache
-            )
+            return Env(env.elements, env.refs + Ref(name, type), env.contracts, env.projections, env.expressionCache)
+        }
+    }
+
+    data class Alias(val name: String, val ref: IRef) : Decl {
+        override fun exists(env: Env): Boolean = env.refs.any { it.name == name }
+        override fun xtend(env: Env): Env {
+            val alias = org.orbit.precess.backend.components.Alias(name, ref)
+
+            return Env(env.elements, env.refs + alias, env.contracts, env.projections, env.expressionCache)
         }
     }
 

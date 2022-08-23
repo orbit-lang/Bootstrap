@@ -14,14 +14,14 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
 
     data class TypeLiteral(val name: String) : Expr<TypeLiteral> {
         override fun substitute(substitution: Substitution): TypeLiteral = this
-        override fun infer(env: Env): IType<*> = env.getElement(name)!!
+        override fun infer(env: Env): IType<*> = env.getElement(name) ?: IType.Never("Unknown Type `$name` in current context: `$env`")
         override fun toString(): String = "`Type<$name>`"
     }
 
-    data class ArrowLiteral(val arrow: AnyArrow) : Expr<ArrowLiteral> {
+    data class ArrowLiteral(val domainExpr: AnyExpr, val codomainExpr: AnyExpr) : Expr<ArrowLiteral> {
         override fun substitute(substitution: Substitution): ArrowLiteral = this
-        override fun infer(env: Env): IType<*> = arrow
-        override fun toString(): String = "Type<${arrow.id}>"
+        override fun infer(env: Env): IType<*> = IType.Arrow1(domainExpr.infer(env), codomainExpr.infer(env))
+        override fun toString(): String = "($domainExpr) -> $codomainExpr"
     }
 
     data class Block(val body: List<AnyExpr>) : Expr<Block> {

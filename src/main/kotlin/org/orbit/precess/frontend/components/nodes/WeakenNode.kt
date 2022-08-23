@@ -13,6 +13,9 @@ data class WeakenNode(override val firstToken: Token, override val lastToken: To
     override fun toString(): String = "$context + $decl"
 
     override fun getProposition(interpreter: Interpreter): Proposition = { env ->
-        PropositionResult.True(env.extend(decl.getDecl(env)))
+        when (val d = decl.getDecl(env)) {
+            is DeclResult.Success -> PropositionResult.True(env.extend(d.decl))
+            is DeclResult.Failure -> PropositionResult.False(d.reason)
+        }
     }
 }
