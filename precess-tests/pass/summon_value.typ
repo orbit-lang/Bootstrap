@@ -1,8 +1,7 @@
-MkT => ∆ + T
-Mkt => ∆ + t:∆.T
-S => ∆ + summonValue ∆.T as r
-Dbg => dump(∆)
-MkAll => MkT(∆) & Mkt(∆)
-Prog => Dbg(S(MkAll(∆)))
+Mk_T => ∆ + T
+Mk_a => ∆ + a:∆.T
+Summon_c => ∆ + summonValue ∆.T as c
+Mk => Mk_T(∆) & Mk_a(∆)
+Use_c => check(∆.c, ∆.T)
 
-run Prog(∆)
+run Use_c(Summon_c(Mk(∆)))
