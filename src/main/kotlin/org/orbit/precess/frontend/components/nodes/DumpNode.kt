@@ -7,7 +7,7 @@ import org.orbit.precess.backend.phase.Interpreter
 import org.orbit.precess.backend.phase.Proposition
 import org.orbit.precess.backend.phase.PropositionResult
 
-data class DumpNode(override val firstToken: Token, override val lastToken: Token) : PropositionStatementNode<DumpNode>() {
+data class DumpNode(override val firstToken: Token, override val lastToken: Token) : PropositionExpressionNode() {
     override fun getChildren(): List<Node> = emptyList()
     override fun toString(): String = "dump(∆)"
 

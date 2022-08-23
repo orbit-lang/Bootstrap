@@ -1,0 +1,2 @@
+Dump => dump(∆)
+run Dump(∆)
