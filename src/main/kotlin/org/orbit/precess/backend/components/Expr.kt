@@ -7,7 +7,7 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
         override fun substitute(substitution: Substitution): Var = Var(name)
 
         override fun infer(env: Env): IType<*> =
-            env.getRef(name)?.type ?: IType.Never("$name is undefined in the current context")
+            env.getRef(name)?.type ?: IType.Never("`$name` is undefined in the current context")
 
         override fun toString(): String = name
     }

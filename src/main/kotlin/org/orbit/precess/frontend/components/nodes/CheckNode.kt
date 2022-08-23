@@ -19,13 +19,12 @@ data class CheckNode(override val firstToken: Token, override val lastToken: Tok
     override fun getChildren(): List<Node> = listOf(lhs, rhs)
     override fun toString(): String = "check($lhs, $rhs)"
 
-    override fun getProposition(interpreter: Interpreter, env: Env): Proposition = { env ->
+    override fun getProposition(interpreter: Interpreter): Proposition = { env ->
         val lExpr = lhs.getExpression(env)
         val rExpr = rhs.getExpression(env)
 
         when (val res = TypeUtils.check(env, lExpr, rExpr)) {
             is IType.Never -> PropositionResult.False(IType.Never("Proposition is false: `$this` because ${res.message}"))
-            null -> PropositionResult.False(IType.Never("Proposition is false: `$this`"))
             else -> PropositionResult.True(env.extend(Decl.Cache(Expr.Symbol(lhs.toString()), res)))
         }
     }

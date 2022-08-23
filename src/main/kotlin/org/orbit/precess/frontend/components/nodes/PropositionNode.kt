@@ -15,7 +15,7 @@ data class PropositionNode(override val firstToken: Token, override val lastToke
     override fun toString(): String = "$propId => $body"
 
     override fun walk(interpreter: Interpreter) : IType.IMetaType<*> {
-        interpreter.addProposition(propId, body.getProposition(interpreter, Env()))
+        interpreter.addProposition(propId, body.getProposition(interpreter))
 
         return IType.Always
     }

@@ -12,7 +12,7 @@ data class WeakenNode(override val firstToken: Token, override val lastToken: To
     override fun getChildren(): List<Node> = listOf(context, decl)
     override fun toString(): String = "$context + $decl"
 
-    override fun getProposition(interpreter: Interpreter, env: Env): Proposition = { env ->
+    override fun getProposition(interpreter: Interpreter): Proposition = { env ->
         PropositionResult.True(env.extend(decl.getDecl(env)))
     }
 }

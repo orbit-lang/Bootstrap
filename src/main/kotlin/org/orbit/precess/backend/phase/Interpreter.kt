@@ -33,7 +33,7 @@ operator fun Proposition.plus(other: Proposition) : Proposition = { env ->
     other.invoke(invoke(env).invoke())
 }
 
-class Interpreter : Phase<ProgramNode, Unit>, KoinComponent {
+class Interpreter : Phase<ProgramNode, IType.IMetaType<*>>, KoinComponent {
     override val invocation: Invocation by inject()
 
     private val propositions = mutableMapOf<String, Proposition>()
@@ -44,7 +44,10 @@ class Interpreter : Phase<ProgramNode, Unit>, KoinComponent {
 
     fun getProposition(id: String) : Proposition? = propositions[id]
 
-    override fun execute(input: ProgramNode) {
-//        input.statements.forEach { it.walk(this) }
+    override fun execute(input: ProgramNode) : IType.IMetaType<*> = input.statements.fold(IType.Always as IType.IMetaType<*>) { acc, next ->
+        acc + next.walk(this)
     }
+
+    override fun toString(): String
+        = "{${propositions.map { it.key }}}"
 }

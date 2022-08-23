@@ -66,10 +66,6 @@ internal class TypeLiteralRuleTests : PrecessParserTest() {
         }
 
         assertThrows<OrbitException> {
-            parse("?", TypeLiteralRule)
-        }
-
-        assertThrows<OrbitException> {
             parse("!", TypeLiteralRule)
         }
     }

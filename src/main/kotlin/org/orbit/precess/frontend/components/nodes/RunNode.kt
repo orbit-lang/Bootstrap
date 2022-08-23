@@ -11,7 +11,7 @@ data class RunNode(override val firstToken: Token, override val lastToken: Token
     override fun getChildren(): List<Node> = listOf(prop)
     override fun toString(): String = "run $prop"
 
-    override fun walk(interpreter: Interpreter): IType.IMetaType<*> = when (val result = prop.getProposition(interpreter, Env())(Env())) {
+    override fun walk(interpreter: Interpreter): IType.IMetaType<*> = when (val result = prop.getProposition(interpreter)(Env())) {
         is PropositionResult.True -> IType.Always
         is PropositionResult.False -> result.reason
     }

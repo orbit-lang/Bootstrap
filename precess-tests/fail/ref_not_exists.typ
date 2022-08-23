@@ -1,3 +1,3 @@
 MkT => ∆ + T
-HasT => exists ∆.T
+HasT => check(∆.v, ∆.T)
 run HasT(MkT(∆))

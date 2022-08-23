@@ -25,13 +25,18 @@ object TypeUtils {
         return inferredType == type
     }
 
-    fun check(env: Env, left: AnyExpr, right: AnyExpr) : AnyType? {
+    fun check(env: Env, left: AnyExpr, right: AnyExpr) : AnyType {
         val lType = read(env, left)
+
+        if (lType is IType.Never) return lType
+
         val rType = read(env, right)
+
+        if (rType is IType.Never) return rType
 
         return when (lType == rType) {
             true -> rType
-            else -> null
+            else -> IType.Never("Types are not equal: `$lType` & `$rType`")
         }
     }
 

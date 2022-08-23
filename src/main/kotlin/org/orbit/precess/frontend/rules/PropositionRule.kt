@@ -14,7 +14,7 @@ object PropositionRule : ParseRule<PropositionNode> {
 
         context.expect(TokenTypes.FatArrow)
 
-        val body = context.attemptAny(listOf(WeakenRule, CheckRule, CompoundPropositionCallRule, PropositionCallRule, DumpRule, ContextLiteralRule))
+        val body = context.attemptAny(listOf(WeakenRule, CheckRule, ExistsRule, CompoundPropositionCallRule, PropositionCallRule, DumpRule, ContextLiteralRule))
             as? PropositionExpressionNode
             ?: return ParseRule.Result.Failure.Abort
 

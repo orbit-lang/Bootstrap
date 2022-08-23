@@ -8,5 +8,5 @@ import org.orbit.precess.backend.utils.AnyExpr
 import org.orbit.precess.backend.utils.AnyType
 
 abstract class PropositionExpressionNode : Node() {
-    abstract fun getProposition(interpreter: Interpreter, env: Env) : Proposition
+    abstract fun getProposition(interpreter: Interpreter) : Proposition
 }

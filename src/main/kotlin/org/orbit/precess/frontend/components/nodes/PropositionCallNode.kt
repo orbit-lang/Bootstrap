@@ -12,17 +12,15 @@ data class PropositionCallNode(override val firstToken: Token, override val last
     override fun getChildren(): List<Node> = listOf(arg)
     override fun toString(): String = "$propId($arg)"
 
-    override fun getProposition(interpreter: Interpreter, env: Env): Proposition {
+    override fun getProposition(interpreter: Interpreter): Proposition = {
         val prop = interpreter.getProposition(propId)
-            ?: { PropositionResult.False(IType.Never("Unknown Proposition: `$propId`")) }
+            ?: { PropositionResult.False(IType.Never("Unknown Proposition: `$propId` in $interpreter")) }
 
-        return {
-            val ctx = arg.getProposition(interpreter, it).invoke(it)
+        val ctx = arg.getProposition(interpreter).invoke(it)
 
-            when (ctx) {
-                is PropositionResult.True -> prop(ctx.env)
-                is PropositionResult.False -> ctx
-            }
+        when (ctx) {
+            is PropositionResult.True -> prop(ctx.env)
+            is PropositionResult.False -> ctx
         }
     }
 }

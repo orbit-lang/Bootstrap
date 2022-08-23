@@ -11,5 +11,5 @@ import org.orbit.precess.backend.utils.AnyType
 data class ContextLiteralNode(override val firstToken: Token, override val lastToken: Token) : PropositionExpressionNode() {
     override fun getChildren(): List<Node> = emptyList()
     override fun toString(): String = "∆"
-    override fun getProposition(interpreter: Interpreter, env: Env): Proposition = { PropositionResult.True(it) }
+    override fun getProposition(interpreter: Interpreter): Proposition = { PropositionResult.True(it) }
 }

@@ -13,7 +13,7 @@ data class BindingLiteralNode(override val firstToken: Token, override val lastT
     override fun getDecl(env: Env): Decl.Assignment {
         val t = type.getExpression(env).infer(env)
 
-        if (env.getElement(t.id) != null) throw Exception("Type ${t.id} is already defined this Context")
+        if (env.getRef(ref.refId) != null) throw Exception("`${t.id}` is already defined in current context: `$env`")
 
         return Decl.Assignment(ref.refId, Expr.TypeLiteral(t.id))
     }

@@ -6,10 +6,11 @@ import org.orbit.core.components.TokenTypeProvider
 object TokenTypes : TokenTypeProvider {
     object Delta : TokenType("Delta", "∆", true, false, TokenType.Family.Keyword)
     object RefId : TokenType("Ref", "[a-z]+[a-zA-Z0-9_]*", true, false, TokenType.Family.Id)
-    object TypeId : TokenType("Type", "[A-Z]+[a-zA-Z0-9_]*", true, false, TokenType.Family.Id)
+    object TypeId : TokenType("Type", "(\\?|[A-Z]+[a-zA-Z0-9_]*)", true, false, TokenType.Family.Id)
     object Check : TokenType("Check", "check", true, false, TokenType.Family.Keyword)
     object Infer : TokenType("Infer", "infer", true, false, TokenType.Family.Keyword)
     object Dump : TokenType("Dump", "dump", true, false, TokenType.Family.Keyword)
+    object Exists : TokenType("Exists", "exists", true, false, TokenType.Family.Keyword)
     object In : TokenType("In", "in", true, false, TokenType.Family.Keyword)
     object Run : TokenType("Run", "run", true, false, TokenType.Family.Keyword)
     object Assign : TokenType("Assign", "\\=", true, false, TokenType.Family.Keyword)
@@ -27,6 +28,6 @@ object TokenTypes : TokenTypeProvider {
     object Comma : TokenType("Comma", "\\,", true, false, TokenType.Family.Op)
 
     override fun getTokenTypes(): List<TokenType> = listOf(
-        Check, Infer, In, Run, Dump, Delta, RefId, TypeId, Check, FatArrow, Arrow, Assign, Bind, LParen, RParen, LBrace, RBrace, Extend, Dot, Comma, And, Or
+        Check, Infer, In, Run, Dump, Exists, Delta, RefId, TypeId, Check, FatArrow, Arrow, Assign, Bind, LParen, RParen, LBrace, RBrace, Extend, Dot, Comma, And, Or
     )
 }
