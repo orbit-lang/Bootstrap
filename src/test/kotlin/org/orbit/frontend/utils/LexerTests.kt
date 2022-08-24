@@ -1,8 +1,6 @@
 package org.orbit.frontend.utils
 
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 import org.orbit.core.SourceProvider
 import org.orbit.util.FileBasedTest
 import org.orbit.util.Scenario
