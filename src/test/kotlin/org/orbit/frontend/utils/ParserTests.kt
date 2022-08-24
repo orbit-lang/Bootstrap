@@ -24,7 +24,7 @@ internal class ParserTests : FileBasedTest("parser-tests", "orb") {
 
     @Test
     fun `All Pass`() {
-        assertAll(Scenario.Pass)
+        assertAll(Scenario.Pass, true)
     }
 
     @Test

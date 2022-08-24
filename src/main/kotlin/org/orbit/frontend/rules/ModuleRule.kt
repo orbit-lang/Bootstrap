@@ -24,6 +24,10 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
         val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
             ?: throw context.invocation.make(ApiDefRule.Errors.MissingName(start.position))
 
+        if (!context.hasMore) {
+            return +ModuleNode(start, typeIdentifierNode.lastToken, emptyList(), typeIdentifierNode, null, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), operatorDefs = emptyList())
+        }
+
         var next = context.peek()
         val implements = mutableListOf<TypeIdentifierNode>()
 
@@ -68,6 +72,14 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                 withNodes.add(with)
                 with = context.attempt(WithRule)
             }
+        }
+
+        if (!context.hasMore) {
+            return +ModuleNode(start, withNodes.lastOrNull()?.lastToken ?: next, implements, typeIdentifierNode, withinNode, withNodes, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), operatorDefs = emptyList())
+        }
+
+        if (context.peek().type != TokenTypes.LBrace) {
+            return +ModuleNode(start, withNodes.lastOrNull()?.lastToken ?: next, implements, typeIdentifierNode, withinNode, withNodes, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), operatorDefs = emptyList())
         }
 
         context.expect(TokenTypes.LBrace)
