@@ -1,0 +1,22 @@
+#!/bin/sh
+SUITE=$1
+
+if [[ -z "$SUITE" ]]; then
+	echo "usage: create-test-suite <SUITE_NAME>"
+	exit 1
+fi
+
+if [ -d "tests/$SUITE" ]; then
+	echo "Error: test suite $SUITE already exists"
+	exit 1
+fi
+
+echo "Creating new test suite $SUITE..."
+echo "Directory $SUITE/pass"
+mkdir -p tests/$SUITE/pass
+echo "Directory $SUITE/fail"
+mkdir -p tests/$SUITE/fail
+echo "Directory $SUITE/expectations/pass"
+mkdir -p tests/$SUITE/expectations/pass
+echo "Directory $SUITE/expectations/fail"
+mkdir -p tests/$SUITE/expectations/fail
