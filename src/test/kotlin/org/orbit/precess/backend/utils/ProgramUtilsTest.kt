@@ -38,12 +38,12 @@ internal class ProgramUtilsTest {
 
     @Test
     fun `Verify file-based test harness`() {
-        assertDoesNotThrow { ProgramUtils.run(readTestFile("./precess-tests/verify.typ")) }
+        assertDoesNotThrow { ProgramUtils.run(readTestFile("./tests/precess-tests/verify.typ")) }
     }
 
     @Test
     fun `All Pass`() {
-        val glob = File("./precess-tests/pass/")
+        val glob = File("./tests/precess-tests/pass/")
         val files = glob.listFiles() ?: fail("Test files missing")
 
         files.forEach {
@@ -54,7 +54,7 @@ internal class ProgramUtilsTest {
 
     @Test
     fun `All Fail`() {
-        val glob = File("./precess-tests/fail/")
+        val glob = File("./tests/precess-tests/fail/")
         val files = glob.listFiles() ?: fail("Test files missing")
 
         files.forEach {
@@ -65,7 +65,7 @@ internal class ProgramUtilsTest {
 
     @Test
     fun `Isolate single test`() {
-        val file = File("./precess-tests/pass/arrow_simple.typ")
+        val file = File("./tests/precess-tests/pass/arrow_simple.typ")
         val sourceProvider = readTestFile(file.absolutePath)
 
         ProgramUtils.run(sourceProvider)
