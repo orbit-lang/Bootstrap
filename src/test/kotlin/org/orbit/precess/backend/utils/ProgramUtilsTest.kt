@@ -22,6 +22,6 @@ internal class ProgramUtilsTest : FileBasedTest("precess-tests", "typ") {
 
     @Test
     fun `All Fail`() {
-        assertAll(Scenario.Fail, true)
+        assertAll(Scenario.Fail)
     }
 }

@@ -113,8 +113,19 @@ sealed interface Decl {
         )
     }
 
+    data class Compound<D: Decl, E: Decl>(val a: D, val b: E) : Decl {
+        override fun exists(env: Env): Boolean = a.exists(env) && b.exists(env)
+        override fun xtend(env: Env): Env = env.extend(a) + env.extend(b)
+    }
+
     fun exists(env: Env): Boolean
     fun xtend(env: Env): Env
 
     fun extend(env: Env): Env = Env.capture { xtend(env) }
 }
+
+operator fun <D: Decl, E: Decl> D.plus(other: E) : Decl.Compound<D, E>
+    = Decl.Compound(this, other)
+
+operator fun List<Decl>.unaryPlus() : Decl
+    = reduce { acc, next -> Decl.Compound(acc, next) }

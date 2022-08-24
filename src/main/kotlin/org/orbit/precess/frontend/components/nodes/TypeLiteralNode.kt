@@ -12,6 +12,20 @@ sealed interface DeclResult<D: Decl> {
 }
 
 fun <D: Decl> D.toSuccess() : DeclResult.Success<D> = DeclResult.Success(this)
+operator fun DeclResult<*>.plus(other: DeclResult<*>) : DeclResult<Decl.Compound<*, *>> = when (this) {
+    is DeclResult.Success -> when (other) {
+        is DeclResult.Success -> DeclResult.Success(Decl.Compound(decl, other.decl))
+        is DeclResult.Failure -> DeclResult.Failure(other.reason)
+    }
+
+    is DeclResult.Failure -> when (other) {
+        is DeclResult.Success -> DeclResult.Failure(this.reason)
+        is DeclResult.Failure -> DeclResult.Failure(reason + other.reason)
+    }
+}
+
+operator fun List<DeclResult<*>>.unaryPlus() : DeclResult<*>
+    = reduce { acc, next -> acc + next }
 
 abstract class DeclNode<D: Decl> : Node() {
     abstract fun getDecl(env: Env) : DeclResult<D>
