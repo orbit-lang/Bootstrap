@@ -52,8 +52,10 @@ class Lexer(
 	override fun execute(input: SourceProvider) : Result {
 		val source = input.getSource()
 
+		if (source.isEmpty()) throw invocation.make<Lexer>("Nothing to do")
+
 		val tokenTypes = tokenTypeProvider.getTokenTypes()
-		var tokens = mutableListOf<Token>()
+		val tokens = mutableListOf<Token>()
 		var content = source
 
 		while (content.isNotEmpty()) {

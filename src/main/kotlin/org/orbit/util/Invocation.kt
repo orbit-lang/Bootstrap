@@ -166,7 +166,7 @@ class Invocation(val platform: Platform) {
 		return make<P>(message, token.position)
 	}
 
-	inline fun<reified P: Phase<*, *>> make(message: String, sourcePosition: SourcePosition) : Exception {
+	inline fun<reified P: Phase<*, *>> make(message: String, sourcePosition: SourcePosition = SourcePosition.unknown) : Exception {
 		return Exception(makeString<P>(message, sourcePosition))
 	}
 

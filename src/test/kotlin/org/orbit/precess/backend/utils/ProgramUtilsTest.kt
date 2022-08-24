@@ -1,35 +1,14 @@
 package org.orbit.precess.backend.utils
 
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.koin.core.context.startKoin
-import org.koin.core.context.stopKoin
-import org.koin.dsl.module
 import org.orbit.core.SourceProvider
-import org.orbit.frontend.FileSourceProvider
-import org.orbit.util.Invocation
-import org.orbit.util.Unix
-import java.io.File
-import kotlin.test.fail
+import org.orbit.util.FileBasedTest
+import org.orbit.util.Scenario
 
-internal class ProgramUtilsTest {
-    @BeforeEach
-    fun setup() {
-        startKoin { modules(module {
-            single { Invocation(Unix) }
-        })}
-    }
-
-    @AfterEach
-    fun tearDown() {
-        stopKoin()
-    }
-
-    private fun readTestFile(fileName: String) : SourceProvider
-        = FileSourceProvider(File(fileName))
+internal class ProgramUtilsTest : FileBasedTest("precess-tests", "typ") {
+    override fun generateActualResult(sourceProvider: SourceProvider): String
+        = ProgramUtils.run(sourceProvider)
 
     @Test
     fun `Rejects empty program`() {
@@ -37,37 +16,17 @@ internal class ProgramUtilsTest {
     }
 
     @Test
-    fun `Verify file-based test harness`() {
-        assertDoesNotThrow { ProgramUtils.run(readTestFile("./tests/precess-tests/verify.typ")) }
-    }
-
-    @Test
     fun `All Pass`() {
-        val glob = File("./tests/precess-tests/pass/")
-        val files = glob.listFiles() ?: fail("Test files missing")
-
-        files.forEach {
-            val sourceProvider = readTestFile(it.absolutePath)
-            assertDoesNotThrow { ProgramUtils.run(sourceProvider) }
-        }
+        assertAll(Scenario.Pass)
     }
 
     @Test
     fun `All Fail`() {
-        val glob = File("./tests/precess-tests/fail/")
-        val files = glob.listFiles() ?: fail("Test files missing")
-
-        files.forEach {
-            val sourceProvider = readTestFile(it.absolutePath)
-            assertThrows<Exception> { ProgramUtils.run(sourceProvider) }
-        }
+        assertAll(Scenario.Fail)
     }
 
     @Test
     fun `Isolate single test`() {
-        val file = File("./tests/precess-tests/pass/arrow_simple.typ")
-        val sourceProvider = readTestFile(file.absolutePath)
-
-        ProgramUtils.run(sourceProvider)
+        assert(Scenario.Pass, "compound_proposition.typ", true)
     }
 }
