@@ -21,7 +21,7 @@ internal class IntLiteralTests : IntegrationTest {
 
     @Test
     fun testEmpty() {
-        assertThrows<OrbitException> {
+        assertThrows<Exception> {
             generateFrontendResult(TokenTypeProviderImpl, IntLiteralRule, "")
         }
     }

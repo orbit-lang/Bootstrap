@@ -49,8 +49,6 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 
 		val typeId = context.expect(TokenTypes.TypeIdentifier)
 
-		if (!context.hasMore) return +TypeIdentifierNode(start, start, typeId.text)
-
 		return +TypeIdentifierNode(start, start, typeId.text)
 	}
 }

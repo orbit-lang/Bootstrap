@@ -14,6 +14,7 @@ import org.orbit.precess.frontend.components.TokenTypes
 import org.orbit.util.Invocation
 import org.orbit.util.OrbitException
 import org.orbit.util.Unix
+import java.lang.Exception
 
 abstract class PrecessParserTest {
     protected fun lex(invocation: Invocation, src: String) : List<Token> {
@@ -34,7 +35,7 @@ abstract class PrecessParserTest {
 internal class TypeLiteralRuleTests : PrecessParserTest() {
     @Test
     fun `Throws on empty string`() {
-        assertThrows<Parser.Errors.NoMoreTokens> {
+        assertThrows<Exception> {
             parse("", TypeLiteralRule)
         }
     }

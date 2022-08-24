@@ -37,7 +37,7 @@ internal class LiteralTests : IntegrationTest {
 
         val intLiteralNode = (result.ast as RValueNode).expressionNode as IntLiteralNode
 
-        assertEquals(BigInteger("99"), intLiteralNode.value.second)
+        assertEquals(99, intLiteralNode.value.second)
     }
 
     @Test

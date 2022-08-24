@@ -60,6 +60,9 @@ class Parser(
 	val hasMore: Boolean
 		get() = tokens.isNotEmpty()
 
+	fun hasAtLeast(n: Int) : Boolean
+		= tokens.count() >= n
+
 	fun setThrowProtection(onOff: Boolean) {
 		protection = onOff
 	}

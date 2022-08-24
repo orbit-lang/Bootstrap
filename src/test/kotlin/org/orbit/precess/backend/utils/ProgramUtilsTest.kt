@@ -22,11 +22,6 @@ internal class ProgramUtilsTest : FileBasedTest("precess-tests", "typ") {
 
     @Test
     fun `All Fail`() {
-        assertAll(Scenario.Fail)
-    }
-
-    @Test
-    fun `Isolate single test`() {
-        assert(Scenario.Pass, "compound_proposition.typ", true)
+        assertAll(Scenario.Fail, true)
     }
 }
