@@ -27,7 +27,7 @@ object ProgramUtils : KoinComponent {
         val programResult = interpreter.execute(programNode)
 
         return when (programResult) {
-            is IType.Always -> "Type checking completed successfully"
+            is IType.Always -> "${interpreter.dumpSnapshots()}\n\nType checking completed successfully"
             is IType.Never -> throw invocation.make<Interpreter>(programResult.message, SourcePosition.unknown)
         }
     }

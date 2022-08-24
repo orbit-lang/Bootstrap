@@ -16,6 +16,14 @@ object DumpRule : ParseRule<DumpNode> {
 
         context.expect(TokenTypes.RParen)
 
-        return +DumpNode(start, ctx)
+        if (!context.hasMore) return +DumpNode(start, ctx)
+        if (context.peek().type != TokenTypes.As) return +DumpNode(start, ctx)
+
+        context.expect(TokenTypes.As)
+
+        val tag = context.attempt(RefLiteralRule)
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +DumpNode(start, ctx, tag)
     }
 }
