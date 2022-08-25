@@ -57,13 +57,10 @@ sealed interface Decl {
         }
     }
 
-    data class Assignment(val name: String, val expr: Expr<*>) : Decl {
+    data class Assignment(val name: String, val type: AnyType) : Decl {
         override fun exists(env: Env): Boolean = env.refs.any { it.name == name }
-        override fun xtend(env: Env): Env {
-            val type = expr.infer(env)
-
-            return Env(env.elements, env.refs + Ref(name, type), env.contracts, env.projections, env.expressionCache)
-        }
+        override fun xtend(env: Env): Env
+            = Env(env.elements, env.refs + Ref(name, type), env.contracts, env.projections, env.expressionCache)
     }
 
     data class Alias(val name: String, val ref: IRef) : Decl {

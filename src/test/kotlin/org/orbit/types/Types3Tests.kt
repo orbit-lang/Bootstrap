@@ -175,7 +175,7 @@ class Types3Tests {
     fun `Var Decl extends Env with new ref`() {
         val t = IType.Type("T")
         val env = Env(listOf(t))
-        val sut = Decl.Assignment("v", Expr.TypeLiteral("T"))
+        val sut = Decl.Assignment("v", IType.Type("T"))
         val res = env.extend(sut)
 
         // Expectation: an extended Env is referentially distinct from its progenitor

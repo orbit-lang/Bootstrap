@@ -11,10 +11,13 @@ data class BindingLiteralNode(override val firstToken: Token, override val lastT
     override fun toString(): String = "$ref:$type"
 
     override fun getDecl(env: Env): DeclResult<Decl.Assignment> {
-        val t = type.getExpression()
+        val tType = when (val t = type.getExpression().infer(env)) {
+            is IType.Never -> return DeclResult.Failure(t)
+            else -> t
+        }
 
-        if (env.getRef(ref.refId) != null) return DeclResult.Failure(IType.Never("Type `${t.infer(env).id}` is already defined in current context: `$env`"))
+        if (env.getRef(ref.refId) != null) return DeclResult.Failure(IType.Never("Type `${tType.id}` is already defined in current context: `$env`"))
 
-        return DeclResult.Success(Decl.Assignment(ref.refId, t))
+        return DeclResult.Success(Decl.Assignment(ref.refId, tType))
     }
 }

@@ -27,7 +27,7 @@ internal class RefLookupNodeTest {
     fun `Accepts defined ref`() {
         val env = Env()
             .extend(Decl.Type(IType.Type("T"), emptyMap()))
-            .extend(Decl.Assignment("a", Expr.TypeLiteral("T")))
+            .extend(Decl.Assignment("a", IType.Type("T")))
 
         val ctx = ContextLiteralNode(Token.empty, Token.empty)
         val ref = RefLiteralNode(Token.empty, Token.empty, "a")

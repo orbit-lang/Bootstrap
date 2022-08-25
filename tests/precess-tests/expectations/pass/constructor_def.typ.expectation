@@ -1,0 +1,4 @@
+#Equal
+Dump @mkT: {T, Unit ; tCons:(Unit) -> T}
+
+Type checking completed successfully

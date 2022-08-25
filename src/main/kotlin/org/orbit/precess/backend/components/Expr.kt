@@ -20,7 +20,20 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
 
     data class ArrowLiteral(val domainExpr: AnyExpr, val codomainExpr: AnyExpr) : Expr<ArrowLiteral> {
         override fun substitute(substitution: Substitution): ArrowLiteral = this
-        override fun infer(env: Env): IType<*> = IType.Arrow1(domainExpr.infer(env), codomainExpr.infer(env))
+        override fun infer(env: Env): IType<*> {
+            val domain = when (val t = domainExpr.infer(env)) {
+                is IType.Never -> return t
+                else -> t
+            }
+
+            val codomain = when (val t = codomainExpr.infer(env)) {
+                is IType.Never -> return t
+                else -> t
+            }
+
+            return IType.Arrow1(domainExpr.infer(env), codomainExpr.infer(env))
+        }
+
         override fun toString(): String = "($domainExpr) -> $codomainExpr"
     }
 
