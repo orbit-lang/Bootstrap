@@ -1,7 +1,9 @@
 package org.orbit.frontend.rules
 
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.*
 import org.orbit.core.components.TokenTypes
+import org.orbit.frontend.components.ParseError
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.extensions.unaryPlus
 
@@ -19,10 +21,15 @@ object PhaseAnnotationRule : ParseRule<PhaseAnnotationNode> {
 }
 
 object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
+    sealed class Errors {
+        data class MissingName(override val sourcePosition: SourcePosition)
+            : ParseError("Module definition requires a name", sourcePosition)
+    }
+
     override fun parse(context: Parser) : ParseRule.Result {
         val start = context.expect(TokenTypes.Module)
         val typeIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
-            ?: throw context.invocation.make(ApiDefRule.Errors.MissingName(start.position))
+            ?: throw context.invocation.make(Errors.MissingName(start.position))
 
         if (!context.hasMore) {
             return +ModuleNode(start, typeIdentifierNode.lastToken, emptyList(), typeIdentifierNode, null, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), operatorDefs = emptyList())
