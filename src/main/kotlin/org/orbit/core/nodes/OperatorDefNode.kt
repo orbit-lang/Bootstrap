@@ -24,7 +24,7 @@ data class OperatorDefNode(
     val symbol: String,
     val methodReferenceNode: MethodReferenceNode
 ) : TopLevelDeclarationNode(PathResolver.Pass.Initial) {
-    override val context: ContextExpressionNode?
+    override val context: ContextExpressionNode
         get() = throw NotImplementedError()
 
     override fun getChildren(): List<Node>

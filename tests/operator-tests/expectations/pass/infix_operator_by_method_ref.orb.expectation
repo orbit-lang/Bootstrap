@@ -1,0 +1,6 @@
+#Equal
+OperatorDefNode
+ IdentifierNode
+ MethodReferenceNode
+  TypeIdentifierNode
+  IdentifierNode

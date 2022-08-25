@@ -13,7 +13,7 @@ private fun Node.prettyPrintEmpty(depth: Int = 0) : String
 private fun Node.prettyPrintNonEmpty(depth: Int = 0) : String
     = "${" ".repeat(depth)}${javaClass.simpleName}\n${getChildren().joinToString("\n") { it.prettyPrint(depth + 1) }}"
 
-private fun Node.prettyPrint(depth: Int = 0) : String = when (getChildren().isEmpty()) {
+internal fun Node.prettyPrint(depth: Int = 0) : String = when (getChildren().isEmpty()) {
     true -> prettyPrintEmpty(depth)
     else -> prettyPrintNonEmpty(depth)
 }
