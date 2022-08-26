@@ -2,6 +2,22 @@ package org.orbit.precess.backend.components
 
 import org.orbit.precess.backend.utils.*
 
+enum class TypeAttribute(val symbol: String) {
+    Uninhabited("!");
+
+    companion object {
+        fun parse(symbol: String) : TypeAttribute? {
+            for (attribute in values()) {
+                if (attribute.symbol == symbol) return attribute
+            }
+
+            return null
+        }
+    }
+
+    override fun toString(): String = symbol
+}
+
 sealed interface IType<T : IType<T>> : Substitutable<T> {
     interface UnifiableType<Self : UnifiableType<Self>> : IType<Self> {
         fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*>
@@ -58,10 +74,17 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         }
     }
 
-    data class Type(override val id: String) : Entity<Type> {
+    data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList()) : Entity<Type> {
         companion object {
             val self = Type("__Self")
         }
+
+        override val id: String = when (attributes.isEmpty()) {
+            true -> name
+            else -> name + attributes.joinToString("")
+        }
+
+        override fun getCanonicalName(): String = name
 
         fun api(env: Env): ITrait = ITrait.MembershipTrait("$id.__api", env.getMembers(this))
 
@@ -386,4 +409,6 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
     }
 
     val id: String
+
+    fun getCanonicalName() : String = id
 }

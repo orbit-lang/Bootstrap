@@ -5,6 +5,7 @@ import org.orbit.core.nodes.Node
 import org.orbit.precess.backend.components.Decl
 import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
+import org.orbit.precess.backend.components.TypeAttribute
 
 sealed interface DeclResult<D: Decl> {
     data class Success<D: Decl>(val decl: D) : DeclResult<D>
@@ -31,9 +32,9 @@ abstract class DeclNode<D: Decl> : Node() {
     abstract fun getDecl(env: Env) : DeclResult<D>
 }
 
-data class TypeLiteralNode(override val firstToken: Token, override val lastToken: Token, val typeId: String) : DeclNode<Decl.Type>() {
+data class TypeLiteralNode(override val firstToken: Token, override val lastToken: Token, val typeId: String, val attributes: List<TypeAttribute> = emptyList()) : DeclNode<Decl.Type>() {
     override fun getChildren(): List<Node> = emptyList()
     override fun toString(): String = typeId
     override fun getDecl(env: Env): DeclResult<Decl.Type>
-        = Decl.Type(IType.Type(typeId), emptyMap()).toSuccess()
+        = Decl.Type(IType.Type(typeId, attributes), emptyMap()).toSuccess()
 }

@@ -47,13 +47,7 @@ sealed interface Decl {
         override fun xtend(env: Env): Env {
             val nMembers = members.map { IType.Member(it.key, it.value, type) }
 
-            return Env(
-                env.elements + type + nMembers,
-                env.refs,
-                env.contracts,
-                env.projections,
-                env.expressionCache
-            )
+            return Env(env.elements + type + nMembers, env.refs, env.contracts, env.projections, env.expressionCache)
         }
     }
 

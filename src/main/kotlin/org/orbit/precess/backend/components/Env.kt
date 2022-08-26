@@ -69,7 +69,7 @@ data class Env(
     }
 
     fun getElement(id: String): IType<*>? = protect(Protector.TypeProtector) {
-        elements.firstOrNull { it.id == id }
+        elements.firstOrNull { it.getCanonicalName() == id }
     }
 
     inline fun <reified T : IType<T>> getElementAs(id: String): T? = getElement(id) as? T

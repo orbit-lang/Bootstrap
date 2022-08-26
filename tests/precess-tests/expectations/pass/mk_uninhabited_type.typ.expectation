@@ -1,0 +1,4 @@
+#Equal
+Dump @uninhabited_type: {Box! ; }
+
+Type checking completed successfully

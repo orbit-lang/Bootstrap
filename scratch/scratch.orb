@@ -1,0 +1,20 @@
+module M {
+    context CombinableCtx [T] with trait Combinable {
+        (T) combine (a T, b T) (T)
+    }
+
+    infix operator combinablePlus `+` by Combinable::combine
+        within CombinableCtx
+
+    context BoxCtx [ValueType]
+        with type Box(value ValueType)
+
+    extension BoxCtx within CombinableCtx [Self], [Self.ValueType] where Self.ValueType : Combinable
+        with projection Box : Combinable
+            with combine by ::Box(a.value + b.value)
+
+    projection Int : Combinable within CombinableCtx [Int]
+        with combine by Int::plus
+
+    type IntRange(start Int, end Int)
+}
