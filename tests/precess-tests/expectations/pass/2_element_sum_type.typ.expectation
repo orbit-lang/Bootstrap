@@ -1,0 +1,4 @@
+#Equal
+Dump @sum: {A, B, C:(A | B) ; }
+
+Type checking completed successfully

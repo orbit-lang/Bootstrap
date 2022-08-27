@@ -20,27 +20,6 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
         override fun infer(env: Env): AnyType = type.exists(env)
     }
 
-//    data class TypeLiteral(val type: IType.Type) : ITypeLiteral {
-//        override fun substitute(substitution: Substitution): TypeLiteral = this
-//        override fun toString(): String = type.toString()
-//
-//        override fun infer(env: Env): AnyType
-//            = type.exists(env)
-//    }
-//
-//    data class ArrowLiteral(val domain: AnyType, val codomain: AnyType) : ITypeLiteral {
-//        override fun substitute(substitution: Substitution): ArrowLiteral = this
-//        override fun toString(): String = "($domain) -> $codomain"
-//
-//        override fun infer(env: Env): AnyType
-//            = IType.Arrow1(domain, codomain).exists(env)
-//    }
-//
-//    data class ProductLiteral(val left: AnyType, val right: AnyType) : ITypeLiteral {
-//        override fun substitute(substitution: Substitution): ITypeLiteral = ProductLiteral(left.substitute(substitution), right.substitute(substitution))
-//        override fun toString(): String =
-//    }
-
     data class Block(val body: List<AnyExpr>) : Expr<Block> {
         override fun substitute(substitution: Substitution): Block = Block(body.map { it.substitute(substitution) })
 

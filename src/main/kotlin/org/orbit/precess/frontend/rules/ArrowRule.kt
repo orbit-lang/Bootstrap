@@ -8,7 +8,8 @@ import org.orbit.precess.frontend.components.nodes.ArrowNode
 
 object ArrowRule : ParseRule<ArrowNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        if (context.peek().type != TokenTypes.LParen) return ParseRule.Result.Failure.Abort
+        if (context.peek().type != TokenTypes.LParen)
+            return ParseRule.Result.Failure.Abort
 
         context.mark()
         val start = context.expect(TokenTypes.LParen)
@@ -17,7 +18,8 @@ object ArrowRule : ParseRule<ArrowNode> {
 
         val next = context.peek()
 
-        if (next.type != TokenTypes.RParen) return ParseRule.Result.Failure.Rewind(context.end())
+        if (next.type != TokenTypes.RParen)
+            return ParseRule.Result.Failure.Rewind(context.end())
 
         context.expect(TokenTypes.RParen)
         context.expect(TokenTypes.Arrow)

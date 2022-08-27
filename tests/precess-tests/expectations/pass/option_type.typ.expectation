@@ -1,0 +1,5 @@
+#Equal
+Dump @opt: {Int, OptT:Int, Unit, OptNone, OptSome, Opt:(OptNone | OptSome), OptNoneCons:(Unit) -> OptNone, OptSomeCons:(OptT) -> (OptSome * OptT) ; }
+Dump @opt: {Bool, OptT:Bool, OptNone, OptSome, Opt:(OptNone | OptSome), OptNoneCons:(Unit) -> OptNone, OptSomeCons:(OptT) -> (OptSome * OptT) ; optionValue:(Bool) -> Opt}
+
+Type checking completed successfully

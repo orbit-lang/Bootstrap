@@ -18,3 +18,15 @@ module M {
 
     type IntRange(start Int, end Int)
 }
+
+module Options {
+    context OptionCtx [T] with
+        type Option = None | Some(value T)
+
+    extension Bool within OptionCtx [Bool] {
+        (self Bool) optionValue () (Option) = select self {
+            case true = Option::Some(self)
+            case else = Option::None
+        }
+    }
+}

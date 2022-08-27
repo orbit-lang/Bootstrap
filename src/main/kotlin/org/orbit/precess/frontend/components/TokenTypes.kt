@@ -25,7 +25,6 @@ object TokenTypes : TokenTypeProvider {
     object RBrace : TokenType("RBrace", "\\}", true, false, TokenType.Family.Enclosing)
     object Extend : TokenType("Extend", "\\+", true, false, TokenType.Family.Op)
     object And : TokenType("And", "\\&", true, false, TokenType.Family.Op)
-    object Or : TokenType("Or", "\\|", true, false, TokenType.Family.Op)
     object Dot : TokenType("Dot", "\\.", true, false, TokenType.Family.Op)
     object Comma : TokenType("Comma", "\\,", true, false, TokenType.Family.Op)
     object TypeAttribute : TokenType("TypeAttr", "[\\!\\?]", true, false, TokenType.Family.Op)
@@ -35,6 +34,6 @@ object TokenTypes : TokenTypeProvider {
         Check, Infer, In, As, Run, Dump, Exists, SummonValue,
         Delta, RefId, TypeId, Check, FatArrow, Arrow, Assign,
         Bind, LParen, RParen, LBrace, RBrace, Extend, Dot,
-        Comma, And, Or, TypeAttribute, TypeOperator
+        Comma, And, TypeAttribute, TypeOperator
     )
 }

@@ -102,6 +102,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             = Alias(name, type.substitute(substitution))
 
         override fun exists(env: Env): AnyType = type.exists(env)
+
+        override fun getCanonicalName(): String = name
     }
 
     data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList()) : Entity<Type> {
@@ -352,7 +354,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun exists(env: Env): AnyType {
             val dType = takes.exists(env)
-            val cType = takes.exists(env)
+            val cType = gives.exists(env)
 
             return when (dType) {
                 is Never -> when (cType) {
