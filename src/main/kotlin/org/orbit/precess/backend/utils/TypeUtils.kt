@@ -8,13 +8,13 @@ object TypeUtils {
         else -> cached
     }
 
-    fun check(left: AnyType, right: AnyType) : AnyType? = when (left == right) {
+    fun check(left: AnyType, right: AnyType) : AnyType = when (left == right) {
         true -> right
         else -> when (left) {
             is IType.Never -> left
             else -> when (right) {
                 is IType.Never -> right
-                else -> null
+                else -> IType.Never("Types are not equal: `$left` & `$right`")
             }
         }
     }

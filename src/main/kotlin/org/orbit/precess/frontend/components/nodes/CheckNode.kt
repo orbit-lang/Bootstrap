@@ -9,16 +9,17 @@ import org.orbit.precess.backend.phase.Proposition
 import org.orbit.precess.backend.phase.PropositionResult
 import org.orbit.precess.backend.utils.TypeUtils
 
-data class CheckNode(override val firstToken: Token, override val lastToken: Token, val lhs: TermExpressionNode<*>, val rhs: TermExpressionNode<*>) : PropositionExpressionNode() {
+data class CheckNode(override val firstToken: Token, override val lastToken: Token, val lhs: TermExpressionNode<*>, val rhs: TypeExpressionNode<*>) : PropositionExpressionNode() {
     override fun getChildren(): List<Node> = listOf(lhs, rhs)
     override fun toString(): String = "check($lhs, $rhs)"
 
     override fun getProposition(interpreter: Interpreter): Proposition = { env ->
-        val lExpr = lhs.getExpression()
-        val rExpr = rhs.getExpression()
+        val lExpr = lhs.getExpression(env)
+        val lType = lExpr.infer(env)
+        val rType = rhs.infer(env)
 
-        when (val res = TypeUtils.check(env, lExpr, rExpr)) {
-            is IType.Never -> PropositionResult.False(IType.Never("Proposition is false: `$this` because ${res.message}"))
+        when (val res = TypeUtils.check(lType, rType)) {
+            is IType.Never -> PropositionResult.False(res)
             else -> PropositionResult.True(env.extend(Decl.Cache(lExpr, res)))
         }
     }

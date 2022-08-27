@@ -9,14 +9,6 @@ internal class TypeLookupTests : PrecessParserTest() {
         val res = parse("∆.T", TypeLookupRule)
 
         assertEquals("T", res.type.toString())
-        assertEquals("∆.T", res.toString())
-    }
-
-    @Test
-    fun `Accepts Type hole`() {
-        val res = parse("∆.?", TypeLookupRule)
-
-        assertEquals("?", res.type.typeId)
-        assertEquals("∆.?", res.toString())
+        assertEquals("T", res.toString())
     }
 }

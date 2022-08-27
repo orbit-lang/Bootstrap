@@ -2,6 +2,7 @@ package org.orbit.precess.frontend.rules
 
 import org.junit.jupiter.api.Test
 import org.orbit.precess.frontend.components.nodes.ArrowNode
+import org.orbit.precess.frontend.components.nodes.TypeExpressionNode
 import org.orbit.precess.frontend.components.nodes.TypeLiteralNode
 import org.orbit.precess.frontend.components.nodes.TypeLookupNode
 import kotlin.test.assertEquals
@@ -12,7 +13,7 @@ class BindingLiteralTests : PrecessParserTest() {
         val res = parse("t:∆.T", BindingLiteralRule)
 
         assertEquals("t", res.ref.refId)
-        assertEquals("∆.T", (res.type as TypeLookupNode).toString())
+        assertEquals("T", res.type.toString())
     }
 
     @Test
@@ -20,6 +21,6 @@ class BindingLiteralTests : PrecessParserTest() {
         val res = parse("f : (∆.T) -> ∆.T", BindingLiteralRule)
 
         assertEquals("f", res.ref.refId)
-        assertEquals("(∆.T) -> ∆.T", (res.type as ArrowNode).toString())
+        assertEquals("(T) -> T", (res.type as ArrowNode).toString())
     }
 }

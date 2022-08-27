@@ -304,7 +304,7 @@ class Types3Tests {
         val u = IType.Type("U")
         val a = IType.Arrow1(t, u)
         val env = Env(listOf(t, u, a))
-        val sut = Expr.Invoke(a, Expr.TypeLiteral("U"))
+        val sut = Expr.Invoke(a, Expr.AnyTypeLiteral(u))
         val res = sut.infer(env)
 
         assertIs<IType.Never>(res)
@@ -316,7 +316,7 @@ class Types3Tests {
         val u = IType.Type("U")
         val a = IType.Arrow1(t, u)
         val env = Env(listOf(t, u, a))
-        val sut = Expr.Invoke(a, Expr.TypeLiteral("T"))
+        val sut = Expr.Invoke(a, Expr.AnyTypeLiteral(t))
         val res = sut.infer(env)
 
         assertEquals(u, res)
@@ -561,7 +561,7 @@ class Types3Tests {
         val u = IType.Type("U")
         val x = Ref("x", t)
         val env = Env(listOf(t, u), listOf(x))
-        val sut = Expr.EqPattern(Expr.TypeLiteral("U"))
+        val sut = Expr.EqPattern(Expr.AnyTypeLiteral(u))
         val res = sut.match(env, Expr.Var("x"))
 
         assertIs<Expr.MatchResult.UnreachablePattern>(res)
@@ -572,7 +572,7 @@ class Types3Tests {
         val t = IType.Type("T")
         val x = Ref("x", t)
         val env = Env(listOf(t), listOf(x))
-        val sut = Expr.EqPattern(Expr.TypeLiteral("T"))
+        val sut = Expr.EqPattern(Expr.AnyTypeLiteral(t))
         val res = sut.match(env, Expr.Var("x"))
 
         assertIs<Expr.MatchResult.ReachablePattern>(res)
@@ -588,12 +588,12 @@ class Types3Tests {
 
         assertEquals(2, cons.count())
 
-        val sut1 = Expr.Invoke(cons[0], Expr.TypeLiteral("B"))
+        val sut1 = Expr.Invoke(cons[0], Expr.AnyTypeLiteral(b))
         val res1 = sut1.infer(env)
 
         assertIs<IType.Never>(res1)
 
-        val sut2 = Expr.Invoke(cons[1], Expr.TypeLiteral("A"))
+        val sut2 = Expr.Invoke(cons[1], Expr.AnyTypeLiteral(a))
         val res2 = sut2.infer(env)
 
         assertIs<IType.Never>(res2)
@@ -609,12 +609,12 @@ class Types3Tests {
 
         assertEquals(2, cons.count())
 
-        val sut1 = Expr.Invoke(cons[0], Expr.TypeLiteral("A"))
+        val sut1 = Expr.Invoke(cons[0], Expr.AnyTypeLiteral(a))
         val res1 = sut1.infer(env)
 
         assertTrue(res1 === a)
 
-        val sut2 = Expr.Invoke(cons[1], Expr.TypeLiteral("B"))
+        val sut2 = Expr.Invoke(cons[1], Expr.AnyTypeLiteral(b))
         val res2 = sut2.infer(env)
 
         assertTrue(res2 === b)

@@ -8,8 +8,8 @@ internal class SummonValueTests: PrecessParserTest() {
     fun `Accepts value input`() {
         val res = parse("summonValue ∆.T as t", SummonValueRule)
 
-        assertEquals("∆.T", res.matchTerm.toString())
+        assertEquals("T", res.matchType.toString())
         assertEquals("t", res.ref.toString())
-        assertEquals("summonValue ∆.T as t", res.toString())
+        assertEquals("summonValue T as t", res.toString())
     }
 }

@@ -12,30 +12,34 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
         override fun toString(): String = name
     }
 
-    data class TypeLiteral(val name: String) : Expr<TypeLiteral> {
-        override fun substitute(substitution: Substitution): TypeLiteral = this
-        override fun infer(env: Env): IType<*> = env.getElement(name) ?: IType.Never("Unknown Type `$name` in current context: `$env`")
-        override fun toString(): String = "∆.$name"
+    sealed interface ITypeLiteral : Expr<ITypeLiteral>
+
+    data class AnyTypeLiteral(val type: AnyType) : Expr<AnyTypeLiteral> {
+        override fun substitute(substitution: Substitution): AnyTypeLiteral = AnyTypeLiteral(type.substitute(substitution))
+        override fun toString(): String = type.id
+        override fun infer(env: Env): AnyType = type.exists(env)
     }
 
-    data class ArrowLiteral(val domainExpr: AnyExpr, val codomainExpr: AnyExpr) : Expr<ArrowLiteral> {
-        override fun substitute(substitution: Substitution): ArrowLiteral = this
-        override fun infer(env: Env): IType<*> {
-            val domain = when (val t = domainExpr.infer(env)) {
-                is IType.Never -> return t
-                else -> t
-            }
-
-            val codomain = when (val t = codomainExpr.infer(env)) {
-                is IType.Never -> return t
-                else -> t
-            }
-
-            return IType.Arrow1(domainExpr.infer(env), codomainExpr.infer(env))
-        }
-
-        override fun toString(): String = "($domainExpr) -> $codomainExpr"
-    }
+//    data class TypeLiteral(val type: IType.Type) : ITypeLiteral {
+//        override fun substitute(substitution: Substitution): TypeLiteral = this
+//        override fun toString(): String = type.toString()
+//
+//        override fun infer(env: Env): AnyType
+//            = type.exists(env)
+//    }
+//
+//    data class ArrowLiteral(val domain: AnyType, val codomain: AnyType) : ITypeLiteral {
+//        override fun substitute(substitution: Substitution): ArrowLiteral = this
+//        override fun toString(): String = "($domain) -> $codomain"
+//
+//        override fun infer(env: Env): AnyType
+//            = IType.Arrow1(domain, codomain).exists(env)
+//    }
+//
+//    data class ProductLiteral(val left: AnyType, val right: AnyType) : ITypeLiteral {
+//        override fun substitute(substitution: Substitution): ITypeLiteral = ProductLiteral(left.substitute(substitution), right.substitute(substitution))
+//        override fun toString(): String =
+//    }
 
     data class Block(val body: List<AnyExpr>) : Expr<Block> {
         override fun substitute(substitution: Substitution): Block = Block(body.map { it.substitute(substitution) })

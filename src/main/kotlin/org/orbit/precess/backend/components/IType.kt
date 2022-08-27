@@ -2,20 +2,38 @@ package org.orbit.precess.backend.components
 
 import org.orbit.precess.backend.utils.*
 
-enum class TypeAttribute(val symbol: String) {
+sealed interface ITypeModifier {
+    sealed interface Factory<M: ITypeModifier> {
+        fun all() : List<M>
+    }
+
+    val symbol: String
+}
+
+fun <M: ITypeModifier> ITypeModifier.Factory<M>.parse(symbol: String) : M? {
+    for (modifier in all()) {
+        if (modifier.symbol == symbol) return modifier
+    }
+
+    return null
+}
+
+enum class TypeAttribute(override val symbol: String) : ITypeModifier {
     Uninhabited("!");
 
-    companion object {
-        fun parse(symbol: String) : TypeAttribute? {
-            for (attribute in values()) {
-                if (attribute.symbol == symbol) return attribute
-            }
-
-            return null
-        }
+    companion object : ITypeModifier.Factory<TypeAttribute> {
+        override fun all(): List<TypeAttribute> = values().toList()
     }
 
     override fun toString(): String = symbol
+}
+
+enum class TypeOperator(override val symbol: String) : ITypeModifier {
+    Product("*"), Sum("|");
+
+    companion object : ITypeModifier.Factory<TypeOperator> {
+        override fun all(): List<TypeOperator> = values().toList()
+    }
 }
 
 sealed interface IType<T : IType<T>> : Substitutable<T> {
@@ -31,6 +49,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         }
 
         operator fun plus(other: IMetaType<*>) : IMetaType<*>
+        override fun exists(env: Env): AnyType = this
     }
 
     object Always : IMetaType<Always> {
@@ -72,6 +91,17 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             is Unit -> true
             else -> false
         }
+
+        override fun exists(env: Env): AnyType = this
+    }
+
+    data class Alias(val name: String, val type: AnyType) : IType<Alias> {
+        override val id: String = "$name:${type.id}"
+
+        override fun substitute(substitution: Substitution): Alias
+            = Alias(name, type.substitute(substitution))
+
+        override fun exists(env: Env): AnyType = type.exists(env)
     }
 
     data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList()) : Entity<Type> {
@@ -85,6 +115,11 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         }
 
         override fun getCanonicalName(): String = name
+
+        override fun exists(env: Env): AnyType = when (env.getElement(name)) {
+            null -> Never("Unknown Type `$name` in current context: `$env`")
+            else -> this
+        }
 
         fun api(env: Env): ITrait = ITrait.MembershipTrait("$id.__api", env.getMembers(this))
 
@@ -124,6 +159,11 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             is Member -> name == other.name && type == other.type
             else -> false
         }
+
+        override fun exists(env: Env): AnyType = when (env.getElement(id)) {
+            null -> Never("Unknown member `$this`")
+            else -> this
+        }
     }
 
     sealed interface IConstructor<T : AnyType> : IArrow<IConstructor<T>> {
@@ -136,50 +176,53 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         fun getElement(at: I): AnyType
     }
 
-    interface IConstructableType<Self : IConstructableType<Self>> : IType<Self> {
+    interface IAlgebraicType<Self : IAlgebraicType<Self>> : IType<Self> {
         fun getConstructors(): List<IConstructor<Self>>
     }
 
-    sealed interface IProductType<I, Self : IProductType<I, Self>> : ICompositeType<Self>, IIndexType<I, Self>
-    sealed interface ISumType<Self : ISumType<Self>> : ICompositeType<Self>, IIndexType<AnyType, Self>
+    sealed interface IProductType<I, Self : IProductType<I, Self>> : IAlgebraicType<Self>, IIndexType<I, Self>
+    sealed interface ISumType<Self : ISumType<Self>> : IAlgebraicType<Self>, IIndexType<AnyType, Self>
 
-    data class Tuple(val elementTypes: List<AnyType>) : IProductType<Int, Tuple> {
-        constructor(first: AnyType, second: AnyType) : this(listOf(first, second))
+    data class Tuple(val left: AnyType, val right: AnyType) : IProductType<Int, Tuple> {
+        override val id: String = "(${left.id} * ${right.id})"
 
-        override val id: String = "(${elementTypes.joinToString(" & ") { it.id }})"
+        override fun getConstructors(): List<IConstructor<Tuple>> = emptyList()
 
-        val numberOfElements: Int
-            get() = elementTypes.count()
-
-        init {
-            if (numberOfElements < 2) throw Exception("A Tuple must have at least 2 elements")
+        override fun getElement(at: Int): AnyType = when (at) {
+            0 -> left
+            1 -> right
+            else -> Never("Attempt to retrieve element from Tuple at index $at")
         }
 
-        override fun getElement(at: Int): AnyType = when (at < numberOfElements) {
-            true -> elementTypes[at]
-            else -> Never("Attempt to retrieve element from Tuple of size $numberOfElements at index $at")
-        }
+        override fun substitute(substitution: Substitution): Tuple = Tuple(left.substitute(substitution), right.substitute(substitution))
 
-        override fun substitute(substitution: Substitution): Tuple = Tuple(elementTypes.substituteAll(substitution))
+        override fun exists(env: Env): AnyType {
+            val lType = left.exists(env)
+            val rType = right.exists(env)
 
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
-            is Tuple -> Tuple(this, other)
-            else -> Never("Cannot unify Types $id & ${other.id}")
+            return when (lType) {
+                is Never -> when (rType) {
+                    is Never -> lType + rType
+                    else -> lType
+                }
+
+                else -> when (rType) {
+                    is Never -> rType
+                    else -> this
+                }
+            }
         }
     }
 
-    data class Struct(val members: List<Member>) : IProductType<String, Struct>, IConstructableType<Struct> {
+    data class Struct(val members: List<Member>) : IProductType<String, Struct>, IAlgebraicType<Struct> {
         override val id: String = "{${members.joinToString("; ") { it.id }}}"
 
         override fun getElement(at: String): AnyType = members.first { it.name == at }
-
         override fun getConstructors(): List<IConstructor<Struct>> = listOf(StructConstructor(this, members))
-
         override fun substitute(substitution: Substitution): Struct = Struct(members.substituteAll(substitution))
 
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
-            is Struct -> Union(this, other)
-            else -> Never("Cannot unify Types $id & ${other.id}")
+        override fun exists(env: Env): AnyType {
+            TODO("Member exists")
         }
     }
 
@@ -200,6 +243,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun never(args: List<AnyType>): Never =
             Never("Cannot construct Type ${constructedType.id} with arguments (${args.joinToString("; ") { it.id }})")
+
+        override fun exists(env: Env): AnyType {
+            TODO("Not yet implemented")
+        }
     }
 
     data class UnionConstructor(override val constructedType: Union, val arg: AnyType) : IConstructor<Union> {
@@ -218,9 +265,13 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun never(args: List<AnyType>): Never =
             Never("Union Type ${constructedType.id} cannot be constructed with argument ${arg.id}")
+
+        override fun exists(env: Env): AnyType {
+            TODO("Not yet implemented")
+        }
     }
 
-    data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IConstructableType<Union> {
+    data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IAlgebraicType<Union> {
         override val id: String = "(${left.id} | ${right.id})"
 
         override fun getElement(at: AnyType): AnyType = when (at) {
@@ -235,9 +286,21 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         override fun substitute(substitution: Substitution): Union =
             Union(left.substitute(substitution), right.substitute(substitution))
 
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
-            is Union -> Union(this, other)
-            else -> Never("Cannot unify Types $id & ${other.id}")
+        override fun exists(env: Env): AnyType {
+            val lType = left.exists(env)
+            val rType = right.exists(env)
+
+            return when (lType) {
+                is Never -> when (rType) {
+                    is Never -> lType + rType
+                    else -> lType
+                }
+
+                else -> when (rType) {
+                    is Never -> rType
+                    else -> this
+                }
+            }
         }
     }
 
@@ -246,7 +309,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         fun getCodomain(): AnyType
 
         fun curry(): IArrow<*>
-        fun never(args: List<AnyType>): IType.Never
+        fun never(args: List<AnyType>): Never
 
         fun maxCurry(): Arrow0 = when (this) {
             is Arrow0 -> this
@@ -267,10 +330,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         override fun getCodomain(): AnyType = gives
 
         override fun substitute(substitution: Substitution): Arrow0 = Arrow0(gives.substitute(substitution))
-
         override fun curry(): Arrow0 = Arrow0(Arrow0(gives))
-
         override fun never(args: List<AnyType>): Never = Never("Unreachable")
+
+        override fun exists(env: Env): AnyType = gives.exists(env)
     }
 
     data class Arrow1(val takes: IType<*>, val gives: IType<*>) : IArrow<Arrow1> {
@@ -286,6 +349,23 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun never(args: List<AnyType>): Never =
             Never("$id expects argument of Type ${takes.id}, found ${args[0].id}")
+
+        override fun exists(env: Env): AnyType {
+            val dType = takes.exists(env)
+            val cType = takes.exists(env)
+
+            return when (dType) {
+                is Never -> when (cType) {
+                    is Never -> dType + cType
+                    else -> dType
+                }
+
+                else -> when (cType) {
+                    is Never -> cType
+                    else -> this
+                }
+            }
+        }
     }
 
     data class Arrow2(val a: IType<*>, val b: IType<*>, val gives: IType<*>) : IArrow<Arrow2> {
@@ -301,6 +381,38 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun never(args: List<AnyType>): Never =
             Never("$id expects arguments of (${a.id}, ${b.id}), found (${args.joinToString(", ") { it.id }})")
+
+        override fun exists(env: Env): AnyType {
+            val type1 = a.exists(env)
+            val type2 = b.exists(env)
+            val type3 = gives.exists(env)
+
+            return when (type1) {
+                is Never -> when (type2) {
+                    is Never -> when (type3) {
+                        is Never -> type1 + type2 + type3
+                        else -> type1 + type2
+                    }
+
+                    else -> when (type3) {
+                        is Never -> type1 + type3
+                        else -> type1
+                    }
+                }
+
+                else -> when (type2) {
+                    is Never -> when (type3) {
+                        is Never -> type2 + type3
+                        else -> type2
+                    }
+
+                    else -> when (type3) {
+                        is Never -> type3
+                        else -> this
+                    }
+                }
+            }
+        }
     }
 
     data class Arrow3(val a: IType<*>, val b: IType<*>, val c: IType<*>, val gives: IType<*>) : IArrow<Arrow3> {
@@ -320,6 +432,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun never(args: List<AnyType>): Never =
             Never("$id expects arguments of (${a.id}, ${b.id}, ${c.id}), found (${args.joinToString(", ") { it.id }})")
+
+        override fun exists(env: Env): AnyType {
+            TODO("Fill in 'when table' for Arrow3")
+        }
     }
 
     data class Signature(
@@ -357,6 +473,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             is Signature -> other.name == name && other.receiver == receiver && other.parameters == parameters && other.returns == returns
             else -> false
         }
+
+        override fun exists(env: Env): AnyType {
+            TODO("Not yet implemented")
+        }
     }
 
     data class TypeVar(val name: String) : IType<TypeVar> {
@@ -367,6 +487,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         override fun equals(other: Any?): Boolean = when (other) {
             is TypeVar -> id == other.id
             else -> false
+        }
+
+        override fun exists(env: Env): AnyType {
+            TODO("Not yet implemented")
         }
     }
 
@@ -406,9 +530,15 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         }
 
         operator fun plus(other: ITrait): ITrait
+
+        override fun exists(env: Env): AnyType {
+            TODO("Not yet implemented")
+        }
     }
 
     val id: String
 
     fun getCanonicalName() : String = id
+
+    fun exists(env: Env) : AnyType
 }

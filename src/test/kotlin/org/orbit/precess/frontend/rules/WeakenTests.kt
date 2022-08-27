@@ -19,8 +19,8 @@ internal class WeakenTests : PrecessParserTest() {
         val res = parse("∆ + t : ∆.T", WeakenRule)
 
         assertEquals("∆", res.context.toString())
-        assertEquals("t:∆.T", res.decl.toString())
-        assertEquals("∆ + t:∆.T", res.toString())
+        assertEquals("t:T", res.decl.toString())
+        assertEquals("∆ + t:T", res.toString())
     }
 
     @Test
@@ -33,7 +33,7 @@ internal class WeakenTests : PrecessParserTest() {
         val res = parse("∆ + summonValue ∆.T as t", WeakenRule)
 
         assertEquals("∆", res.context.toString())
-        assertEquals("summonValue ∆.T as t", res.decl.toString())
-        assertEquals("∆ + summonValue ∆.T as t", res.toString())
+        assertEquals("summonValue T as t", res.decl.toString())
+        assertEquals("∆ + summonValue T as t", res.toString())
     }
 }

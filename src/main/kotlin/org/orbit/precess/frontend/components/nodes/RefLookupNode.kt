@@ -10,8 +10,8 @@ import org.orbit.precess.backend.utils.AnyType
 
 data class RefLookupNode(override val firstToken: Token, override val lastToken: Token, val context: ContextLiteralNode, val ref: RefLiteralNode) : TermExpressionNode<Expr.Var>() {
     override fun getChildren(): List<Node> = listOf(context, ref)
-    override fun toString(): String = "$context.$ref"
+    override fun toString(): String = "$ref"
 
-    override fun getExpression(): Expr.Var
+    override fun getExpression(env: Env): Expr.Var
         = Expr.Var(ref.refId)
 }

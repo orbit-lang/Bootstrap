@@ -28,12 +28,13 @@ object TokenTypes : TokenTypeProvider {
     object Or : TokenType("Or", "\\|", true, false, TokenType.Family.Op)
     object Dot : TokenType("Dot", "\\.", true, false, TokenType.Family.Op)
     object Comma : TokenType("Comma", "\\,", true, false, TokenType.Family.Op)
-    object TypeAttribute : TokenType("TypeOp", "[\\!\\?]", true, false, TokenType.Family.Op)
+    object TypeAttribute : TokenType("TypeAttr", "[\\!\\?]", true, false, TokenType.Family.Op)
+    object TypeOperator : TokenType("TypeOp", "[\\*\\|]", true, false, TokenType.Family.Op)
 
     override fun getTokenTypes(): List<TokenType> = listOf(
         Check, Infer, In, As, Run, Dump, Exists, SummonValue,
         Delta, RefId, TypeId, Check, FatArrow, Arrow, Assign,
         Bind, LParen, RParen, LBrace, RBrace, Extend, Dot,
-        Comma, And, Or, TypeAttribute
+        Comma, And, Or, TypeAttribute, TypeOperator
     )
 }

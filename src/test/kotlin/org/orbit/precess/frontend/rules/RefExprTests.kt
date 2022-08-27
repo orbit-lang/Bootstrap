@@ -10,6 +10,6 @@ internal class RefExprTests : PrecessParserTest() {
 
         assertEquals("∆", res.context.toString())
         assertEquals("t", res.ref.toString())
-        assertEquals("∆.t", res.toString())
+        assertEquals("t", res.toString())
     }
 }

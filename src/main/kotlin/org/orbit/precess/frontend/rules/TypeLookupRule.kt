@@ -8,20 +8,9 @@ import org.orbit.precess.frontend.components.nodes.TypeLookupNode
 
 object TypeLookupRule : ParseRule<TypeLookupNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val ctx = context.attempt(ContextLiteralRule)
+        val type = context.attempt(AnyTypeExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
-        if (!context.hasMore) return ParseRule.Result.Failure.Rewind(listOf(ctx.firstToken))
-
-        val next = context.peek()
-
-        if (next.type != TokenTypes.Dot) return ParseRule.Result.Failure.Rewind(listOf(ctx.firstToken))
-
-        context.consume()
-
-        val type = context.attempt(TypeLiteralRule)
-            ?: return ParseRule.Result.Failure.Abort
-
-        return +TypeLookupNode(ctx.firstToken, type.lastToken, type)
+        return +TypeLookupNode(type.firstToken, type.lastToken, type)
     }
 }

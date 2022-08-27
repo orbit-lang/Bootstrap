@@ -1,2 +1,2 @@
 MkBoxCtx => ∆ + Box!
-         => ∆ + BoxCons:(∆.T) -> (∆.Box, ∆.T)
+         => ∆ + BoxCons:(∆.T) -> (∆.Box * ∆.T)

@@ -9,10 +9,10 @@ import org.orbit.precess.backend.phase.Interpreter
 import org.orbit.precess.backend.utils.AnyEntity
 import org.orbit.precess.backend.utils.AnyType
 
-data class TypeLookupNode(override val firstToken: Token, override val lastToken: Token, val type: TypeLiteralNode) : TermExpressionNode<Expr.TypeLiteral>() {
+data class TypeLookupNode(override val firstToken: Token, override val lastToken: Token, val type: TypeExpressionNode<*>) : TermExpressionNode<Expr.AnyTypeLiteral>() {
     override fun getChildren(): List<Node> = listOf(type)
-    override fun toString(): String = "∆.$type"
+    override fun toString(): String = "$type"
 
-    override fun getExpression(): Expr.TypeLiteral
-        = Expr.TypeLiteral(type.typeId)
+    override fun getExpression(env: Env): Expr.AnyTypeLiteral
+        = Expr.AnyTypeLiteral(type.infer(env))
 }

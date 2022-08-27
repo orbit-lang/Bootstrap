@@ -9,7 +9,7 @@ import org.orbit.precess.frontend.components.nodes.SummonValueNode
 object SummonValueRule : ParseRule<SummonValueNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.SummonValue)
-        val term = context.attempt(AnyTermExpressionRule)
+        val term = context.attempt(AnyTypeExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
         context.expect(TokenTypes.As)

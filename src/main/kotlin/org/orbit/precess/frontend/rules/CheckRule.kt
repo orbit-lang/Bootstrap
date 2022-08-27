@@ -19,8 +19,7 @@ object CheckRule : ParseRule<CheckNode> {
 
         context.expect(TokenTypes.Comma)
 
-        val type = context.attemptAny(listOf(TypeLookupRule, ArrowRule))
-            as? TermExpressionNode<*>
+        val type = context.attempt(AnyTypeExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
         context.expect(TokenTypes.RParen)

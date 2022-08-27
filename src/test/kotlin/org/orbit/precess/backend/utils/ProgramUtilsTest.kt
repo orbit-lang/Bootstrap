@@ -24,4 +24,9 @@ internal class ProgramUtilsTest : FileBasedTest("precess-tests", "typ") {
     fun `All Fail`() {
         assertAll(Scenario.Fail)
     }
+//
+//    @Test
+//    fun `Isolate single test`() {
+//        assert(Scenario.Pass, "2_element_product_type.typ", true)
+//    }
 }

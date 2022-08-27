@@ -9,8 +9,8 @@ internal class PropositionTests : PrecessParserTest() {
         val res = parse("P => check(∆.a, ∆.A)", PropositionRule)
 
         assertEquals("P", res.propId)
-        assertEquals("check(∆.a, ∆.A)", res.body.toString())
-        assertEquals("P => check(∆.a, ∆.A)", res.toString())
+        assertEquals("check(a, A)", res.body.toString())
+        assertEquals("P => check(a, A)", res.toString())
     }
 
     @Test
@@ -27,7 +27,7 @@ internal class PropositionTests : PrecessParserTest() {
         val res = parse("S => ∆ + summonValue ∆.T as t", PropositionRule)
 
         assertEquals("S", res.propId)
-        assertEquals("∆ + summonValue ∆.T as t", res.body.toString())
-        assertEquals("S => ∆ + summonValue ∆.T as t", res.toString())
+        assertEquals("∆ + summonValue T as t", res.body.toString())
+        assertEquals("S => ∆ + summonValue T as t", res.toString())
     }
 }

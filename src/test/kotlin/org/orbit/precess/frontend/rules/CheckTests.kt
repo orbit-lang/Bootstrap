@@ -8,8 +8,8 @@ internal class CheckTests : PrecessParserTest() {
     fun `Accepts valid input`() {
         val res = parse("check(∆.t, ∆.T)", CheckRule)
 
-        assertEquals("∆.t", res.lhs.toString())
-        assertEquals("∆.T", res.rhs.toString())
-        assertEquals("check(∆.t, ∆.T)", res.toString())
+        assertEquals("t", res.lhs.toString())
+        assertEquals("T", res.rhs.toString())
+        assertEquals("check(t, T)", res.toString())
     }
 }

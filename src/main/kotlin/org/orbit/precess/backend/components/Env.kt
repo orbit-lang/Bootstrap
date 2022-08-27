@@ -68,6 +68,9 @@ data class Env(
             ?.consume()
     }
 
+    fun contains(type: AnyType) : AnyType
+        = type.exists(this)
+
     fun getElement(id: String): IType<*>? = protect(Protector.TypeProtector) {
         elements.firstOrNull { it.getCanonicalName() == id }
     }
@@ -136,6 +139,8 @@ data class Env(
 
         return "{$allTypes ; $allRefs}"
     }
+
+    override fun exists(env: Env): AnyType = this
 
     override fun toString(): String = when (elements.isEmpty()) {
         true -> "{}"

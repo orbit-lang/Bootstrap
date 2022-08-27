@@ -7,12 +7,12 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 import java.lang.NullPointerException
 
-data class SummonValueNode(override val firstToken: Token, override val lastToken: Token, val matchTerm: TermExpressionNode<*>, val ref: RefLiteralNode) : DeclNode<Decl.Alias>() {
-    override fun getChildren(): List<Node> = listOf(matchTerm, ref)
-    override fun toString(): String = "summonValue $matchTerm as $ref"
+data class SummonValueNode(override val firstToken: Token, override val lastToken: Token, val matchType: TypeExpressionNode<*>, val ref: RefLiteralNode) : DeclNode<Decl.Alias>() {
+    override fun getChildren(): List<Node> = listOf(matchType, ref)
+    override fun toString(): String = "summonValue $matchType as $ref"
 
     override fun getDecl(env: Env): DeclResult<Decl.Alias> {
-        val matchType = when (val t = matchTerm.getExpression().infer(env)) {
+        val matchType = when (val t = matchType.infer(env)) {
             is IType.Never -> return DeclResult.Failure(t)
             else -> t
         }
