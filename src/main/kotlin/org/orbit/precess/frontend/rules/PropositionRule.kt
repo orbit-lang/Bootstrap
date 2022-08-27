@@ -10,7 +10,7 @@ import org.orbit.precess.frontend.components.nodes.PropositionNode
 
 private object AnyPropositionExpressionRule : ParseRule<PropositionExpressionNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val body = context.attemptAny(listOf(WeakenRule, CheckRule, CompoundPropositionCallRule, PropositionCallRule, DumpRule, ContextLiteralRule))
+        val body = context.attemptAny(listOf(ModifyContextRule, CheckRule, CompoundPropositionCallRule, PropositionCallRule, DumpRule, ContextLiteralRule))
                 as? PropositionExpressionNode
             ?: return ParseRule.Result.Failure.Abort
 

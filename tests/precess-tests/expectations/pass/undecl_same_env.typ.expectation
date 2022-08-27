@@ -1,0 +1,5 @@
+#Equal
+Dump @dbg: {T ; t:T}
+Dump @dbg: {}
+
+Type checking completed successfully

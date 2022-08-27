@@ -99,6 +99,9 @@ data class Env(
     fun extend(decl: Decl): Env
         = decl.extend(this)
 
+    fun reduce(decl: Decl) : Env
+        = decl.reduce(this)
+
     fun denyElement(id: String): Env {
         val nElements = elements.map {
             when (it.id) {

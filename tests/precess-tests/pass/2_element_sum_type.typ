@@ -1,6 +1,6 @@
 MkSum => ∆ + A
       => ∆ + B
-      => ∆ + C : (∆.A | ∆.B)
+      => ∆ + C : ∑(∆.A, ∆.B)
 
 Dbg => dump(∆) as sum
 

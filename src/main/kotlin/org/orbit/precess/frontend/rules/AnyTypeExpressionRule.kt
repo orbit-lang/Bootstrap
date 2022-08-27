@@ -22,14 +22,15 @@ private object EntityRule : ParseRule<EntityTypeExpressionNode> {
 
 private object AlgebraicTypeRule : ParseRule<AlgebraicTypeExpressionNode<*>> {
     override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect(TokenTypes.LParen)
+        val start = context.expect(TokenTypes.TypeOperator)
+        val typeOperator = TypeOperator.parse(start.text)
+            ?: throw context.invocation.make<Parser>("Unknown Type Operator `${start.text}`", start)
+
+        context.expect(TokenTypes.LParen)
         val leftType = context.attempt(AnyTypeExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
-        val op = context.expect(TokenTypes.TypeOperator)
-        val typeOperator = TypeOperator.parse(op.text)
-            ?: throw context.invocation.make<Parser>("Unknown Type Operator `${op.text}`", op)
-
+        context.expect(TokenTypes.Comma)
         val rightType = context.attempt(AnyTypeExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 

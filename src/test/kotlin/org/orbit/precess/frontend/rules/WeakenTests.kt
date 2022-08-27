@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 internal class WeakenTests : PrecessParserTest() {
     @Test
     fun `Accepts Type Literal`() {
-        val res = parse("∆ + T", WeakenRule)
+        val res = parse("∆ + T", ModifyContextRule)
 
         assertEquals("∆", res.context.toString())
         assertEquals("T", res.decl.toString())
@@ -16,7 +16,7 @@ internal class WeakenTests : PrecessParserTest() {
 
     @Test
     fun `Accepts Binding Literal`() {
-        val res = parse("∆ + t : ∆.T", WeakenRule)
+        val res = parse("∆ + t : ∆.T", ModifyContextRule)
 
         assertEquals("∆", res.context.toString())
         assertEquals("t:T", res.decl.toString())
@@ -25,12 +25,12 @@ internal class WeakenTests : PrecessParserTest() {
 
     @Test
     fun `Rejects Ref Literal`() {
-        assertThrows<Exception> { parse("∆ + t", WeakenRule) }
+        assertThrows<Exception> { parse("∆ + t", ModifyContextRule) }
     }
 
     @Test
     fun `Accepts summonValue`() {
-        val res = parse("∆ + summonValue ∆.T as t", WeakenRule)
+        val res = parse("∆ + summonValue ∆.T as t", ModifyContextRule)
 
         assertEquals("∆", res.context.toString())
         assertEquals("summonValue T as t", res.decl.toString())

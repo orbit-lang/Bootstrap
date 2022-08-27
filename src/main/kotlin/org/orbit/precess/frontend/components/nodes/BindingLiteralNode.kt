@@ -22,8 +22,6 @@ data class BindingLiteralNode(override val firstToken: Token, override val lastT
             else -> t
         }
 
-        if (env.getRef(ref.refId) != null) return DeclResult.Failure(IType.Never("Type `${tType.id}` is already defined in current context: `$env`"))
-
         return DeclResult.Success(Decl.Assignment(ref.refId, tType))
     }
 }

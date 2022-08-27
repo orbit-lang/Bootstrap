@@ -23,17 +23,17 @@ object TokenTypes : TokenTypeProvider {
     object RParen : TokenType("RParen", "\\)", true, false, TokenType.Family.Enclosing)
     object LBrace : TokenType("LBrace", "\\{", true, false, TokenType.Family.Enclosing)
     object RBrace : TokenType("RBrace", "\\}", true, false, TokenType.Family.Enclosing)
-    object Extend : TokenType("Extend", "\\+", true, false, TokenType.Family.Op)
+    object ContextOperator : TokenType("ContextOp", "[\\+|\\-]", true, false, TokenType.Family.Op)
     object And : TokenType("And", "\\&", true, false, TokenType.Family.Op)
     object Dot : TokenType("Dot", "\\.", true, false, TokenType.Family.Op)
     object Comma : TokenType("Comma", "\\,", true, false, TokenType.Family.Op)
     object TypeAttribute : TokenType("TypeAttr", "[\\!\\?]", true, false, TokenType.Family.Op)
-    object TypeOperator : TokenType("TypeOp", "[\\*\\|]", true, false, TokenType.Family.Op)
+    object TypeOperator : TokenType("TypeOp", "[∏∑]", true, false, TokenType.Family.Op)
 
     override fun getTokenTypes(): List<TokenType> = listOf(
         Check, Infer, In, As, Run, Dump, Exists, SummonValue,
         Delta, RefId, TypeId, Check, FatArrow, Arrow, Assign,
-        Bind, LParen, RParen, LBrace, RBrace, Extend, Dot,
+        Bind, LParen, RParen, LBrace, RBrace, ContextOperator, Dot,
         Comma, And, TypeAttribute, TypeOperator
     )
 }

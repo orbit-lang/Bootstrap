@@ -2,9 +2,9 @@ MkUnit => ∆ + Unit
 MkBool => ∆ + Bool
 MkOpt => ∆ + OptNone
       => ∆ + OptSome
-      => ∆ + Opt : (∆.OptNone | ∆.OptSome)
+      => ∆ + Opt : ∑(∆.OptNone, ∆.OptSome)
       => ∆ + OptNoneCons : (∆.Unit) -> ∆.OptNone
-      => ∆ + OptSomeCons : (∆.OptT) -> (∆.OptSome * ∆.OptT)
+      => ∆ + OptSomeCons : (∆.OptT) -> ∏(∆.OptSome, ∆.OptT)
 
 PrepareOpt => ∆ + Int
            => ∆ + OptT : ∆.Int
