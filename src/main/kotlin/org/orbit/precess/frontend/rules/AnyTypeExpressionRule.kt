@@ -45,7 +45,7 @@ private object AlgebraicTypeRule : ParseRule<AlgebraicTypeExpressionNode<*>> {
 
 object AnyTypeExpressionRule : ParseRule<TypeExpressionNode<*>> {
     override fun parse(context: Parser): ParseRule.Result {
-        val typeExpr = context.attemptAny(listOf(ArrowRule, AlgebraicTypeRule, EntityRule))
+        val typeExpr = context.attemptAny(listOf(ArrowRule, AlgebraicTypeRule, EntityRule, BoxRule))
             as? TypeExpressionNode<*>
             ?: return ParseRule.Result.Failure.Abort
 

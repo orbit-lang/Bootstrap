@@ -110,8 +110,23 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             = Alias(name, type.substitute(substitution))
 
         override fun exists(env: Env): AnyType = type.exists(env)
-
         override fun getCanonicalName(): String = name
+    }
+
+    data class Box(val generator: AnyExpr) : IType<Box> {
+        override val id: String = "⎡$generator⎦"
+        override fun substitute(substitution: Substitution): Box
+            = Box(generator.substitute(substitution))
+
+        override fun exists(env: Env): AnyType = this
+
+        override fun equals(other: Any?): Boolean = when (other) {
+            is Box -> other.generator == generator
+            else -> false
+        }
+
+        override fun unbox(env: Env) : AnyType
+            = generator.infer(env)
     }
 
     data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList()) : Entity<Type> {
@@ -551,4 +566,5 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
     fun getCanonicalName() : String = id
 
     fun exists(env: Env) : AnyType
+    fun unbox(env: Env) : AnyType = this
 }

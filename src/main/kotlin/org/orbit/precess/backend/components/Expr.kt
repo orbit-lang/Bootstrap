@@ -127,6 +127,16 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
         }
     }
 
+    data class Box(val term: Expr<*>) : Expr<Box> {
+        override fun substitute(substitution: Substitution): Box
+            = Box(term.substitute(substitution))
+
+        override fun toString(): String = "⎡$term⎦"
+
+        override fun infer(env: Env): IType<*>
+            = IType.Box(term)
+    }
+
     data class Symbol(val name: String) : Expr<Symbol> {
         override fun substitute(substitution: Substitution): Symbol = this
         override fun infer(env: Env): IType<*> = IType.Never("TODO - Symbol")

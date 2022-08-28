@@ -7,6 +7,7 @@ object TokenTypes : TokenTypeProvider {
     object Delta : TokenType("Delta", "∆", true, false, TokenType.Family.Keyword)
     object RefId : TokenType("Ref", "[a-z]+[a-zA-Z0-9_]*", true, false, TokenType.Family.Id)
     object TypeId : TokenType("Type", "(\\?|[A-Z]+[a-zA-Z0-9_]*)", true, false, TokenType.Family.Id)
+    object Box : TokenType("Box", "box", true, false, TokenType.Family.Keyword)
     object Check : TokenType("Check", "check", true, false, TokenType.Family.Keyword)
     object Infer : TokenType("Infer", "infer", true, false, TokenType.Family.Keyword)
     object Dump : TokenType("Dump", "dump", true, false, TokenType.Family.Keyword)
@@ -31,7 +32,7 @@ object TokenTypes : TokenTypeProvider {
     object TypeOperator : TokenType("TypeOp", "[∏∑]", true, false, TokenType.Family.Op)
 
     override fun getTokenTypes(): List<TokenType> = listOf(
-        Check, Infer, In, As, Run, Dump, Exists, SummonValue,
+        Box, Check, Infer, In, As, Run, Dump, Exists, SummonValue,
         Delta, RefId, TypeId, Check, FatArrow, Arrow, Assign,
         Bind, LParen, RParen, LBrace, RBrace, ContextOperator, Dot,
         Comma, And, TypeAttribute, TypeOperator

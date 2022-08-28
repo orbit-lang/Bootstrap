@@ -14,7 +14,7 @@ object TypeUtils {
             is IType.Never -> left
             else -> when (right) {
                 is IType.Never -> right
-                else -> IType.Never("Types are not equal: `$left` & `$right`")
+                else -> IType.Never("Types are not equal: `${left.id}` & `${right.id}`")
             }
         }
     }
@@ -36,7 +36,7 @@ object TypeUtils {
 
         return when (lType == rType) {
             true -> rType
-            else -> IType.Never("Types are not equal: `$lType` & `$rType`")
+            else -> IType.Never("Types are not equal: `$lType` & `${rType.id}`")
         }
     }
 
