@@ -5,7 +5,7 @@ import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.*
 import org.orbit.frontend.extensions.unaryPlus
 
-object TraitDefRule : EntityParseRule<TraitDefNode> {
+object TraitDefRule : EntityDefParseRule<TraitDefNode> {
 	override fun parse(context: Parser) : ParseRule.Result {
 		val start = context.expect(TokenTypes.Trait)
 		

@@ -1,0 +1,10 @@
+#Equal
+ContextNode
+ TypeIdentifierNode
+ TypeIdentifierNode
+ TypeDefNode
+  TypeIdentifierNode
+  BlockNode
+  PairNode
+   IdentifierNode
+   TypeIdentifierNode

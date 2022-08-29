@@ -33,7 +33,7 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 
 		while (next.type != TokenTypes.RBrace) {
 			// TODO - Allowed required method signatures in this context
-			val entity = context.attemptAny(EntityParseRule.apiTopLevelRules)
+			val entity = context.attemptAny(EntityDefParseRule.apiTopLevelRules)
 
 			if (entity is EntityConstructorNode) {
 				entityConstructorNodes.add(entity)

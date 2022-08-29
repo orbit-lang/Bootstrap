@@ -8,14 +8,14 @@ import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.extensions.unaryPlus
 
-interface EntityParseRule<E: EntityDefNode> : PrefixPhaseAnnotatedParseRule<E> {
+interface EntityDefParseRule<E: EntityDefNode> : PrefixPhaseAnnotatedParseRule<E> {
 	companion object {
 		val moduleTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, ProjectionRule, TraitConstructorRule, TypeAliasRule, TypeDefRule, TraitDefRule, FamilyConstructorRule, FamilyRule)
 		val apiTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, TraitConstructorRule, TypeAliasRule, TraitDefRule, TypeDefRule, TraitDefRule)
 	}
 }
 
-object TypeDefRule : EntityParseRule<TypeDefNode> {
+object TypeDefRule : EntityDefParseRule<TypeDefNode> {
 	sealed class Errors {
 		data class MissingName(override val sourcePosition: SourcePosition)
 			: ParseError("Type definition requires a name", sourcePosition)

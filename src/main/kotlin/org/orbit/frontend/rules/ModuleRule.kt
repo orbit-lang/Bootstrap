@@ -126,7 +126,7 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                 }
 
                 TokenTypes.Type, TokenTypes.Trait, TokenTypes.Family -> {
-                    val entity = context.attemptAny(EntityParseRule.moduleTopLevelRules, true)
+                    val entity = context.attemptAny(EntityDefParseRule.moduleTopLevelRules, true)
 
                     when (entity) {
                         is EntityConstructorNode -> entityConstructorNodes.add(entity)

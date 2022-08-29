@@ -323,8 +323,10 @@ class Parser(
 		tokens = input.tokens.toMutableList()
 		completeTokens = tokens
 
-		val ast = topLevelParseRule.execute(this)
-			.unwrap<ParseRule.Result.Success<*>>()!!
+		val ast = when(val res = topLevelParseRule.execute(this)) {
+			is ParseRule.Result.Failure.Throw -> throw invocation.make<Parser>(res.message, SourcePosition.unknown)
+			else -> res.unwrap<ParseRule.Result.Success<*>>()!!
+		}
 
 		val result = Result(ast.node)
 

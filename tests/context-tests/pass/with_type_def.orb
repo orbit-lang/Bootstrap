@@ -1,0 +1,3 @@
+context BoxCtx [ValueType] {
+    type Box(value ValueType)
+}

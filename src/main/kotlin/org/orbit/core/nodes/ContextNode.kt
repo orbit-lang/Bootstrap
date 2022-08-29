@@ -11,10 +11,11 @@ data class ContextNode(
     override val lastToken: Token,
     val contextIdentifier: TypeIdentifierNode,
     val typeVariables: List<TypeIdentifierNode>,
-    val clauses: List<WhereClauseNode>
+    val clauses: List<WhereClauseNode>,
+    val body: List<EntityDefNode>
 ) : Node() {
     override fun getChildren(): List<Node>
-        = listOf(contextIdentifier) + typeVariables + clauses
+        = listOf(contextIdentifier) + typeVariables + clauses + body
 }
 
 data class ContextInstantiationNode(

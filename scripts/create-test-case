@@ -1,0 +1,40 @@
+#!/bin/sh
+suite=$1
+bucket=$2
+test=$3
+
+usage="usage: create-test-case <SUITE_NAME> <pass|fail> <TEST_NAME>"
+
+if [[ -z "$suite" ]]; then
+	echo $usage
+	exit 1
+fi
+
+if [[ -z "$bucket" ]]; then
+	echo $usage
+	exit 1
+fi
+
+if [[ -z "$test" ]]; then
+	echo $usage
+	exit 1
+fi
+
+test_file="tests/$suite/$bucket/$test"
+expt_file="tests/$suite/expectations/$bucket/$test.expectation"
+
+if [[ -f "$test_file" ]]; then
+	echo "Test $test_file already exists"
+	exit 1
+fi
+
+if [[ -d "$expt_file" ]]; then
+	echo "Expectation file $expt_file already exists"
+	exit 1
+fi
+
+echo "TYPE CODE HERE" > $test_file
+echo "#Equal\nTYPE EXPECTATION HERE" > $expt_file
+
+echo "Created $test_file"
+echo "Created $expt_file"
