@@ -98,6 +98,10 @@ object TypeDefRule : EntityDefParseRule<TypeDefNode> {
 			}
 		}
 
+		if (!context.hasMore) {
+			return +TypeDefNode(start, end, typeIdentifierNode, propertyPairs, emptyList())
+		}
+
 		next = context.peek()
 
 		val traitConformances = mutableListOf<TypeExpressionNode>()

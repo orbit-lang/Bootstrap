@@ -53,6 +53,8 @@ object ContextRule : ParseRule<ContextNode> {
         next = context.peek()
 
         if (next.type == TokenTypes.With) {
+            context.consume()
+
             // Single declaration body
             val decl = context.attemptAny(listOf(TypeDefRule, TraitDefRule))
                 as? EntityDefNode
