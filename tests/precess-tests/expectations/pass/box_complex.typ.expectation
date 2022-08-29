@@ -1,6 +1,0 @@
-#Equal
-Dump @dbg1: {A, F:⎡(T) -> T⎦ ; a:A}
-Dump @dbg2: {A, F:⎡(T) -> T⎦, T, U:F ; a:A}
-Dump: {A, F:⎡(T) -> T⎦, T, U:F ; a:A, b:⎡a⎦}
-
-Type checking completed successfully

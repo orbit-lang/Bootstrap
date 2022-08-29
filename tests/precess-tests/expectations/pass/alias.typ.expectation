@@ -1,4 +1,4 @@
 #Equal
-Dump: {T:(⎡A⎦) -> ⎡A⎦ ; }
+Dump: {T, U:T, V:(T | T) ; }
 
 Type checking completed successfully

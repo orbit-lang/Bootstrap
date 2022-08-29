@@ -25,8 +25,8 @@ internal class ProgramUtilsTest : FileBasedTest("precess-tests", "typ") {
         assertAll(Scenario.Fail)
     }
 
-    @Test
-    fun `Isolate single test`() {
-        assert(Scenario.Pass, "check_macro.typ", true)
-    }
+//    @Test
+//    fun `Isolate single test`() {
+//        assert(Scenario.Fail, "summon_value.typ", true)
+//    }
 }

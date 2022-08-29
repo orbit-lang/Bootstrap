@@ -1,4 +1,0 @@
-#Equal
-Dump: {Z, S:(Nat) -> Nat, Nat:(Z | S:(Nat) -> Nat) ; }
-
-Type checking completed successfully

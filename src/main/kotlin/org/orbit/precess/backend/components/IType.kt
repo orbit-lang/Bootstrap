@@ -154,8 +154,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             else -> false
         }
 
-        override fun unbox(env: Env) : AnyType
-            = generator.infer(env).unbox(env)
+        override fun unbox(env: Env) : AnyType = this
     }
 
     data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList()) : Entity<Type> {
@@ -442,8 +441,17 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             }
         }
 
-        override fun unbox(env: Env): AnyType
-            = Arrow1(takes.unbox(env), gives.unbox(env))
+        override fun unbox(env: Env): AnyType {
+            val domain = takes.unbox(env)
+
+            if (domain is Never) return domain
+
+            val codomain = gives.unbox(env)
+
+            if (domain is Never) return codomain
+
+            return Arrow1(domain, codomain)
+        }
 
         override fun equals(other: Any?): Boolean = when (other) {
             is Arrow1 -> takes == other.takes && gives == other.gives

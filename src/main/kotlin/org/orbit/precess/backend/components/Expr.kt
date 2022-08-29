@@ -4,7 +4,7 @@ import org.orbit.precess.backend.utils.*
 
 sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
     data class Var(val name: String) : Expr<Var> {
-        override fun substitute(substitution: Substitution): Var = Var(name)
+        override fun substitute(substitution: Substitution): Var = this
 
         override fun infer(env: Env): IType<*> =
             env.getRef(name)?.type ?: IType.Never("`$name` is undefined in the current context")
@@ -23,6 +23,14 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
 
         override fun infer(env: Env): IType<*>
             = IType.Safe(term.infer(env))
+    }
+
+    data class Type(val typeId: String) : Expr<Type> {
+        override fun substitute(substitution: Substitution): Type = this
+        override fun toString(): String = typeId
+
+        override fun infer(env: Env): IType<*>
+            = env.getElement(typeId) ?: IType.Never("Unknown Type `$typeId` in current context: `$env`")
     }
 
     data class AnyTypeLiteral(val type: AnyType) : Expr<AnyTypeLiteral> {
@@ -157,7 +165,16 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
 
     data class Box(val term: AnyExpr) : Expr<Box> {
         override fun substitute(substitution: Substitution): Box = Box(term.substitute(substitution))
-        override fun infer(env: Env): IType<*> = term.infer(env)
+        override fun infer(env: Env): IType<*> = IType.Box(term)
         override fun toString(): String = "⎡$term⎦"
+    }
+
+    data class Unbox(val term: AnyExpr) : Expr<Unbox> {
+        override fun substitute(substitution: Substitution): Unbox = Unbox(term.substitute(substitution))
+        override fun infer(env: Env): IType<*> = when (val box = term.infer(env).exists(env)) {
+            is IType.Box -> box.generator.infer(env)
+            else -> IType.Never("Cannot unbox non-boxed expression: `$term`")
+        }
+        override fun toString(): String = "⎣$term⎤"
     }
 }

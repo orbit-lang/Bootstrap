@@ -13,7 +13,7 @@ object BindingLiteralRule : ParseRule<BindingLiteralNode> {
 
         context.expect(TokenTypes.Bind)
 
-        val type = context.attempt(AnyTypeExpressionRule)
+        val type = context.attempt(AnyTermExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
         return +BindingLiteralNode(ref.firstToken, type.lastToken, ref, type)

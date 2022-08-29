@@ -20,18 +20,18 @@ private object EntityRule : ParseRule<EntityTypeExpressionNode> {
     }
 }
 
-private object AlgebraicTypeRule : ParseRule<AlgebraicTypeExpressionNode> {
+object AlgebraicTypeRule : ParseRule<AlgebraicTypeExpressionNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.TypeOperator)
         val typeOperator = TypeOperator.parse(start.text)
             ?: throw context.invocation.make<Parser>("Unknown Type Operator `${start.text}`", start)
 
         context.expect(TokenTypes.LParen)
-        val leftType = context.attempt(AnyTypeExpressionRule)
+        val leftType = context.attempt(AnyTermExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
         context.expect(TokenTypes.Comma)
-        val rightType = context.attempt(AnyTypeExpressionRule)
+        val rightType = context.attempt(AnyTermExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
         val end = context.expect(TokenTypes.RParen)
@@ -43,12 +43,12 @@ private object AlgebraicTypeRule : ParseRule<AlgebraicTypeExpressionNode> {
     }
 }
 
-object AnyTypeExpressionRule : ParseRule<TypeExpressionNode> {
-    override fun parse(context: Parser): ParseRule.Result {
-        val typeExpr = context.attemptAny(listOf(AlgebraicTypeRule, EntityRule, UnboxRule))
-            as? TypeExpressionNode
-            ?: return ParseRule.Result.Failure.Abort
-
-        return +typeExpr
-    }
-}
+//object AnyTypeExpressionRule : ParseRule<TypeExpressionNode> {
+//    override fun parse(context: Parser): ParseRule.Result {
+//        val typeExpr = context.attemptAny(listOf(AlgebraicTypeRule, EntityRule, UnboxRule))
+//            as? TypeExpressionNode
+//            ?: return ParseRule.Result.Failure.Abort
+//
+//        return +typeExpr
+//    }
+//}
