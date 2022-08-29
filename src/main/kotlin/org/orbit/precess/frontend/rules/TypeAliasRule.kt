@@ -18,7 +18,7 @@ object TypeAliasRule : ParseRule<TypeAliasNode> {
 
         context.expect(TokenTypes.Bind)
 
-        val type = context.attempt(AnyTypeExpressionRule)
+        val type = context.attempt(AnyTermExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
         return +TypeAliasNode(start, type.lastToken, start.text, type)

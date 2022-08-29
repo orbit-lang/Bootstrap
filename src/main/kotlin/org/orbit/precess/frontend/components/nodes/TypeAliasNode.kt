@@ -6,13 +6,11 @@ import org.orbit.precess.backend.components.Decl
 import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
-data class TypeAliasNode(override val firstToken: Token, override val lastToken: Token, val ref: String, val type: TypeExpressionNode<*>) : DeclNode<Decl.TypeAlias>() {
-    override fun getChildren(): List<Node> = listOf(type)
-    override fun toString(): String = "$ref:$type"
+data class TypeAliasNode(override val firstToken: Token, override val lastToken: Token, val ref: String, val term: TermExpressionNode<*>) : DeclNode<Decl.TypeAlias>() {
+    override fun getChildren(): List<Node> = listOf(term)
+    override fun toString(): String = "$ref:$term"
 
-    override fun getDecl(env: Env): DeclResult<Decl.TypeAlias> = when (val res = type.infer(env)) {
-        is IType.Never -> DeclResult.Failure(res)
-        else -> DeclResult.Success(Decl.TypeAlias(ref, res))
-    }
+    override fun getDecl(env: Env): DeclResult<Decl.TypeAlias>
+        = DeclResult.Success(Decl.TypeAlias(ref, term.getExpression(env)))
 }
 

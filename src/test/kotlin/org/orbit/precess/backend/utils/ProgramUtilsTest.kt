@@ -27,6 +27,6 @@ internal class ProgramUtilsTest : FileBasedTest("precess-tests", "typ") {
 
     @Test
     fun `Isolate single test`() {
-        assert(Scenario.Pass, "unbox.typ", true)
+        assert(Scenario.Pass, "check_macro.typ", true)
     }
 }

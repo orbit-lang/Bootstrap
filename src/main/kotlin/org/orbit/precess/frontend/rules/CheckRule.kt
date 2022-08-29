@@ -13,13 +13,13 @@ object CheckRule : ParseRule<CheckNode> {
 
         context.expect(TokenTypes.LParen)
 
-        val expr = context.attemptAny(RefExprRule, TypeLookupRule, ArrowRule)
+        val expr = context.attemptAny(AnyTermExpressionRule)
             as? TermExpressionNode<*>
             ?: return ParseRule.Result.Failure.Abort
 
         context.expect(TokenTypes.Comma)
 
-        val type = context.attempt(AnyTypeExpressionRule)
+        val type = context.attempt(AnyTermExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
         context.expect(TokenTypes.RParen)

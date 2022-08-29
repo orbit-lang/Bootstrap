@@ -103,6 +103,27 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         override fun exists(env: Env): AnyType = this
     }
 
+    data class Safe(val type: AnyType) : IType<Safe> {
+        override val id: String = type.id
+
+        override fun substitute(substitution: Substitution): Safe
+            = Safe(type.substitute(substitution))
+
+        override fun exists(env: Env): AnyType
+            = type.exists(env)
+
+        override fun getCanonicalName(): String
+            = type.getCanonicalName()
+
+        override fun equals(other: Any?): Boolean
+            = type == other
+
+        override fun unbox(env: Env): AnyType = this
+
+        override fun getTypeCheckPosition(): TypeCheckPosition
+            = type.getTypeCheckPosition()
+    }
+
     data class Alias(val name: String, val type: AnyType) : IType<Alias> {
         override val id: String = "$name:${type.id}"
 
@@ -111,6 +132,14 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun exists(env: Env): AnyType = type.exists(env)
         override fun getCanonicalName(): String = name
+        override fun unbox(env: Env): AnyType
+            = type.unbox(env)
+
+        override fun equals(other: Any?): Boolean
+            = type == other
+
+        override fun getTypeCheckPosition(): TypeCheckPosition
+            = type.getTypeCheckPosition()
     }
 
     data class Box(val generator: AnyExpr) : IType<Box> {
@@ -126,7 +155,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         }
 
         override fun unbox(env: Env) : AnyType
-            = generator.infer(env)
+            = generator.infer(env).unbox(env)
     }
 
     data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList()) : Entity<Type> {
@@ -141,9 +170,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun getCanonicalName(): String = name
 
-        override fun exists(env: Env): AnyType = when (env.getElement(name)) {
+        override fun exists(env: Env): AnyType = when (val t = env.getElement(name)) {
             null -> Never("Unknown Type `$name` in current context: `$env`")
-            else -> this
+            else -> t
         }
 
         fun api(env: Env): ITrait = ITrait.MembershipTrait("$id.__api", env.getMembers(this))
@@ -170,7 +199,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
                 self.id -> true
                 else -> id == other.id
             }
-            else -> false
+            else -> other == this
         }
     }
 
@@ -203,6 +232,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
     interface IAlgebraicType<Self : IAlgebraicType<Self>> : IType<Self> {
         fun getConstructors(): List<IConstructor<Self>>
+        override fun getTypeCheckPosition(): TypeCheckPosition
+            = TypeCheckPosition.AlwaysLeft
     }
 
     sealed interface IProductType<I, Self : IProductType<I, Self>> : IAlgebraicType<Self>, IIndexType<I, Self>
@@ -237,6 +268,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
                 }
             }
         }
+
+        override fun unbox(env: Env): AnyType
+            = Tuple(left.unbox(env), right.unbox(env))
     }
 
     data class Struct(val members: List<Member>) : IProductType<String, Struct>, IAlgebraicType<Struct> {
@@ -327,6 +361,15 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
                 }
             }
         }
+
+        override fun equals(other: Any?): Boolean = when (other) {
+            is Union -> left == other.left && right == other.right
+            is IType<*> -> left == other || right == other
+            else -> false
+        }
+
+        override fun unbox(env: Env): AnyType
+            = Union(left.unbox(env), right.unbox(env))
     }
 
     sealed interface IArrow<Self : IArrow<Self>> : UnifiableType<Self> {
@@ -357,8 +400,15 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         override fun substitute(substitution: Substitution): Arrow0 = Arrow0(gives.substitute(substitution))
         override fun curry(): Arrow0 = Arrow0(Arrow0(gives))
         override fun never(args: List<AnyType>): Never = Never("Unreachable")
-
         override fun exists(env: Env): AnyType = gives.exists(env)
+
+        override fun unbox(env: Env): AnyType
+            = Arrow0(gives.unbox(env))
+
+        override fun equals(other: Any?): Boolean = when (other) {
+            is Arrow0 -> gives == other.gives
+            else -> false
+        }
     }
 
     data class Arrow1(val takes: IType<*>, val gives: IType<*>) : IArrow<Arrow1> {
@@ -390,6 +440,18 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
                     else -> this
                 }
             }
+        }
+
+        override fun unbox(env: Env): AnyType
+            = Arrow1(takes.unbox(env), gives.unbox(env))
+
+        override fun equals(other: Any?): Boolean = when (other) {
+            is Arrow1 -> takes == other.takes && gives == other.gives
+            is Safe -> when (val t = other.type) {
+                is Arrow1 -> this == t
+                else -> false
+            }
+            else -> false
         }
     }
 
@@ -567,4 +629,5 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
     fun exists(env: Env) : AnyType
     fun unbox(env: Env) : AnyType = this
+    fun getTypeCheckPosition() : TypeCheckPosition = TypeCheckPosition.Any
 }

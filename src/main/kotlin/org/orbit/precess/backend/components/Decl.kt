@@ -85,13 +85,19 @@ sealed interface Decl {
             = Env(env.elements, env.refs - Ref(name, type), env.contracts, env.projections, env.expressionCache)
     }
 
-    data class TypeAlias(val name: String, val type: AnyType) : Decl {
+    data class TypeAlias(val name: String, val expr: AnyExpr) : Decl {
         override fun exists(env: Env): Boolean = env.elements.any { it.getCanonicalName() == name }
-        override fun xtend(env: Env): Env
-            = Env(env.elements + IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
+        override fun xtend(env: Env): Env {
+            val type = expr.infer(env)
 
-        override fun reduce(env: Env): Env
-            = Env(env.elements - IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.elements + IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
+        }
+
+        override fun reduce(env: Env): Env {
+            val type = expr.infer(env)
+
+            return Env(env.elements - IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
+        }
     }
 
     data class Alias(val name: String, val ref: IRef) : Decl {

@@ -15,7 +15,9 @@ object TokenTypes : TokenTypeProvider {
     object In : TokenType("In", "in", true, false, TokenType.Family.Keyword)
     object As : TokenType("As", "as", true, false, TokenType.Family.Keyword)
     object Run : TokenType("Run", "run", true, false, TokenType.Family.Keyword)
+    object Safe : TokenType("Safe", "safe", true, false, TokenType.Family.Keyword)
     object SummonValue : TokenType("SummonValue", "summonValue", true, false, TokenType.Family.Keyword)
+    object Unbox : TokenType("Unbox", "unbox", true, false, TokenType.Family.Keyword)
     object Assign : TokenType("Assign", "\\=", true, false, TokenType.Family.Keyword)
     object FatArrow : TokenType("FatArrow", "\\=\\>", true, false, TokenType.Family.Keyword)
     object Arrow : TokenType("Arrow", "\\-\\>", true, false, TokenType.Family.Keyword)
@@ -32,7 +34,7 @@ object TokenTypes : TokenTypeProvider {
     object TypeOperator : TokenType("TypeOp", "[∏∑]", true, false, TokenType.Family.Op)
 
     override fun getTokenTypes(): List<TokenType> = listOf(
-        Box, Check, Infer, In, As, Run, Dump, Exists, SummonValue,
+        Box, Check, Infer, In, As, Run, Dump, Exists, Safe, SummonValue, Unbox,
         Delta, RefId, TypeId, Check, FatArrow, Arrow, Assign,
         Bind, LParen, RParen, LBrace, RBrace, ContextOperator, Dot,
         Comma, And, TypeAttribute, TypeOperator

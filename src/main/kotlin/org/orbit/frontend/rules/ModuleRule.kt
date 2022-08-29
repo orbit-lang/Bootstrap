@@ -156,7 +156,7 @@ object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
                     typeAliasNodes.add(typeAlias)
                 }
 
-                else -> throw Exception("Unexpected top-level lexeme: `${next.text}`")
+                else -> throw context.invocation.make<Parser>("Unexpected top-level lexeme: `${next.text}`", next)
             }
 
             next = context.peek()

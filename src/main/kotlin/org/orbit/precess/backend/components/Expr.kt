@@ -12,12 +12,34 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
         override fun toString(): String = name
     }
 
-    sealed interface ITypeLiteral : Expr<ITypeLiteral>
+    sealed interface ITypeExpr<Self: ITypeExpr<Self>> : Expr<Self>
+
+    data class Safe(val term: AnyExpr) : Expr<Safe> {
+        override fun substitute(substitution: Substitution): Safe
+            = Safe(term.substitute(substitution))
+
+        override fun toString(): String
+            = "safe $term"
+
+        override fun infer(env: Env): IType<*>
+            = IType.Safe(term.infer(env))
+    }
 
     data class AnyTypeLiteral(val type: AnyType) : Expr<AnyTypeLiteral> {
         override fun substitute(substitution: Substitution): AnyTypeLiteral = AnyTypeLiteral(type.substitute(substitution))
         override fun toString(): String = type.id
-        override fun infer(env: Env): AnyType = type.exists(env)
+        override fun infer(env: Env): AnyType
+            = type.exists(env)
+    }
+
+    data class Arrow1(val domainExpr: AnyExpr, val codomainExpr: AnyExpr) : ITypeExpr<Arrow1> {
+        override fun substitute(substitution: Substitution): Arrow1
+            = Arrow1(domainExpr.substitute(substitution), codomainExpr.substitute(substitution))
+
+        override fun toString(): String = "($domainExpr) -> $codomainExpr"
+
+        override fun infer(env: Env): IType<*>
+            = IType.Arrow1(domainExpr.infer(env), codomainExpr.infer(env))
     }
 
     data class Block(val body: List<AnyExpr>) : Expr<Block> {
@@ -127,19 +149,15 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
         }
     }
 
-    data class Box(val term: Expr<*>) : Expr<Box> {
-        override fun substitute(substitution: Substitution): Box
-            = Box(term.substitute(substitution))
-
-        override fun toString(): String = "⎡$term⎦"
-
-        override fun infer(env: Env): IType<*>
-            = IType.Box(term)
-    }
-
     data class Symbol(val name: String) : Expr<Symbol> {
         override fun substitute(substitution: Substitution): Symbol = this
         override fun infer(env: Env): IType<*> = IType.Never("TODO - Symbol")
         override fun toString(): String = name
+    }
+
+    data class Box(val term: AnyExpr) : Expr<Box> {
+        override fun substitute(substitution: Substitution): Box = Box(term.substitute(substitution))
+        override fun infer(env: Env): IType<*> = term.infer(env)
+        override fun toString(): String = "⎡$term⎦"
     }
 }

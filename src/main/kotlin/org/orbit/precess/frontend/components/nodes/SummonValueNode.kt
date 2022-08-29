@@ -7,7 +7,7 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 import java.lang.NullPointerException
 
-data class SummonValueNode(override val firstToken: Token, override val lastToken: Token, val matchType: TypeExpressionNode<*>, val ref: RefLiteralNode) : DeclNode<Decl.Alias>() {
+data class SummonValueNode(override val firstToken: Token, override val lastToken: Token, val matchType: TypeExpressionNode, val ref: RefLiteralNode) : DeclNode<Decl.Alias>() {
     override fun getChildren(): List<Node> = listOf(matchType, ref)
     override fun toString(): String = "summonValue $matchType as $ref"
 

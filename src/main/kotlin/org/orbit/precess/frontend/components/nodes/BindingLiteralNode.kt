@@ -8,7 +8,7 @@ import org.orbit.precess.backend.components.IType
 import org.orbit.precess.backend.components.TypeAttribute
 import org.orbit.precess.backend.utils.AnyType
 
-data class BindingLiteralNode(override val firstToken: Token, override val lastToken: Token, val ref: RefLiteralNode, val type: TypeExpressionNode<*>) : DeclNode<Decl.Assignment>() {
+data class BindingLiteralNode(override val firstToken: Token, override val lastToken: Token, val ref: RefLiteralNode, val type: TypeExpressionNode) : DeclNode<Decl.Assignment>() {
     override fun getChildren(): List<Node> = listOf(ref, type)
     override fun toString(): String = "$ref:$type"
 

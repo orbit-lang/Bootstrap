@@ -13,7 +13,7 @@ object ArrowRule : ParseRule<ArrowNode> {
 
         context.mark()
         val start = context.expect(TokenTypes.LParen)
-        val domain = context.attempt(AnyTypeExpressionRule)
+        val domain = context.attempt(AnyTermExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
         val next = context.peek()
@@ -24,7 +24,7 @@ object ArrowRule : ParseRule<ArrowNode> {
         context.expect(TokenTypes.RParen)
         context.expect(TokenTypes.Arrow)
 
-        val codomain = context.attempt(AnyTypeExpressionRule)
+        val codomain = context.attempt(AnyTermExpressionRule)
             ?: return ParseRule.Result.Failure.Abort
 
         return +ArrowNode(start, codomain.lastToken, domain, codomain)

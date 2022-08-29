@@ -1,6 +1,8 @@
 module M {
-    context CombinableCtx [T] with trait Combinable {
-        (T) combine (a T, b T) (T)
+    context CombinableCtx [T] {
+        trait Combinable {
+            (T) combine (a T, b T) (T)
+        }
     }
 
     infix operator combinablePlus `+` by Combinable::combine
@@ -9,7 +11,7 @@ module M {
     context BoxCtx [ValueType]
         with type Box(value ValueType)
 
-    extension BoxCtx within CombinableCtx [Self], [Self.ValueType] where Self.ValueType : Combinable
+    extension BoxCtx within CombinableCtx [Self] + CombinableCtx [Self.ValueType] where Self.ValueType : Combinable
         with projection Box : Combinable
             with combine by ::Box(a.value + b.value)
 
@@ -19,14 +21,14 @@ module M {
     type IntRange(start Int, end Int)
 }
 
-module Options {
-    context OptionCtx [T] with
-        type Option = None | Some(value T)
-
-    extension Bool within OptionCtx [Bool] {
-        (self Bool) optionValue () (Option) = select self {
-            case true = Option::Some(self)
-            case else = Option::None
-        }
-    }
-}
+#module Options {
+#    context OptionCtx [T] with
+#        type Option = None | Some(value T)
+#
+#    extension Bool within OptionCtx [Bool] {
+#        (self Bool) optionValue () (Option) = select self {
+#            case true = Option::Some(self)
+#            case else = Option::None
+#        }
+#    }
+#}

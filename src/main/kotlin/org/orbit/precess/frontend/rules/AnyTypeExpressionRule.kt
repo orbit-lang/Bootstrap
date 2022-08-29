@@ -20,7 +20,7 @@ private object EntityRule : ParseRule<EntityTypeExpressionNode> {
     }
 }
 
-private object AlgebraicTypeRule : ParseRule<AlgebraicTypeExpressionNode<*>> {
+private object AlgebraicTypeRule : ParseRule<AlgebraicTypeExpressionNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.TypeOperator)
         val typeOperator = TypeOperator.parse(start.text)
@@ -43,10 +43,10 @@ private object AlgebraicTypeRule : ParseRule<AlgebraicTypeExpressionNode<*>> {
     }
 }
 
-object AnyTypeExpressionRule : ParseRule<TypeExpressionNode<*>> {
+object AnyTypeExpressionRule : ParseRule<TypeExpressionNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val typeExpr = context.attemptAny(listOf(ArrowRule, AlgebraicTypeRule, EntityRule, BoxRule))
-            as? TypeExpressionNode<*>
+        val typeExpr = context.attemptAny(listOf(AlgebraicTypeRule, EntityRule, UnboxRule))
+            as? TypeExpressionNode
             ?: return ParseRule.Result.Failure.Abort
 
         return +typeExpr

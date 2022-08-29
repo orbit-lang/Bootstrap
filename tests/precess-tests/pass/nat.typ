@@ -1,2 +1,8 @@
 MkNat => ∆ + Z
-      => ∆ + Nat! : ∑(∆.Z, S : (∆.Nat) -> ∆.Nat)
+      => ∆ + S : (∆.Nat) -> ∆.Nat
+      => ∆ + Nat : ∑(∆.Z, ∆.S)
+      => check(∆.Z, ∆.Nat)
+      => check(∆.S, ∆.Nat)
+      => dump(∆)
+
+run MkNat(∆)
