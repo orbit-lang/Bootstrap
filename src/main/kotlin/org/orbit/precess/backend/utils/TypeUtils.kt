@@ -15,8 +15,8 @@ object TypeUtils {
     }
 
     private fun <R> prepare(env: Env, left: AnyType, right: AnyType, block: (AnyType, AnyType) -> R) : R {
-        val lRaw = left.unbox(env)
-        val rRaw = right.unbox(env)
+        val lRaw = left.flatten(env)
+        val rRaw = right.flatten(env)
 
         if (rRaw.getTypeCheckPosition() == TypeCheckPosition.AlwaysLeft) return block(rRaw, lRaw)
 
@@ -71,6 +71,11 @@ object TypeUtils {
 
     fun unwrap(type: AnyType) : AnyType = when (type) {
         is IType.Alias -> type.type
+        else -> type
+    }
+
+    fun unbox(env: Env, type: AnyType) : AnyType = when (type) {
+        is IType.UnboxableType -> type.unbox(env)
         else -> type
     }
 }

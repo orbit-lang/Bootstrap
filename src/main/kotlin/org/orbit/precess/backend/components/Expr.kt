@@ -172,7 +172,7 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
     data class Unbox(val term: AnyExpr) : Expr<Unbox> {
         override fun substitute(substitution: Substitution): Unbox = Unbox(term.substitute(substitution))
         override fun infer(env: Env): IType<*> = when (val box = term.infer(env).exists(env)) {
-            is IType.Box -> box.generator.infer(env)
+            is IType.UnboxableType -> box.unbox(env)
             else -> IType.Never("Cannot unbox non-boxed expression: `$term`")
         }
         override fun toString(): String = "⎣$term⎤"

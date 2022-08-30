@@ -2,11 +2,13 @@ package org.orbit.precess.backend.phase
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.phase.Phase
 import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 import org.orbit.precess.frontend.components.nodes.ProgramNode
 import org.orbit.util.Invocation
+import org.orbit.util.getKoinInstance
 
 sealed interface PropositionResult {
     data class True(val env: Env) : PropositionResult
@@ -14,7 +16,11 @@ sealed interface PropositionResult {
 
     operator fun invoke() : Env = when (this) {
         is True -> env
-        is False -> throw Exception(reason.message)
+        is False -> {
+            val invocation = getKoinInstance<Invocation>()
+
+            throw invocation.make<Interpreter>(reason.message, SourcePosition.unknown)
+        }
     }
 
     operator fun plus(other: PropositionResult) : PropositionResult = when (this) {

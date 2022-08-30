@@ -1,0 +1,16 @@
+#Equal
+ContextNode
+ TypeIdentifierNode
+ TypeIdentifierNode
+ TraitDefNode
+  TypeIdentifierNode
+  MethodSignatureNode
+   IdentifierNode
+   TypeIdentifierNode
+   TypeIdentifierNode
+   PairNode
+    IdentifierNode
+    TypeIdentifierNode
+   PairNode
+    IdentifierNode
+    TypeIdentifierNode

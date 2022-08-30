@@ -20,8 +20,8 @@ internal class ContextTests : FileBasedTest("context-tests", "orb") {
         assertAll(Scenario.Fail)
     }
 
-    @Test
-    fun `Isolate single test`() {
-        assert(Scenario.Pass, "with_single_decl_body.orb", true)
-    }
+//    @Test
+//    fun `Isolate single test`() {
+//        assert(Scenario.Pass, "with_single_trait_def_body.orb", true)
+//    }
 }

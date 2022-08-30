@@ -1,8 +1,6 @@
 module M {
-    context CombinableCtx [T] {
-        trait Combinable {
-            (T) combine (a T, b T) (T)
-        }
+    context CombinableCtx [T] with trait Combinable {
+        (self T) combine (other T) (T)
     }
 
     infix operator combinablePlus `+` by Combinable::combine

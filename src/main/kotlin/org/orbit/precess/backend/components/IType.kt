@@ -87,6 +87,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             is Always -> this
             is Never -> this + other
         }
+
+        override fun unbox(env: Env): AnyType = this
     }
 
     object Unit : Entity<Unit> {
@@ -118,13 +120,13 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         override fun equals(other: Any?): Boolean
             = type == other
 
-        override fun unbox(env: Env): AnyType = this
+        override fun flatten(env: Env): AnyType = this
 
         override fun getTypeCheckPosition(): TypeCheckPosition
             = type.getTypeCheckPosition()
     }
 
-    data class Alias(val name: String, val type: AnyType) : IType<Alias> {
+    data class Alias(val name: String, val type: AnyType) : IType<Alias>, UnboxableType {
         override val id: String = "$name:${type.id}"
 
         override fun substitute(substitution: Substitution): Alias
@@ -132,17 +134,24 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun exists(env: Env): AnyType = type.exists(env)
         override fun getCanonicalName(): String = name
-        override fun unbox(env: Env): AnyType
-            = type.unbox(env)
+        override fun flatten(env: Env): AnyType
+            = type.flatten(env)
 
         override fun equals(other: Any?): Boolean
             = type == other
 
         override fun getTypeCheckPosition(): TypeCheckPosition
             = type.getTypeCheckPosition()
+
+        override fun unbox(env: Env): AnyType
+            = TypeUtils.unbox(env, type)
     }
 
-    data class Box(val generator: AnyExpr) : IType<Box> {
+    sealed interface UnboxableType {
+        fun unbox(env: Env) : AnyType
+    }
+
+    data class Box(val generator: AnyExpr) : IType<Box>, UnboxableType {
         override val id: String = "⎡$generator⎦"
         override fun substitute(substitution: Substitution): Box
             = Box(generator.substitute(substitution))
@@ -154,7 +163,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             else -> false
         }
 
-        override fun unbox(env: Env) : AnyType = this
+        override fun flatten(env: Env) : AnyType = this
+
+        override fun unbox(env: Env): AnyType
+            = generator.infer(env)
     }
 
     data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList()) : Entity<Type> {
@@ -229,7 +241,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         fun getElement(at: I): AnyType
     }
 
-    interface IAlgebraicType<Self : IAlgebraicType<Self>> : IType<Self> {
+    interface IAlgebraicType<Self : IAlgebraicType<Self>> : IType<Self>, UnboxableType {
         fun getConstructors(): List<IConstructor<Self>>
         override fun getTypeCheckPosition(): TypeCheckPosition
             = TypeCheckPosition.AlwaysLeft
@@ -268,8 +280,11 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             }
         }
 
+        override fun flatten(env: Env): AnyType
+            = Tuple(left.flatten(env), right.flatten(env))
+
         override fun unbox(env: Env): AnyType
-            = Tuple(left.unbox(env), right.unbox(env))
+            = Tuple(TypeUtils.unbox(env, left), TypeUtils.unbox(env, right))
     }
 
     data class Struct(val members: List<Member>) : IProductType<String, Struct>, IAlgebraicType<Struct> {
@@ -282,10 +297,13 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         override fun exists(env: Env): AnyType {
             TODO("Member exists")
         }
+
+        override fun unbox(env: Env): AnyType {
+            TODO("Not yet implemented")
+        }
     }
 
-    data class StructConstructor(override val constructedType: Struct, val args: List<Member>) :
-        IConstructor<Struct> {
+    data class StructConstructor(override val constructedType: Struct, val args: List<Member>) : IConstructor<Struct> {
         override val id: String = "(${args.joinToString(", ") { it.id }}) -> ${constructedType.id}"
 
         override fun getDomain(): List<AnyType> = args.map { it.type }
@@ -303,6 +321,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             Never("Cannot construct Type ${constructedType.id} with arguments (${args.joinToString("; ") { it.id }})")
 
         override fun exists(env: Env): AnyType {
+            TODO("Not yet implemented")
+        }
+
+        override fun unbox(env: Env): AnyType {
             TODO("Not yet implemented")
         }
     }
@@ -325,6 +347,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             Never("Union Type ${constructedType.id} cannot be constructed with argument ${arg.id}")
 
         override fun exists(env: Env): AnyType {
+            TODO("Not yet implemented")
+        }
+
+        override fun unbox(env: Env): AnyType {
             TODO("Not yet implemented")
         }
     }
@@ -367,11 +393,14 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             else -> false
         }
 
+        override fun flatten(env: Env): AnyType
+            = Union(left.flatten(env), right.flatten(env))
+
         override fun unbox(env: Env): AnyType
-            = Union(left.unbox(env), right.unbox(env))
+            = Union(TypeUtils.unbox(env, left), TypeUtils.unbox(env, right))
     }
 
-    sealed interface IArrow<Self : IArrow<Self>> : UnifiableType<Self> {
+    sealed interface IArrow<Self : IArrow<Self>> : UnifiableType<Self>, UnboxableType {
         fun getDomain(): List<AnyType>
         fun getCodomain(): AnyType
 
@@ -401,13 +430,16 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         override fun never(args: List<AnyType>): Never = Never("Unreachable")
         override fun exists(env: Env): AnyType = gives.exists(env)
 
-        override fun unbox(env: Env): AnyType
-            = Arrow0(gives.unbox(env))
+        override fun flatten(env: Env): AnyType
+            = Arrow0(gives.flatten(env))
 
         override fun equals(other: Any?): Boolean = when (other) {
             is Arrow0 -> gives == other.gives
             else -> false
         }
+
+        override fun unbox(env: Env): AnyType
+            = Arrow0(TypeUtils.unbox(env, gives))
     }
 
     data class Arrow1(val takes: IType<*>, val gives: IType<*>) : IArrow<Arrow1> {
@@ -441,12 +473,12 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             }
         }
 
-        override fun unbox(env: Env): AnyType {
-            val domain = takes.unbox(env)
+        override fun flatten(env: Env): AnyType {
+            val domain = takes.flatten(env)
 
             if (domain is Never) return domain
 
-            val codomain = gives.unbox(env)
+            val codomain = gives.flatten(env)
 
             if (domain is Never) return codomain
 
@@ -461,6 +493,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
             }
             else -> false
         }
+
+        override fun unbox(env: Env): AnyType
+            = Arrow1(TypeUtils.unbox(env, takes), TypeUtils.unbox(env, gives))
     }
 
     data class Arrow2(val a: IType<*>, val b: IType<*>, val gives: IType<*>) : IArrow<Arrow2> {
@@ -508,6 +543,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
                 }
             }
         }
+
+        override fun unbox(env: Env): AnyType {
+            TODO("Not yet implemented")
+        }
     }
 
     data class Arrow3(val a: IType<*>, val b: IType<*>, val c: IType<*>, val gives: IType<*>) : IArrow<Arrow3> {
@@ -530,6 +569,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
 
         override fun exists(env: Env): AnyType {
             TODO("Fill in 'when table' for Arrow3")
+        }
+
+        override fun unbox(env: Env): AnyType {
+            TODO("Not yet implemented")
         }
     }
 
@@ -636,6 +679,6 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
     fun getCanonicalName() : String = id
 
     fun exists(env: Env) : AnyType
-    fun unbox(env: Env) : AnyType = this
+    fun flatten(env: Env) : AnyType = this
     fun getTypeCheckPosition() : TypeCheckPosition = TypeCheckPosition.Any
 }

@@ -69,7 +69,7 @@ class Main {
         @ExperimentalTime
 		@JvmStatic fun main(args: Array<String>) {
 			val orbit = Orbit()
-				.subcommands(Build(), Symbols())
+				.subcommands(Build(), Symbols(), Precess)
 
 			orbit.main(args)
         }

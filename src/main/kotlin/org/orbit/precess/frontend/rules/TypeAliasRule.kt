@@ -19,7 +19,7 @@ object TypeAliasRule : ParseRule<TypeAliasNode> {
         context.expect(TokenTypes.Bind)
 
         val type = context.attempt(AnyTermExpressionRule)
-            ?: return ParseRule.Result.Failure.Throw("Right-hand side of a Type Alias must be one of: Ref literal, Type literal, Arrow Literal, Safe term, Box term", context.peek())
+            ?: return ParseRule.Result.Failure.Throw("Right-hand side Type Alias `${start.text}` must be one of: Ref literal, Type literal, Arrow Literal, Safe term, Box term", context.peek())
 
         return +TypeAliasNode(start, type.lastToken, start.text, type)
     }
