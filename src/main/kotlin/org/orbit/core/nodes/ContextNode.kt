@@ -1,8 +1,7 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
-import org.orbit.frontend.rules.ContextCompositionOperator
-import org.orbit.graph.pathresolvers.PathResolver
+import org.orbit.frontend.rules.IntrinsicContextCompositionOperator
 
 abstract class ContextExpressionNode : Node()
 
@@ -31,7 +30,7 @@ data class ContextInstantiationNode(
 data class ContextCompositionNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val op: ContextCompositionOperator,
+    val op: IntrinsicContextCompositionOperator,
     val leftContext: ContextExpressionNode,
     val rightContext: ContextExpressionNode
 ) : ContextExpressionNode() {

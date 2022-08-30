@@ -2,33 +2,24 @@ package org.orbit.frontend.rules
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.components.IIntrinsicOperator
 import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.ContextCompositionNode
 import org.orbit.core.nodes.ContextExpressionNode
 import org.orbit.core.nodes.ContextInstantiationNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
+import org.orbit.precess.backend.components.parse
 import org.orbit.util.Invocation
 
-interface ContextCompositionOperator {
-    val symbol: String
-}
-
-enum class IntrinsicContextCompositionOperator(override val symbol: String) : ContextCompositionOperator {
+enum class IntrinsicContextCompositionOperator(override val symbol: String) : IIntrinsicOperator {
     And("&"), Or("|");
 
-    companion object {
-        fun valueOfOrNull(symbol: String) : IntrinsicContextCompositionOperator? = when (val idx = allSymbols().indexOf(symbol)) {
-            -1 -> null
-            else -> values()[idx]
-        }
-
-        fun allSymbols() : List<String>
-            = values().map { it.symbol }
+    companion object : IIntrinsicOperator.Factory<IntrinsicContextCompositionOperator> {
+        override fun all(): List<IntrinsicContextCompositionOperator>
+            = values().toList()
     }
 }
-
-data class UserDefinedContextCompositionOperator(override val symbol: String) : ContextCompositionOperator
 
 object ContextInstantiationRule : ParseRule<ContextExpressionNode>, KoinComponent {
     private val invocation: Invocation by inject()
@@ -45,10 +36,8 @@ object ContextInstantiationRule : ParseRule<ContextExpressionNode>, KoinComponen
         next = context.peek()
 
         if (next.type == TokenTypes.OperatorSymbol) {
-            val op = when (val op = IntrinsicContextCompositionOperator.valueOfOrNull(next.text)) {
-                null -> UserDefinedContextCompositionOperator(next.text)
-                else -> op
-            }
+            val op = IntrinsicContextCompositionOperator.parse(next.text)
+                ?: throw invocation.make<Parser>("Unknown Context Operator ${next.text}", next)
 
             context.consume()
 

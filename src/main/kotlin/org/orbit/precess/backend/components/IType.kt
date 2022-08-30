@@ -1,16 +1,9 @@
 package org.orbit.precess.backend.components
 
+import org.orbit.core.components.IIntrinsicOperator
 import org.orbit.precess.backend.utils.*
 
-sealed interface IModifier {
-    sealed interface Factory<M: IModifier> {
-        fun all() : List<M>
-    }
-
-    val symbol: String
-}
-
-fun <M: IModifier> IModifier.Factory<M>.parse(symbol: String) : M? {
+fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) : M? {
     for (modifier in all()) {
         if (modifier.symbol == symbol) return modifier
     }
@@ -18,28 +11,28 @@ fun <M: IModifier> IModifier.Factory<M>.parse(symbol: String) : M? {
     return null
 }
 
-enum class TypeAttribute(override val symbol: String) : IModifier {
+enum class TypeAttribute(override val symbol: String) : IIntrinsicOperator {
     Uninhabited("!");
 
-    companion object : IModifier.Factory<TypeAttribute> {
+    companion object : IIntrinsicOperator.Factory<TypeAttribute> {
         override fun all(): List<TypeAttribute> = values().toList()
     }
 
     override fun toString(): String = symbol
 }
 
-enum class TypeOperator(override val symbol: String) : IModifier {
+enum class TypeOperator(override val symbol: String) : IIntrinsicOperator {
     Product("∏"), Sum("∑");
 
-    companion object : IModifier.Factory<TypeOperator> {
+    companion object : IIntrinsicOperator.Factory<TypeOperator> {
         override fun all(): List<TypeOperator> = values().toList()
     }
 }
 
-enum class ContextOperator(override val symbol: String) : IModifier {
+enum class ContextOperator(override val symbol: String) : IIntrinsicOperator {
     Extend("+"), Reduce("-");
 
-    companion object : IModifier.Factory<ContextOperator> {
+    companion object : IIntrinsicOperator.Factory<ContextOperator> {
         override fun all(): List<ContextOperator> = values().toList()
     }
 }
