@@ -6,6 +6,7 @@ import org.orbit.core.SourceProvider
 import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.Node
 import org.orbit.frontend.StringSourceProvider
+import org.orbit.frontend.phase.CommentParser
 import org.orbit.frontend.phase.Lexer
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ParseRule
@@ -21,7 +22,7 @@ object FrontendUtils : KoinComponent {
         = lex(StringSourceProvider(source))
 
     fun <N: Node> parse(sourceProvider: SourceProvider, rule: ParseRule<N>) : Parser.Result
-        = Parser(invocation, rule).execute(Parser.InputType(lex(sourceProvider).tokens))
+        = Parser(invocation, rule).execute(Parser.InputType(lex(CommentParser(invocation).execute(sourceProvider).sourceProvider).tokens))
 
     fun <N: Node> parse(source: String, rule: ParseRule<N>) : Parser.Result
         = parse(StringSourceProvider(source), rule)

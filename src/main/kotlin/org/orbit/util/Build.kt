@@ -32,17 +32,15 @@ import java.io.File
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
-class Build : CliktCommand(), KoinComponent {
-	companion object {
-		const val COMMAND_OPTION_LONG_MAX_CYCLES = "--max-cycles"
-		const val COMMAND_OPTION_LONG_OUTPUT = "--output"
-		const val COMMAND_OPTION_LONG_OUTPUT_PATH = "--output-path"
-		const val COMMAND_OPTION_LONG_LIBRARY = "--library"
-		const val COMMAND_OPTION_LONG_VERBOSE = "--verbose"
-		const val COMMAND_OPTION_CODEGEN_TARGET = "--generate"
+object Build : CliktCommand(), KoinComponent {
+    const val COMMAND_OPTION_LONG_MAX_CYCLES = "--max-cycles"
+    const val COMMAND_OPTION_LONG_OUTPUT = "--output"
+    const val COMMAND_OPTION_LONG_OUTPUT_PATH = "--output-path"
+    const val COMMAND_OPTION_LONG_LIBRARY = "--library"
+    const val COMMAND_OPTION_LONG_VERBOSE = "--verbose"
+    const val COMMAND_OPTION_CODEGEN_TARGET = "--generate"
 
-		const val COMMAND_OPTION_DEFAULT_MAX_CYCLES = 25
-	}
+    const val COMMAND_OPTION_DEFAULT_MAX_CYCLES = 25
 
 	private val invocation: Invocation by inject()
 	private val compilerGenerator: CompilerGenerator by inject()

@@ -123,3 +123,14 @@ abstract class AnnotatedNode : Node() {
 }
 
 abstract class BoundNode : Node()
+
+fun Node.prettyPrintEmpty(depth: Int = 0) : String
+	= "${" ".repeat(depth)}${javaClass.simpleName}"
+
+fun Node.prettyPrintNonEmpty(depth: Int = 0) : String
+	= "${" ".repeat(depth)}${javaClass.simpleName}\n${getChildren().joinToString("\n") { it.prettyPrint(depth + 1) }}"
+
+fun Node.prettyPrint(depth: Int = 0) : String = when (getChildren().isEmpty()) {
+	true -> prettyPrintEmpty(depth)
+	else -> prettyPrintNonEmpty(depth)
+}
