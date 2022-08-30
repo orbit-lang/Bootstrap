@@ -7,7 +7,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.orbit.frontend.FileSourceProvider
-import org.orbit.precess.backend.utils.ProgramUtils
+import org.orbit.precess.backend.utils.PrecessUtils
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
@@ -29,7 +29,7 @@ object Precess : CliktCommand(), KoinComponent {
                     throw invocation.make("File ${source.absolutePath} does not exist")
                 }
 
-                val result = ProgramUtils.run(FileSourceProvider(source))
+                val result = PrecessUtils.run(FileSourceProvider(source))
 
                 println(result)
             } catch (ex: Exception) {

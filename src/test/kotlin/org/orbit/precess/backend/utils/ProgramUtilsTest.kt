@@ -8,11 +8,11 @@ import org.orbit.util.Scenario
 
 internal class ProgramUtilsTest : FileBasedTest("precess-tests", "typ") {
     override fun generateActualResult(sourceProvider: SourceProvider): String
-        = ProgramUtils.run(sourceProvider)
+        = PrecessUtils.run(sourceProvider)
 
     @Test
     fun `Rejects empty program`() {
-        assertThrows<Exception> { ProgramUtils.run("") }
+        assertThrows<Exception> { PrecessUtils.run("") }
     }
 
     @Test
