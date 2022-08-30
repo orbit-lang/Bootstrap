@@ -1,4 +1,4 @@
-package org.orbit.util
+package org.orbit.main
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
@@ -28,6 +28,7 @@ import org.orbit.frontend.phase.ObserverPhase
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.graph.phase.CanonicalNameResolver
+import org.orbit.util.*
 import java.io.File
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime

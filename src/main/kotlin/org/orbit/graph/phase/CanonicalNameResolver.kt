@@ -11,10 +11,10 @@ import org.orbit.core.phase.AdaptablePhase
 import org.orbit.core.phase.Phase
 import org.orbit.frontend.phase.Parser
 import org.orbit.graph.components.*
-import org.orbit.graph.extensions.getAnnotation
 import org.orbit.graph.extensions.getScopeIdentifier
 import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
+import org.orbit.main.Build
 import org.orbit.util.*
 import java.util.*
 import java.util.Stack

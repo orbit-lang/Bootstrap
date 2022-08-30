@@ -1,4 +1,4 @@
-package org.orbit.util
+package org.orbit.main
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
@@ -7,6 +7,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Scope
+import org.orbit.util.Invocation
+import org.orbit.util.OrbitLibrary
 
 class Symbols : CliktCommand(), KoinComponent {
 	private val invocation: Invocation by inject()

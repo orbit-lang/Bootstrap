@@ -14,6 +14,10 @@ import org.orbit.core.components.CompilationSchemeEntry
 import org.orbit.core.nodes.*
 import org.orbit.frontend.*
 import org.orbit.graph.pathresolvers.*
+import org.orbit.main.Build
+import org.orbit.main.Parse
+import org.orbit.main.Precess
+import org.orbit.main.Symbols
 import org.orbit.util.*
 import kotlin.time.ExperimentalTime
 
