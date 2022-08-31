@@ -7,8 +7,8 @@ data class PairNode(
     override val lastToken: Token,
     val identifierNode: IdentifierNode,
     val typeExpressionNode: TypeExpressionNode
-) : Node() {
-	override fun getChildren() : List<Node> {
+) : INode {
+	override fun getChildren() : List<INode> {
 		return listOf(identifierNode, typeExpressionNode)
 	}
 }

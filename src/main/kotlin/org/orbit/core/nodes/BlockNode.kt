@@ -6,8 +6,8 @@ import org.orbit.util.containsInstances
 data class BlockNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val body: List<Node>
-) : ExpressionNode(), ValueRepresentableNode {
+    val body: List<INode>
+) : ExpressionNode, ValueRepresentableNode {
 	val isEmpty: Boolean get() = body.isEmpty()
 
 	val containsDefer: Boolean get() = body.containsInstances<DeferNode>()
@@ -15,7 +15,7 @@ data class BlockNode(
 	//  Revisit once control-flow, lambdas etc are a thing
 	val containsReturn: Boolean get() = body.containsInstances<ReturnStatementNode>()
 
-	override fun getChildren() : List<Node> {
+	override fun getChildren() : List<INode> {
 		return body
 	}
 }

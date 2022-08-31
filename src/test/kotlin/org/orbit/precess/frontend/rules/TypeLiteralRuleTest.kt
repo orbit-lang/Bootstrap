@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
 import org.orbit.core.components.Token
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 import org.orbit.frontend.StringSourceProvider
 import org.orbit.frontend.phase.Lexer
 import org.orbit.frontend.phase.Parser
@@ -23,7 +23,7 @@ abstract class PrecessParserTest {
         return lexer.execute(StringSourceProvider(src)).tokens
     }
 
-    protected fun <N: Node> parse(src: String, rule: ParseRule<N>) : N {
+    protected fun <N: INode> parse(src: String, rule: ParseRule<N>) : N {
         val invocation = Invocation(Unix)
         val tokens = lex(invocation, src)
         val parser = Parser(invocation, rule)

@@ -4,12 +4,12 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.components.TokenTypes
 
-abstract class TypeExpressionNode : LiteralNode<String>()
+interface TypeExpressionNode : LiteralNode<String>
 
 data class InferNode(
 	override val firstToken: Token,
 	override val lastToken: Token
-) : TypeExpressionNode() {
+) : TypeExpressionNode {
 	override val value: String = "_"
 }
 
@@ -18,7 +18,7 @@ data class TypeIdentifierNode(
     override val lastToken: Token,
     override val value: String,
     val typeParametersNode: TypeParametersNode = TypeParametersNode(firstToken, lastToken)
-) : TypeExpressionNode(), LValueTypeParameter {
+) : TypeExpressionNode, LValueTypeParameter {
 	companion object {
 		private val nullToken = Token(TokenTypes.TypeIdentifier, "AnyType", SourcePosition.unknown)
 		private val anyTypeIdentifierNode = TypeIdentifierNode(nullToken, nullToken, "AnyType")
@@ -43,7 +43,7 @@ data class TypeIdentifierNode(
 		else -> false
 	}
 
-	override fun getChildren() : List<Node> {
+	override fun getChildren() : List<INode> {
 		return typeParametersNode.typeParameters
 	}
 
@@ -56,4 +56,4 @@ data class CollectionTypeLiteralNode(
 	override val lastToken: Token,
 	override val value: String,
 	val typeExpressionNode: TypeExpressionNode
-) : TypeExpressionNode()
+) : TypeExpressionNode

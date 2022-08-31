@@ -5,7 +5,7 @@ import org.orbit.core.nodes.WhereClauseTypeBoundsExpressionNode
 import org.orbit.core.nodes.Annotations
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
@@ -15,14 +15,14 @@ object WhereClauseTypeBoundsExpressionResolver : WhereClauseExpressionResolver<W
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: WhereClauseTypeBoundsExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        input.sourceTypeExpression.annotate(input.getGraphID(), Annotations.GraphID)
-        input.targetTypeExpression.annotate(input.getGraphID(), Annotations.GraphID)
+        input.sourceTypeExpression.annotateByKey(input.getGraphID(), Annotations.GraphID)
+        input.targetTypeExpression.annotateByKey(input.getGraphID(), Annotations.GraphID)
 
         val sourceTypePath = pathResolverUtil.resolve(input.sourceTypeExpression, pass, environment, graph)
         val targetTypePath = pathResolverUtil.resolve(input.targetTypeExpression, pass, environment, graph)
 
-        input.sourceTypeExpression.annotate(sourceTypePath.asSuccess().path, Annotations.Path)
-        input.targetTypeExpression.annotate(targetTypePath.asSuccess().path, Annotations.Path)
+        input.sourceTypeExpression.annotateByKey(sourceTypePath.asSuccess().path, Annotations.Path)
+        input.targetTypeExpression.annotateByKey(targetTypePath.asSuccess().path, Annotations.Path)
 
         return sourceTypePath
     }

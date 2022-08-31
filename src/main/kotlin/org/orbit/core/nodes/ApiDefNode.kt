@@ -1,25 +1,22 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
-import org.orbit.graph.pathresolvers.PathResolver
 
-abstract class ContextAwareNode : AnnotatedNode() {
-	abstract val context: ContextExpressionNode?
+interface ContextAwareNode : INode {
+	val context: ContextExpressionNode?
 }
 
-sealed class TopLevelDeclarationNode(
-	override val annotationPass: PathResolver.Pass
-) : ContextAwareNode()
+interface TopLevelDeclarationNode : ContextAwareNode
 
-sealed class ContainerNode : TopLevelDeclarationNode(PathResolver.Pass.Last) {
-	abstract val identifier: TypeIdentifierNode
-	abstract val within: TypeIdentifierNode?
-	abstract val with: List<TypeIdentifierNode>
-	abstract val entityDefs: List<EntityDefNode>
-	abstract val methodDefs: List<MethodDefNode>
-	abstract val entityConstructors: List<EntityConstructorNode>
-	abstract val contexts: List<ContextNode>
-	abstract val operatorDefs: List<OperatorDefNode>
+interface ContainerNode : TopLevelDeclarationNode {
+	val identifier: TypeIdentifierNode
+	val within: TypeIdentifierNode?
+	val with: List<TypeIdentifierNode>
+	val entityDefs: List<EntityDefNode>
+	val methodDefs: List<MethodDefNode>
+	val entityConstructors: List<EntityConstructorNode>
+	val contexts: List<ContextNode>
+	val operatorDefs: List<OperatorDefNode>
 }
 
 data class ApiDefNode(
@@ -35,13 +32,13 @@ data class ApiDefNode(
 	override val entityConstructors: List<EntityConstructorNode>,
 	override val context: ContextExpressionNode? = null,
 	override val operatorDefs: List<OperatorDefNode> = emptyList()
-) : ContainerNode() {
+) : ContainerNode {
 	override val contexts: List<ContextNode> = emptyList()
 
 	override val entityDefs: List<EntityDefNode>
 		get() = standardEntityDefs + requiredTypes + requiredTraits
 
-	override fun getChildren() : List<Node> {
+	override fun getChildren() : List<INode> {
 		return entityDefs + requiredTypes + requiredTraits + methodDefs + entityConstructors
 	}
 }

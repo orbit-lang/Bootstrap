@@ -6,6 +6,7 @@ import org.orbit.core.Path
 import org.orbit.core.getPath
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.FamilyNode
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -19,7 +20,7 @@ class FamilyPathResolver(private val parentPath: Path) : PathResolver<FamilyNode
         val path = if (pass == PathResolver.Pass.Initial) {
             val path = parentPath + Path(input.familyIdentifierNode.value)
 
-            input.annotate(path, Annotations.Path)
+            input.annotateByKey(path, Annotations.Path)
             environment.bind(Binding.Kind.Type, input.familyIdentifierNode.value, path)
 
             val parentGraphID = graph.find(parentPath.toString(OrbitMangler))
@@ -27,11 +28,11 @@ class FamilyPathResolver(private val parentPath: Path) : PathResolver<FamilyNode
 
             graph.link(parentGraphID, graphID)
 
-            input.annotate(graphID, Annotations.GraphID)
+            input.annotateByKey(graphID, Annotations.GraphID)
             input.properties.forEach {
-                it.annotate(graphID, Annotations.GraphID)
-                it.typeNode.annotate(graphID, Annotations.GraphID)
-                it.defaultValue?.annotate(graphID, Annotations.GraphID)
+                it.annotateByKey(graphID, Annotations.GraphID)
+                it.typeNode.annotateByKey(graphID, Annotations.GraphID)
+                it.defaultValue?.annotateByKey(graphID, Annotations.GraphID)
             }
 
             path

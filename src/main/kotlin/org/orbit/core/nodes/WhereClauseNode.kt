@@ -3,12 +3,11 @@ package org.orbit.core.nodes
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.Token
-import org.orbit.core.components.TokenType
 import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
 
-abstract class WhereClauseExpressionNode : Node()
+interface WhereClauseExpressionNode : INode
 
 sealed interface TypeBoundsOperator {
     companion object : KoinComponent {
@@ -37,14 +36,14 @@ data class WhereClauseTypeBoundsExpressionNode(
     val boundsType: TypeBoundsOperator,
     val sourceTypeExpression: TypeExpressionNode,
     val targetTypeExpression: TypeExpressionNode
-) : WhereClauseExpressionNode() {
-    override fun getChildren(): List<Node> = listOf(sourceTypeExpression, targetTypeExpression)
+) : WhereClauseExpressionNode {
+    override fun getChildren(): List<INode> = listOf(sourceTypeExpression, targetTypeExpression)
 }
 
 data class WhereClauseNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val whereExpression: WhereClauseExpressionNode
-) : Node() {
-    override fun getChildren(): List<Node> = listOf(whereExpression)
+) : INode {
+    override fun getChildren(): List<INode> = listOf(whereExpression)
 }

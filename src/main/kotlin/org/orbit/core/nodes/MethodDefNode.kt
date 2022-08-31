@@ -9,7 +9,7 @@ data class MethodDefNode(
     val signature: MethodSignatureNode,
     val body: BlockNode,
     override val context: ContextExpressionNode? = null
-) : TopLevelDeclarationNode(PathResolver.Pass.Last), ScopedNode {
-	override fun getChildren() : List<Node>
+) : TopLevelDeclarationNode, ScopedNode {
+	override fun getChildren() : List<INode>
 		= listOf(signature, body)
 }

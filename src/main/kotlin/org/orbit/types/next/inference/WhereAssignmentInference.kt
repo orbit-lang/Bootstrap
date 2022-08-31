@@ -9,15 +9,15 @@ import org.orbit.types.next.constraints.EqualityConstraint
 
 sealed interface WhereClauseExpressionInferenceContext : InferenceContext {
     object AssignmentContext : WhereClauseExpressionInferenceContext {
-        override val nodeType: Class<out Node> = AssignmentStatementNode::class.java
+        override val nodeType: Class<out INode> = AssignmentStatementNode::class.java
 
-        override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
+        override fun <N : INode> clone(clazz: Class<N>): InferenceContext = this
     }
 
     object TypeBoundsContext : WhereClauseExpressionInferenceContext {
-        override val nodeType: Class<out Node> = WhereClauseTypeBoundsExpressionNode::class.java
+        override val nodeType: Class<out INode> = WhereClauseTypeBoundsExpressionNode::class.java
 
-        override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
+        override fun <N : INode> clone(clazz: Class<N>): InferenceContext = this
     }
 }
 

@@ -4,6 +4,7 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.ProjectionNode
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
@@ -19,19 +20,19 @@ object TypeProjectionPathResolver : PathResolver<ProjectionNode> {
 
 		val graphID = graph.find(typeResult.path.toString(OrbitMangler))
 
-		input.traitIdentifier.annotate(graphID, Annotations.GraphID)
+		input.traitIdentifier.annotateByKey(graphID, Annotations.GraphID)
 
 		val traitResult = TypeExpressionPathResolver.resolve(input.traitIdentifier, pass, environment, graph)
 			.asSuccess()
 
-		input.typeIdentifier.annotate(typeResult.path, Annotations.Path)
-		input.traitIdentifier.annotate(traitResult.path, Annotations.Path)
+		input.typeIdentifier.annotateByKey(typeResult.path, Annotations.Path)
+		input.traitIdentifier.annotateByKey(traitResult.path, Annotations.Path)
 
-		input.annotate(typeResult.path, Annotations.Path)
+		input.annotateByKey(typeResult.path, Annotations.Path)
 
 		// TODO - Resolve where clauses
 		input.whereNodes.forEach {
-			it.whereExpression.annotate(graphID, Annotations.GraphID)
+			it.whereExpression.annotateByKey(graphID, Annotations.GraphID)
 			pathResolverUtil.resolve(it.whereExpression, pass, environment, graph)
 		}
 

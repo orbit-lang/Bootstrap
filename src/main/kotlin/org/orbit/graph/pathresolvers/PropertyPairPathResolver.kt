@@ -3,6 +3,7 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.nodes.PairNode
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
@@ -17,8 +18,8 @@ class PropertyPairPathResolver : PathResolver<PairNode> {
 		val result = pathResolverUtil.resolve(typeNode, pass, environment, graph)
 			.asSuccess()
 
-		input.annotate(result.path, Annotations.Path)
-		input.typeExpressionNode.annotate(result.path, Annotations.Path)
+		input.annotateByKey(result.path, Annotations.Path)
+		input.typeExpressionNode.annotateByKey(result.path, Annotations.Path)
 
 		return result
 	}

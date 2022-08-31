@@ -8,8 +8,8 @@ data class BinaryExpressionNode(
     val operator: String,
     val left: ExpressionNode,
     val right: ExpressionNode
-) : ExpressionNode(), ValueRepresentableNode {
-	override fun getChildren() : List<Node> {
+) : ExpressionNode, ValueRepresentableNode {
+	override fun getChildren() : List<INode> {
 		return listOf(left, right)
 	}
 }
@@ -20,8 +20,8 @@ data class UnaryExpressionNode(
     val operator: String,
     val operand: ExpressionNode,
     val fixity: OperatorFixity
-) : ExpressionNode() {
-	override fun getChildren(): List<Node> {
+) : ExpressionNode {
+	override fun getChildren(): List<INode> {
 		return listOf(operand)
 	}
 }

@@ -8,7 +8,7 @@ import org.orbit.types.next.intrinsics.Native
 import org.orbit.util.Printer
 import org.orbit.util.next.getTypeOrNever
 
-interface LiteralInference<N: Node, T: TypeComponent> : Inference<N, T>
+interface LiteralInference<N: INode, T: TypeComponent> : Inference<N, T>
 
 object IntLiteralInference : LiteralInference<IntLiteralNode, Type> {
     override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: IntLiteralNode): InferenceResult
@@ -20,10 +20,10 @@ object SymbolLiteralInference : LiteralInference<SymbolLiteralNode, Type> {
         = Native.Types.Symbol.type.inferenceResult()
 }
 
-data class TypeAnnotatedInferenceContext<N: Node>(val typeAnnotation: TypeComponent, val clazz: Class<N>) : InferenceContext {
-    override val nodeType: Class<out Node> = clazz
+data class TypeAnnotatedInferenceContext<N: INode>(val typeAnnotation: TypeComponent, val clazz: Class<N>) : InferenceContext {
+    override val nodeType: Class<out INode> = clazz
 
-    override fun <N : Node> clone(clazz: Class<N>): InferenceContext {
+    override fun <N : INode> clone(clazz: Class<N>): InferenceContext {
         return TypeAnnotatedInferenceContext(typeAnnotation, clazz)
     }
 }
@@ -80,9 +80,9 @@ object VariableInference : LiteralInference<IdentifierNode, TypeComponent>, Koin
         = inferenceUtil.getTypeOrNever(node.identifier).inferenceResult()
 }
 
-sealed class TypeLiteralInferenceContext(override val nodeType: Class<out Node>) : InferenceContext {
+sealed class TypeLiteralInferenceContext(override val nodeType: Class<out INode>) : InferenceContext {
     object TypeParameterContext : TypeLiteralInferenceContext(TypeIdentifierNode::class.java) {
-        override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
+        override fun <N : INode> clone(clazz: Class<N>): InferenceContext = this
     }
 }
 
@@ -92,9 +92,9 @@ object RValueInference : Inference<RValueNode, TypeComponent> {
 }
 
 object AnyExpressionContext : InferenceContext {
-    override val nodeType: Class<out Node> = ExpressionNode::class.java
+    override val nodeType: Class<out INode> = ExpressionNode::class.java
 
-    override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
+    override fun <N : INode> clone(clazz: Class<N>): InferenceContext = this
 }
 
 object AnyExpressionInference : Inference<ExpressionNode, TypeComponent> {

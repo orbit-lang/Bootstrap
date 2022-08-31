@@ -1,7 +1,7 @@
 package org.orbit.precess.frontend.components.nodes
 
 import org.orbit.core.components.Token
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 import org.orbit.precess.backend.components.Decl
 import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
@@ -28,12 +28,12 @@ operator fun DeclResult<*>.plus(other: DeclResult<*>) : DeclResult<Decl.Compound
 operator fun List<DeclResult<*>>.unaryPlus() : DeclResult<*>
     = reduce { acc, next -> acc + next }
 
-abstract class DeclNode<D: Decl> : Node() {
-    abstract fun getDecl(env: Env) : DeclResult<D>
+interface DeclNode<D: Decl> : INode {
+    fun getDecl(env: Env) : DeclResult<D>
 }
 
-data class TypeLiteralNode(override val firstToken: Token, override val lastToken: Token, val typeId: String, val attributes: List<TypeAttribute> = emptyList()) : DeclNode<Decl.Type>() {
-    override fun getChildren(): List<Node> = emptyList()
+data class TypeLiteralNode(override val firstToken: Token, override val lastToken: Token, val typeId: String, val attributes: List<TypeAttribute> = emptyList()) : DeclNode<Decl.Type> {
+    override fun getChildren(): List<INode> = emptyList()
     override fun toString(): String = typeId
     override fun getDecl(env: Env): DeclResult<Decl.Type>
         = Decl.Type(IType.Type(typeId, attributes), emptyMap()).toSuccess()

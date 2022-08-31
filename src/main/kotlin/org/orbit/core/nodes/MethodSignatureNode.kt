@@ -13,12 +13,16 @@ data class MethodSignatureNode(
 	val typeParameters: TypeParametersNode? = null,
 	val typeConstraints: List<TypeConstraintWhereClauseNode> = emptyList(),
 	val isInstanceMethod: Boolean
-) : Node() {
+) : INode {
 	inline fun <reified T: AnySerializable> annotateParameter(idx: Int, value: T, tag: Annotations) {
-		parameterNodes[idx].annotate(value, tag)
+		// TODO
+//		val nodeAnnotationMap = getKoinInstance<NodeAnnotationMap>()
+//
+		//nodeAnnotationMap.annotate(parameterNodes[idx], value)
+		//parameterNodes[idx].annotate(value, tag)
 	}
 
-	override fun getChildren() : List<Node> = when (returnTypeNode) {
+	override fun getChildren() : List<INode> = when (returnTypeNode) {
 		null -> listOf(identifierNode, receiverTypeNode) + parameterNodes + typeConstraints
 		else -> listOf(identifierNode, receiverTypeNode, returnTypeNode) + parameterNodes + typeConstraints
 	}

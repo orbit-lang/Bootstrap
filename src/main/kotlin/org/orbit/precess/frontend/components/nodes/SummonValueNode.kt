@@ -1,14 +1,13 @@
 package org.orbit.precess.frontend.components.nodes
 
 import org.orbit.core.components.Token
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 import org.orbit.precess.backend.components.Decl
 import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
-import java.lang.NullPointerException
 
-data class SummonValueNode(override val firstToken: Token, override val lastToken: Token, val matchTerm: TermExpressionNode<*>, val ref: RefLiteralNode) : DeclNode<Decl.Alias>() {
-    override fun getChildren(): List<Node> = listOf(matchTerm, ref)
+data class SummonValueNode(override val firstToken: Token, override val lastToken: Token, val matchTerm: TermExpressionNode<*>, val ref: RefLiteralNode) : DeclNode<Decl.Alias> {
+    override fun getChildren(): List<INode> = listOf(matchTerm, ref)
     override fun toString(): String = "summonValue $matchTerm as $ref"
 
     override fun getDecl(env: Env): DeclResult<Decl.Alias> {

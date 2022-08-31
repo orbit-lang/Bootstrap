@@ -1,8 +1,9 @@
 package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
-import org.orbit.core.nodes.TraitConformanceTypeConstraintNode
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.TraitConformanceTypeConstraintNode
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -19,9 +20,9 @@ object TypeConstraintPathResolver : PathResolver<TraitConformanceTypeConstraintN
 		//  but maybe its best to let the Type System limit what can appear on the right-hand side here
 		val constraintTraitPath = environment.getBinding(input.constraintTraitNode.value, Binding.Kind.Union.entityOrConstructorOrParameter).unwrap(this, input.constraintTraitNode.firstToken.position)
 
-		input.constrainedTypeNode.annotate(constrainedTypePath.path, Annotations.Path)
-		input.constraintTraitNode.annotate(constraintTraitPath.path, Annotations.Path)
-		input.annotate(constrainedTypePath.path, Annotations.Path)
+		input.constrainedTypeNode.annotateByKey(constrainedTypePath.path, Annotations.Path)
+		input.constraintTraitNode.annotateByKey(constraintTraitPath.path, Annotations.Path)
+		input.annotateByKey(constrainedTypePath.path, Annotations.Path)
 
 		pathResolverUtil.resolve(input.constraintTraitNode, pass, environment, graph)
 

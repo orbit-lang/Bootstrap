@@ -8,9 +8,9 @@ data class FamilyNode(
     override val properties: List<ParameterNode>,
     override val firstToken: Token,
     override val lastToken: Token,
-) : EntityDefNode() {
+) : EntityDefNode {
     override val typeIdentifierNode: TypeIdentifierNode = familyIdentifierNode
 
-    override fun getChildren(): List<Node>
+    override fun getChildren(): List<INode>
         = listOf(familyIdentifierNode) + memberNodes + properties
 }

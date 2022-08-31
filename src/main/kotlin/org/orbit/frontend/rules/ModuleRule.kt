@@ -1,26 +1,13 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.components.SourcePosition
-import org.orbit.core.nodes.*
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.*
 import org.orbit.frontend.components.ParseError
-import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.extensions.unaryPlus
+import org.orbit.frontend.phase.Parser
 
-object PhaseAnnotationRule : ParseRule<PhaseAnnotationNode> {
-    override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect(TokenTypes.Annotation)
-        val annotationIdentifierNode = context.attempt(TypeIdentifierRule.LValue)
-            // TODO - Rename ApiDefRule
-            ?: throw context.invocation.make(ApiDefRule.Errors.MissingName(start.position))
-
-        // TODO - Parse annotation parameters
-
-        return +PhaseAnnotationNode(start, annotationIdentifierNode.lastToken, annotationIdentifierNode)
-    }
-}
-
-object ModuleRule : PrefixPhaseAnnotatedParseRule<ModuleNode> {
+object ModuleRule : ParseRule<ModuleNode> {
     sealed class Errors {
         data class MissingName(override val sourcePosition: SourcePosition)
             : ParseError("Module definition requires a name", sourcePosition)

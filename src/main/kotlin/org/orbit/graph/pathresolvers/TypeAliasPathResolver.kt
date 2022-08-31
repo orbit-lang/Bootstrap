@@ -3,8 +3,9 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.core.nodes.TypeAliasNode
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.TypeAliasNode
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -19,17 +20,17 @@ class TypeAliasPathResolver(private val parentPath: Path) : PathResolver<TypeAli
 		val sourcePath = parentPath + Path(input.sourceTypeIdentifier.value)
 		val graphID = graph.insert(sourcePath.toString(OrbitMangler))
 
-		input.annotate(graphID, Annotations.GraphID)
-		input.targetTypeIdentifier.annotate(graphID, Annotations.GraphID)
+		input.annotateByKey(graphID, Annotations.GraphID)
+		input.targetTypeIdentifier.annotateByKey(graphID, Annotations.GraphID)
 
 		TypeExpressionPathResolver.execute(PathResolver.InputType(input.targetTypeIdentifier, pass))
 
 		val targetBinding = pathResolverUtil.resolve(input.targetTypeIdentifier, pass, environment, graph)
 			.asSuccess()
 
-		input.annotate(sourcePath, Annotations.Path)
-		input.sourceTypeIdentifier.annotate(sourcePath, Annotations.Path)
-		input.targetTypeIdentifier.annotate(targetBinding.path, Annotations.Path)
+		input.annotateByKey(sourcePath, Annotations.Path)
+		input.sourceTypeIdentifier.annotateByKey(sourcePath, Annotations.Path)
+		input.targetTypeIdentifier.annotateByKey(targetBinding.path, Annotations.Path)
 
 		environment.bind(Binding.Kind.TypeAlias, input.sourceTypeIdentifier.value, sourcePath)
 

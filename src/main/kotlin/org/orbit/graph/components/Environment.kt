@@ -1,19 +1,21 @@
 package org.orbit.graph.components
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.core.GraphEntity
 import org.orbit.core.Path
 import org.orbit.core.Scope
 import org.orbit.core.ScopeIdentifier
 import org.orbit.core.nodes.Annotations
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
+import org.orbit.core.nodes.NodeAnnotationMap
 import org.orbit.graph.extensions.getScopeIdentifier
 import org.orbit.graph.extensions.getScopeIdentifierOrNull
 
-class Environment(
-    val ast: Node,
-    val scopes: MutableList<Scope> = mutableListOf()) {
+class Environment(val ast: INode, val scopes: MutableList<Scope> = mutableListOf()) : KoinComponent {
+	private val nodeAnnotationMap: NodeAnnotationMap by inject()
 
-	var size: Int = 0
+	val size: Int
 		get() = scopes.size
 
 	private var currentScope: Scope = Scope(this)
@@ -28,7 +30,7 @@ class Environment(
 		this.scopes.addAll(scopes)
 	}
 
-	fun <T> withScope(node: Node? = null, block: (Scope) -> T) : T {
+	fun <T> withScope(node: INode? = null, block: (Scope) -> T) : T {
 		openScope(node)
 		try {
 			return block(currentScope)
@@ -37,7 +39,7 @@ class Environment(
 		}
 	}
 
-	fun openScope(node: Node?) {
+	fun openScope(node: INode?) {
 		val scopeId = node?.getScopeIdentifierOrNull()
 
 		if (scopeId != null) {
@@ -55,12 +57,14 @@ class Environment(
 		scopes.add(currentScope)
 	}
 
-	fun closeScope(node: Node? = null) {
+	fun closeScope(node: INode? = null) {
 		currentScope = currentScope.parentScope ?: currentScope
 	}
 
-	fun mark(node: Node) {
-		node.annotate(currentScope.identifier, Annotations.Scope, true)
+	fun mark(node: INode) {
+
+
+		nodeAnnotationMap.annotate(node, currentScope.identifier, Annotations.Scope)
 
 		// Walk down the tree, annotating every node with the current Scope id
 		node.getChildren().forEach {
@@ -76,7 +80,7 @@ class Environment(
 		return scopes.firstOrNull { it.identifier == identifier }
 	}
 
-	fun getScope(node: Node) : Scope? {
+	fun getScope(node: INode) : Scope {
 		return getScope(node.getScopeIdentifier())
 	}
 

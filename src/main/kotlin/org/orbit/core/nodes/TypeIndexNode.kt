@@ -6,8 +6,9 @@ data class TypeIndexNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val index: TypeIdentifierNode
-) : TypeExpressionNode() {
+) : TypeExpressionNode {
     override val value: String = "Self"
 
-    override fun getChildren(): List<Node> = listOf(index)
+    override fun getChildren(): List<INode>
+        = listOf(index)
 }

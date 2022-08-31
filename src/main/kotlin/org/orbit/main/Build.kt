@@ -24,7 +24,6 @@ import org.orbit.core.phase.CompilerGenerator
 import org.orbit.frontend.MultiFileSourceProvider
 import org.orbit.frontend.phase.CommentParser
 import org.orbit.frontend.phase.Lexer
-import org.orbit.frontend.phase.ObserverPhase
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.graph.phase.CanonicalNameResolver
@@ -135,7 +134,6 @@ object Build : CliktCommand(), KoinComponent {
                 compilerGenerator[CompilationSchemeEntry.commentParser] = CommentParser(invocation)
                 compilerGenerator[CompilationSchemeEntry.lexer] = Lexer(invocation)
                 compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
-                compilerGenerator[CompilationSchemeEntry.observers] = ObserverPhase(invocation)
                 compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
                 compilerGenerator[CompilationSchemeEntry.typeSystem] = org.orbit.types.next.phase.TypeSystem //TypeSystem(invocation)
 //                compilerGenerator[CompilationSchemeEntry.traitEnforcer] = TraitEnforcer()

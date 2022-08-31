@@ -5,17 +5,15 @@ import org.koin.core.component.inject
 import org.orbit.core.nodes.*
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
-import org.orbit.types.next.utils.mapOnly
 import org.orbit.types.next.utils.onlyOrNull
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
-import org.orbit.util.getKoinInstance
 
-data class ProjectedPropertyInferenceContext<N: Node>(val projection: Projection, val clazz: Class<N>) : InferenceContext {
-    override val nodeType: Class<out Node> = clazz
+data class ProjectedPropertyInferenceContext<N: INode>(val projection: Projection, val clazz: Class<N>) : InferenceContext {
+    override val nodeType: Class<out INode> = clazz
 
-    override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
+    override fun <N : INode> clone(clazz: Class<N>): InferenceContext = this
 }
 
 interface ProjectionPropertyInference<W: WhereClauseExpressionNode> : Inference<W, ProjectedProperty<TypeComponent, Contract<TypeComponent>, Member>>

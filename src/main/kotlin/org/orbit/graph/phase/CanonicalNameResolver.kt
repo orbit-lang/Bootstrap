@@ -28,7 +28,7 @@ import kotlin.time.measureTime
 
 sealed class GraphErrors {
 	data class MissingDependency(
-		val node: Node,
+		val node: INode,
 		override val phaseClazz: Class<CanonicalNameResolver> = CanonicalNameResolver::class.java,
 		override val sourcePosition: SourcePosition = node.firstToken.position) : Phased<CanonicalNameResolver> {
 		override val message: String
@@ -47,7 +47,7 @@ sealed class GraphErrors {
 data class NameResolverInput(val parserResult: Parser.Result, val environment: Environment, val graph: Graph)
 data class NameResolverResult(val environment: Environment, val graph: Graph)
 
-fun Node.isResolved() : Boolean {
+fun INode.isResolved() : Boolean {
 	val annotation = getAnnotation(Annotations.Resolved)?.value ?: return false
 
 	return when (annotation) {
@@ -171,7 +171,7 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 				}
 			}
 
-			nextContainer.annotate(SerialBool(true), Annotations.Resolved)
+			nextContainer.annotateByKey(SerialBool(true), Annotations.Resolved)
 
 			pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Initial, input.environment, input.graph)
 
@@ -206,7 +206,7 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 				?: TODO("HERE")
 			val id = input.graph.insert(path.toString(OrbitMangler))
 
-			nextContainer.annotate(id, Annotations.GraphID)
+			nextContainer.annotateByKey(id, Annotations.GraphID)
 
 			pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Last, input.environment, input.graph)
 		}

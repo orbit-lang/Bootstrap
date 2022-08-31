@@ -10,7 +10,7 @@ import org.orbit.core.nodes.ContextNode
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
@@ -23,7 +23,7 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
         val path = parentPath + input.contextIdentifier.value
 
         if (pass == PathResolver.Pass.Initial) {
-            input.annotate(path, Annotations.Path)
+            input.annotateByKey(path, Annotations.Path)
 
             environment.bind(Binding.Kind.Context, input.contextIdentifier.value, path)
 
@@ -32,15 +32,15 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
 
             graph.link(parentGraphID, graphID)
 
-            input.annotate(graphID, Annotations.GraphID)
-            input.clauses.forEach { it.annotate(graphID, Annotations.GraphID) }
+            input.annotateByKey(graphID, Annotations.GraphID)
+            input.clauses.forEach { it.annotateByKey(graphID, Annotations.GraphID) }
 
             for (typeParameter in input.typeVariables.withIndex()) {
                 val nPath = path + typeParameter.value.value
 
-                typeParameter.value.annotate(nPath, Annotations.Path)
-                typeParameter.value.annotate(graphID, Annotations.GraphID)
-                typeParameter.value.annotate(SerialIndex(typeParameter.index), Annotations.Index)
+                typeParameter.value.annotateByKey(nPath, Annotations.Path)
+                typeParameter.value.annotateByKey(graphID, Annotations.GraphID)
+                typeParameter.value.annotateByKey(SerialIndex(typeParameter.index), Annotations.Index)
 
                 val vertexID = graph.insert(typeParameter.value.value)
 
@@ -51,7 +51,7 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
         } else {
             val parentGraphID = input.getGraphID()
 
-            input.clauses.forEach { it.annotate(parentGraphID, Annotations.GraphID) }
+            input.clauses.forEach { it.annotateByKey(parentGraphID, Annotations.GraphID) }
             pathResolverUtil.resolveAll(input.clauses, pass, environment, graph)
         }
 

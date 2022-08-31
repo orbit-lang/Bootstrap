@@ -20,7 +20,7 @@ import org.orbit.util.Invocation
 import org.orbit.util.Printer
 import org.orbit.util.next.ITypeMapRead
 
-interface TypePhase<N: Node, T: TypeComponent> : Phase<TypePhaseData<N>, T> {
+interface TypePhase<N: INode, T: TypeComponent> : Phase<TypePhaseData<N>, T> {
     fun run(input: TypePhaseData<N>) : T
 
     override fun execute(input: TypePhaseData<N>): T = run(input).apply {
@@ -28,7 +28,7 @@ interface TypePhase<N: Node, T: TypeComponent> : Phase<TypePhaseData<N>, T> {
     }
 }
 
-fun <N: Node, T: TypeComponent> TypePhase<N, T>.executeAll(inferenceUtil: InferenceUtil, nodes: List<N>) : List<T>
+fun <N: INode, T: TypeComponent> TypePhase<N, T>.executeAll(inferenceUtil: InferenceUtil, nodes: List<N>) : List<T>
     = nodes.map { execute(TypePhaseData(inferenceUtil, it)) }
 
 object ModulePhase : TypePhase<ModuleNode, Module>, KoinComponent {
@@ -113,7 +113,6 @@ object TypeSystem : AdaptablePhase<TypePhaseData<ProgramNode>, TypeSystem.Result
     override val outputType: Class<Result> = Result::class.java
 
     override val invocation: Invocation by inject()
-    private val printer: Printer by inject()
 
     init {
         registerAdapter(NameResolverAdapter)
@@ -132,7 +131,6 @@ object TypeSystem : AdaptablePhase<TypePhaseData<ProgramNode>, TypeSystem.Result
         }
 
         invocation.storeResult(CompilationSchemeEntry.typeSystem, result)
-//          invocation.storeResult("__type_assistant__", typeAssistant)
 
         return result
     }

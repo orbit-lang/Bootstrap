@@ -3,11 +3,10 @@ package org.orbit.util.next
 import com.google.gson.*
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 import org.orbit.core.phase.Phase
 import org.orbit.types.next.components.*
 import org.orbit.types.next.inference.ITypeRef
-import org.orbit.types.next.inference.InferenceUtil
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 
@@ -16,7 +15,7 @@ interface ITypeMapInterface
 interface ITypeMapRead : ITypeMapInterface {
     fun find(name: String) : TypeComponent?
     fun findShallow(name: String) : TypeComponent?
-    fun get(node: Node) : TypeComponent?
+    fun get(node: INode) : TypeComponent?
     fun getConformance(type: TypeComponent) : List<ITrait>
     fun toCtx() : Ctx
     fun getTypeErrors() : List<Never>
@@ -28,7 +27,7 @@ interface ITypeMapRead : ITypeMapInterface {
 interface ITypeMapWrite : ITypeMapInterface {
     fun declare(type: DeclType)
     fun replace(a: DeclType, b: DeclType)
-    fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean = false)
+    fun set(node: INode, value: TypeComponent, mergeOnCollision: Boolean = false)
     fun addConformance(type: TypeComponent, trait: ITrait)
     fun addExtension(type: TypeComponent, extension: Extension)
     fun addContext(type: TypeComponent, context: ContextInstantiation)
@@ -39,7 +38,7 @@ interface ITypeMap : ITypeMapRead, ITypeMapWrite
 fun ITypeMapRead.find(path: Path) : TypeComponent?
     = find(path.toString(OrbitMangler))
 
-inline fun <reified P: Phase<*, *>> ITypeMapRead.find(path: Path, invocation: Invocation, node: Node) : TypeComponent {
+inline fun <reified P: Phase<*, *>> ITypeMapRead.find(path: Path, invocation: Invocation, node: INode) : TypeComponent {
     val printer = Printer(invocation.platform.getPrintableFactory())
 
     return find(path)
@@ -153,7 +152,7 @@ class TypeMap constructor(): ITypeMap {
     fun find(path: Path) : TypeComponent?
         = find(OrbitMangler.mangle(path))
 
-    override fun set(node: Node, value: TypeComponent, mergeOnCollision: Boolean) {
+    override fun set(node: INode, value: TypeComponent, mergeOnCollision: Boolean) {
         if (value is DeclType && value !is ITypeRef) declare(value)
 
         map[node.id] = value.inferenceKey()
@@ -170,7 +169,7 @@ class TypeMap constructor(): ITypeMap {
         contextMap[key] = contexts + context
     }
 
-    override fun get(node: Node): TypeComponent? {
+    override fun get(node: INode): TypeComponent? {
         val key = map[node.id] ?: return null
 
         return find(key)

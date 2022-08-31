@@ -6,26 +6,20 @@ data class TypeParametersNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val typeParameters: List<TypeIdentifierNode> = emptyList()
-) : Node() {
-	override fun getChildren() : List<Node> = typeParameters
+) : INode {
+	override fun getChildren() : List<INode>
+	    = typeParameters
 }
 
-abstract class AbstractTypeParameterNode : Node()
+interface AbstractTypeParameterNode : INode
 
 data class TypeParameterNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val typeIdentifierNode: TypeIdentifierNode
-) : AbstractTypeParameterNode() {
-    override fun getChildren(): List<Node> = listOf(typeIdentifierNode)
-}
-
-data class ConstrainedTypeParameterNode(
-    override val firstToken: Token,
-    override val lastToken: Token,
-    val constraints: List<TypeExpressionNode>
-) : AbstractTypeParameterNode() {
-    override fun getChildren(): List<Node> = constraints
+) : AbstractTypeParameterNode {
+    override fun getChildren(): List<INode>
+        = listOf(typeIdentifierNode)
 }
 
 interface LValueTypeParameter {
@@ -38,8 +32,8 @@ data class BoundedTypeParameterNode(
 	/// The name on the left of an optional `: Type` expression
     override val name: TypeIdentifierNode,
     val bound: RValueNode = RValueNode(TypeIdentifierNode(firstToken, firstToken, "Any"))
-) : AbstractTypeParameterNode(), LValueTypeParameter {
-	override fun getChildren() : List<Node> = listOf(name, bound)
+) : AbstractTypeParameterNode, LValueTypeParameter {
+	override fun getChildren() : List<INode> = listOf(name, bound)
 	override fun toString() : String = "${name.value}: $bound"
 }
 
@@ -48,8 +42,8 @@ data class DependentTypeParameterNode(
     override val lastToken: Token,
     override val name: TypeIdentifierNode,
     val type: RValueNode
-) : AbstractTypeParameterNode(), LValueTypeParameter {
-	override fun getChildren() : List<Node> = listOf(name, type)
+) : AbstractTypeParameterNode, LValueTypeParameter {
+	override fun getChildren() : List<INode> = listOf(name, type)
 	override fun toString() : String = "$name $type"
 }
 
@@ -57,7 +51,7 @@ data class ValueTypeParameterNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val literalNode: RValueNode
-) : AbstractTypeParameterNode() {
-	override fun getChildren(): List<Node> = listOf(literalNode)
+) : AbstractTypeParameterNode {
+	override fun getChildren(): List<INode> = listOf(literalNode)
 	override fun toString(): String = "RValue -> $literalNode"
 }

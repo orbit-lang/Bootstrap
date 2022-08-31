@@ -7,6 +7,7 @@ data class WhereClauseByExpressionNode(
     override val lastToken: Token,
     val identifierNode: IdentifierNode,
     val lambdaExpression: LambdaLiteralNode
-) : WhereClauseExpressionNode() {
-    override fun getChildren(): List<Node> = listOf(identifierNode, lambdaExpression)
+) : WhereClauseExpressionNode {
+    override fun getChildren(): List<INode>
+        = listOf(identifierNode, lambdaExpression)
 }

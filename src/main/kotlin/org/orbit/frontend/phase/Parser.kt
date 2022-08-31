@@ -2,7 +2,7 @@ package org.orbit.frontend.phase
 
 import org.orbit.core.*
 import org.orbit.core.components.*
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 import org.orbit.core.phase.AdaptablePhase
 import org.orbit.core.phase.PhaseAdapter
 import org.orbit.frontend.components.ParseError
@@ -16,7 +16,7 @@ class Parser(
 	private val isRepl: Boolean = false,
 ) : AdaptablePhase<Parser.InputType, Parser.Result>() {
 	data class InputType(val tokens: List<Token>) : Any()
-	data class Result(val ast: Node)
+	data class Result(val ast: INode)
 
 	object LexerAdapter : PhaseAdapter<Lexer.Result, InputType> {
 		override fun bridge(output: Lexer.Result): InputType = InputType(output.tokens)
@@ -218,7 +218,7 @@ class Parser(
 		tokens.addAll(0, consumed)
 	}
 
-	fun <N: Node> attempt(rule: ParseRule<N>, rethrow: Boolean = false) : N? {
+	fun <N: INode> attempt(rule: ParseRule<N>, rethrow: Boolean = false) : N? {
 		val backup = tokens
 
 		try {
@@ -250,7 +250,7 @@ class Parser(
 	}
 
 	// This is about as close to vararg generics as we can get
-	fun <T: Node, U: Node> attemptAny(of1: ParseRule<T>, of2: ParseRule<U>, throwOnNull: Boolean = false) : Pair<T?, U?>? {
+	fun <T: INode, U: INode> attemptAny(of1: ParseRule<T>, of2: ParseRule<U>, throwOnNull: Boolean = false) : Pair<T?, U?>? {
 		val backup = tokens
 		val start = peek()
 		val result1 = attempt(of1)
@@ -279,11 +279,11 @@ class Parser(
 		return null
 	}
 
-	fun attemptAny(of: List<ParseRule<*>>, throwOnNull: Boolean = false) : Node? {
+	fun attemptAny(of: List<ParseRule<*>>, throwOnNull: Boolean = false) : INode? {
 		return attemptAny(*of.toTypedArray(), throwOnNull = throwOnNull)
 	}
 
-	fun attemptAny(vararg of: ParseRule<*>, throwOnNull: Boolean = false) : Node? {
+	fun attemptAny(vararg of: ParseRule<*>, throwOnNull: Boolean = false) : INode? {
 		val start = peek()
 		for (rule in of) {
 			val expr = attempt(rule)

@@ -3,8 +3,6 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.graph.components.*
-import org.orbit.graph.extensions.annotate
-import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.util.Invocation
 
 class TypeIdentifierPathResolver(private val kind: Binding.Kind? = null) : PathResolver<TypeIdentifierNode> {

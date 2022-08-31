@@ -1,15 +1,14 @@
 package org.orbit.precess.frontend.components.nodes
 
 import org.orbit.core.components.Token
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 import org.orbit.precess.backend.components.Decl
 import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 import org.orbit.precess.backend.components.TypeAttribute
-import org.orbit.precess.backend.utils.AnyType
 
-data class BindingLiteralNode(override val firstToken: Token, override val lastToken: Token, val ref: RefLiteralNode, val term: TermExpressionNode<*>) : DeclNode<Decl.Assignment>() {
-    override fun getChildren(): List<Node> = listOf(ref, term)
+data class BindingLiteralNode(override val firstToken: Token, override val lastToken: Token, val ref: RefLiteralNode, val term: TermExpressionNode<*>) : DeclNode<Decl.Assignment> {
+    override fun getChildren(): List<INode> = listOf(ref, term)
     override fun toString(): String = "$ref:$term"
 
     override fun getDecl(env: Env): DeclResult<Decl.Assignment> {

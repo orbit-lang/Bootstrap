@@ -3,19 +3,19 @@ package org.orbit.core.nodes
 import org.orbit.core.components.Token
 import org.orbit.graph.pathresolvers.PathResolver
 
-abstract class EntityConstructorNode : TopLevelDeclarationNode(PathResolver.Pass.Last), ScopedNode {
-    abstract val typeIdentifierNode: TypeIdentifierNode
-    abstract val typeParameterNodes: List<TypeIdentifierNode>
-    abstract val traitConformance: List<TypeExpressionNode>
-    abstract val clauses: List<TypeConstraintWhereClauseNode>
-    abstract val properties: List<ParameterNode>
+interface EntityConstructorNode : TopLevelDeclarationNode, ScopedNode {
+    val typeIdentifierNode: TypeIdentifierNode
+    val typeParameterNodes: List<TypeIdentifierNode>
+    val traitConformance: List<TypeExpressionNode>
+    val clauses: List<TypeConstraintWhereClauseNode>
+    val properties: List<ParameterNode>
 
-    override fun getChildren(): List<Node> = when (context) {
+    override fun getChildren(): List<INode> = when (context) {
         null -> listOf(typeIdentifierNode) + typeParameterNodes + clauses + traitConformance + properties
         else -> listOf(typeIdentifierNode) + typeParameterNodes + clauses + traitConformance + properties + context!!
     }
 
-    abstract fun extend(given: List<TypeIdentifierNode>) : EntityConstructorNode
+    fun extend(given: List<TypeIdentifierNode>) : EntityConstructorNode
 }
 
 data class TypeConstructorNode(
@@ -27,7 +27,7 @@ data class TypeConstructorNode(
     override val properties: List<ParameterNode> = emptyList(),
     override val clauses: List<TypeConstraintWhereClauseNode> = emptyList(),
     override val context: ContextExpressionNode? = null
-): EntityConstructorNode() {
+): EntityConstructorNode {
     override fun extend(given: List<TypeIdentifierNode>) : TypeConstructorNode {
         return TypeConstructorNode(firstToken, lastToken, typeIdentifierNode, given + typeParameterNodes, traitConformance, properties, clauses)
     }
@@ -44,11 +44,8 @@ data class TraitConstructorNode(
     override val properties: List<ParameterNode> = emptyList(),
     val instances: List<TypeDefNode> = emptyList(),
     override val context: ContextExpressionNode? = null
-): EntityConstructorNode() {
-    val isClosed: Boolean
-        get() = instances.isNotEmpty()
-
-    override fun getChildren(): List<Node> {
+): EntityConstructorNode {
+    override fun getChildren(): List<INode> {
         return super.getChildren() + signatureNodes
     }
 
@@ -67,8 +64,8 @@ data class FamilyConstructorNode(
     override val properties: List<ParameterNode>,
     val entities: List<EntityConstructorNode>,
     override val context: ContextExpressionNode? = null
-) : EntityConstructorNode() {
-    override fun getChildren(): List<Node> = when (context) {
+) : EntityConstructorNode {
+    override fun getChildren(): List<INode> = when (context) {
         null -> super.getChildren() + entities
         else -> super.getChildren() + entities + context
     }

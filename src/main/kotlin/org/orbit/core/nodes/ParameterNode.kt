@@ -8,8 +8,8 @@ data class ParameterNode(
     val identifierNode: IdentifierNode,
     val typeNode: TypeExpressionNode,
     val defaultValue: ExpressionNode?
-) : Node() {
-    override fun getChildren(): List<Node> = when (defaultValue) {
+) : INode {
+    override fun getChildren(): List<INode> = when (defaultValue) {
         null -> listOf(identifierNode, typeNode)
         else -> listOf(identifierNode, typeNode, defaultValue)
     }

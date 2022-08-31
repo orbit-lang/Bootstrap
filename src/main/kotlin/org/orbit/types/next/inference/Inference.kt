@@ -2,10 +2,9 @@ package org.orbit.types.next.inference
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 import org.orbit.types.next.components.*
 import org.orbit.util.Printer
-import java.lang.RuntimeException
 
 sealed interface InferenceResult {
     data class Success<T: TypeComponent>(val type: T) : InferenceResult
@@ -135,17 +134,17 @@ data class TypeReference(override val fullyQualifiedName: String, val originalTy
     }
 }
 
-interface Inference<N: Node, T: TypeComponent> {
+interface Inference<N: INode, T: TypeComponent> {
     fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: N) : InferenceResult
 }
 
 interface InferenceContext {
-    val nodeType: Class<out Node>
+    val nodeType: Class<out INode>
 
-    fun <N: Node> clone(clazz: Class<N>) : InferenceContext
+    fun <N: INode> clone(clazz: Class<N>) : InferenceContext
 }
 
-data class AnyInferenceContext(override val nodeType: Class<out Node>) : InferenceContext {
+data class AnyInferenceContext(override val nodeType: Class<out INode>) : InferenceContext {
     override fun equals(other: Any?): Boolean = when (other) {
         is AnyInferenceContext -> nodeType == other.nodeType
         else -> false
@@ -153,7 +152,7 @@ data class AnyInferenceContext(override val nodeType: Class<out Node>) : Inferen
 
     override fun hashCode(): Int = nodeType.hashCode()
 
-    override fun <N : Node> clone(clazz: Class<N>) : InferenceContext {
+    override fun <N : INode> clone(clazz: Class<N>) : InferenceContext {
         return AnyInferenceContext(clazz)
     }
 }

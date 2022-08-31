@@ -1,9 +1,9 @@
 package org.orbit.backend.codegen
 
 import org.orbit.core.Mangler
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 
-interface CodeUnit<N: Node> {
+interface CodeUnit<N: INode> {
     val node: N
     val depth: Int
 

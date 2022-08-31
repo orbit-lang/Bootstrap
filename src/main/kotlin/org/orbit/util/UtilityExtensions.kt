@@ -3,7 +3,6 @@ package org.orbit.util
 import org.orbit.core.Mangler
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.core.nodes.Node
 
 fun <T> Collection<T>.containsAll(other: Collection<T>) : Boolean {
     return other.fold(true) { acc, next ->

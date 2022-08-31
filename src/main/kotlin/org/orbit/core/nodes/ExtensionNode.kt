@@ -9,10 +9,8 @@ data class ExtensionNode(
     val targetTypeNode: TypeExpressionNode,
     val methodDefNodes: List<MethodDefNode>,
     override val context: ContextExpressionNode? = null
-) : ContextAwareNode() {
-    override val annotationPass: PathResolver.Pass = PathResolver.Pass.Last
-
-    override fun getChildren(): List<Node> = when (context) {
+) : ContextAwareNode {
+    override fun getChildren(): List<INode> = when (context) {
         null -> listOf(targetTypeNode) + methodDefNodes
         else -> listOf(targetTypeNode) + methodDefNodes + context
     }

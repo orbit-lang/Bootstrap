@@ -47,6 +47,6 @@ data class KindLiteralNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val kind: KindLiteral
-) : Node() {
-    override fun getChildren(): List<Node> = emptyList()
+) : INode {
+    override fun getChildren(): List<INode> = emptyList()
 }

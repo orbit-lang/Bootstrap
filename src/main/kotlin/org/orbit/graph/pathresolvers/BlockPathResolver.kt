@@ -5,7 +5,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.*
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.types.next.intrinsics.Native
@@ -22,14 +22,14 @@ class BlockPathResolver : PathResolver<BlockNode> {
 			var result: PathResolver.Result = PathResolver.Result.Success(OrbitMangler.unmangle(Native.Types.Unit.type.fullyQualifiedName))
 
 			for (node in input.body) {
-				node.annotate(input.getGraphID(), Annotations.GraphID)
+				node.annotateByKey(input.getGraphID(), Annotations.GraphID)
 
 				when (node) {
 					is PrintNode ->
 						pathResolverUtil.resolve(node, pass, environment, graph)
 
 					is ReturnStatementNode -> {
-						node.valueNode.expressionNode.annotate(input.getGraphID(), Annotations.GraphID)
+						node.valueNode.expressionNode.annotateByKey(input.getGraphID(), Annotations.GraphID)
 						result = pathResolverUtil.resolve(node.valueNode.expressionNode, pass, environment, graph)
 					}
 

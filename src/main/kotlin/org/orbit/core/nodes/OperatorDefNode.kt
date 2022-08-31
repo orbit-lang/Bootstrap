@@ -1,7 +1,6 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
-import org.orbit.graph.pathresolvers.PathResolver
 
 enum class OperatorFixity(val numberOfParameters: Int) {
     Prefix(1), Infix(2), Postfix(1);
@@ -23,10 +22,10 @@ data class OperatorDefNode(
     val identifierNode: IdentifierNode,
     val symbol: String,
     val methodReferenceNode: MethodReferenceNode
-) : TopLevelDeclarationNode(PathResolver.Pass.Initial) {
+) : TopLevelDeclarationNode {
     override val context: ContextExpressionNode
         get() = throw NotImplementedError()
 
-    override fun getChildren(): List<Node>
+    override fun getChildren(): List<INode>
         = listOf(identifierNode, methodReferenceNode)
 }

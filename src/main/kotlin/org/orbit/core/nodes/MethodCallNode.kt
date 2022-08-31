@@ -2,19 +2,17 @@ package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
 
-abstract class InvokableNode(
-    override val firstToken: Token,
-    override val lastToken: Token,
-    open val parameterNodes: List<ExpressionNode>
-) : ExpressionNode()
+interface InvokableNode : ExpressionNode {
+    val parameterNodes: List<ExpressionNode>
+}
 
 data class ReferenceCallNode(
     override val firstToken: Token,
     override val lastToken: Token,
     override val parameterNodes: List<ExpressionNode>,
     val referenceNode: ExpressionNode
-) : InvokableNode(firstToken, lastToken, parameterNodes), ValueRepresentableNode {
-    override fun getChildren(): List<Node>
+) : InvokableNode, ValueRepresentableNode {
+    override fun getChildren(): List<INode>
         = parameterNodes + referenceNode
 }
 
@@ -25,14 +23,7 @@ data class MethodCallNode(
     val messageIdentifier: IdentifierNode,
     override val parameterNodes: List<ExpressionNode>,
     val isPropertyAccess: Boolean = false
-) : InvokableNode(firstToken, lastToken, parameterNodes), ValueRepresentableNode {
-    val isInstanceCall: Boolean
-        get() = when (receiverExpression) {
-            is RValueNode -> receiverExpression.expressionNode !is TypeExpressionNode
-            else -> true
-        }
-
-    override fun getChildren(): List<Node> {
-        return listOf(receiverExpression, messageIdentifier) + parameterNodes
-    }
+) : InvokableNode, ValueRepresentableNode {
+    override fun getChildren(): List<INode>
+        = listOf(receiverExpression, messageIdentifier) + parameterNodes
 }

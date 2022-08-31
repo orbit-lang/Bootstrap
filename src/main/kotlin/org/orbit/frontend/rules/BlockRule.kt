@@ -1,12 +1,13 @@
 package org.orbit.frontend.rules
 
-import org.orbit.core.nodes.*
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
-import org.orbit.frontend.components.ParseError
 import org.orbit.core.components.TokenTypes
-import org.orbit.frontend.phase.Parser
+import org.orbit.core.nodes.BlockNode
+import org.orbit.core.nodes.INode
+import org.orbit.frontend.components.ParseError
 import org.orbit.frontend.extensions.unaryPlus
+import org.orbit.frontend.phase.Parser
 
 class BlockRule(private vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNode> {
 	sealed class Errors {
@@ -22,7 +23,7 @@ class BlockRule(private vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNod
 	override fun parse(context: Parser) : ParseRule.Result {
 		val start = context.expect(TokenTypes.LBrace)
 		var next = context.peek()
-		val body = mutableListOf<Node>()
+		val body = mutableListOf<INode>()
 		
 		while (next.type != TokenTypes.RBrace) {
 			body.add(context.attemptAny(*bodyRules, throwOnNull = true)

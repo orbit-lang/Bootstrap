@@ -6,6 +6,6 @@ data class MacroScopeNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val defineNodes: List<DefineNode>
-) : Node() {
-    override fun getChildren(): List<Node> = defineNodes
+) : INode {
+    override fun getChildren(): List<INode> = defineNodes
 }

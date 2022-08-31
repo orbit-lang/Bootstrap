@@ -3,7 +3,7 @@ package org.orbit.core.nodes
 import org.orbit.core.components.Token
 import org.orbit.frontend.rules.IntrinsicContextCompositionOperator
 
-abstract class ContextExpressionNode : Node()
+interface ContextExpressionNode : INode
 
 data class ContextNode(
     override val firstToken: Token,
@@ -12,8 +12,8 @@ data class ContextNode(
     val typeVariables: List<TypeIdentifierNode>,
     val clauses: List<WhereClauseNode>,
     val body: List<EntityDefNode>
-) : Node() {
-    override fun getChildren(): List<Node>
+) : INode {
+    override fun getChildren(): List<INode>
         = listOf(contextIdentifier) + typeVariables + clauses + body
 }
 
@@ -22,8 +22,8 @@ data class ContextInstantiationNode(
     override val lastToken: Token,
     val contextIdentifierNode: TypeIdentifierNode,
     val typeVariables: List<TypeExpressionNode>
-) : ContextExpressionNode() {
-    override fun getChildren(): List<Node>
+) : ContextExpressionNode {
+    override fun getChildren(): List<INode>
         = listOf(contextIdentifierNode) + typeVariables
 }
 
@@ -33,7 +33,7 @@ data class ContextCompositionNode(
     val op: IntrinsicContextCompositionOperator,
     val leftContext: ContextExpressionNode,
     val rightContext: ContextExpressionNode
-) : ContextExpressionNode() {
-    override fun getChildren(): List<Node>
+) : ContextExpressionNode {
+    override fun getChildren(): List<INode>
         = listOf(leftContext, rightContext)
 }

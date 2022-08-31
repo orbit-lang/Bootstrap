@@ -2,7 +2,7 @@ package org.orbit.types.next.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -11,19 +11,14 @@ import org.orbit.util.getKoinInstance
 import org.orbit.util.next.*
 
 class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBindingScope, val self: TypeComponent? = null) : KoinComponent, ITypeMap by typeMap, IBindingScope by bindingScope {
-    companion object {
-        fun getRoot() : InferenceUtil
-            = InferenceUtil(TypeMap(), BindingScope.Root, null)
-    }
-
     private val inferences = mutableMapOf<InferenceContext, Inference<*, *>>()
     private val invocation: Invocation by inject()
 
-    fun <N: Node> registerInference(inference: Inference<N, *>, context: InferenceContext) {
+    fun <N: INode> registerInference(inference: Inference<N, *>, context: InferenceContext) {
         inferences[context] = inference
     }
 
-    fun <N: Node> registerInference(inference: Inference<N, *>, nodeType: Class<N>) {
+    fun <N: INode> registerInference(inference: Inference<N, *>, nodeType: Class<N>) {
         inferences[AnyInferenceContext(nodeType)] = inference
     }
 
@@ -55,7 +50,7 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         return nInferenceUtil
     }
 
-    fun <N: Node> infer(node: N, context: InferenceContext = AnyInferenceContext(node::class.java), autoCaptureType: Boolean = true) : TypeComponent {
+    fun <N: INode> infer(node: N, context: InferenceContext = AnyInferenceContext(node::class.java), autoCaptureType: Boolean = true) : TypeComponent {
         val t = typeMap.get(node)
 
         if (t != null) {
@@ -88,17 +83,14 @@ class InferenceUtil(private val typeMap: ITypeMap, private val bindingScope: IBi
         }
     }
 
-    inline fun <N: Node, reified T: TypeComponent> inferAsOrNull(node: N, context: InferenceContext = AnyInferenceContext(
-        node::class.java
-    )
-    ) : T?
+    inline fun <N: INode, reified T: TypeComponent> inferAsOrNull(node: N, context: InferenceContext = AnyInferenceContext(node::class.java)) : T?
         = infer(node, context) as? T
 
-    inline fun <N: Node, reified T: TypeComponent> inferAs(node: N, context: InferenceContext = AnyInferenceContext(node::class.java)) : T
+    inline fun <N: INode, reified T: TypeComponent> inferAs(node: N, context: InferenceContext = AnyInferenceContext(node::class.java)) : T
         = inferAsOrNull(node, context)!!
 
-    fun inferAll(nodes: List<Node>, context: InferenceContext) : List<TypeComponent> = nodes.map { infer(it, context) }
+    fun inferAll(nodes: List<INode>, context: InferenceContext) : List<TypeComponent> = nodes.map { infer(it, context) }
 
-    inline fun <N: Node, reified T: TypeComponent> inferAllAs(nodes: List<N>, context: InferenceContext) : List<T>
+    inline fun <N: INode, reified T: TypeComponent> inferAllAs(nodes: List<N>, context: InferenceContext) : List<T>
         = nodes.map { inferAs(it, context) }
 }

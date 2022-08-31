@@ -6,6 +6,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.SerialSignature
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.MethodCallNode
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
@@ -173,7 +174,7 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
         if (callableInterface.contracts.count() != calleeType.getMembers().count())
             return onFailure().inferenceResult()
 
-        node.annotate(SerialSignature(signature), Annotations.Signature)
+        node.annotateByKey(SerialSignature(signature), Annotations.Signature)
 
         return when (val r = callableInterface.isImplemented(inferenceUtil.toCtx(), calleeType)) {
             is ContractResult.Success -> signature.returns
@@ -185,7 +186,3 @@ object MethodCallInference : Inference<MethodCallNode, TypeComponent>, KoinCompo
         }.inferenceResult()
     }
 }
-
-//data class SyntheticCall(val receiver: TypeComponent, val parameters: List<TypeComponent>, val returns: TypeComponent) : TypeComponent {
-//
-//}

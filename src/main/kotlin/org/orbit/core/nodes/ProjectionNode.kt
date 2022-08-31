@@ -9,8 +9,8 @@ data class ProjectionNode(
     val traitIdentifier: TypeExpressionNode,
     val whereNodes: List<WhereClauseNode> = emptyList(),
     val instanceBinding: IdentifierNode?
-) : Node() {
-    override fun getChildren(): List<Node> = when (instanceBinding) {
+) : INode {
+    override fun getChildren(): List<INode> = when (instanceBinding) {
         null -> listOf(typeIdentifier, traitIdentifier) + whereNodes
         else -> listOf(typeIdentifier, traitIdentifier) + whereNodes + instanceBinding
     }

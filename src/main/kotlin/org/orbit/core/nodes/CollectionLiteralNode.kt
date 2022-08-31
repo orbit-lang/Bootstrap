@@ -6,6 +6,6 @@ data class CollectionLiteralNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val elements: List<ExpressionNode>
-) : ExpressionNode() {
-    override fun getChildren(): List<Node> = elements
+) : ExpressionNode {
+    override fun getChildren(): List<INode> = elements
 }

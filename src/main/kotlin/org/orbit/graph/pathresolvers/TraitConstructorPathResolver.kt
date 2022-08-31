@@ -5,8 +5,9 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.SerialIndex
-import org.orbit.core.nodes.TraitConstructorNode
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.TraitConstructorNode
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -25,8 +26,8 @@ class TraitConstructorPathResolver(private val parentPath: Path) : PathResolver<
 		val path = parentPath + Path(input.typeIdentifierNode.value)
 
 		if (pass == PathResolver.Pass.Initial) {
-			input.annotate(path, Annotations.Path)
-			input.typeIdentifierNode.annotate(path, Annotations.Path)
+			input.annotateByKey(path, Annotations.Path)
+			input.typeIdentifierNode.annotateByKey(path, Annotations.Path)
 
 			environment.bind(Binding.Kind.TraitConstructor, input.typeIdentifierNode.value, path)
 
@@ -35,14 +36,14 @@ class TraitConstructorPathResolver(private val parentPath: Path) : PathResolver<
 
 			graph.link(parentGraphID, graphID)
 
-			input.annotate(graphID, Annotations.GraphID)
+			input.annotateByKey(graphID, Annotations.GraphID)
 
 			for (typeParameter in input.typeParameterNodes.withIndex()) {
 				val nPath = path + typeParameter.value.value
 
-				typeParameter.value.annotate(nPath, Annotations.Path)
-				typeParameter.value.annotate(graphID, Annotations.GraphID)
-				typeParameter.value.annotate(SerialIndex(typeParameter.index), Annotations.Index)
+				typeParameter.value.annotateByKey(nPath, Annotations.Path)
+				typeParameter.value.annotateByKey(graphID, Annotations.GraphID)
+				typeParameter.value.annotateByKey(SerialIndex(typeParameter.index), Annotations.Index)
 
 				val vertexID = graph.insert(typeParameter.value.value)
 
@@ -55,16 +56,16 @@ class TraitConstructorPathResolver(private val parentPath: Path) : PathResolver<
 			val methodSignaturePathResolver = MethodSignaturePathResolver()
 
 			input.properties.forEach {
-				it.typeNode.annotate(parentGraphID, Annotations.GraphID)
-				it.defaultValue?.annotate(parentGraphID, Annotations.GraphID)
+				it.typeNode.annotateByKey(parentGraphID, Annotations.GraphID)
+				it.defaultValue?.annotateByKey(parentGraphID, Annotations.GraphID)
 			}
 
-			input.signatureNodes.forEach { it.annotate(parentGraphID, Annotations.GraphID) }
+			input.signatureNodes.forEach { it.annotateByKey(parentGraphID, Annotations.GraphID) }
 			input.signatureNodes.forEach(-partial(methodSignaturePathResolver::resolve, pass, environment, graph))
 
 			input.properties.forEach(dispose(partial(pathResolverUtil::resolve, pass, environment, graph)))
 			input.context?.let {
-				it.annotate(parentGraphID, Annotations.GraphID)
+				it.annotateByKey(parentGraphID, Annotations.GraphID)
 				pathResolverUtil.resolve(it, pass, environment, graph)
 			}
 		}

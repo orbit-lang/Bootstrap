@@ -2,8 +2,9 @@ package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.nodes.TypeSynthesisNode
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.TypeSynthesisNode
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.getGraphIDOrNull
@@ -14,16 +15,11 @@ object TypeSynthesisPathResolver : PathResolver<TypeSynthesisNode>, KoinComponen
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(
-        input: TypeSynthesisNode,
-        pass: PathResolver.Pass,
-        environment: Environment,
-        graph: Graph
-    ): PathResolver.Result {
+    override fun resolve(input: TypeSynthesisNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
         // TODO - Generalised compile-time functions
         val parentGraphID = input.getGraphIDOrNull()
         if (parentGraphID != null) {
-            input.targetNode.annotate(parentGraphID, Annotations.GraphID)
+            input.targetNode.annotateByKey(parentGraphID, Annotations.GraphID)
         }
 
         return pathResolverUtil.resolve(input.targetNode, pass, environment, graph)

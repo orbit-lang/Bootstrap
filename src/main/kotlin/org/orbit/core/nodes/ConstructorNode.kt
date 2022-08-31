@@ -8,8 +8,8 @@ data class ConstructorNode(
     override val lastToken: Token,
     val typeExpressionNode: TypeExpressionNode,
     val parameterNodes: List<ExpressionNode>
-) : ExpressionNode(), Serializable, ValueRepresentableNode {
-    override fun getChildren(): List<Node> {
+) : ExpressionNode, Serializable, ValueRepresentableNode {
+    override fun getChildren(): List<INode> {
         return listOf(typeExpressionNode) + parameterNodes
     }
 }

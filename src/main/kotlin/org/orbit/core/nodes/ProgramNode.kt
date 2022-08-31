@@ -6,8 +6,8 @@ data class ProgramNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val declarations: List<TopLevelDeclarationNode>
-) : Node() {
-	override fun getChildren() : List<Node> = declarations
+) : INode {
+	override fun getChildren() : List<INode> = declarations
 
 	fun getApiDefs() : List<ApiDefNode>
 		= declarations.filterIsInstance(ApiDefNode::class.java)

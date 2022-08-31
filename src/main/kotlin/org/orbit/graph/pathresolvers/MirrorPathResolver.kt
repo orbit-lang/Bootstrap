@@ -6,7 +6,7 @@ import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.MirrorNode
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
@@ -16,7 +16,7 @@ object MirrorPathResolver : PathResolver<MirrorNode>, KoinComponent {
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: MirrorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        input.expressionNode.annotate(input.getGraphID(), Annotations.GraphID)
+        input.expressionNode.annotateByKey(input.getGraphID(), Annotations.GraphID)
         return pathResolverUtil.resolve(input.expressionNode, pass, environment, graph)
     }
 }

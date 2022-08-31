@@ -7,8 +7,7 @@ data class TypeAliasNode(
     override val lastToken: Token,
     val sourceTypeIdentifier: TypeIdentifierNode,
     val targetTypeIdentifier: TypeExpressionNode
-) : Node() {
-    override fun getChildren(): List<Node> {
-        return listOf(sourceTypeIdentifier, targetTypeIdentifier)
-    }
+) : INode {
+    override fun getChildren(): List<INode>
+        = listOf(sourceTypeIdentifier, targetTypeIdentifier)
 }

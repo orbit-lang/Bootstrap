@@ -2,13 +2,10 @@ package org.orbit.types.next.inference
 
 import org.orbit.core.SerialIndex
 import org.orbit.core.getPath
-import org.orbit.core.nodes.Annotations
-import org.orbit.core.nodes.Node
-import org.orbit.core.nodes.NodeAnnotationTag
-import org.orbit.core.nodes.TypeIdentifierNode
+import org.orbit.core.nodes.*
 import org.orbit.types.next.components.AbstractTypeParameter
 
-fun Node.getIndex() : SerialIndex {
+fun INode.getIndex() : SerialIndex {
     return getAnnotation(Annotations.Index as NodeAnnotationTag<SerialIndex>)!!.value
 }
 

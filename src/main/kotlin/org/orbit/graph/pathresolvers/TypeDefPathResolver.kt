@@ -6,6 +6,7 @@ import org.orbit.core.Path
 import org.orbit.core.getPath
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -22,7 +23,7 @@ class TypeDefPathResolver(
 		val path = if (pass == PathResolver.Pass.Initial) {
 			val path = parentPath + Path(input.typeIdentifierNode.value)
 
-			input.annotate(path, Annotations.Path)
+			input.annotateByKey(path, Annotations.Path)
 
 			environment.bind(Binding.Kind.Type, input.typeIdentifierNode.value, path)
 
@@ -31,15 +32,15 @@ class TypeDefPathResolver(
 
 			graph.link(parentGraphID, graphID)
 
-			input.annotate(graphID, Annotations.GraphID)
+			input.annotateByKey(graphID, Annotations.GraphID)
 			input.properties.forEach {
-				it.annotate(graphID, Annotations.GraphID)
-				it.typeNode.annotate(graphID, Annotations.GraphID)
-				it.defaultValue?.annotate(graphID, Annotations.GraphID)
+				it.annotateByKey(graphID, Annotations.GraphID)
+				it.typeNode.annotateByKey(graphID, Annotations.GraphID)
+				it.defaultValue?.annotateByKey(graphID, Annotations.GraphID)
 			}
 
 			input.traitConformances.forEach {
-				it.annotate(graphID, Annotations.GraphID)
+				it.annotateByKey(graphID, Annotations.GraphID)
 			}
 
 			path

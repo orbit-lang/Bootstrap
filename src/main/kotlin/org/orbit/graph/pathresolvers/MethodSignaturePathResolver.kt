@@ -10,7 +10,7 @@ import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.extensions.getGraphIDOrNull
 import org.orbit.types.next.intrinsics.Native
@@ -33,8 +33,8 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 				val nPath = mPath + tp.value
 				val nGraphID = graph.insert(nPath.toString(OrbitMangler))
 
-				tp.annotate(SerialIndex(idx), Annotations.Index)
-				tp.annotate(nPath, Annotations.Path)
+				tp.annotateByKey(SerialIndex(idx), Annotations.Index)
+				tp.annotateByKey(nPath, Annotations.Path)
 				// TODO - Recursively resolve nested type parameters
 				environment.bind(Binding.Kind.Type, tp.value, nPath, nGraphID)
 				graph.link(graphID, nGraphID)
@@ -44,19 +44,19 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		val receiverBinding = environment.getBinding(receiver, Binding.Kind.Union.receiver, graph, graphID)
 			.unwrap(this, input.receiverTypeNode.firstToken.position)
 
-		input.receiverTypeNode.annotate(graphID, Annotations.GraphID)
+		input.receiverTypeNode.annotateByKey(graphID, Annotations.GraphID)
 
 		TypeExpressionPathResolver.resolve(input.receiverTypeNode, pass, environment, graph)
 			.asSuccess()
 
-		input.receiverTypeNode.annotate(receiverBinding.path, Annotations.Path)
+		input.receiverTypeNode.annotateByKey(receiverBinding.path, Annotations.Path)
 
 		val name = input.identifierNode.identifier
 		val ret = input.returnTypeNode?.value ?: Native.Types.Unit.name
 
 		if (input.returnTypeNode?.value != null) {
 			try {
-				input.returnTypeNode.annotate(graphID, Annotations.GraphID)
+				input.returnTypeNode.annotateByKey(graphID, Annotations.GraphID)
 				TypeExpressionPathResolver.resolve(input.returnTypeNode, pass, environment, graph)
 			} catch (e: Exception) {
 				println("HERE")
@@ -68,10 +68,10 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		// TODO - Should method names contain parameter names as well as/instead of types?
 		// i.e. Are parameter names important/overloadable?
 
-		input.returnTypeNode?.annotate(retPath.path, Annotations.Path)
+		input.returnTypeNode?.annotateByKey(retPath.path, Annotations.Path)
 
 		val argPaths = input.parameterNodes.mapIndexed { idx, it ->
-			it.typeExpressionNode.annotate(graphID, Annotations.GraphID)
+			it.typeExpressionNode.annotateByKey(graphID, Annotations.GraphID)
 			val result = TypeExpressionPathResolver.resolve(it.typeExpressionNode, pass, environment, graph)
 				.asSuccess()
 
@@ -88,7 +88,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 
 		path += retPath.path
 
-		input.annotate(path, Annotations.Path)
+		input.annotateByKey(path, Annotations.Path)
 		environment.bind(Binding.Kind.Method, name, path)
 
 		input.typeConstraints.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))

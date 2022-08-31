@@ -18,10 +18,10 @@ data class ModuleNode(
     override val contexts: List<ContextNode> = emptyList(),
     override val context: ContextExpressionNode? = null,
     override val operatorDefs: List<OperatorDefNode>
-) : ContainerNode() {
+) : ContainerNode {
     val isEmpty: Boolean get() = entityDefs.isEmpty() && methodDefs.isEmpty() && typeAliasNodes.isEmpty() && extensions.isEmpty() && contexts.isEmpty()
 
-    override fun getChildren(): List<Node> = when (within) {
+    override fun getChildren(): List<INode> = when (within) {
         null -> listOf(identifier) + implements + with + entityDefs + methodDefs + typeAliasNodes + entityConstructors + projections + extensions + contexts + operatorDefs
         else -> listOf(identifier, within) + implements + with + entityDefs + methodDefs + typeAliasNodes + entityConstructors + projections + extensions + contexts + operatorDefs
     }

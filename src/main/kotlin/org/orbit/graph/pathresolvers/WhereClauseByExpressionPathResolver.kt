@@ -4,6 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.WhereClauseByExpressionNode
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.getGraphID
@@ -15,7 +16,7 @@ object WhereClauseByExpressionPathResolver : PathResolver<WhereClauseByExpressio
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: WhereClauseByExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        input.lambdaExpression.annotate(input.getGraphID(), Annotations.GraphID)
+        input.lambdaExpression.annotateByKey(input.getGraphID(), Annotations.GraphID)
 
         return pathResolverUtil.resolve(input.lambdaExpression, pass, environment, graph)
     }

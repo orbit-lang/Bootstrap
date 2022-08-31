@@ -8,8 +8,7 @@ data class MethodReferenceNode(
     val isConstructor: Boolean,
     val typeExpressionNode: TypeExpressionNode,
     val identifierNode: IdentifierNode
-) : ExpressionNode() {
-    override fun getChildren(): List<Node> {
-        return listOf(typeExpressionNode, identifierNode)
-    }
+) : ExpressionNode {
+    override fun getChildren(): List<INode>
+        = listOf(typeExpressionNode, identifierNode)
 }

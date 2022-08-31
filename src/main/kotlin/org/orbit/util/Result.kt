@@ -1,6 +1,6 @@
 package org.orbit.util
 
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 
 sealed class Result<S, F> {
     data class Success<S, F>(val value: S) : Result<S, F>()
@@ -16,7 +16,7 @@ sealed class Result<S, F> {
     }
 }
 
-inline fun <reified N: Node, F> Result<N, F>.withFailure(fn: (N) -> Unit) {
+inline fun <reified N: INode, F> Result<N, F>.withFailure(fn: (N) -> Unit) {
     (this as? Result.Failure)?.let {
         fn(reason as N)
     }

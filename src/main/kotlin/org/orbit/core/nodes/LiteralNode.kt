@@ -4,12 +4,12 @@ import org.json.JSONObject
 import org.orbit.core.components.Token
 import org.orbit.serial.Serial
 
-interface ValueRepresentableNode
+interface ValueRepresentableNode : INode
 
-abstract class LiteralNode<T> : ConstantExpressionNode(), Serial, ValueRepresentableNode {
-    abstract val value: T
+interface LiteralNode<T> : ConstantExpressionNode, Serial, ValueRepresentableNode {
+    val value: T
 
-	override fun getChildren() : List<Node> {
+	override fun getChildren() : List<INode> {
 		return emptyList()
 	}
 
@@ -22,7 +22,7 @@ data class IntLiteralNode(
     override val firstToken: Token,
     override val lastToken: Token,
     override val value: Pair<Int, Int>
-) : LiteralNode<Pair<Int, Int>>() {
+) : LiteralNode<Pair<Int, Int>> {
 	constructor(f: Token, l: Token, width: Int, value: Int)
 		: this(f, l, Pair(width, value))
 
@@ -35,19 +35,19 @@ data class RealLiteralNode(
     override val firstToken: Token,
     override val lastToken: Token,
     override val value: Double
-) : LiteralNode<Double>()
+) : LiteralNode<Double>
 
 data class BoolLiteralNode(
     override val firstToken: Token,
     override val lastToken: Token,
     override val value: Boolean
-) : LiteralNode<Boolean>()
+) : LiteralNode<Boolean>
 
 data class SymbolLiteralNode(
     override val firstToken: Token,
     override val lastToken: Token,
     override val value: Pair<Int, String>
-) : LiteralNode<Pair<Int, String>>() {
+) : LiteralNode<Pair<Int, String>> {
 	constructor(f: Token, l: Token, length: Int, value: String)
 		: this(f, l, Pair(length, value))
 }

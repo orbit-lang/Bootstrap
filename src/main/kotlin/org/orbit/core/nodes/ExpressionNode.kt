@@ -9,7 +9,7 @@ import org.orbit.core.components.Token
 	only really "exist" nominally, that have no unique
 	behaviour of their own (at least at parse-time).
 */
-abstract class ExpressionNode : Node() {
+interface ExpressionNode : INode {
 	fun toBlockNode() : BlockNode
 		= BlockNode(firstToken, lastToken, listOf(this))
 }
@@ -19,9 +19,9 @@ data class RValueNode(
     override val lastToken: Token,
     val expressionNode: ExpressionNode,
     val typeParametersNode: TypeParametersNode = TypeParametersNode(lastToken, lastToken)
-) : ExpressionNode() {
+) : ExpressionNode {
 	constructor(expressionNode: ExpressionNode)
 		: this(expressionNode.firstToken, expressionNode.lastToken, expressionNode)
 
-	override fun getChildren() : List<Node> = listOf(expressionNode, typeParametersNode)
+	override fun getChildren() : List<INode> = listOf(expressionNode, typeParametersNode)
 }

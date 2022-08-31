@@ -8,7 +8,7 @@ import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.extensions.unaryPlus
 
-interface EntityDefParseRule<E: EntityDefNode> : PrefixPhaseAnnotatedParseRule<E> {
+interface EntityDefParseRule<E: EntityDefNode> : ParseRule<E> {
 	companion object {
 		val moduleTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, ProjectionRule, TraitConstructorRule, TypeAliasRule, TypeDefRule, TraitDefRule, FamilyConstructorRule, FamilyRule)
 		val apiTopLevelRules = listOf<ParseRule<*>>(TypeConstructorRule, TraitConstructorRule, TypeAliasRule, TraitDefRule, TypeDefRule, TraitDefRule)

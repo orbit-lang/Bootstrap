@@ -2,12 +2,12 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 import org.orbit.frontend.phase.Parser
 
-interface ParseRule<N: Node> {
+interface ParseRule<N: INode> {
 	interface Result {
-		data class Success<N: Node>(val node: N) : Result
+		data class Success<N: INode>(val node: N) : Result
 		sealed class Failure : Result {
 			object Abort : Result
 			data class Rewind(val tokens: List<Token> = emptyList()) : Result
@@ -20,7 +20,7 @@ interface ParseRule<N: Node> {
 			return this as? R
 		}
 
-		fun <N: Node> asSuccessOrNull() : Success<N>? {
+		fun <N: INode> asSuccessOrNull() : Success<N>? {
 			return unwrap()
 		}
 	}

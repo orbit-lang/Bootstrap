@@ -3,9 +3,10 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ExtensionNode
 import org.orbit.core.nodes.WhereClauseExpressionNode
-import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
@@ -23,16 +24,16 @@ class ExtensionPathResolver(private val parentPath: Path) : PathResolver<Extensi
 
         val graphID = graph.find(targetTypePath.path.toString(OrbitMangler))
 
-        input.annotate(graphID, Annotations.GraphID)
-        input.annotate(targetTypePath.path, Annotations.Path)
+        input.annotateByKey(graphID, Annotations.GraphID)
+        input.annotateByKey(targetTypePath.path, Annotations.Path)
 
         input.context?.let {
-            it.annotate(graphID, Annotations.GraphID)
+            it.annotateByKey(graphID, Annotations.GraphID)
             pathResolverUtil.resolve(it, pass, environment, graph)
         }
 
         input.methodDefNodes.forEach {
-            it.annotate(graphID, Annotations.GraphID)
+            it.annotateByKey(graphID, Annotations.GraphID)
             pathResolverUtil.resolve(it, pass, environment, graph)
         }
 

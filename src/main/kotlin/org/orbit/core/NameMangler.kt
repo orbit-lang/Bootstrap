@@ -1,10 +1,9 @@
 package org.orbit.core
 
-import org.orbit.core.nodes.Node
-import org.orbit.core.nodes.NodeAnnotationTag
-import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.*
 import org.orbit.types.next.components.Signature
 import org.orbit.types.next.components.TypeComponent
+import org.orbit.util.getKoinInstance
 
 class FullyQualifiedPath(override val relativeNames: List<String>) : Path(relativeNames) {
 	constructor(path: Path) : this(path.relativeNames)
@@ -25,11 +24,11 @@ class FullyQualifiedPath(override val relativeNames: List<String>) : Path(relati
 	}
 }
 
-fun Node.getPathOrNull() : Path? {
+fun INode.getPathOrNull() : Path? {
 	return getAnnotation(Annotations.Path as NodeAnnotationTag<Path>)?.value
 }
 
-fun Node.getPath() : Path {
+fun INode.getPath() : Path {
 	return getAnnotation(Annotations.Path as NodeAnnotationTag<Path>)!!.value
 }
 

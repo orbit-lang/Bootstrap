@@ -5,7 +5,7 @@ import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.WhereClauseNode
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
@@ -15,7 +15,7 @@ object WhereClausePathResolver : PathResolver<WhereClauseNode> {
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: WhereClauseNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        input.whereExpression.annotate(input.getGraphID(), Annotations.GraphID)
+        input.whereExpression.annotateByKey(input.getGraphID(), Annotations.GraphID)
         return pathResolverUtil.resolve(input.whereExpression, pass, environment, graph)
     }
 }

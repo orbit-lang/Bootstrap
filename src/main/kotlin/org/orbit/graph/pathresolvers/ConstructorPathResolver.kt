@@ -5,7 +5,7 @@ import org.orbit.core.Scope
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ConstructorNode
 import org.orbit.graph.components.*
-import org.orbit.graph.extensions.annotate
+import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
@@ -15,18 +15,18 @@ class ConstructorPathResolver : PathResolver<ConstructorNode> {
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: ConstructorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
-		input.typeExpressionNode.annotate(input.getGraphID(), Annotations.GraphID)
+		input.typeExpressionNode.annotateByKey(input.getGraphID(), Annotations.GraphID)
 		TypeExpressionPathResolver.resolve(input.typeExpressionNode, pass, environment, graph)
 
 		val binding = environment.getBinding(input.typeExpressionNode.value, Binding.Kind.Union.entityOrConstructor)
 
 		return when (binding) {
 			is Scope.BindingSearchResult.Success -> {
-				input.typeExpressionNode.annotate(binding.result.path, Annotations.Path)
-				input.annotate(binding.result.path, Annotations.Path)
+				input.typeExpressionNode.annotateByKey(binding.result.path, Annotations.Path)
+				input.annotateByKey(binding.result.path, Annotations.Path)
 				// Resolver parameters
 				input.parameterNodes.forEach {
-					it.annotate(input.getGraphID(), Annotations.GraphID)
+					it.annotateByKey(input.getGraphID(), Annotations.GraphID)
 					pathResolverUtil.resolve(it, pass, environment, graph)
 				}
 

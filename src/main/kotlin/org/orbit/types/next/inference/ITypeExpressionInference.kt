@@ -14,9 +14,9 @@ import org.orbit.util.Printer
 import org.orbit.util.next.find
 
 object AnyTypeExpressionInferenceContext : InferenceContext {
-    override val nodeType: Class<out Node> = TypeExpressionNode::class.java
+    override val nodeType: Class<out INode> = TypeExpressionNode::class.java
 
-    override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
+    override fun <N : INode> clone(clazz: Class<N>): InferenceContext = this
 }
 
 interface ITypeExpressionInference<N: TypeExpressionNode, T: TypeComponent> : Inference<N, T>
@@ -33,9 +33,9 @@ object AnyTypeExpressionInference : ITypeExpressionInference<TypeExpressionNode,
 }
 
 object MirrorInferenceContext : InferenceContext {
-    override val nodeType: Class<out Node> = TypeIdentifierNode::class.java
+    override val nodeType: Class<out INode> = TypeIdentifierNode::class.java
 
-    override fun <N : Node> clone(clazz: Class<N>): InferenceContext = this
+    override fun <N : INode> clone(clazz: Class<N>): InferenceContext = this
 }
 
 object TypeLiteralInference : ITypeExpressionInference<TypeIdentifierNode, TypeComponent>, KoinComponent {

@@ -3,6 +3,7 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.nodes.MetaTypeNode
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.getGraphIDOrNull
@@ -20,14 +21,14 @@ object MetaTypePathResolver : PathResolver<MetaTypeNode> {
 		input.typeParameters.forEach {
 			val pid = input.getGraphIDOrNull()
 			if (pid != null) {
-				it.annotate(pid, Annotations.GraphID)
+				it.annotateByKey(pid, Annotations.GraphID)
 			}
 
 			TypeExpressionPathResolver.resolve(it, pass, environment, graph)
 		}
 
-		input.annotate(typeConstructorResult.path, Annotations.Path)
-		input.typeConstructorIdentifier.annotate(typeConstructorResult.path, Annotations.Path)
+		input.annotateByKey(typeConstructorResult.path, Annotations.Path)
+		input.typeConstructorIdentifier.annotateByKey(typeConstructorResult.path, Annotations.Path)
 
 		return PathResolver.Result.Success(typeConstructorResult.path)
 	}

@@ -1,14 +1,10 @@
 package org.orbit.util
 
-import org.koin.core.component.KoinComponent
-import org.koin.java.KoinJavaComponent.inject
-import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.components.Warning
-import org.orbit.core.nodes.Node
+import org.orbit.core.nodes.INode
 import org.orbit.core.phase.Phase
-import org.orbit.core.phase.ReifiedPhase
 import org.orbit.core.phase.safeCast
 
 open class OrbitException(override val message: String?) : Exception(message) {
@@ -158,7 +154,7 @@ class Invocation(val platform: Platform) {
 		""".trimMargin()
 	}
 
-	inline fun<reified P: Phase<*, *>> make(message: String, node: Node) : Exception {
+	inline fun<reified P: Phase<*, *>> make(message: String, node: INode) : Exception {
 		return make<P>(message, node.firstToken)
 	}
 
@@ -170,7 +166,7 @@ class Invocation(val platform: Platform) {
 		return Exception(makeString<P>(message, sourcePosition))
 	}
 
-	inline fun<reified P: Phase<*, *>> compilerError(message: String, node: Node) : Exception {
+	inline fun<reified P: Phase<*, *>> compilerError(message: String, node: INode) : Exception {
 		return compilerError<P>(message, node.firstToken)
 	}
 

@@ -20,8 +20,8 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 		val path = OrbitMangler.unmangle(input.identifier.value)
 
 		environment.withScope {
-			input.annotate(it.identifier, Annotations.Scope, true)
-			input.annotate(path, Annotations.Path)
+			input.annotateByKey(it.identifier, Annotations.Scope, true)
+			input.annotateByKey(path, Annotations.Path)
 
 			val kind = when (input) {
 				is ApiDefNode -> Binding.Kind.Api
@@ -35,7 +35,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 	}
 
 	private fun completeBinding(input: ContainerNode, environment: Environment, simplePath: Path, fullyQualifiedPath: FullyQualifiedPath) {
-		input.annotate(fullyQualifiedPath, Annotations.Path, true)
+		input.annotateByKey(fullyQualifiedPath, Annotations.Path, true)
 		environment.unbind(Binding.Kind.Module, input.identifier.value, simplePath)
 		environment.bind(Binding.Kind.Module, input.identifier.value, fullyQualifiedPath)
 	}
@@ -74,7 +74,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			val parentNode = environment.ast.search(ContainerNode::class.java)
 				.find { it.getPathOrNull() == parent.path }!!
 
-			input.within?.annotate(parent.path, Annotations.Path)
+			input.within?.annotateByKey(parent.path, Annotations.Path)
 
 			return@withScope when (parent.path) {
 				is FullyQualifiedPath -> {
@@ -105,7 +105,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 		}
 	}
 
-	private fun <N: Node> resolveAll(resolver: PathResolver<N>, nodes: List<N>, pass: PathResolver.Pass) {
+	private fun <N: INode> resolveAll(resolver: PathResolver<N>, nodes: List<N>, pass: PathResolver.Pass) {
 		for (node in nodes) {
 			resolver.execute(PathResolver.InputType(node, pass))
 		}
@@ -170,7 +170,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			}
 
 			for (methodDef in input.methodDefs) {
-				methodDef.annotate(input.getGraphID(), Annotations.GraphID)
+				methodDef.annotateByKey(input.getGraphID(), Annotations.GraphID)
 				pathResolverUtil.resolve(methodDef, PathResolver.Pass.Initial, environment, graph)
 			}
 
