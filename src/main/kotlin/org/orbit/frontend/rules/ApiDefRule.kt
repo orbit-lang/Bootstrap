@@ -20,7 +20,7 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 			?: throw context.invocation.make(Errors.MissingName(start.position))
 
 		val withinNode = context.attempt(WithinRule)
-		var with = context.attempt(WithRule)
+		var with = context.attempt(ImportRule)
 		val withNodes = mutableListOf<TypeIdentifierNode>()
 		
 		context.expect(TokenTypes.LBrace)

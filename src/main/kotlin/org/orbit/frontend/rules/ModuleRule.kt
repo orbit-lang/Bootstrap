@@ -60,11 +60,11 @@ object ModuleRule : ParseRule<ModuleNode> {
 
         val withNodes = mutableListOf<TypeIdentifierNode>()
         if (next.type == TokenTypes.With) {
-            var with = context.attempt(WithRule)
+            var with = context.attempt(ImportRule)
 
             while (with != null) {
                 withNodes.add(with)
-                with = context.attempt(WithRule)
+                with = context.attempt(ImportRule)
             }
         }
 

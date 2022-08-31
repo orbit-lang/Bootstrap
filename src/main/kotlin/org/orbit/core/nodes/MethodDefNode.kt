@@ -1,7 +1,6 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
-import org.orbit.graph.pathresolvers.PathResolver
 
 data class MethodDefNode(
     override val firstToken: Token,
@@ -9,7 +8,7 @@ data class MethodDefNode(
     val signature: MethodSignatureNode,
     val body: BlockNode,
     override val context: ContextExpressionNode? = null
-) : TopLevelDeclarationNode, ScopedNode {
+) : TopLevelDeclarationNode, ScopedNode, IExtensionDeclarationNode, IProjectionDeclarationNode {
 	override fun getChildren() : List<INode>
 		= listOf(signature, body)
 }

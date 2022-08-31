@@ -2,6 +2,8 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
+import org.orbit.core.components.TokenType
+import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.INode
 import org.orbit.frontend.phase.Parser
 
@@ -31,3 +33,9 @@ interface ParseRule<N: INode> {
 		return parse(input)
 	}
 }
+
+fun <N: INode> ParseRule<N>.toBlockRule() : BlockRule
+	= BlockRule(this)
+
+fun <N: INode> ParseRule<N>.toDelimitedRule(openingType: TokenType = TokenTypes.LParen, closingType: TokenType = TokenTypes.RParen, delimiter: TokenType = TokenTypes.Comma) : DelimitedRule<N>
+	= DelimitedRule(openingType, closingType, this, delimiter)

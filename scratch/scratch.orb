@@ -6,11 +6,9 @@ module M {
     context BoxCtx [ValueType]
         with type Box(value ValueType)
 
-    extension BoxCtx within CombinableCtx [Self::ValueType] {
-        projection Box : Combinable {
-            (self Self::ValueType) combine (other Self::ValueType) (Self::ValueType)
-                = other.combine(self)
-        }
+    extension BoxCtx within CombinableCtx [Self::ValueType] with projection Box : Combinable {
+        (self Self::ValueType) combine (other Self::ValueType) (Self::ValueType)
+            = other.combine(self)
     }
 
 #    extension BoxCtx within CombinableCtx [Self] + CombinableCtx [Self.ValueType] where Self.ValueType : Combinable

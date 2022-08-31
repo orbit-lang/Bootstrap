@@ -19,13 +19,15 @@ object ExtensionStubPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
     override fun run(input: TypePhaseData<ExtensionNode>): Extension {
         val extends = input.inferenceUtil.infer(input.node.targetTypeNode)
         val nInferenceUtil = input.inferenceUtil.derive(self = extends)
-        val signatureNodes = input.node.methodDefNodes.map { it.signature }
-        val signatures = nInferenceUtil.inferAllAs<MethodSignatureNode, Signature>(signatureNodes, AnyInferenceContext(MethodSignatureNode::class.java))
 
-        return when (extends) {
-            is PolymorphicType<*> -> Extension(extends, signatures, Context(UUID.randomUUID().toString(), emptyList(), emptyList()))
-            else -> throw invocation.make<TypeSystem>("Only Types of Kind level >= 1 may be extended (e.g. Kind: ${HigherKind.typeConstructor1.toString(printer)}), found ${extends.toString(printer)} (Kind: ${extends.kind.toString(printer)})", input.node.targetTypeNode)
-        }
+        TODO("")
+//        val signatureNodes = input.node.bodyNodes.map { it.signature }
+//        val signatures = nInferenceUtil.inferAllAs<MethodSignatureNode, Signature>(signatureNodes, AnyInferenceContext(MethodSignatureNode::class.java))
+//
+//        return when (extends) {
+//            is PolymorphicType<*> -> Extension(extends, signatures, Context(UUID.randomUUID().toString(), emptyList(), emptyList()))
+//            else -> throw invocation.make<TypeSystem>("Only Types of Kind level >= 1 may be extended (e.g. Kind: ${HigherKind.typeConstructor1.toString(printer)}), found ${extends.toString(printer)} (Kind: ${extends.kind.toString(printer)})", input.node.targetTypeNode)
+//        }
     }
 }
 
@@ -48,10 +50,10 @@ object ExtensionPhase : TypePhase<ExtensionNode, Extension>, KoinComponent {
 
         if (result is Never) throw invocation.make<TypeSystem>(result.message, input.node.context?.firstToken?.position ?: SourcePosition.unknown)
 
-        val nSignatures = MethodStubPhase.executeAll(nInferenceUtil, input.node.methodDefNodes)
+        val nSignatures = MethodStubPhase.executeAll(nInferenceUtil, emptyList()) //input.node.bodyNodes)
             as List<Signature>
 
-        val results = MethodBodyPhase.executeAll(nInferenceUtil, input.node.methodDefNodes)
+        val results = MethodBodyPhase.executeAll(nInferenceUtil, emptyList()) //input.node.bodyNodes)
         val failures = results.filterIsInstance<Never>()
             .fold(Anything as InternalControlType) { acc, next -> acc + next }
 

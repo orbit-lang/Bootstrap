@@ -32,7 +32,7 @@ class ExtensionPathResolver(private val parentPath: Path) : PathResolver<Extensi
             pathResolverUtil.resolve(it, pass, environment, graph)
         }
 
-        input.methodDefNodes.forEach {
+        input.bodyNodes.forEach {
             it.annotateByKey(graphID, Annotations.GraphID)
             pathResolverUtil.resolve(it, pass, environment, graph)
         }
