@@ -14,7 +14,6 @@ interface ContainerNode : TopLevelDeclarationNode {
 	val with: List<TypeIdentifierNode>
 	val entityDefs: List<EntityDefNode>
 	val methodDefs: List<MethodDefNode>
-	val entityConstructors: List<EntityConstructorNode>
 	val contexts: List<ContextNode>
 	val operatorDefs: List<OperatorDefNode>
 }
@@ -29,7 +28,6 @@ data class ApiDefNode(
 	override val within: TypeIdentifierNode?,
 	override val with: List<TypeIdentifierNode>,
 	val standardEntityDefs: List<EntityDefNode>,
-	override val entityConstructors: List<EntityConstructorNode>,
 	override val context: ContextExpressionNode? = null,
 	override val operatorDefs: List<OperatorDefNode> = emptyList()
 ) : ContainerNode {
@@ -39,6 +37,6 @@ data class ApiDefNode(
 		get() = standardEntityDefs + requiredTypes + requiredTraits
 
 	override fun getChildren() : List<INode> {
-		return entityDefs + requiredTypes + requiredTraits + methodDefs + entityConstructors
+		return entityDefs + requiredTypes + requiredTraits + methodDefs
 	}
 }

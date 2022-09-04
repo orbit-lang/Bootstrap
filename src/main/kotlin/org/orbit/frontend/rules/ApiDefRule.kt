@@ -28,16 +28,13 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 		val entityDefNodes = mutableListOf<EntityDefNode>()
 		val methodDefNodes = mutableListOf<MethodDefNode>()
 		val typeAliasNodes = mutableListOf<TypeAliasNode>()
-		val entityConstructorNodes = mutableListOf<EntityConstructorNode>()
 		var next: Token = context.peek()
 
 		while (next.type != TokenTypes.RBrace) {
 			// TODO - Allowed required method signatures in this context
 			val entity = context.attemptAny(EntityDefParseRule.apiTopLevelRules)
 
-			if (entity is EntityConstructorNode) {
-				entityConstructorNodes.add(entity)
-			} else when (entity) {
+			when (entity) {
 				is TypeAliasNode -> typeAliasNodes.add(entity)
 				is EntityDefNode -> entityDefNodes.add(entity)
 			}
@@ -61,6 +58,6 @@ object ApiDefRule : ParseRule<ApiDefNode> {
 
 		// TODO - Entity constructors in Apis
 		return +ApiDefNode(start, end,
-			typeIdentifierNode, requiredTypes, requiredTraits, methodDefNodes, withinNode, withNodes, standardTypes + standardTraits, entityConstructorNodes)
+			typeIdentifierNode, requiredTypes, requiredTraits, methodDefNodes, withinNode, withNodes, standardTypes + standardTraits)
 	}
 }

@@ -13,7 +13,6 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.extensions.getGraphIDOrNull
-import org.orbit.types.next.intrinsics.Native
 import org.orbit.util.Invocation
 import org.orbit.util.dispose
 import org.orbit.util.partial
@@ -52,7 +51,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 		input.receiverTypeNode.annotateByKey(receiverBinding.path, Annotations.Path)
 
 		val name = input.identifierNode.identifier
-		val ret = input.returnTypeNode?.value ?: Native.Types.Unit.name
+		val ret = input.returnTypeNode?.value ?: "Orb::Core::Types::Unit"
 
 		if (input.returnTypeNode?.value != null) {
 			try {

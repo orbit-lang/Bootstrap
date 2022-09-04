@@ -135,9 +135,7 @@ object Build : CliktCommand(), KoinComponent {
                 compilerGenerator[CompilationSchemeEntry.lexer] = Lexer(invocation)
                 compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
                 compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
-                compilerGenerator[CompilationSchemeEntry.typeSystem] = org.orbit.types.next.phase.TypeSystem //TypeSystem(invocation)
-//                compilerGenerator[CompilationSchemeEntry.traitEnforcer] = TraitEnforcer()
-//                compilerGenerator[CompilationSchemeEntry.mainResolver] = MainResolver
+
 
                 compilationEventBus.events.registerObserver {
                     val printer = Printer(invocation.platform.getPrintableFactory())
@@ -149,10 +147,6 @@ object Build : CliktCommand(), KoinComponent {
                 }
 
                 compilerGenerator.run(CompilationScheme)
-
-//                val typeAssistant = invocation.getResult<TypeAssistant>("__type_assistant__")
-
-//                println(typeAssistant.dump())
 
                 val parserResult = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser)
 

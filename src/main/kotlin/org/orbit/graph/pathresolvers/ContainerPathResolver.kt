@@ -118,21 +118,15 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			// TODO - Would be nice to inject these but the parentPath property makes it tricky
 			val typeResolver = TypeDefPathResolver(containerPath)
 			val traitResolver = TraitDefPathResolver(containerPath)
-			val typeConstructorResolver = TypeConstructorPathResolver(containerPath)
-			val traitConstructorResolver = TraitConstructorPathResolver(containerPath)
 			val extensionResolver = ExtensionPathResolver(containerPath)
 			val familyResolver = FamilyPathResolver(containerPath)
-			val familyConstructorResolver = FamilyConstructorPathResolver(containerPath)
 			val contextResolver = ContextPathResolver(containerPath)
 			val operatorResolver = OperatorDefPathResolver(containerPath)
 
 			val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
 			val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
-			val typeConstructors = input.entityConstructors.filterIsInstance<TypeConstructorNode>()
-			val traitConstructors = input.entityConstructors.filterIsInstance<TraitConstructorNode>()
 			val extensions = input.search<ExtensionNode>()
 			val families = input.search<FamilyNode>()
-			val familyConstructors = input.search<FamilyConstructorNode>()
 			val contexts = input.contexts
 			val opDefs = input.operatorDefs
 
@@ -141,11 +135,8 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			// NOTE - We need to do 2 passes over types to avoid order-of-definition problems
 			resolveAll(traitResolver, traitDefs, PathResolver.Pass.Initial)
 			resolveAll(typeResolver, typeDefs, PathResolver.Pass.Initial)
-			resolveAll(typeConstructorResolver, typeConstructors, PathResolver.Pass.Initial)
-			resolveAll(traitConstructorResolver, traitConstructors, PathResolver.Pass.Initial)
 			resolveAll(familyResolver, families, PathResolver.Pass.Initial)
 			resolveAll(familyResolver, families, PathResolver.Pass.Last)
-			resolveAll(familyConstructorResolver, familyConstructors, PathResolver.Pass.Initial)
 			resolveAll(contextResolver, contexts, PathResolver.Pass.Initial)
 
 			if (input is ModuleNode) {
@@ -157,9 +148,6 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 
 			resolveAll(traitResolver, traitDefs, PathResolver.Pass.Last)
 			resolveAll(typeResolver, typeDefs, PathResolver.Pass.Last)
-			resolveAll(typeConstructorResolver, typeConstructors, PathResolver.Pass.Last)
-			resolveAll(traitConstructorResolver, traitConstructors, PathResolver.Pass.Last)
-			resolveAll(familyConstructorResolver, familyConstructors, PathResolver.Pass.Last)
 			resolveAll(contextResolver, contexts, PathResolver.Pass.Last)
 			resolveAll(operatorResolver, opDefs, PathResolver.Pass.Last)
 

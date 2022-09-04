@@ -106,25 +106,9 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 
 		val id = identifierNode ?: IdentifierNode(idStart, idStart, autoName)
 
-		next = context.peek()
-
-		val whereClauses = mutableListOf<TypeConstraintWhereClauseNode>()
-		if (next.type == TokenTypes.Where) {
-			while (next.type == TokenTypes.Where) {
-				val whereClause = context.attempt(TypeConstraintWhereClauseRule)
-					?: TODO("???")
-
-				whereClauses.add(whereClause)
-
-				next = context.peek()
-			}
-
-			end = context.peek()
-		}
-
 		return +when(receiverNode.first) {
-			null -> MethodSignatureNode(start, end, id, receiverNode.second!!, parameterNodes, returnTypeNode, typeParameters, whereClauses, isInstanceMethod)
-			else -> MethodSignatureNode(start, end, id, receiverNode.first!!.typeExpressionNode, listOf(receiverNode.first!!).plus(parameterNodes), returnTypeNode, typeParameters, whereClauses, isInstanceMethod)
+			null -> MethodSignatureNode(start, end, id, receiverNode.second!!, parameterNodes, returnTypeNode, typeParameters, emptyList(), isInstanceMethod)
+			else -> MethodSignatureNode(start, end, id, receiverNode.first!!.typeExpressionNode, listOf(receiverNode.first!!).plus(parameterNodes), returnTypeNode, typeParameters, emptyList(), isInstanceMethod)
 		}
 	}
 }

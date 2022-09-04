@@ -1,6 +1,6 @@
 package org.orbit.graph.pathresolvers
 
+import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.SymbolLiteralNode
-import org.orbit.types.next.intrinsics.Native
 
-object SymbolLiteralPathResolver : LiteralPathResolver<SymbolLiteralNode>(Native.Types.Symbol.path)
+object SymbolLiteralPathResolver : LiteralPathResolver<SymbolLiteralNode>(OrbitMangler.unmangle("Orb::Core::Types::Symbol"))

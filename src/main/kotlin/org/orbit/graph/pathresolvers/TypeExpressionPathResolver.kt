@@ -27,8 +27,6 @@ object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
 		is MetaTypeNode ->
 			MetaTypePathResolver.resolve(input, pass, environment, graph)
 
-		is TypeSynthesisNode -> TypeSynthesisPathResolver.resolve(input, pass, environment, graph)
-
 		is TypeIndexNode -> throw invocation.make<CanonicalNameResolver>("Self Index not allowed in this context", input)
 
 		is ExpandNode -> ExpandPathResolver.resolve(input, pass, environment, graph)

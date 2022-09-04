@@ -1,13 +1,9 @@
 package org.orbit.core
 
 import org.orbit.core.nodes.*
-import org.orbit.types.next.components.Signature
-import org.orbit.types.next.components.TypeComponent
-import org.orbit.util.getKoinInstance
 
 class FullyQualifiedPath(override val relativeNames: List<String>) : Path(relativeNames) {
 	constructor(path: Path) : this(path.relativeNames)
-	constructor(vararg relativeNames: String) : this(relativeNames.toList())
 
 	fun from(other: String) : FullyQualifiedPath {
 		val idx = relativeNames.indexOf(other) + 1
@@ -24,6 +20,7 @@ class FullyQualifiedPath(override val relativeNames: List<String>) : Path(relati
 	}
 }
 
+// TODO - Move these extensions to somewhere that makes sense
 fun INode.getPathOrNull() : Path? {
 	return getAnnotation(Annotations.Path as NodeAnnotationTag<Path>)?.value
 }
@@ -35,7 +32,6 @@ fun INode.getPath() : Path {
 interface Mangler {
 	fun mangle(path: Path) : String
 	fun unmangle(name: String) : Path
-	fun mangle(signature: Signature) : String
 }
 
 object OrbitMangler : Mangler {
@@ -45,17 +41,6 @@ object OrbitMangler : Mangler {
 
 	override fun unmangle(name: String) : Path {
 		return Path(name.split("::"))
-	}
-
-	override fun mangle(signature: Signature): String {
-		val mang = (OrbitMangler + OrbitMangler)
-		val receiver = mang(signature.receiver.fullyQualifiedName)
-		val params = signature.parameters.map(TypeComponent::fullyQualifiedName)
-			.joinToString(", ", transform = mang)
-
-		val ret = mang(signature.returns.fullyQualifiedName)
-
-		return "($receiver) ${signature.relativeName} ($params) ($ret)"
 	}
 }
 

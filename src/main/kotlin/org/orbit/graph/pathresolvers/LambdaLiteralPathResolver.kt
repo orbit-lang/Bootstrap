@@ -2,6 +2,7 @@ package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.LambdaLiteralNode
 import org.orbit.graph.components.Environment
@@ -9,7 +10,6 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.types.next.intrinsics.Native
 import org.orbit.util.Invocation
 
 object LambdaLiteralPathResolver : PathResolver<LambdaLiteralNode>, KoinComponent {
@@ -26,7 +26,7 @@ object LambdaLiteralPathResolver : PathResolver<LambdaLiteralNode>, KoinComponen
 
         return PathResolver.Result.Success(
             bodyPaths.lastOrNull()?.asSuccessOrNull()?.path
-                ?: Native.Types.Unit.path
+                ?: OrbitMangler.unmangle("Orb::Core::Types::Unit")
         )
     }
 }

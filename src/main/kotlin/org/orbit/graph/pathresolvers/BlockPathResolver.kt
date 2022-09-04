@@ -8,7 +8,6 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.types.next.intrinsics.Native
 import org.orbit.util.Invocation
 
 class BlockPathResolver : PathResolver<BlockNode> {
@@ -19,7 +18,7 @@ class BlockPathResolver : PathResolver<BlockNode> {
 		return environment.withScope {
 
 			// TODO - Non-linear routes through a block, e.g. conditionals, controls etc
-			var result: PathResolver.Result = PathResolver.Result.Success(OrbitMangler.unmangle(Native.Types.Unit.type.fullyQualifiedName))
+			var result: PathResolver.Result = PathResolver.Result.Success(OrbitMangler.unmangle("Orb::Core::Types::Unit"))
 
 			for (node in input.body) {
 				node.annotateByKey(input.getGraphID(), Annotations.GraphID)

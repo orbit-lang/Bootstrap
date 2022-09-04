@@ -20,20 +20,10 @@ class TypeDefNode(
     private val _synthesisedPropertyPairs = mutableListOf<PairNode>()
     private val propertyPairs = properties.map(ParameterNode::toPairNode)
 
-    fun getAllPropertyPairs() : List<PairNode> {
+    private fun getAllPropertyPairs() : List<PairNode> {
         return (_synthesisedPropertyPairs + propertyPairs).distinct()
-    }
-
-    fun extendProperties(propertyPair: PairNode) {
-        if (!_synthesisedPropertyPairs.contains(propertyPair) && !propertyPairs.contains(propertyPair)) {
-            _synthesisedPropertyPairs.add(propertyPair)
-        }
     }
 
 	override fun getChildren() : List<INode>
 		= listOf(typeIdentifierNode, body) + getAllPropertyPairs() + traitConformances
-
-    fun promote(given: List<TypeIdentifierNode>) : TypeConstructorNode {
-        return TypeConstructorNode(firstToken, lastToken, typeIdentifierNode, given, traitConformances, properties, emptyList())
-    }
 }

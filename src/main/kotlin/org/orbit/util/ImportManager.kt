@@ -12,7 +12,6 @@ class ImportManager(private val libraries: List<OrbitLibrary>) {
 	val allBindings = libraries
 		.flatMap { it.scopes }
 		.flatMap { it.bindings }
-	val allTypes = libraries.flatMap { it.typeMap.toCtx().getTypes() }
 
 	fun findSymbol(symbol: String) : Scope.BindingSearchResult {
 		val matches = allBindings.filter { it.simpleName == symbol || it.path.toString(OrbitMangler) == symbol }

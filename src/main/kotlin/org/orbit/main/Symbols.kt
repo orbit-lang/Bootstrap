@@ -24,13 +24,13 @@ class Symbols : CliktCommand(), KoinComponent {
 		val allBindings = library.scopes.flatMap(Scope::bindings)
 			.joinToString("\n\t") { "${it.kind::class.java.simpleName} : ${it.path.toString(OrbitMangler)}" }
 
-		val allTypes = library.typeMap.toCtx().getTypes().joinToString("\n\t") { "${it::class.java.simpleName} : ${it.fullyQualifiedName}" }
-
-		println("Library @ ${source.absolutePath} contains the following symbols:")
-
-		println("Named bindings:\n\t${allBindings}")
-
-		println("")
-		println("Types:\n\t${allTypes}")
+//		val allTypes = library.typeMap.toCtx().getTypes().joinToString("\n\t") { "${it::class.java.simpleName} : ${it.fullyQualifiedName}" }
+//
+//		println("Library @ ${source.absolutePath} contains the following symbols:")
+//
+//		println("Named bindings:\n\t${allBindings}")
+//
+//		println("")
+//		println("Types:\n\t${allTypes}")
 	}
 }

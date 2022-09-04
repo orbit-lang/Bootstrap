@@ -27,10 +27,10 @@ module Options {
 #        constructor Some(value T)
 #    }
 
-    type Option {
-        constructor None
-        constructor Some(value T)
-    }
+#    type Option {
+#        constructor None
+#        constructor Some(value T)
+#    }
 
 #    extension Bool within OptionCtx [Bool] {
 #        (self Bool) optionValue () (Option) = select self {
