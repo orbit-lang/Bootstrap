@@ -1,4 +1,10 @@
-module M {
+module Orb::Bootstrap {
+    type Unit
+    type Bool
+    type Int
+}
+
+module M with Orb::Bootstrap {
     context CombinableCtx [T] with trait Combinable {
         (self T) combine (other T) (T)
     }
@@ -6,23 +12,30 @@ module M {
     context BoxCtx [ValueType]
         with type Box(value ValueType)
 
-    extension BoxCtx within CombinableCtx [Self] & CombinableCtx [Self::ValueType]
+    extension BoxCtx within CombinableCtx [Self::ValueType]
         with projection Box : Combinable with combine by ::Box
 
     projection Int : Combinable within CombinableCtx [Int]
         with combine by Int::plus
-#
-#    type IntRange(start Int, end Int)
+
+    type IntRange(start Int, end Int)
 }
 
-#module Options {
-#    context OptionCtx [T] with
-#        type Option = None | Some(value T)
-#
+module Options {
+#    context OptionCtx [T] with type Option {
+#        constructor None
+#        constructor Some(value T)
+#    }
+
+    type Option {
+        constructor None
+        constructor Some(value T)
+    }
+
 #    extension Bool within OptionCtx [Bool] {
 #        (self Bool) optionValue () (Option) = select self {
 #            case true = Option::Some(self)
 #            case else = Option::None
 #        }
 #    }
-#}
+}

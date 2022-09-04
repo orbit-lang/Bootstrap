@@ -1,15 +1,15 @@
-MkCombinable => ∆ + T0 : box ∆.Self
-             => ∆ + Combinable_combine : (∆.T0) -> (∆.T0) -> ∆.T0
+# Combine
+MkCombinableCtx => ∆ + Combine : (box ∆.CombinableCtxT) -> (box ∆.CombinableCtxT) -> box ∆.CombinableCtxT
+OpenCombinableCtx => MkCombinableCtx(∆)
+                  => ∆ + combine : unbox ∆.Combine
 
-OpenCombinable => MkCombinable(∆)
-               => ∆ + summonValue unbox ∆.Combinable_combine as combineFn
-               => ∆ + T0Concrete : unbox ∆.T0
-               => check(∆.combineFn, (∆.T0Concrete) -> (∆.T0Concrete) -> ∆.T0Concrete)
-               => dump(∆)
+MkBoxCtx => ∆ + Box : (box ∆.BoxValueType) -> ∆.Box
+OpenBoxCtx => MkBoxCtx(∆)
 
 Prog => ∆ + Int
-     => ∆ + Self : ∆.Int
-     => ∆ + combine : (∆.Int) -> (∆.Int) -> ∆.Int
-     => OpenCombinable(∆)
+     => ∆ + CombinableCtxT : ∆.Int
+     => OpenCombinableCtx(∆)
+     => ∆ + summonValue unbox ∆.combine as combine2
+     => MkBoxCtx(∆)
 
 run Prog(∆)
