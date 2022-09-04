@@ -5,16 +5,14 @@ import org.koin.core.component.inject
 import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.IProjectionDeclarationNode
 import org.orbit.core.nodes.ProjectionNode
-import org.orbit.core.nodes.WhereClauseNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
-import org.orbit.main.Parse
 import org.orbit.util.Invocation
 
 private object AnyProjectionDeclarationRule : ParseRule<IProjectionDeclarationNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.peek()
-        val node = context.attemptAny(listOf(MethodDefRule))
+        val node = context.attempt(MethodDefRule)
             as? IProjectionDeclarationNode
             ?: return ParseRule.Result.Failure.Throw("Only the following declarations are allowed in the body of a Projection:\n\tMethod", start)
 
@@ -54,13 +52,20 @@ object ProjectionRule : ParseRule<ProjectionNode>, KoinComponent {
             ?: throw invocation.make<Parser>("Expected trait identifier after `type projection ${typeIdentifier.value} :`", context.peek())
 
         next = context.peek()
-        val whereClauses = mutableListOf<WhereClauseNode>()
-        while (next.type == TokenTypes.Where) {
-            val whereClause = context.attempt(WhereClauseRule.typeProjection)
-                ?: throw invocation.make<Parser>("Expected where clause", context.peek())
 
-            whereClauses += whereClause
-            next = context.peek()
+        val contextNode = when (next.type) {
+            TokenTypes.Within -> context.attempt(ContextExpressionRule) ?: return ParseRule.Result.Failure.Abort
+            else -> null
+        }
+
+        next = context.peek()
+
+        if (next.type == TokenTypes.With) {
+            val withRule = WithRule(MethodDelegateRule)
+            val withNode = context.attempt(withRule)
+                ?: return ParseRule.Result.Failure.Throw("Only the following declarations are allowed in Projection With statements:\n\tProperty Assignment, Property Delegate, Method Delegate", next)
+
+            return +ProjectionNode(start, traitIdentifierRule.lastToken, typeIdentifier, traitIdentifierRule, emptyList(), selfBinding, listOf(withNode.statement), contextNode)
         }
 
         next = context.peek()
@@ -69,6 +74,6 @@ object ProjectionRule : ParseRule<ProjectionNode>, KoinComponent {
         val body = context.attempt(AnyProjectionDeclarationRule.toBlockRule())
             ?: return ParseRule.Result.Failure.Throw("Expected Projection body after `projection ${typeIdentifier.value}` : ${traitIdentifierRule.value}", next)
 
-        return +ProjectionNode(start, traitIdentifierRule.lastToken, typeIdentifier, traitIdentifierRule, whereClauses, selfBinding, body.body as List<IProjectionDeclarationNode>)
+        return +ProjectionNode(start, traitIdentifierRule.lastToken, typeIdentifier, traitIdentifierRule, emptyList(), selfBinding, body.body as List<IProjectionDeclarationNode>, contextNode)
     }
 }

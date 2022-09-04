@@ -6,17 +6,11 @@ module M {
     context BoxCtx [ValueType]
         with type Box(value ValueType)
 
-    extension BoxCtx within CombinableCtx [Self::ValueType] with projection Box : Combinable {
-        (self Self::ValueType) combine (other Self::ValueType) (Self::ValueType)
-            = other.combine(self)
-    }
+    extension BoxCtx within CombinableCtx [Self] & CombinableCtx [Self::ValueType]
+        with projection Box : Combinable with combine by ::Box
 
-#    extension BoxCtx within CombinableCtx [Self] + CombinableCtx [Self.ValueType] where Self.ValueType : Combinable
-#        with projection Box : Combinable
-#            with combine by ::Box(a.value + b.value)
-
-#    projection Int : Combinable within CombinableCtx [Int]
-#        with combine by Int::plus
+    projection Int : Combinable within CombinableCtx [Int]
+        with combine by Int::plus
 #
 #    type IntRange(start Int, end Int)
 }

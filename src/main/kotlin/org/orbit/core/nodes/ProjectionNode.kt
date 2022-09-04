@@ -11,8 +11,9 @@ data class ProjectionNode(
     val traitIdentifier: TypeExpressionNode,
     val whereNodes: List<WhereClauseNode> = emptyList(),
     val instanceBinding: IdentifierNode?,
-    val body: List<IProjectionDeclarationNode> = emptyList()
-) : IExtensionDeclarationNode, IWithStatementNode {
+    val body: List<IProjectionDeclarationNode> = emptyList(),
+    override val context: ContextExpressionNode? = null
+) : IExtensionDeclarationNode, IWithStatementNode, ContextAwareNode {
     override fun getChildren(): List<INode> = when (instanceBinding) {
         null -> listOf(typeIdentifier, traitIdentifier) + whereNodes + body
         else -> listOf(typeIdentifier, traitIdentifier) + whereNodes + body + instanceBinding

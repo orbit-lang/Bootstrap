@@ -2,7 +2,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.6.10'
 }
 
-ext.kotlin_version = '1.5.10'
+ext.kotlin_version = '1.7.10'
 ext.koin_version = "3.0.1"
 
 apply plugin: 'application'

@@ -139,6 +139,8 @@ val mainModule = module {
 			.registerTypeAdapter(Path::class.java, PathDeserialiser)
 			.create()
 	}
+
+	single { NodeAnnotationMap() }
 }
 
 inline fun <reified T> getKoinInstance(): T {
