@@ -145,10 +145,10 @@ object TypeDefRule : EntityDefParseRule<TypeDefNode> {
 			*/
 
 			// TODO - Swap MethodSignatureRule out for MethodDefRule
-			val bodyNode = context.attempt(BlockRule(TraitDefRule, TypeDefRule, MethodSignatureRule(false)), true)
-				?: TODO("@TypeDefRule:128")
+			val bodyNode = context.attempt(AlgebraicConstructorRule.toBlockRule())
+				?: return ParseRule.Result.Failure.Throw("Only Algebraic Constructors are allowed in the body of a Type declaration", next)
 
-			return +TypeDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode)
+			return +TypeDefNode(start, bodyNode.lastToken, typeIdentifierNode, propertyPairs, traitConformances, bodyNode.body as List<ITypeDefBodyNode>)
 		}
 		
 		return +TypeDefNode(start, end, typeIdentifierNode, propertyPairs, traitConformances)

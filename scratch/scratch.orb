@@ -22,15 +22,10 @@ module M with Orb::Bootstrap {
 }
 
 module Options {
-#    context OptionCtx [T] with type Option {
-#        constructor None
-#        constructor Some(value T)
-#    }
-
-#    type Option {
-#        constructor None
-#        constructor Some(value T)
-#    }
+    context OptionCtx [T] with type Option {
+        constructor None
+        constructor Some(value T)
+    }
 
 #    extension Bool within OptionCtx [Bool] {
 #        (self Bool) optionValue () (Option) = select self {

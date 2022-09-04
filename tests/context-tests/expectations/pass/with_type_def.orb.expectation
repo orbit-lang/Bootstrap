@@ -4,7 +4,6 @@ ContextNode
  TypeIdentifierNode
  TypeDefNode
   TypeIdentifierNode
-  BlockNode
-  PairNode
+  ParameterNode
    IdentifierNode
    TypeIdentifierNode

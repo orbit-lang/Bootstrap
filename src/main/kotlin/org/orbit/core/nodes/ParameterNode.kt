@@ -13,7 +13,4 @@ data class ParameterNode(
         null -> listOf(identifierNode, typeNode)
         else -> listOf(identifierNode, typeNode, defaultValue)
     }
-
-    fun toPairNode() : PairNode
-        = PairNode(firstToken, lastToken, identifierNode, typeNode)
 }
