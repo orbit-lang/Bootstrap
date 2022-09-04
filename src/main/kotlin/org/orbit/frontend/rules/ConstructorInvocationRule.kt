@@ -1,12 +1,11 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.components.TokenTypes
-import org.orbit.core.nodes.ConstructorNode
-//import org.orbit.frontend.extensions.parseTrailing
+import org.orbit.core.nodes.ConstructorInvocationNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
-object ConstructorRule : ValueRule<ConstructorNode> {
+object ConstructorInvocationRule : ValueRule<ConstructorInvocationNode> {
     override fun parse(context: Parser) : ParseRule.Result {
         context.mark()
         val typeIdentifier = context.attempt(TypeExpressionRule)
@@ -20,7 +19,6 @@ object ConstructorRule : ValueRule<ConstructorNode> {
         val delimResult = context.attempt(delim)
             ?: return ParseRule.Result.Failure.Abort
 
-        return +ConstructorNode(typeIdentifier.firstToken, delimResult.lastToken, typeIdentifier, delimResult.nodes)
-//        return parseTrailing(context, ConstructorNode(typeIdentifier.firstToken, delimResult.lastToken, typeIdentifier, delimResult.nodes))
+        return +ConstructorInvocationNode(typeIdentifier.firstToken, delimResult.lastToken, typeIdentifier, delimResult.nodes)
     }
 }

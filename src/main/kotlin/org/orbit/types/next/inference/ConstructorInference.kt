@@ -3,18 +3,18 @@ package org.orbit.types.next.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.SourcePosition
-import org.orbit.core.nodes.ConstructorNode
+import org.orbit.core.nodes.ConstructorInvocationNode
 import org.orbit.types.next.components.*
 import org.orbit.types.next.phase.TypeSystem
 import org.orbit.util.Invocation
 import org.orbit.util.Printer
 import org.orbit.util.Result
 
-object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
+object ConstructorInference : Inference<ConstructorInvocationNode, Type>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    private fun checkContexts(inferenceUtil: InferenceUtil, node: ConstructorNode, poly: PolymorphicType<*>, given: List<Pair<Int, TypeComponent>>) {
+    private fun checkContexts(inferenceUtil: InferenceUtil, node: ConstructorInvocationNode, poly: PolymorphicType<*>, given: List<Pair<Int, TypeComponent>>) {
         val contexts = inferenceUtil.getContexts(poly)
 
         if (contexts.isNotEmpty()) {
@@ -30,7 +30,7 @@ object ConstructorInference : Inference<ConstructorNode, Type>, KoinComponent {
         }
     }
 
-    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: ConstructorNode): InferenceResult {
+    override fun infer(inferenceUtil: InferenceUtil, context: InferenceContext, node: ConstructorInvocationNode): InferenceResult {
         val args = node.parameterNodes.map { inferenceUtil.infer(it) }
             .toMutableList()
 

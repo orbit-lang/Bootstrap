@@ -1,6 +1,6 @@
 package org.orbit.backend.codegen.common
 
 import org.orbit.backend.codegen.CodeUnit
-import org.orbit.core.nodes.ConstructorNode
+import org.orbit.core.nodes.ConstructorInvocationNode
 
-interface AbstractConstructorUnit : CodeUnit<ConstructorNode>
+interface AbstractConstructorUnit : CodeUnit<ConstructorInvocationNode>

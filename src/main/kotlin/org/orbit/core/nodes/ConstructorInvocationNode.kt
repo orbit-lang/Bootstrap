@@ -3,7 +3,7 @@ package org.orbit.core.nodes
 import org.orbit.core.components.Token
 import java.io.Serializable
 
-data class ConstructorNode(
+data class ConstructorInvocationNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val typeExpressionNode: TypeExpressionNode,

@@ -3,18 +3,18 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.Scope
 import org.orbit.core.nodes.Annotations
-import org.orbit.core.nodes.ConstructorNode
+import org.orbit.core.nodes.ConstructorInvocationNode
 import org.orbit.graph.components.*
 import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-class ConstructorPathResolver : PathResolver<ConstructorNode> {
+class ConstructorPathResolver : PathResolver<ConstructorInvocationNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: ConstructorNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
+	override fun resolve(input: ConstructorInvocationNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
 		input.typeExpressionNode.annotateByKey(input.getGraphID(), Annotations.GraphID)
 		TypeExpressionPathResolver.resolve(input.typeExpressionNode, pass, environment, graph)
 

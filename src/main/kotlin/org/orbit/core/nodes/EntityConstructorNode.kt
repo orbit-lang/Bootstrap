@@ -1,7 +1,6 @@
 package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
-import org.orbit.graph.pathresolvers.PathResolver
 
 interface EntityConstructorNode : TopLevelDeclarationNode, ScopedNode {
     val typeIdentifierNode: TypeIdentifierNode

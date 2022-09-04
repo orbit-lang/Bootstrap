@@ -20,7 +20,7 @@ class ExpressionUnit(override val node: ExpressionNode, override val depth: Int)
             LiteralUnitUtil.generateLiteralUnit(node, depth).generate(mangler)
         is RValueNode ->
             codeGenFactory.getRValueUnit(node, depth).generate(mangler)
-        is ConstructorNode ->
+        is ConstructorInvocationNode ->
             codeGenFactory.getConstructorUnit(node, depth).generate(mangler)
         is IdentifierNode ->
             codeGenFactory.getIdentifierUnit(node, depth).generate(mangler)
