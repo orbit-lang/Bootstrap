@@ -1,4 +1,4 @@
-module Orb::Ruckus::Types with Orb::Core with Orb::System {
+module Orb::Ruckus::Types with Orb::Core {
     trait RawArgumentProvider {
         (self Self) provideArguments () (List<String>)
     }
@@ -23,16 +23,4 @@ module Orb::Ruckus::Types with Orb::Core with Orb::System {
 
     projection StringArgumentTransformer : ArgumentTransformer within ArgumentCtx [String]
         with transform by $0
-
-    projection FileArgumentTransformer : ArgumentTransformer within ArgumentCtx [File] {
-#        (Self) transform (rawValue String) (File) = select FileSystem.exists(rawValue) {
-#            case true = FileSystem.open(rawValue)
-#            case else = panic "File not found ${rawValue}"
-#        }
-
-#        (Self) transform (rawValue String) (File) = select FileSystem.open(rawValue) as result {
-#            case Success(value) = file
-#            case Failure(error) = panic error
-#        }
-    }
 }

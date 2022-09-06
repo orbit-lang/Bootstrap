@@ -14,6 +14,7 @@ object TokenTypes : TokenTypeProvider {
     object LAngle : TokenType("LAngle", "\\<", true, false, Family.Enclosing)
     object RAngle : TokenType("RAngle", "\\>", true, false, Family.Enclosing)
     object Assignment : TokenType("Assignment", "\\=", true, false, Family.Op)
+    object Dollar : TokenType("Dollar", "\\$[0-9]+", true, false, Family.Op)
     object OperatorSymbol : TokenType("OperatorSymbol", "((?:`[^`]+`)|(?:\\.{2,})|(?:[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|]+))", true, false, Family.Op)
     object Annotation : TokenType("Annotation", "@", true, false, Family.Op)
     object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false, Family.White)
@@ -70,6 +71,7 @@ object TokenTypes : TokenTypeProvider {
             Required, Projection, Extension, Constructor, Alias, Operator,
             Synthesise,
             Call,
+            Dollar,
             Fixity, Let, Invoke, In, Of, By, To,
             TypeIdentifier,
             Colon, Comma, Assignment, Annotation, Whitespace,

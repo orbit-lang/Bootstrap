@@ -14,7 +14,7 @@ object MethodDelegateRule : ParseRule<MethodDelegateNode> {
         context.expect(TokenTypes.By)
 
         val next = context.peek()
-        val delegate = context.attemptAny(listOf(ConstructorReferenceRule, MethodReferenceRule))
+        val delegate = context.attemptAny(listOf(ConstructorReferenceRule, MethodReferenceRule, AnonymousParameterRule))
             as? IDelegateNode
             ?: return ParseRule.Result.Failure.Throw("Expected one of the following delegate target after `${methodName.identifier} by...`\n\tConstructor Reference, Method Reference", next)
 
