@@ -9,14 +9,14 @@ import org.orbit.core.Mangler
 import org.orbit.core.injectQualified
 import org.orbit.core.nodes.*
 
-interface AbstractExpressionUnit : CodeUnit<ExpressionNode>
+interface AbstractExpressionUnit : CodeUnit<IExpressionNode>
 
-class ExpressionUnit(override val node: ExpressionNode, override val depth: Int) : AbstractExpressionUnit, KoinComponent {
+class ExpressionUnit(override val node: IExpressionNode, override val depth: Int) : AbstractExpressionUnit, KoinComponent {
     private val codeGeneratorQualifier: CodeGeneratorQualifier by inject()
     private val codeGenFactory: CodeGenFactory<*> by injectQualified(codeGeneratorQualifier)
 
     override fun generate(mangler: Mangler): String = when (node) {
-        is LiteralNode<*> ->
+        is ILiteralNode<*> ->
             LiteralUnitUtil.generateLiteralUnit(node, depth).generate(mangler)
         is RValueNode ->
             codeGenFactory.getRValueUnit(node, depth).generate(mangler)

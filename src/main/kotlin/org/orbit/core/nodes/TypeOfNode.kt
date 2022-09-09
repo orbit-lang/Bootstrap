@@ -5,7 +5,7 @@ import org.orbit.core.components.Token
 data class TypeOfNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val expressionNode: ExpressionNode
+    val expressionNode: IExpressionNode
 ) : INode {
     override fun getChildren(): List<INode>
         = listOf(expressionNode)

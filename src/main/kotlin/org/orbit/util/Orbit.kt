@@ -34,7 +34,7 @@ val mainModule = module {
 		util.registerPathResolver(ConstructorPathResolver(), ConstructorInvocationNode::class.java)
 		util.registerPathResolver(MethodCallPathResolver(), MethodCallNode::class.java)
 		util.registerPathResolver(TypeIdentifierPathResolver(), TypeIdentifierNode::class.java)
-		util.registerPathResolver(ExpressionPathResolver(), ExpressionNode::class.java)
+		util.registerPathResolver(ExpressionPathResolver(), IExpressionNode::class.java)
 		util.registerPathResolver(RValuePathResolver(), RValueNode::class.java)
 		util.registerPathResolver(SymbolLiteralPathResolver, SymbolLiteralNode::class.java)
 		util.registerPathResolver(IntLiteralPathResolver, IntLiteralNode::class.java)

@@ -8,9 +8,9 @@ import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.util.Invocation
 
-interface ValueRule<E: ExpressionNode> : ParseRule<E>
+interface ValueRule<E: IExpressionNode> : ParseRule<E>
 
-class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<ExpressionNode>, KoinComponent {
+class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IExpressionNode>, KoinComponent {
 	private val invocation: Invocation by inject()
 
 	companion object {
@@ -46,15 +46,15 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<Ex
 				// Prefix operator
 				val op = context.consume()
 				val expr = context.attemptAny(*valueRules)
-					as? ExpressionNode
+					as? IExpressionNode
 					?: throw invocation.make<Parser>("Expected expression after Prefix Operator", op)
 
 				UnaryExpressionNode(op, expr.lastToken, op.text.replace("`", ""), expr, OperatorFixity.Prefix)
 			}
 
 			else -> context.attemptAny(*valueRules)
-				as? ExpressionNode
-				?: context.protected<ExpressionNode> {
+				as? IExpressionNode
+				?: context.protected<IExpressionNode> {
 					throw invocation.make<Parser>("Expected expression", context.peek())
 				}
 		}

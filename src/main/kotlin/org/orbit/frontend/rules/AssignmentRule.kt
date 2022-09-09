@@ -1,7 +1,6 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.AssignmentStatementNode
-import org.orbit.core.nodes.ExpressionNode
 import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser

@@ -1,0 +1,4 @@
+#Equal
+StructuralPatternNode
+ IdentifierBindingPatternNode
+  IdentifierNode

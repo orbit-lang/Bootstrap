@@ -5,7 +5,7 @@ import org.orbit.core.components.Token
 data class MirrorNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val expressionNode: ExpressionNode
+    val expressionNode: IExpressionNode
 ) : TypeExpressionNode {
     override val value: String = ""
 

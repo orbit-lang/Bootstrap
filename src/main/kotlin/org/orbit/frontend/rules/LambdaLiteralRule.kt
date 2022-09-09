@@ -17,7 +17,7 @@ private object LambdaLiteralBodyRule : ParseRule<BlockNode>, KoinComponent {
 
         val body = when (node) {
             is BlockNode -> node
-            is ExpressionNode -> node.toBlockNode()
+            is IExpressionNode -> node.toBlockNode()
             else -> throw invocation.make<Parser>("Expected either a block or a single expression as Lambda body", node)
         }
 

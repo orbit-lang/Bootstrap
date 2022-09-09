@@ -1,0 +1,9 @@
+#Equal
+StructuralPatternNode
+ TypedIdentifierBindingPatternNode
+  IdentifierNode
+  StructuralPatternNode
+   TypedIdentifierBindingPatternNode
+    IdentifierNode
+    TypeBindingPatternNode
+     TypeIdentifierNode

@@ -7,8 +7,8 @@ data class ConstructorInvocationNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val typeExpressionNode: TypeExpressionNode,
-    val parameterNodes: List<ExpressionNode>
-) : ExpressionNode, Serializable, ValueRepresentableNode {
+    val parameterNodes: List<IExpressionNode>
+) : IExpressionNode, Serializable, ValueRepresentableNode {
     override fun getChildren(): List<INode> {
         return listOf(typeExpressionNode) + parameterNodes
     }

@@ -7,7 +7,7 @@ data class ParameterNode(
     override val lastToken: Token,
     val identifierNode: IdentifierNode,
     val typeNode: TypeExpressionNode,
-    val defaultValue: ExpressionNode?
+    val defaultValue: IExpressionNode?
 ) : INode {
     override fun getChildren(): List<INode> = when (defaultValue) {
         null -> listOf(identifierNode, typeNode)

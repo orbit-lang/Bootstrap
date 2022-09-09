@@ -7,7 +7,7 @@ data class ReturnStatementNode(
     override val lastToken: Token,
     val valueNode: RValueNode
 ) : INode {
-	constructor(firstToken: Token, lastToken: Token, expressionNode: ExpressionNode)
+	constructor(firstToken: Token, lastToken: Token, expressionNode: IExpressionNode)
 		:this (firstToken, lastToken, RValueNode(expressionNode))
 
 	override fun getChildren() : List<INode>

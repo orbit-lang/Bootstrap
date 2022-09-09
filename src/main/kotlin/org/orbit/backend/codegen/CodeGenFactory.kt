@@ -17,12 +17,12 @@ interface CodeGenFactory<H: AbstractHeader> {
     fun getDeferStatementUnit(node: DeferNode, depth: Int) : AbstractDeferStatementUnit
     fun getDeferCallUnit(node: DeferNode, depth: Int) : AbstractDeferCallUnit
     fun getMetaTypeUnit(node: MetaTypeNode, depth: Int, inFuncNamePosition: Boolean = false) : AbstractMetaTypeUnit = MetaTypeUnit(node, depth, inFuncNamePosition)
-    fun getExpressionUnit(node: ExpressionNode, depth: Int) : AbstractExpressionUnit = ExpressionUnit(node, depth)
+    fun getExpressionUnit(node: IExpressionNode, depth: Int) : AbstractExpressionUnit = ExpressionUnit(node, depth)
     fun getPropertyDefUnit(node: PairNode, depth: Int, isProtocol: Boolean = false) : AbstractPropertyDefUnit
 
-    fun getIntLiteralUnit(node: LiteralNode<Pair<Int, BigInteger>>, depth: Int) : AbstractLiteralUnit<Pair<Int, BigInteger>>
+    fun getIntLiteralUnit(node: ILiteralNode<Pair<Int, BigInteger>>, depth: Int) : AbstractLiteralUnit<Pair<Int, BigInteger>>
     fun getSymbolLiteralUnit(node: SymbolLiteralNode, depth: Int) : AbstractLiteralUnit<Pair<Int, String>>
-    fun getTypeLiteralUnit(node: LiteralNode<String>, depth: Int) : AbstractLiteralUnit<String>
+    fun getTypeLiteralUnit(node: ILiteralNode<String>, depth: Int) : AbstractLiteralUnit<String>
     fun getCollectionLiteralUnit(node: CollectionLiteralNode, depth: Int) : AbstractCollectionLiteralUnit
     fun getLambdaLiteralUnit(node: LambdaLiteralNode, depth: Int) : AbstractLambdaLiteralUnit
 

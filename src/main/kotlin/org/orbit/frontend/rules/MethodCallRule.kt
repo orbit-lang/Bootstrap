@@ -32,7 +32,7 @@ object MethodCallRule : CallRule<MethodCallNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.Call)
         val receiver = context.attemptAny(listOf(TypeExpressionRule, ExpressionRule.defaultValue))
-            as? ExpressionNode
+            as? IExpressionNode
             ?: throw context.invocation.make<Parser>("TODO", context.peek())
 
         val message = context.attempt(IdentifierRule)

@@ -6,7 +6,7 @@ data class AssignmentStatementNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val identifier: IdentifierNode,
-    val value: ExpressionNode,
+    val value: IExpressionNode,
     val typeAnnotationNode: TypeExpressionNode? = null
 ) : WhereClauseExpressionNode {
     override fun getChildren(): List<INode> = when (typeAnnotationNode) {
