@@ -4,7 +4,7 @@ import org.orbit.core.components.Token
 
 interface ValueRepresentableNode : INode
 
-interface ILiteralNode<T> : ConstantExpressionNode, ValueRepresentableNode {
+interface ILiteralNode<T> : ConstantExpressionNode, ValueRepresentableNode, IPatternNode {
     val value: T
 
 	override fun getChildren() : List<INode> = emptyList()

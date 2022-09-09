@@ -1,0 +1,18 @@
+#Equal
+CaseNode
+ StructuralPatternNode
+  TypedIdentifierBindingPatternNode
+   IdentifierNode
+   StructuralPatternNode
+    TypedIdentifierBindingPatternNode
+     IdentifierNode
+     StructuralPatternNode
+      TypedIdentifierBindingPatternNode
+       IdentifierNode
+       TypeBindingPatternNode
+        TypeIdentifierNode
+ RValueNode
+  MethodReferenceNode
+   TypeIdentifierNode
+   IdentifierNode
+  TypeParametersNode

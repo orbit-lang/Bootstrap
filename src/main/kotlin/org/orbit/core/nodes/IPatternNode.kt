@@ -31,3 +31,7 @@ data class TypedIdentifierBindingPatternNode(override val firstToken: Token, ove
 data class StructuralPatternNode(override val firstToken: Token, override val lastToken: Token, val bindings: List<IBindingPatternNode>) : ITerminalBindingPatternNode, ITypeRepresentablePatternNode {
     override fun getChildren(): List<INode> = bindings
 }
+
+data class ElseNode(override val firstToken: Token, override val lastToken: Token) : IPatternNode {
+    override fun getChildren(): List<INode> = emptyList()
+}

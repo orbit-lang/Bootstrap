@@ -1,0 +1,7 @@
+#Equal
+CaseNode
+ LiteralPatternNode
+  IntLiteralNode
+ RValueNode
+  IntLiteralNode
+  TypeParametersNode

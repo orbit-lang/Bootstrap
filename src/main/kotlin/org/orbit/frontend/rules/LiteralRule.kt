@@ -23,8 +23,6 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRul
 			as? IExpressionNode
 			?: return ParseRule.Result.Failure.Rewind(context.end())
 
-		if (!context.hasMore) return +RValueNode(expr)
-
 		return +RValueNode(expr)
 	}
 }

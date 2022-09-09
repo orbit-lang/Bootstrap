@@ -7,10 +7,10 @@ import org.orbit.frontend.phase.Parser
 
 sealed interface IPatternRule<N: IPatternNode> : ParseRule<N>
 
-object LiteralPatternRule : IPatternRule<LiteralPatternNode> {
+private object LiteralPatternRule : IPatternRule<LiteralPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
         context.mark()
-        val literal = context.attempt(LiteralRule())
+        val literal = context.attempt(LiteralRule())?.expressionNode
             as? ILiteralNode<*>
             ?: return ParseRule.Result.Failure.Rewind(context.end())
 
@@ -18,7 +18,7 @@ object LiteralPatternRule : IPatternRule<LiteralPatternNode> {
     }
 }
 
-object DiscardBindingPatternRule : IPatternRule<DiscardBindingPatternNode> {
+private object DiscardBindingPatternRule : IPatternRule<DiscardBindingPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.Identifier, false)
 
@@ -30,7 +30,7 @@ object DiscardBindingPatternRule : IPatternRule<DiscardBindingPatternNode> {
     }
 }
 
-object IdentifierBindingPatternRule : IPatternRule<IdentifierBindingPatternNode> {
+private object IdentifierBindingPatternRule : IPatternRule<IdentifierBindingPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
         context.mark()
         val identifier = context.attempt(IdentifierRule)
@@ -40,7 +40,7 @@ object IdentifierBindingPatternRule : IPatternRule<IdentifierBindingPatternNode>
     }
 }
 
-object TypeBindingPatternRule : IPatternRule<TypeBindingPatternNode> {
+private object TypeBindingPatternRule : IPatternRule<TypeBindingPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
         context.mark()
         val type = context.attempt(TypeIdentifierRule.Naked)
@@ -50,7 +50,7 @@ object TypeBindingPatternRule : IPatternRule<TypeBindingPatternNode> {
     }
 }
 
-object TypeIdentifierBindingPatternRule : IPatternRule<TypedIdentifierBindingPatternNode> {
+private object TypeIdentifierBindingPatternRule : IPatternRule<TypedIdentifierBindingPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
         context.mark()
         val identifier = context.attempt(IdentifierBindingPatternRule)
@@ -70,7 +70,7 @@ object TypeIdentifierBindingPatternRule : IPatternRule<TypedIdentifierBindingPat
     }
 }
 
-object AnyBindingPatternRule : IPatternRule<ITerminalBindingPatternNode> {
+private object AnyBindingPatternRule : IPatternRule<ITerminalBindingPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
         context.mark()
         val node = context.attemptAny(listOf(TypeIdentifierBindingPatternRule, DiscardBindingPatternRule, IdentifierBindingPatternRule))
@@ -88,7 +88,7 @@ object AnyBindingPatternRule : IPatternRule<ITerminalBindingPatternNode> {
     `case Foo(bar Bar)`
     `case Foo(bar Bar(baz Baz))`
  */
-object StructuralPatternRule : IPatternRule<StructuralPatternNode> {
+internal object StructuralPatternRule : IPatternRule<StructuralPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
         context.mark()
         val type = context.attempt(TypeIdentifierRule.Naked)
@@ -106,5 +106,23 @@ object StructuralPatternRule : IPatternRule<StructuralPatternNode> {
             ?: return ParseRule.Result.Failure.Rewind(context.end())
 
         return +StructuralPatternNode(type.firstToken, delimResult.lastToken, delimResult.nodes)
+    }
+}
+
+private object ElsePatternRule : ParseRule<ElseNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val start = context.expect(TokenTypes.Else)
+
+        return +ElseNode(start, start)
+    }
+}
+
+object AnyPatternRule : ParseRule<IPatternNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val node = context.attemptAny(listOf(StructuralPatternRule, ElsePatternRule, LiteralPatternRule))
+            as? IPatternNode
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +node
     }
 }

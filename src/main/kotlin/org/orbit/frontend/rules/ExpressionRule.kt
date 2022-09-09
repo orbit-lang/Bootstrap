@@ -59,6 +59,8 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 				}
 		}
 
+		if (!context.hasMore) return +lhs!!
+
 		var next = context.peek()
 
 		if (next.type == TokenTypes.Dot) {
