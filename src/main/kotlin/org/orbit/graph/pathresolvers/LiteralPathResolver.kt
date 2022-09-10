@@ -13,7 +13,7 @@ abstract class LiteralPathResolver<N: ILiteralNode<*>>(private val path: Path) :
 	override val invocation: Invocation by inject()
 
 	override fun resolve(input: N, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		input.annotateByKey(path, Annotations.Path)
+		input.annotateByKey(path, Annotations.path)
 
 		return PathResolver.Result.Success(path)
 	}

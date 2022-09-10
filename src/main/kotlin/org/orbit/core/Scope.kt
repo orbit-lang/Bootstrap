@@ -15,7 +15,7 @@ class Scope(
 	val identifier: ScopeIdentifier = ScopeIdentifier.next(),
 	val bindings: MutableList<Binding> = mutableListOf(),
 	private val imports: MutableSet<ScopeIdentifier> = mutableSetOf()
-) : AnySerializable(), CompilationEventBusAware by CompilationEventBusAwareImpl, Serializable {
+) : CompilationEventBusAware by CompilationEventBusAwareImpl, Serializable {
 	sealed class Events(override val identifier: String) : CompilationEvent {
 		class BindingCreated(binding: Binding) : Events("Scope Binding Created: $binding")
 	}

@@ -17,8 +17,8 @@ class BinaryExpressionResolver : PathResolver<BinaryExpressionNode> {
 	private val nodeAnnotationMap: NodeAnnotationMap by inject()
 
 	override fun resolve(input: BinaryExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		nodeAnnotationMap.annotate(input.left, input.getGraphID(), Annotations.GraphID)
-		nodeAnnotationMap.annotate(input.right, input.getGraphID(), Annotations.GraphID)
+		nodeAnnotationMap.annotate(input.left, input.getGraphID(), Annotations.graphId)
+		nodeAnnotationMap.annotate(input.right, input.getGraphID(), Annotations.graphId)
 
         pathResolverUtil.resolve(input.left, pass, environment, graph)
         pathResolverUtil.resolve(input.right, pass, environment, graph)

@@ -10,7 +10,7 @@ import org.orbit.core.Scope
 import org.orbit.util.Invocation
 import org.orbit.util.OrbitLibrary
 
-class Symbols : CliktCommand(), KoinComponent {
+object Symbols : CliktCommand(), KoinComponent {
 	private val invocation: Invocation by inject()
 	private val source by argument( help = "Path to .orbl library file")
 		.file()

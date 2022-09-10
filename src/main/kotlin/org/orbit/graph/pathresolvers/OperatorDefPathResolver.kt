@@ -6,10 +6,10 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.OperatorDefNode
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
@@ -20,7 +20,7 @@ class OperatorDefPathResolver(private val parentPath: Path) : PathResolver<Opera
     override fun resolve(input: OperatorDefNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
         val path = parentPath + Path(input.identifierNode.identifier)
 
-        input.annotateByKey(path, Annotations.Path)
+        input.annotateByKey(path, Annotations.path)
 
         environment.bind(Binding.Kind.Type, input.identifierNode.identifier, path)
 
@@ -29,7 +29,7 @@ class OperatorDefPathResolver(private val parentPath: Path) : PathResolver<Opera
 
         graph.link(parentGraphID, graphID)
 
-        input.methodReferenceNode.annotateByKey(graphID, Annotations.GraphID)
+        input.methodReferenceNode.annotateByKey(graphID, Annotations.graphId)
         pathResolverUtil.resolve(input.methodReferenceNode, pass, environment, graph)
 
         return PathResolver.Result.Success(path)

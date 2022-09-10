@@ -31,8 +31,8 @@ class TypeExpressionUnit(override val node: TypeExpressionNode, override val dep
 //                    val nTypeParameterNode = TypeIdentifierNode(node.firstToken, node.lastToken, "AnyType")
 //                    val nNode = MetaTypeNode(node.firstToken, node.lastToken, node, listOf(nTypeParameterNode))
 //
-//                    nNode.annotate(node.getPath(), Annotations.Path)
-//                    nTypeParameterNode.annotate(IntrinsicTypes.AnyType.path, Annotations.Path)
+//                    nNode.annotate(node.getPath(), Annotations.path)
+//                    nTypeParameterNode.annotate(IntrinsicTypes.AnyType.path, Annotations.path)
 //
 //                    codeGenFactory.getMetaTypeUnit(nNode, depth, inFuncNamePosition)
 //                        .generate(mangler)

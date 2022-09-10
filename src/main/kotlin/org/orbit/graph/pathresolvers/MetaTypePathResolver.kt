@@ -21,14 +21,14 @@ object MetaTypePathResolver : PathResolver<MetaTypeNode> {
 		input.typeParameters.forEach {
 			val pid = input.getGraphIDOrNull()
 			if (pid != null) {
-				it.annotateByKey(pid, Annotations.GraphID)
+				it.annotateByKey(pid, Annotations.graphId)
 			}
 
 			TypeExpressionPathResolver.resolve(it, pass, environment, graph)
 		}
 
-		input.annotateByKey(typeConstructorResult.path, Annotations.Path)
-		input.typeConstructorIdentifier.annotateByKey(typeConstructorResult.path, Annotations.Path)
+		input.annotateByKey(typeConstructorResult.path, Annotations.path)
+		input.typeConstructorIdentifier.annotateByKey(typeConstructorResult.path, Annotations.path)
 
 		return PathResolver.Result.Success(typeConstructorResult.path)
 	}

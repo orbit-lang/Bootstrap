@@ -17,8 +17,6 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
 object Parse : CliktCommand(), KoinComponent {
-    private val invocation: Invocation by inject()
-
     private val source by argument(help = "Orbit source file to parse")
         .file()
 

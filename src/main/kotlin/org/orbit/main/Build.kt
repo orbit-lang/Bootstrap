@@ -46,8 +46,6 @@ object Build : CliktCommand(), KoinComponent {
 	private val compilerGenerator: CompilerGenerator by inject()
 	private val compilationEventBus: CompilationEventBus by inject()
 
-	data class BuildConfig(val maxDepth: Int, val productName: String, val outputPath: File)
-
 	private val sources by argument(help = "Orbit source file to compile")
 		.file()
 		.multiple(true)
@@ -134,7 +132,7 @@ object Build : CliktCommand(), KoinComponent {
                 compilerGenerator[CompilationSchemeEntry.commentParser] = CommentParser(invocation)
                 compilerGenerator[CompilationSchemeEntry.lexer] = Lexer(invocation)
                 compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
-                compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver(invocation)
+                compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver
 
 
                 compilationEventBus.events.registerObserver {

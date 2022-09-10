@@ -19,7 +19,7 @@ object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
 			val binding = environment.getBinding(input.value, Binding.Kind.Union.entityOrConstructorOrParameter, graph, input.getGraphIDOrNull())
 				.unwrap(this, input.firstToken.position)
 
-			input.annotateByKey(binding.path, Annotations.Path)
+			input.annotateByKey(binding.path, Annotations.path)
 
             PathResolver.Result.Success(binding.path)
 		}

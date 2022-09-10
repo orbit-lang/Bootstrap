@@ -2,7 +2,6 @@ package org.orbit.backend.codegen
 
 import org.orbit.backend.codegen.common.*
 import org.orbit.core.nodes.*
-import org.orbit.core.StringKey
 import java.math.BigInteger
 
 interface CodeGenFactory<H: AbstractHeader> {
@@ -11,7 +10,7 @@ interface CodeGenFactory<H: AbstractHeader> {
     fun getMethodDefUnit(node: MethodDefNode, depth: Int) : AbstractMethodDefUnit = MethodDefUnit(node, depth)
     fun getMethodSignatureUnit(node: MethodSignatureNode, depth: Int) : AbstractMethodSignatureUnit
     fun getBlockUnit(node: BlockNode, depth: Int, stripBraces: Boolean, isMethodBody: Boolean) : AbstractBlockUnit = BlockUnit(node, depth, stripBraces, isMethodBody)
-    fun getReturnStatementUnit(node: ReturnStatementNode, depth: Int, resultIsDeferred: Boolean, deferFunctions: List<StringKey>) : AbstractReturnStatementUnit
+    fun getReturnStatementUnit(node: ReturnStatementNode, depth: Int, resultIsDeferred: Boolean, deferFunctions: List<String>) : AbstractReturnStatementUnit
     fun getAssignmentStatementUnit(node: AssignmentStatementNode, depth: Int) : AbstractAssignmentStatementUnit
     fun getPrintStatementUnit(node: PrintNode, depth: Int) : AbstractPrintStatementUnit
     fun getDeferStatementUnit(node: DeferNode, depth: Int) : AbstractDeferStatementUnit

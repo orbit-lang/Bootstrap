@@ -21,7 +21,7 @@ class TraitDefPathResolver(
 		val path = if (pass == PathResolver.Pass.Initial) {
 			val path = parentPath + Path(input.typeIdentifierNode.value)
 
-			input.annotateByKey(path, Annotations.Path)
+			input.annotateByKey(path, Annotations.path)
 			environment.bind(Binding.Kind.Trait, input.typeIdentifierNode.value, path)
 
 			// TODO - Trait conformances
@@ -38,12 +38,12 @@ class TraitDefPathResolver(
 			}
 
 			input.properties.forEach {
-				it.annotateByKey(graphID, Annotations.GraphID)
-				it.typeNode.annotateByKey(graphID, Annotations.GraphID)
-				it.defaultValue?.annotateByKey(graphID, Annotations.GraphID)
+				it.annotateByKey(graphID, Annotations.graphId)
+				it.typeNode.annotateByKey(graphID, Annotations.graphId)
+				it.defaultValue?.annotateByKey(graphID, Annotations.graphId)
 			}
 
-			input.signatures.forEach { it.annotateByKey(graphID, Annotations.GraphID) }
+			input.signatures.forEach { it.annotateByKey(graphID, Annotations.graphId) }
 
 			path
 		} else {

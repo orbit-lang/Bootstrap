@@ -4,7 +4,7 @@ import org.orbit.util.AnyPrintable
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 
-open class Path(open val relativeNames: List<String>) : AnySerializable(), AnyPrintable, Collection<String> by relativeNames {
+open class Path(open val relativeNames: List<String>) : AnyPrintable, Collection<String> by relativeNames {
 	companion object {
 		val empty = Path()
 		val self = Path("Self")

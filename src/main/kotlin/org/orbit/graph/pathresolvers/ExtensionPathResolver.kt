@@ -24,16 +24,16 @@ class ExtensionPathResolver(private val parentPath: Path) : PathResolver<Extensi
 
         val graphID = graph.find(targetTypePath.path.toString(OrbitMangler))
 
-        input.annotateByKey(graphID, Annotations.GraphID)
-        input.annotateByKey(targetTypePath.path, Annotations.Path)
+        input.annotateByKey(graphID, Annotations.graphId)
+        input.annotateByKey(targetTypePath.path, Annotations.path)
 
         input.context?.let {
-            it.annotateByKey(graphID, Annotations.GraphID)
+            it.annotateByKey(graphID, Annotations.graphId)
             pathResolverUtil.resolve(it, pass, environment, graph)
         }
 
         input.bodyNodes.forEach {
-            it.annotateByKey(graphID, Annotations.GraphID)
+            it.annotateByKey(graphID, Annotations.graphId)
             pathResolverUtil.resolve(it, pass, environment, graph)
         }
 

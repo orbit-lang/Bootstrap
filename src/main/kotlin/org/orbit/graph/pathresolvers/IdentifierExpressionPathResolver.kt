@@ -10,12 +10,7 @@ import org.orbit.util.Invocation
 class IdentifierExpressionPathResolver : PathResolver<IdentifierNode> {
 	override val invocation: Invocation by inject()
 
-	override fun resolve(
-        input: IdentifierNode,
-        pass: PathResolver.Pass,
-        environment: Environment,
-        graph: Graph
-	): PathResolver.Result {
+	override fun resolve(input: IdentifierNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
 		return PathResolver.Result.Success(Path.empty)
 	}
 }

@@ -1,28 +1,23 @@
 package org.orbit.graph.extensions
 
-import org.orbit.core.AnySerializable
 import org.orbit.core.GraphEntity
 import org.orbit.core.ScopeIdentifier
 import org.orbit.core.nodes.*
 
 fun INode.getScopeIdentifier() : ScopeIdentifier {
-    return getAnnotation(Annotations.Scope as NodeAnnotationTag<ScopeIdentifier>)!!.value
+    return getAnnotation(Annotations.scope)!!.value
 }
 
 fun INode.getScopeIdentifierOrNull() : ScopeIdentifier? {
-    return getAnnotation(Annotations.Scope as NodeAnnotationTag<ScopeIdentifier>)?.value
+    return getAnnotation(Annotations.scope)?.value
 }
 
 fun INode.getGraphID() : GraphEntity.Vertex.ID {
-    return getAnnotation(Annotations.GraphID as NodeAnnotationTag<GraphEntity.Vertex.ID>)!!.value
+    return getAnnotationByKey<GraphEntity.Vertex.ID>(Annotations.graphId.key)!!.value
 }
 
 fun INode.getGraphIDOrNull() : GraphEntity.Vertex.ID? {
-    return getAnnotation(Annotations.GraphID as NodeAnnotationTag<GraphEntity.Vertex.ID>)?.value
-}
-
-inline fun <reified T: AnySerializable> INode.annotateByKey(value: T, key: Annotations, mergeOnConflict: Boolean = false) {
-    annotateByKey(value, key.key, mergeOnConflict)
+    return getAnnotation(Annotations.graphId)?.value
 }
 
 // TODO
@@ -36,7 +31,3 @@ inline fun <reified T: AnySerializable> INode.annotateByKey(value: T, key: Annot
 //        }
 //    }
 //}
-
-inline fun <reified T: AnySerializable> INode.getAnnotation(key: Annotations) : NodeAnnotation<T>? {
-    return getAnnotationByKey(key.key)
-}

@@ -8,9 +8,6 @@ import org.orbit.core.CodeGeneratorQualifier
 import org.orbit.core.Mangler
 import org.orbit.core.injectQualified
 import org.orbit.core.nodes.*
-import org.orbit.core.nodes.Annotations
-import org.orbit.core.StringKey
-import org.orbit.graph.extensions.getAnnotation
 import org.orbit.util.partial
 
 interface AbstractBlockUnit : CodeUnit<BlockNode> {
@@ -27,7 +24,7 @@ class BlockUnit(override val node: BlockNode, override val depth: Int, private v
         val units: List<CodeUnit<*>> = node.body.map {
             when (it) {
                 is ReturnStatementNode -> {
-                    val deferFunctions = deferStatements.mapNotNull { d -> d.getAnnotation<StringKey>(Annotations.DeferFunction)?.value }
+                    val deferFunctions = deferStatements.mapNotNull { d -> d.getAnnotation(Annotations.deferFunction)?.value }
                     codeGenFactory.getReturnStatementUnit(it, depth, node.search(DeferNode::class.java).isNotEmpty(), deferFunctions)
                 }
 
@@ -48,8 +45,8 @@ class BlockUnit(override val node: BlockNode, override val depth: Int, private v
 
         val defer = when (shouldOutputDeferCall) {
             true -> {
-                deferStatements.mapNotNull { d -> d.getAnnotation<StringKey>(Annotations.DeferFunction)?.value }
-                    .joinToString("\n") { d -> "\t${d.value}();" }
+                deferStatements.mapNotNull { d -> d.getAnnotation(Annotations.deferFunction)?.value }
+                    .joinToString("\n") { d -> "\t$d();" }
             }
             else -> ""
         }

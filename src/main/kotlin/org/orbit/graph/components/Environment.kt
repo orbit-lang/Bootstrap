@@ -62,9 +62,7 @@ class Environment(val ast: INode, val scopes: MutableList<Scope> = mutableListOf
 	}
 
 	fun mark(node: INode) {
-
-
-		nodeAnnotationMap.annotate(node, currentScope.identifier, Annotations.Scope)
+		nodeAnnotationMap.annotate(node, currentScope.identifier, Annotations.scope)
 
 		// Walk down the tree, annotating every node with the current Scope id
 		node.getChildren().forEach {

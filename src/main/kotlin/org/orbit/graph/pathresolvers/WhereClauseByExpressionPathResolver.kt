@@ -16,7 +16,7 @@ object WhereClauseByExpressionPathResolver : PathResolver<WhereClauseByExpressio
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: WhereClauseByExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        input.lambdaExpression.annotateByKey(input.getGraphID(), Annotations.GraphID)
+        input.lambdaExpression.annotateByKey(input.getGraphID(), Annotations.graphId)
 
         return pathResolverUtil.resolve(input.lambdaExpression, pass, environment, graph)
     }

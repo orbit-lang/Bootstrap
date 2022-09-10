@@ -23,7 +23,7 @@ class TypeDefPathResolver(
 		val path = if (pass == PathResolver.Pass.Initial) {
 			val path = parentPath + Path(input.typeIdentifierNode.value)
 
-			input.annotateByKey(path, Annotations.Path)
+			input.annotateByKey(path, Annotations.path)
 
 			environment.bind(Binding.Kind.Type, input.typeIdentifierNode.value, path)
 
@@ -32,15 +32,15 @@ class TypeDefPathResolver(
 
 			graph.link(parentGraphID, graphID)
 
-			input.annotateByKey(graphID, Annotations.GraphID)
+			input.annotateByKey(graphID, Annotations.graphId)
 			input.properties.forEach {
-				it.annotateByKey(graphID, Annotations.GraphID)
-				it.typeNode.annotateByKey(graphID, Annotations.GraphID)
-				it.defaultValue?.annotateByKey(graphID, Annotations.GraphID)
+				it.annotateByKey(graphID, Annotations.graphId)
+				it.typeNode.annotateByKey(graphID, Annotations.graphId)
+				it.defaultValue?.annotateByKey(graphID, Annotations.graphId)
 			}
 
 			input.traitConformances.forEach {
-				it.annotateByKey(graphID, Annotations.GraphID)
+				it.annotateByKey(graphID, Annotations.graphId)
 			}
 
 			path

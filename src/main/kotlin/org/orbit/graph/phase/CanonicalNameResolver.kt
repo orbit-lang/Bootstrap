@@ -15,6 +15,7 @@ import org.orbit.graph.extensions.getScopeIdentifier
 import org.orbit.graph.pathresolvers.PathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.main.Build
+import org.orbit.main.BuildConfig
 import org.orbit.util.*
 import java.util.*
 import java.util.Stack
@@ -48,12 +49,7 @@ data class NameResolverInput(val parserResult: Parser.Result, val environment: E
 data class NameResolverResult(val environment: Environment, val graph: Graph)
 
 fun INode.isResolved() : Boolean {
-	val annotation = getAnnotation(Annotations.Resolved)?.value ?: return false
-
-	return when (annotation) {
-		is SerialBool -> annotation.flag
-		else -> false
-	}
+	return getAnnotation(Annotations.resolved)?.value ?: return false
 }
 
 fun <K, V> mapOf(list: List<Pair<K, V>>) : Map<K, V> {
@@ -80,7 +76,7 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 	override val outputType: Class<NameResolverResult> = NameResolverResult::class.java
 
 	private val pathResolverUtil: PathResolverUtil by inject()
-	private val buildConfig: Build.BuildConfig by inject()
+	private val buildConfig: BuildConfig by inject()
 	private val importManager: ImportManager by inject()
 
 	override fun execute(input: NameResolverInput): NameResolverResult {
@@ -171,7 +167,7 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 				}
 			}
 
-			nextContainer.annotateByKey(SerialBool(true), Annotations.Resolved)
+			nextContainer.annotateByKey(true, Annotations.resolved)
 
 			pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Initial, input.environment, input.graph)
 
@@ -206,7 +202,7 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 				?: TODO("HERE")
 			val id = input.graph.insert(path.toString(OrbitMangler))
 
-			nextContainer.annotateByKey(id, Annotations.GraphID)
+			nextContainer.annotateByKey(id, Annotations.graphId)
 
 			pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Last, input.environment, input.graph)
 		}
@@ -215,19 +211,16 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 	}
 }
 
-class CanonicalNameResolver(override val invocation: Invocation) : AdaptablePhase<Parser.Result, NameResolverResult>(), KoinComponent {
+object CanonicalNameResolver : AdaptablePhase<Parser.Result, NameResolverResult>(), KoinComponent, PriorityComparator<ContainerNode> {
+	override val invocation: Invocation by inject()
 	override val inputType = Parser.Result::class.java
 	override val outputType = NameResolverResult::class.java
 
-	private companion object : PriorityComparator<ContainerNode> {
-		override fun compare(a: ContainerNode, b: ContainerNode): ContainerNode = when (a.within) {
-			null -> a
-			else -> b
-		}
+	override fun compare(a: ContainerNode, b: ContainerNode): ContainerNode = when (a.within) {
+		null -> a
+		else -> b
 	}
 
-	@ExperimentalContracts
-	@ExperimentalTime
 	override fun execute(input: Parser.Result) : NameResolverResult {
 		val environment = Environment(input.ast)
 		val graph = Graph()

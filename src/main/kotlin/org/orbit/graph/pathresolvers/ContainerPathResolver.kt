@@ -20,8 +20,8 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 		val path = OrbitMangler.unmangle(input.identifier.value)
 
 		environment.withScope {
-			input.annotateByKey(it.identifier, Annotations.Scope, true)
-			input.annotateByKey(path, Annotations.Path)
+			input.annotateByKey(it.identifier, Annotations.scope, true)
+			input.annotateByKey(path, Annotations.path)
 
 			val kind = when (input) {
 				is ApiDefNode -> Binding.Kind.Api
@@ -35,7 +35,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 	}
 
 	private fun completeBinding(input: ContainerNode, environment: Environment, simplePath: Path, fullyQualifiedPath: FullyQualifiedPath) {
-		input.annotateByKey(fullyQualifiedPath, Annotations.Path, true)
+		input.annotateByKey(fullyQualifiedPath, Annotations.path, true)
 		environment.unbind(Binding.Kind.Module, input.identifier.value, simplePath)
 		environment.bind(Binding.Kind.Module, input.identifier.value, fullyQualifiedPath)
 	}
@@ -74,7 +74,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			val parentNode = environment.ast.search(ContainerNode::class.java)
 				.find { it.getPathOrNull() == parent.path }!!
 
-			input.within?.annotateByKey(parent.path, Annotations.Path)
+			input.within?.annotateByKey(parent.path, Annotations.path)
 
 			return@withScope when (parent.path) {
 				is FullyQualifiedPath -> {
@@ -146,19 +146,19 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 				}
 			}
 
+			resolveAll(contextResolver, contexts, PathResolver.Pass.Last)
 			resolveAll(traitResolver, traitDefs, PathResolver.Pass.Last)
 			resolveAll(typeResolver, typeDefs, PathResolver.Pass.Last)
-			resolveAll(contextResolver, contexts, PathResolver.Pass.Last)
 			resolveAll(operatorResolver, opDefs, PathResolver.Pass.Last)
 
 			if (input is ModuleNode) {
 				for (typeProjection in input.projections) {
-					TypeProjectionPathResolver.resolve(typeProjection, PathResolver.Pass.Initial, environment, graph)
+					ProjectionPathResolver.resolve(typeProjection, PathResolver.Pass.Initial, environment, graph)
 				}
 			}
 
 			for (methodDef in input.methodDefs) {
-				methodDef.annotateByKey(input.getGraphID(), Annotations.GraphID)
+				methodDef.annotateByKey(input.getGraphID(), Annotations.graphId)
 				pathResolverUtil.resolve(methodDef, PathResolver.Pass.Initial, environment, graph)
 			}
 

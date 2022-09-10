@@ -1,35 +1,42 @@
 package org.orbit.core.nodes
 
-import org.orbit.core.AnySerializable
 import org.orbit.core.components.Token
 import org.orbit.util.PriorityComparator
 import org.orbit.util.getKoinInstance
 import org.orbit.util.prioritise
 
-sealed class NodeAnnotationTag<T: AnySerializable>
+interface INodeAnnotationTag<T> {
+	val key: String
+}
 
-data class KeyedNodeAnnotationTag<T: AnySerializable>(val key: String) : NodeAnnotationTag<T>() {
+data class NodeAnnotationTag<T>(override val key: String) : INodeAnnotationTag<T> {
 	override fun equals(other: Any?) : Boolean = when (other) {
-		null -> false
-		else -> {
-			other is KeyedNodeAnnotationTag<*>
-				&& other.key == key
-		}
+		is NodeAnnotationTag<*> -> other.key == key
+		else -> false
+	}
+
+	override fun hashCode(): Int {
+		return key.hashCode()
 	}
 }
 
-data class NodeAnnotation<T: AnySerializable>(val tag: NodeAnnotationTag<T>?, val value: T) {
+data class NodeAnnotation<T>(val tag: INodeAnnotationTag<T>?, val value: T) {
 	override fun equals(other: Any?) : Boolean = when (other) {
-		null -> false
 		is NodeAnnotation<*> -> other.tag == tag
 		else -> false
+	}
+
+	override fun hashCode(): Int {
+		var result = tag?.hashCode() ?: 0
+		result = 31 * result + value.hashCode()
+		return result
 	}
 }
 
 class NodeAnnotationMap {
 	private val nodeAnnotationMap = mutableMapOf<INode, List<NodeAnnotation<*>>>()
 
-	fun <T: AnySerializable> annotate(node: INode, value: T, tag: NodeAnnotationTag<T>, mergeOnConflict: Boolean = false) {
+	fun <T> annotate(node: INode, value: T, tag: INodeAnnotationTag<T>, mergeOnConflict: Boolean = false) {
 		val nAnnotation = NodeAnnotation(tag, value)
 
 		val nAnnotations = when (val annotations = nodeAnnotationMap[node]) {
@@ -45,7 +52,7 @@ class NodeAnnotationMap {
 		else -> annotations
 	}
 
-	fun removeAll(node: INode, tag: NodeAnnotationTag<*>) {
+	fun removeAll(node: INode, tag: INodeAnnotationTag<*>) {
 		val nAnnotations = getAnnotations(node)
 			.filterNot { it.tag == tag }
 
@@ -81,7 +88,7 @@ interface INode {
 	}
 }
 
-inline fun <reified T: AnySerializable> INode.annotateByKey(value: T, tag: NodeAnnotationTag<T>, mergeOnConflict: Boolean = false) {
+inline fun <reified T> INode.annotateByKey(value: T, tag: INodeAnnotationTag<T>, mergeOnConflict: Boolean = false) {
 	val nodeAnnotationMap = getKoinInstance<NodeAnnotationMap>()
 
 	if (mergeOnConflict) {
@@ -91,15 +98,15 @@ inline fun <reified T: AnySerializable> INode.annotateByKey(value: T, tag: NodeA
 	nodeAnnotationMap.annotate(this, value, tag, mergeOnConflict)
 }
 
-inline fun <reified T: AnySerializable> INode.annotateByKey(value: T, key: String, mergeOnConflict: Boolean = false) {
-	annotateByKey(value, KeyedNodeAnnotationTag(key), mergeOnConflict)
+inline fun <reified T> INode.annotateByKey(value: T, key: String, mergeOnConflict: Boolean = false) {
+	annotateByKey(value, NodeAnnotationTag(key), mergeOnConflict)
 }
 
-inline fun <reified T: AnySerializable> INode.getAnnotation(tag: NodeAnnotationTag<T>) : NodeAnnotation<T>? {
+inline fun <reified T> INode.getAnnotation(tag: INodeAnnotationTag<T>) : NodeAnnotation<T>? {
 	val nodeAnnotationMap = getKoinInstance<NodeAnnotationMap>()
 
 	val results = nodeAnnotationMap.getAnnotations(this)
-		.filter { it.tag == tag && it is NodeAnnotationTag<*> }
+		.filter { it.tag == tag }
 
 	return when (results.size) {
 		0 -> null
@@ -115,8 +122,8 @@ inline fun <reified T: AnySerializable> INode.getAnnotation(tag: NodeAnnotationT
 	}
 }
 
-inline fun <reified T: AnySerializable> INode.getAnnotationByKey(key: String) : NodeAnnotation<T>? {
-	return getAnnotation(KeyedNodeAnnotationTag(key))
+inline fun <reified T> INode.getAnnotationByKey(key: String) : NodeAnnotation<T>? {
+	return getAnnotation(NodeAnnotationTag(key))
 }
 
 inline fun <reified N: INode> INode.search(priorityComparator: PriorityComparator<N>? = null, ignoreScopedNodes: Boolean = false) : List<N> {

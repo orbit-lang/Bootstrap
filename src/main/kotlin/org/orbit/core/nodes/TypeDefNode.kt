@@ -2,7 +2,7 @@ package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
 
-interface EntityDefNode : INode {
+sealed interface EntityDefNode : INode {
     val properties: List<ParameterNode>
     val typeIdentifierNode: TypeIdentifierNode
 }

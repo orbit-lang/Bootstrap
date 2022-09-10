@@ -43,7 +43,7 @@ val mainModule = module {
 		util.registerPathResolver(IdentifierExpressionPathResolver(), IdentifierNode::class.java)
 		util.registerPathResolver(PrintPathResolver(), PrintNode::class.java)
 		util.registerPathResolver(MetaTypePathResolver, MetaTypeNode::class.java)
-		util.registerPathResolver(TypeProjectionPathResolver, ProjectionNode::class.java)
+		util.registerPathResolver(ProjectionPathResolver, ProjectionNode::class.java)
 		util.registerPathResolver(TypeExpressionPathResolver, TypeExpressionNode::class.java)
 		util.registerPathResolver(LambdaLiteralPathResolver, LambdaLiteralNode::class.java)
 		util.registerPathResolver(ReferenceCallPathResolver, ReferenceCallNode::class.java)
@@ -58,6 +58,18 @@ val mainModule = module {
 		util.registerPathResolver(WhereClauseByExpressionPathResolver, WhereClauseByExpressionNode::class.java)
 		util.registerPathResolver(ParameterNodePathResolver, ParameterNode::class.java)
 		util.registerPathResolver(MethodReferencePathResolver, MethodReferenceNode::class.java)
+		util.registerPathResolver(MethodDelegatePathResolver, MethodDelegateNode::class.java)
+		util.registerPathResolver(AnonymousParameterPathResolver, AnonymousParameterNode::class.java)
+		util.registerPathResolver(SelectPathResolver, SelectNode::class.java)
+		util.registerPathResolver(CasePathResolver, CaseNode::class.java)
+		util.registerPathResolver(BoolLiteralPathResolver, BoolLiteralNode::class.java)
+		util.registerPathResolver(AnyPathResolver(), ElseNode::class.java)
+		util.registerPathResolver(PanicPathResolver, PanicNode::class.java)
+		util.registerPathResolver(StructuralPatternPathResolver, StructuralPatternNode::class.java)
+		util.registerPathResolver(TypedIdentifierBindingPathResolver, TypedIdentifierBindingPatternNode::class.java)
+		util.registerPathResolver(TypeBindingPatternPathResolver, TypeBindingPatternNode::class.java)
+		util.registerPathResolver(DiscardBindingPatternPathResolver, DiscardBindingPatternNode::class.java)
+		util.registerPathResolver(AnyPathResolver(), IdentifierBindingPatternNode::class.java)
 
 		util
 	}
@@ -88,6 +100,7 @@ val mainModule = module {
 	}
 
 	single { NodeAnnotationMap() }
+	single { ImportManager(emptyList()) }
 }
 
 inline fun <reified T> getKoinInstance(): T {

@@ -1,11 +1,11 @@
 package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
-import org.orbit.core.nodes.AssignmentStatementNode
 import org.orbit.core.nodes.Annotations
+import org.orbit.core.nodes.AssignmentStatementNode
+import org.orbit.core.nodes.annotateByKey
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.annotateByKey
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
@@ -15,18 +15,18 @@ class AssignmentPathResolver : PathResolver<AssignmentStatementNode> {
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: AssignmentStatementNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		input.value.annotateByKey(input.getGraphID(), Annotations.GraphID)
+		input.value.annotateByKey(input.getGraphID(), Annotations.graphId)
 		val valuePath = pathResolverUtil.resolve(input.value, pass, environment, graph)
 
 		if (input.typeAnnotationNode != null) {
 			val typeAnnotationPath = pathResolverUtil.resolve(input.typeAnnotationNode, pass, environment, graph)
 				.asSuccess()
 
-			input.typeAnnotationNode.annotateByKey(typeAnnotationPath.path, Annotations.Path)
+			input.typeAnnotationNode.annotateByKey(typeAnnotationPath.path, Annotations.path)
 		}
 
 		if (valuePath is PathResolver.Result.Success) {
-			input.annotateByKey(valuePath.path, Annotations.Path)
+			input.annotateByKey(valuePath.path, Annotations.path)
 		}
 
 		return valuePath

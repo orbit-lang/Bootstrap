@@ -13,7 +13,7 @@ object TypeIndexResolver : PathResolver<TypeIndexNode> {
     override val invocation: Invocation by inject()
 
     override fun resolve(input: TypeIndexNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        input.annotateByKey(Binding.Self.path, Annotations.Path)
+        input.annotateByKey(Binding.Self.path, Annotations.path)
 
         return PathResolver.Result.Success(Binding.Self.path)
     }

@@ -1,6 +1,5 @@
 package org.orbit.core.nodes
 
-import org.orbit.core.AnySerializable
 import org.orbit.core.components.Token
 
 data class MethodSignatureNode(
@@ -14,7 +13,7 @@ data class MethodSignatureNode(
 	val typeConstraints: List<TypeConstraintWhereClauseNode> = emptyList(),
 	val isInstanceMethod: Boolean
 ) : INode {
-	inline fun <reified T: AnySerializable> annotateParameter(idx: Int, value: T, tag: Annotations) {
+	inline fun <reified T> annotateParameter(idx: Int, value: T, tag: Annotations<T>) {
 		// TODO
 //		val nodeAnnotationMap = getKoinInstance<NodeAnnotationMap>()
 //

@@ -22,11 +22,11 @@ class FullyQualifiedPath(override val relativeNames: List<String>) : Path(relati
 
 // TODO - Move these extensions to somewhere that makes sense
 fun INode.getPathOrNull() : Path? {
-	return getAnnotation(Annotations.Path as NodeAnnotationTag<Path>)?.value
+	return getAnnotation(Annotations.path)?.value
 }
 
 fun INode.getPath() : Path {
-	return getAnnotation(Annotations.Path as NodeAnnotationTag<Path>)!!.value
+	return getAnnotation(Annotations.path)!!.value
 }
 
 interface Mangler {

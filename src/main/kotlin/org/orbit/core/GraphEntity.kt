@@ -3,12 +3,12 @@ package org.orbit.core
 import java.io.Serializable
 import java.util.*
 
-sealed class GraphEntity : AnySerializable() {
+sealed class GraphEntity {
     class Alias(name: String, id: ID) : Vertex(name, id)
 
     // A single point in the dependency graph
     open class Vertex(val name: String, val id: ID = ID.random()) : GraphEntity(), Serializable {
-        data class ID(val uuid: String) : AnySerializable(), Serializable {
+        data class ID(val uuid: String) : Serializable {
             companion object {
                 val Self = random()
                 fun random() : ID = ID(UUID.randomUUID().toString())

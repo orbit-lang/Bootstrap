@@ -20,7 +20,7 @@ class FamilyPathResolver(private val parentPath: Path) : PathResolver<FamilyNode
         val path = if (pass == PathResolver.Pass.Initial) {
             val path = parentPath + Path(input.familyIdentifierNode.value)
 
-            input.annotateByKey(path, Annotations.Path)
+            input.annotateByKey(path, Annotations.path)
             environment.bind(Binding.Kind.Type, input.familyIdentifierNode.value, path)
 
             val parentGraphID = graph.find(parentPath.toString(OrbitMangler))
@@ -28,11 +28,11 @@ class FamilyPathResolver(private val parentPath: Path) : PathResolver<FamilyNode
 
             graph.link(parentGraphID, graphID)
 
-            input.annotateByKey(graphID, Annotations.GraphID)
+            input.annotateByKey(graphID, Annotations.graphId)
             input.properties.forEach {
-                it.annotateByKey(graphID, Annotations.GraphID)
-                it.typeNode.annotateByKey(graphID, Annotations.GraphID)
-                it.defaultValue?.annotateByKey(graphID, Annotations.GraphID)
+                it.annotateByKey(graphID, Annotations.graphId)
+                it.typeNode.annotateByKey(graphID, Annotations.graphId)
+                it.defaultValue?.annotateByKey(graphID, Annotations.graphId)
             }
 
             path

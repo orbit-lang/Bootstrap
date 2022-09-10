@@ -18,8 +18,8 @@ class PropertyPairPathResolver : PathResolver<PairNode> {
 		val result = pathResolverUtil.resolve(typeNode, pass, environment, graph)
 			.asSuccess()
 
-		input.annotateByKey(result.path, Annotations.Path)
-		input.typeExpressionNode.annotateByKey(result.path, Annotations.Path)
+		input.annotateByKey(result.path, Annotations.path)
+		input.typeExpressionNode.annotateByKey(result.path, Annotations.path)
 
 		return result
 	}
