@@ -98,6 +98,8 @@ internal object StructuralPatternRule : IPatternRule<StructuralPatternNode> {
 
         val next = context.peek()
 
+        if (next.type in listOf(TokenTypes.Assignment, TokenTypes.By)) return +StructuralPatternNode(type.firstToken, type.lastToken, listOf(TypeBindingPatternNode(type.firstToken, type.lastToken, type)))
+
         if (next.type != TokenTypes.LParen)
             return ParseRule.Result.Failure.Rewind(context.end())
 
@@ -119,7 +121,7 @@ private object ElsePatternRule : ParseRule<ElseNode> {
 
 object AnyPatternRule : ParseRule<IPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val node = context.attemptAny(listOf(StructuralPatternRule, ElsePatternRule, LiteralPatternRule))
+        val node = context.attemptAny(listOf(StructuralPatternRule, ElsePatternRule, MethodCallRule, LiteralPatternRule))
             as? IPatternNode
             ?: return ParseRule.Result.Failure.Abort
 

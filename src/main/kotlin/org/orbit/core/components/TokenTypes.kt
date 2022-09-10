@@ -53,6 +53,9 @@ object TokenTypes : TokenTypeProvider {
     object Call : TokenType("Call", "call", true, false, Family.Keyword)
     object Else : TokenType("Else", "else", true, false, Family.Keyword)
     object Case : TokenType("Case", "case", true, false, Family.Keyword)
+    object Select : TokenType("Select", "select", true, false, Family.Keyword)
+    object As : TokenType("As", "as", true, false, Family.Keyword)
+    object Bool : TokenType("Bool", "(true|false)", true, false, Family.Keyword)
 
     // Compile-time functions
     object Synthesise : TokenType("Synthesise", "\\bsynthesise\\b", true, false, Family.CompileTime)
@@ -74,7 +77,8 @@ object TokenTypes : TokenTypeProvider {
             Synthesise,
             Call,
             Dollar,
-            Fixity, Let, Invoke, In, Of, By, To, Else, Case,
+            Fixity, Let, Invoke, In, Of, By, To, Else, Case, Select, As,
+            Bool,
             TypeIdentifier,
             Colon, Comma, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,

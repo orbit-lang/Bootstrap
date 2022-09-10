@@ -30,9 +30,9 @@ module Orb::Ruckus::Types with Orb::Core with Orb::System {
 #            case else = panic "File not found ${rawValue}"
 #        }
 
-#        (Self) transform (rawValue String) (File) = select FileSystem.open(rawValue) as result {
-#            case Success(value File(path String, _)) = value
-#            case Failure(error) = panic error
-#        }
+        (Self) transform (rawValue String) (File) = select FileSystem.open(rawValue) as result {
+            case Success(value File(path String, _)) = value
+            case Failure(error) = panic error
+        }
     }
 }

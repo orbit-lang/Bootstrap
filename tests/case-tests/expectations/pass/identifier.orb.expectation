@@ -1,5 +1,6 @@
 #Equal
 CaseNode
- ElseNode
+ LiteralPatternNode
+  IdentifierNode
  RValueNode
   IntLiteralNode

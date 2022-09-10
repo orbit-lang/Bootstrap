@@ -1,0 +1,7 @@
+#Equal
+MethodCallNode
+ RValueNode
+  IdentifierNode
+ IdentifierNode
+ RValueNode
+  IdentifierNode

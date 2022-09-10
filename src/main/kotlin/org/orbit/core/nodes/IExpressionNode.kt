@@ -23,5 +23,5 @@ data class RValueNode(
 	constructor(expressionNode: IExpressionNode)
 		: this(expressionNode.firstToken, expressionNode.lastToken, expressionNode)
 
-	override fun getChildren() : List<INode> = listOf(expressionNode, typeParametersNode)
+	override fun getChildren() : List<INode> = listOf(expressionNode)
 }

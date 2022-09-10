@@ -1,0 +1,9 @@
+select foo as x {
+    case 1 = Result::Success(bar)
+    case foo = 2
+    case Bar(baz Baz) = x
+    case X by Foo::z
+    case x.y(z) by ::Z
+    case true = false
+    case else = foo.doSomethingElse()
+}

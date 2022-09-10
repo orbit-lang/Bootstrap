@@ -1,0 +1,13 @@
+#Equal
+MethodCallNode
+ MethodCallNode
+  RValueNode
+   IdentifierNode
+  IdentifierNode
+  MethodCallNode
+   RValueNode
+    IdentifierNode
+   IdentifierNode
+   RValueNode
+    IdentifierNode
+ IdentifierNode

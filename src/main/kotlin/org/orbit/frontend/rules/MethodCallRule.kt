@@ -29,26 +29,62 @@ object ReferenceCallRule : CallRule<ReferenceCallNode> {
 }
 
 object MethodCallRule : CallRule<MethodCallNode> {
+    private fun parseRightHandSide(context: Parser) : Pair<IdentifierNode, List<IExpressionNode>>? {
+        val identifier = context.attempt(IdentifierRule)
+            ?: return null
+
+        val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)
+        val delimResult = context.attempt(delim)
+            ?: return null
+
+        return Pair(identifier, delimResult.nodes)
+    }
+
     override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect(TokenTypes.Call)
-        val receiver = context.attemptAny(listOf(TypeExpressionRule, ExpressionRule.defaultValue))
+        context.mark()
+        val start = context.peek()
+        var lhs = context.attemptAny(listOf(TypeExpressionRule, LiteralRule()))
             as? IExpressionNode
-            ?: throw context.invocation.make<Parser>("TODO", context.peek())
+            ?: return ParseRule.Result.Failure.Rewind(context.end())
 
+        context.expect(TokenTypes.Dot)
+
+        var next = context.peek()
         val message = context.attempt(IdentifierRule)
-            ?: TODO("HJEKHJASD F")
+            ?: return ParseRule.Result.Failure.Throw("Expected method identifier after `.`, found `${next.text}`", next)
 
-        val next = context.peek()
+        next = context.peek()
 
         if (next.type != TokenTypes.LParen) {
             val end = context.consume()
-            return +MethodCallNode(start, end, receiver, message, emptyList(), true)
+            return +MethodCallNode(start, end, lhs, message, emptyList(), true)
         }
 
         val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)
         val delimResult = context.attempt(delim)
             ?: TODO("HERE!!@£")
 
-        return +MethodCallNode(start, delimResult.lastToken, receiver, message, delimResult.nodes, false)
+        if (!context.hasMore) return +MethodCallNode(start, delimResult.lastToken, lhs, message, delimResult.nodes, false)
+
+        next = context.peek()
+
+        if (next.type != TokenTypes.Dot) return +MethodCallNode(start, delimResult.lastToken, lhs, message, delimResult.nodes, false)
+
+        // For every `.` we find, shift the current MethodCallNode left and parse a new `rhs`
+        var rhs = Pair(message, delimResult.nodes)
+        while (next.type == TokenTypes.Dot) {
+            lhs = MethodCallNode(start, delimResult.lastToken, lhs, rhs.first, rhs.second, false)
+
+            context.expect(TokenTypes.Dot)
+
+            rhs = parseRightHandSide(context)
+                ?: return ParseRule.Result.Failure.Abort
+
+            if (!context.hasMore) break
+
+            next = context.peek()
+        }
+
+        return +MethodCallNode(start, delimResult.lastToken, lhs, rhs.first, rhs.second, false)
     }
 }

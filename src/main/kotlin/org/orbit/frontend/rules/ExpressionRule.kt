@@ -28,6 +28,10 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 		val singleExpressionBodyRule = ExpressionRule(
 			MirrorRule, ExpandRule, LambdaLiteralRule, ReferenceCallRule, ConstructorInvocationRule, LiteralRule(), MethodCallRule//, UnaryExpressionRule
 		)
+
+		val selectConditionRule = ExpressionRule(
+			ConstructorInvocationRule, LiteralRule(), MethodCallRule
+		)
 	}
 
 	override fun parse(context: Parser) : ParseRule.Result {

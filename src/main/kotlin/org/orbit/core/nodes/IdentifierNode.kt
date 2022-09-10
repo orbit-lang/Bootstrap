@@ -8,7 +8,7 @@ data class IdentifierNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val identifier: String
-) : ConstantExpressionNode, ValueRepresentableNode {
+) : ConstantExpressionNode, ValueRepresentableNode, IPatternNode, ILiteralNode<String> {
     companion object {
         val init = IdentifierNode(
             Token(TokenTypes.Identifier, "__init__", SourcePosition.unknown),
@@ -16,6 +16,8 @@ data class IdentifierNode(
             "__init__"
         )
     }
+
+    override val value: String = identifier
 
 	override fun getChildren() : List<INode> {
 		return emptyList()

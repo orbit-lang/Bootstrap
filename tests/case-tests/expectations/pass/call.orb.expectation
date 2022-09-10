@@ -1,0 +1,10 @@
+#Equal
+CaseNode
+ MethodCallNode
+  RValueNode
+   IdentifierNode
+  IdentifierNode
+  RValueNode
+   IdentifierNode
+ RValueNode
+  IntLiteralNode

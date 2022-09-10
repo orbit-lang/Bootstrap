@@ -11,7 +11,7 @@ data class ReferenceCallNode(
     override val lastToken: Token,
     override val parameterNodes: List<IExpressionNode>,
     val referenceNode: IExpressionNode
-) : InvokableNode, ValueRepresentableNode {
+) : InvokableNode, ValueRepresentableNode, IPatternNode {
     override fun getChildren(): List<INode>
         = parameterNodes + referenceNode
 }
@@ -23,7 +23,7 @@ data class MethodCallNode(
     val messageIdentifier: IdentifierNode,
     override val parameterNodes: List<IExpressionNode>,
     val isPropertyAccess: Boolean = false
-) : InvokableNode, ValueRepresentableNode {
+) : InvokableNode, ValueRepresentableNode, IPatternNode {
     override fun getChildren(): List<INode>
         = listOf(receiverExpression, messageIdentifier) + parameterNodes
 }

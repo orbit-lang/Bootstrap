@@ -18,8 +18,13 @@ object CaseRule : ParseRule<CaseNode> {
 
         val mode = CaseMode.parse(next.text)
             ?: return ParseRule.Result.Failure.Throw("Expected Case Mode (`=` or `by`) after `case...`, found ${next.text}", next)
-        val body = context.attempt(ExpressionRule.singleExpressionBodyRule)
-            ?: return ParseRule.Result.Failure.Abort
+
+        val expr = when (mode) {
+            CaseMode.Direct -> context.attempt(ExpressionRule.singleExpressionBodyRule)
+            CaseMode.Indirect -> context.attempt(AnyDelegateRule)
+        }
+
+        val body = expr ?: return ParseRule.Result.Failure.Abort
 
         return +CaseNode(start, body.lastToken, pattern, mode, body)
     }
