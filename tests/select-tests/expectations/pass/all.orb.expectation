@@ -4,14 +4,14 @@ SelectNode
   IdentifierNode
  IdentifierNode
  CaseNode
-  LiteralPatternNode
+  RValueNode
    IntLiteralNode
   ConstructorInvocationNode
    TypeIdentifierNode
    RValueNode
     IdentifierNode
  CaseNode
-  LiteralPatternNode
+  RValueNode
    IdentifierNode
   RValueNode
    IntLiteralNode
@@ -41,7 +41,7 @@ SelectNode
    TypeIdentifierNode
    IdentifierNode
  CaseNode
-  LiteralPatternNode
+  RValueNode
    BoolLiteralNode
   RValueNode
    BoolLiteralNode

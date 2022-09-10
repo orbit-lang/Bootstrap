@@ -47,9 +47,23 @@ object MethodCallRule : CallRule<MethodCallNode> {
             as? IExpressionNode
             ?: return ParseRule.Result.Failure.Rewind(context.end())
 
-        context.expect(TokenTypes.Dot)
+        if (!context.hasMore) return ParseRule.Result.Failure.Rewind(context.end())
 
         var next = context.peek()
+
+        if (next.type != TokenTypes.Dot) {
+            // TODO - I don't like this at all (abusing ParseRule to circumvent type checking on the returned Node type)
+            // However, rewinding here causes an infinite loop due to an ambiguity in the grammar.
+            context.rewind(context.end())
+            val node = context.attemptAny(listOf(TypeExpressionRule, LiteralRule()))
+                ?: return ParseRule.Result.Failure.Abort
+
+            return +node
+        }
+
+        context.expect(TokenTypes.Dot)
+
+        next = context.peek()
         val message = context.attempt(IdentifierRule)
             ?: return ParseRule.Result.Failure.Throw("Expected method identifier after `.`, found `${next.text}`", next)
 

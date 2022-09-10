@@ -19,7 +19,7 @@ data class RValueNode(
 	override val lastToken: Token,
 	val expressionNode: IExpressionNode,
 	val typeParametersNode: TypeParametersNode = TypeParametersNode(lastToken, lastToken)
-) : IExpressionNode {
+) : IExpressionNode, IPatternNode {
 	constructor(expressionNode: IExpressionNode)
 		: this(expressionNode.firstToken, expressionNode.lastToken, expressionNode)
 

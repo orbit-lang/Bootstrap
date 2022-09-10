@@ -11,8 +11,8 @@ object CaseRule : ParseRule<CaseNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.Case)
         var next = context.peek()
-        val pattern = context.attempt(AnyPatternRule)
-            ?: return ParseRule.Result.Failure.Throw("Expected pattern after `case...`, found ${next.text}", next)
+        val p = context.attempt(AnyPatternRule)
+        val pattern = p ?: return ParseRule.Result.Failure.Throw("Expected pattern after `case...`, found ${next.text}", next)
 
         next = context.expectAny(TokenTypes.Assignment, TokenTypes.By, consumes = true)
 

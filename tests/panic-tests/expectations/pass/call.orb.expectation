@@ -1,0 +1,8 @@
+#Equal
+PanicNode
+ MethodCallNode
+  RValueNode
+   IdentifierNode
+  IdentifierNode
+  RValueNode
+   IdentifierNode
