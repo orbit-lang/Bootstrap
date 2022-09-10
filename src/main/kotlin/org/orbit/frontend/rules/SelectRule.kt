@@ -7,7 +7,7 @@ import org.orbit.core.nodes.SelectNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
-object SelectRule : ParseRule<SelectNode> {
+object SelectRule : ValueRule<SelectNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.Select)
         var next = context.peek()

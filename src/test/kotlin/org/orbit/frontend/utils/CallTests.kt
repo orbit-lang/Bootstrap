@@ -15,4 +15,9 @@ internal class CallTests: FileBasedTest("call-tests", "orb") {
     fun `All Pass`() {
         assertAll(Scenario.Pass)
     }
+
+    @Test
+    fun `Isolate single test`() {
+        assert(Scenario.Pass, "type-lhs.orb", true)
+    }
 }

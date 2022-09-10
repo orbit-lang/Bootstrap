@@ -25,10 +25,10 @@ module Orb::Ruckus::Types with Orb::Core with Orb::System {
         with transform by $0
 
     projection FileArgumentTransformer : ArgumentTransformer within ArgumentCtx [File] {
-#        (Self) transform (rawValue String) (File) = select FileSystem.exists(rawValue) {
-#            case true = FileSystem.open(rawValue)
-#            case else = panic "File not found ${rawValue}"
-#        }
+        (Self) transform (rawValue String) (File) = select FileSystem.exists(rawValue) {
+            case true = FileSystem.open(rawValue)
+            case else = panic 0
+        }
 
         (Self) transform (rawValue String) (File) = select FileSystem.open(rawValue) as result {
             case Success(value File(path String, _)) = value
