@@ -24,7 +24,8 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 			ReferenceCallRule,
 			UnaryExpressionRule,
 			ConstructorInvocationRule,
-			LiteralRule()
+			LiteralRule(),
+			AnonymousParameterRule
 		)
 
 		val singleExpressionBodyRule = ExpressionRule(

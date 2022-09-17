@@ -37,7 +37,7 @@ enum class ContextOperator(override val symbol: String) : IIntrinsicOperator {
     }
 }
 
-sealed interface IType<T : IType<T>> : Substitutable<T> {
+sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     interface UnifiableType<Self : UnifiableType<Self>> : IType<Self> {
         fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*>
     }
@@ -58,6 +58,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         override fun substitute(substitution: Substitution): Always = this
         override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = other
         override fun plus(other: IMetaType<*>): IMetaType<*> = other
+
+        override fun toString(): String = "✓"
     }
 
     data class Never(val message: String, override val id: String = "!") : IMetaType<Never>, IArrow<Never> {
@@ -419,7 +421,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T> {
         override fun getCodomain(): AnyType = gives
 
         override fun substitute(substitution: Substitution): Arrow0 = Arrow0(gives.substitute(substitution))
-        override fun curry(): Arrow0 = Arrow0(Arrow0(gives))
+        override fun curry(): Arrow0 = this
         override fun never(args: List<AnyType>): Never = Never("Unreachable")
         override fun exists(env: Env): AnyType = gives.exists(env)
 

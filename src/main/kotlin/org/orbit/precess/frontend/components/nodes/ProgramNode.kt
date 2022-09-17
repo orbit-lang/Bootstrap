@@ -5,7 +5,7 @@ import org.orbit.core.nodes.INode
 import org.orbit.precess.backend.components.IType
 import org.orbit.precess.backend.phase.Interpreter
 
-data class ProgramNode(override val firstToken: Token, override val lastToken: Token, val statements: List<StatementNode>) : INode {
+data class ProgramNode(override val firstToken: Token, override val lastToken: Token, val statements: List<IStatementNode>) : IPrecessNode {
     override fun getChildren(): List<INode> = statements
     override fun toString(): String = statements.joinToString("\n") { it.toString() }
 

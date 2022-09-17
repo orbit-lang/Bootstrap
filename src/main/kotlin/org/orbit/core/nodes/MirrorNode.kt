@@ -6,7 +6,7 @@ data class MirrorNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val expressionNode: IExpressionNode
-) : TypeExpressionNode {
+) : TypeExpressionNode, IMethodBodyStatementNode {
     override val value: String = ""
 
     override fun getChildren(): List<INode>

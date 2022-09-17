@@ -7,7 +7,7 @@ data class DeferNode(
     override val lastToken: Token,
     val returnValueIdentifier: IdentifierNode?,
     val blockNode: BlockNode
-) : INode, ScopedNode {
+) : INode, ScopedNode, IMethodBodyStatementNode {
     override fun getChildren(): List<INode> {
         return when (returnValueIdentifier) {
             null -> listOf(blockNode)

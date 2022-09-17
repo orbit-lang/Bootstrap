@@ -1,6 +1,27 @@
-module Orb::Ruckus::Types with Orb::Core {
-    trait RawArgumentProvider {
-        (self Self) provideArguments () (List<String>)
+module Orb::Core {
+    trait AnyType
+}
+
+module Orb::System {
+    type FileSystem
+    type File(path String)
+
+    extension OptionCtx [File] {
+        (FileSystem) open (path String) (Option) {
+
+        }
+    }
+}
+
+module Orb::Ruckus::Types with Orb::Core with Orb::System {
+    type String
+
+    context ListCtx [Element] {
+        type List(first Element)
+
+        trait RawArgumentProvider {
+            (self Self) provideArguments () (List)
+        }
     }
 
     context ArgumentCtx [ResultType] {
@@ -20,7 +41,20 @@ module Orb::Ruckus::Types with Orb::Core {
     }
 
     type StringArgumentTransformer
+    type FileArgumentTransformer
 
     projection StringArgumentTransformer : ArgumentTransformer within ArgumentCtx [String]
         with transform by $0
+
+    projection FileArgumentTransformer : ArgumentTransformer within ArgumentCtx [File] {
+        (Self) transform (rawValue String) (File) = select FileSystem.exists(rawValue) {
+            case true = FileSystem.open(rawValue)
+            case else = panic 0
+        }
+
+        (Self) transform (rawValue String) (File) = select FileSystem.open(rawValue) as result {
+            case Success(value File(path String)) = value
+            case Failure(error) = panic error
+        }
+    }
 }

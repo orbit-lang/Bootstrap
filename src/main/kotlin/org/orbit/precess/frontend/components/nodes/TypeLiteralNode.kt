@@ -28,7 +28,7 @@ operator fun DeclResult<*>.plus(other: DeclResult<*>) : DeclResult<Decl.Compound
 operator fun List<DeclResult<*>>.unaryPlus() : DeclResult<*>
     = reduce { acc, next -> acc + next }
 
-interface DeclNode<D: Decl> : INode {
+interface DeclNode<D: Decl> : IPrecessNode {
     fun getDecl(env: Env) : DeclResult<D>
 }
 

@@ -1,15 +1,12 @@
-# Combine
-MkCombinableCtx => ∆ + Combine : (box ∆.CombinableCtxT) -> (box ∆.CombinableCtxT) -> box ∆.CombinableCtxT
-OpenCombinableCtx => MkCombinableCtx(∆)
-                  => ∆ + combine : unbox ∆.Combine
+# Module M
+MkInt => ∆ + Int
+MkZero => ∆ + Zero : (box ∆.Int) -> (box ∆.Int) -> box ∆.Int
+OpenZero => ∆ + TZero : unbox ∆.Zero
+         => check(∆.TZero, unbox ∆.Zero)
 
-MkBoxCtx => ∆ + Box : (box ∆.BoxValueType) -> ∆.Box
-OpenBoxCtx => MkBoxCtx(∆)
+OpenM => MkInt(∆)
+      => MkZero(∆)
+      => OpenZero(∆)
+      => dump(∆)
 
-Prog => ∆ + Int
-     => ∆ + CombinableCtxT : ∆.Int
-     => OpenCombinableCtx(∆)
-     => ∆ + summonValue unbox ∆.combine as combine2
-     => MkBoxCtx(∆)
-
-run Prog(∆)
+run OpenM(∆)

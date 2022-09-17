@@ -7,7 +7,7 @@ import org.orbit.precess.backend.components.IType
 import org.orbit.precess.backend.phase.Interpreter
 import org.orbit.precess.backend.phase.PropositionResult
 
-data class RunNode(override val firstToken: Token, override val lastToken: Token, val prop: PropositionExpressionNode) : StatementNode {
+data class RunNode(override val firstToken: Token, override val lastToken: Token, val prop: PropositionExpressionNode) : IStatementNode {
     override fun getChildren(): List<INode> = listOf(prop)
     override fun toString(): String = "run $prop"
 

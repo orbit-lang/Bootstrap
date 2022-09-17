@@ -6,7 +6,7 @@ data class PrintNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val expressionNode: IExpressionNode
-) : INode {
+) : IMethodBodyStatementNode {
     override fun getChildren(): List<INode>
         = listOf(expressionNode)
 }

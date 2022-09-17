@@ -6,7 +6,7 @@ data class TypeOfNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val expressionNode: IExpressionNode
-) : INode {
+) : IMethodBodyStatementNode {
     override fun getChildren(): List<INode>
         = listOf(expressionNode)
 }

@@ -5,7 +5,7 @@ import org.orbit.core.nodes.AnonymousParameterNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
-object AnonymousParameterRule : ParseRule<AnonymousParameterNode> {
+object AnonymousParameterRule : ValueRule<AnonymousParameterNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.Dollar)
         val index = start.text.drop(1).toIntOrNull()

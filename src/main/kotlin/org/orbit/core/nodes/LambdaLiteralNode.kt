@@ -7,7 +7,7 @@ class LambdaLiteralNode(
     override val lastToken: Token,
     val bindings: List<ParameterNode>,
     val body: BlockNode
-) : IExpressionNode, ValueRepresentableNode, IInvokableDelegateNode {
+) : IExpressionNode, ValueRepresentableNode, IInvokableDelegateNode, IDelegateNode {
     override fun getChildren(): List<INode>
         = bindings + body
 }

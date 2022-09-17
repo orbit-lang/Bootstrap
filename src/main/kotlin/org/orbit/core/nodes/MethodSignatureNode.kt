@@ -25,4 +25,9 @@ data class MethodSignatureNode(
 		null -> listOf(identifierNode, receiverTypeNode) + parameterNodes + typeConstraints
 		else -> listOf(identifierNode, receiverTypeNode, returnTypeNode) + parameterNodes + typeConstraints
 	}
+
+	fun getAllParameters() : List<TypeExpressionNode> = when (isInstanceMethod) {
+		true -> listOf(receiverTypeNode) + parameterNodes.map { it.typeExpressionNode }
+		else -> parameterNodes.map { it.typeExpressionNode }
+	}
 }

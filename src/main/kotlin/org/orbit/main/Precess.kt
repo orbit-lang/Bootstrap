@@ -16,7 +16,7 @@ import kotlin.time.measureTime
 object Precess : CliktCommand(), KoinComponent {
     private val invocation: Invocation by inject()
 
-    private val source by argument(help = "Orbit.Precess source file to compile")
+    private val source by argument(help = "Orbit Precess source file to compile")
         .file()
 
     @ExperimentalTime

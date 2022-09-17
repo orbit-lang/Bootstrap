@@ -43,7 +43,7 @@ object MethodDefRule : ParseRule<MethodDefNode>, KoinComponent {
 			return +MethodDefNode(start, body.lastToken, signature, body)
 		}
 
-		val body = context.attempt(BlockRule.default, true)
+		val body = context.attempt(BlockRule.methodBody, true)
 			?: TODO("@MethodDefRule:24")
 
 		return +MethodDefNode(start, body.lastToken, signature, body)

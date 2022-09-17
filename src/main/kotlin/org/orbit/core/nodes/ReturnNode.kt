@@ -6,7 +6,7 @@ data class ReturnStatementNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val valueNode: RValueNode
-) : INode {
+) : IMethodBodyStatementNode {
 	constructor(firstToken: Token, lastToken: Token, expressionNode: IExpressionNode)
 		:this (firstToken, lastToken, RValueNode(expressionNode))
 

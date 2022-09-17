@@ -7,7 +7,7 @@ sealed interface EntityDefNode : INode {
     val typeIdentifierNode: TypeIdentifierNode
 }
 
-interface ITypeDefBodyNode : INode
+sealed interface ITypeDefBodyNode : INode
 
 class TypeDefNode(
     override val firstToken: Token,

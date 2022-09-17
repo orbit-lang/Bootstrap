@@ -4,7 +4,7 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.components.TokenTypes
 
-interface TypeExpressionNode : ILiteralNode<String>
+sealed interface TypeExpressionNode : ILiteralNode<String>
 
 data class InferNode(
 	override val firstToken: Token,

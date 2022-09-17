@@ -2,7 +2,7 @@ package org.orbit.precess.backend.components
 
 import org.orbit.precess.backend.utils.*
 
-sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self> {
+sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrecessComponent {
     data class Var(val name: String) : Expr<Var> {
         override fun substitute(substitution: Substitution): Var = this
 

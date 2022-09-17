@@ -37,4 +37,10 @@ object PrecessUtils : KoinComponent {
     }
 
     fun run(source: String) : String = run(StringSourceProvider(source))
+
+    fun run(programNode: ProgramNode) : IType.IMetaType<*> {
+        val interpreter = Interpreter()
+
+        return interpreter.execute(programNode)
+    }
 }

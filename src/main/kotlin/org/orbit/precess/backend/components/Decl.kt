@@ -7,7 +7,7 @@ import org.orbit.precess.backend.utils.AnyType
 import org.orbit.util.Invocation
 import org.orbit.util.getKoinInstance
 
-sealed interface Decl {
+sealed interface Decl : IPrecessComponent {
     data class Clone(val cloneElements: Boolean = true, val cloneRefs: Boolean = true) : Decl {
         override fun exists(env: Env): Boolean = false
         override fun xtend(env: Env): Env = when (cloneElements) {
