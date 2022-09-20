@@ -8,17 +8,17 @@ import org.orbit.util.Invocation
 import org.orbit.util.getKoinInstance
 
 sealed interface Decl : IPrecessComponent {
-    data class Clone(val cloneElements: Boolean = true, val cloneRefs: Boolean = true) : Decl {
+    data class Clone(val name: String? = null, val cloneElements: Boolean = true, val cloneRefs: Boolean = true) : Decl {
         override fun exists(env: Env): Boolean = false
         override fun xtend(env: Env): Env = when (cloneElements) {
             true -> when (cloneRefs) {
-                true -> Env(env.elements, env.refs, env.contracts, env.projections, env.expressionCache)
-                else -> Env(env.elements, emptyList(), env.contracts, env.projections, env.expressionCache)
+                true -> Env(name ?: env.name, env.elements, env.refs, env.contracts, env.projections, env.expressionCache, env)
+                else -> Env(name ?: env.name, env.elements, emptyList(), env.contracts, env.projections, env.expressionCache, env)
             }
 
             else -> when (cloneRefs) {
-                true -> Env(emptyList(), env.refs, env.contracts, env.projections, env.expressionCache)
-                else -> Env(emptyList(), emptyList(), env.contracts, env.projections, env.expressionCache)
+                true -> Env(name ?: env.name, emptyList(), env.refs, env.contracts, env.projections, env.expressionCache, env)
+                else -> Env(name ?: env.name, emptyList(), emptyList(), env.contracts, env.projections, env.expressionCache, env)
             }
         }
 
@@ -34,7 +34,7 @@ sealed interface Decl : IPrecessComponent {
             val nProjections = (root.projections + env.projections)
             val nExpressionCache = (root.expressionCache + env.expressionCache)
 
-            return Env(nElements, nRefs, nContracts, nProjections, nExpressionCache)
+            return Env(env.name, nElements, nRefs, nContracts, nProjections, nExpressionCache)
         }
 
         override fun reduce(env: Env): Env = env
@@ -54,18 +54,37 @@ sealed interface Decl : IPrecessComponent {
         override fun reduce(env: Env): Env = env
     }
 
-    data class Type(val type: IType.Type, val members: Map<String, IType.Entity<*>>) : Decl {
+    data class Context(val context: Env) : Decl {
+        override fun exists(env: Env): Boolean = env.elements.any { it.id == context.id }
+        override fun xtend(env: Env): Env
+            = Env(env.name, env.elements + context, env.refs, env.contracts, env.projections, env.expressionCache)
+
+        override fun reduce(env: Env): Env
+            = Env(env.name, env.elements - context, env.refs, env.contracts, env.projections, env.expressionCache)
+    }
+
+    data class Operator(val op: IType.IOperatorArrow<*, *>) : Decl {
+        override fun exists(env: Env): Boolean = env.elements.filterIsInstance<IType.IOperatorArrow<*, *>>().any { it == op }
+        override fun xtend(env: Env): Env
+            = Env(env.name,env.elements + IType.Alias(op.identifier, op), env.refs, env.contracts, env.projections, env.expressionCache)
+
+        override fun reduce(env: Env): Env
+            = Env(env.name, env.elements - IType.Alias(op.identifier, op), env.refs, env.contracts, env.projections, env.expressionCache)
+    }
+
+    data class Type(val type: IType.Type, val members: List<IType.Member> = emptyList()) : Decl {
+        constructor(type: IType.Type, members: Map<String, IType.Entity<*>> = emptyMap()) : this(type, members.map { IType.Member(it.key, it.value, type) })
+
         override fun exists(env: Env): Boolean = env.elements.any { it.id == type.id }
         override fun xtend(env: Env): Env {
-            val nMembers = members.map { IType.Member(it.key, it.value, type) }
-
-            return Env(env.elements + type + nMembers, env.refs, env.contracts, env.projections, env.expressionCache)
+            val refs = members.map { Ref(it.id, it.type) }
+            return Env(env.name, env.elements + type, env.refs + refs, env.contracts, env.projections, env.expressionCache)
         }
 
         override fun reduce(env: Env): Env {
             val mems = env.getDeclaredMembers(type)
 
-            return Env(env.elements - mems - type, env.refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements - mems - type, env.refs, env.contracts, env.projections, env.expressionCache)
         }
     }
 
@@ -78,11 +97,11 @@ sealed interface Decl : IPrecessComponent {
                 throw invocation.make<Interpreter>("`$name` is already bound in the current context: `$env`", SourcePosition.unknown)
             }
 
-            return Env(env.elements, env.refs + Ref(name, type), env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements, env.refs + Ref(name, type), env.contracts, env.projections, env.expressionCache)
         }
 
         override fun reduce(env: Env): Env
-            = Env(env.elements, env.refs - Ref(name, type), env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements, env.refs - Ref(name, type), env.contracts, env.projections, env.expressionCache)
     }
 
     data class TypeAlias(val name: String, val expr: AnyExpr) : Decl {
@@ -90,13 +109,13 @@ sealed interface Decl : IPrecessComponent {
         override fun xtend(env: Env): Env {
             val type = expr.infer(env)
 
-            return Env(env.elements + IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements + IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
         }
 
         override fun reduce(env: Env): Env {
             val type = expr.infer(env)
 
-            return Env(env.elements - IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements - IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
         }
     }
 
@@ -105,28 +124,25 @@ sealed interface Decl : IPrecessComponent {
         override fun xtend(env: Env): Env {
             val alias = org.orbit.precess.backend.components.Alias(name, ref)
 
-            return Env(env.elements, env.refs + alias, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements, env.refs + alias, env.contracts, env.projections, env.expressionCache)
         }
 
         override fun reduce(env: Env): Env {
             val alias = org.orbit.precess.backend.components.Alias(name, ref)
 
-            return Env(env.elements, env.refs - alias, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements, env.refs - alias, env.contracts, env.projections, env.expressionCache)
         }
     }
 
-    data class Extension(val typeName: String, val members: Map<String, IType.Entity<*>>) : Decl {
-        constructor(type: IType.Type, members: List<IType.Member>) : this(
-            type.id,
-            members.map { it.name to it.type }.toMap()
-        )
+    data class Extension(val typeName: String, val members: Map<String, AnyType>) : Decl {
+        constructor(type: IType.Type, members: List<IType.Member>) : this(type.id, members.associate { it.name to it.type })
 
         override fun exists(env: Env): Boolean = env.elements.containsAll(members.values)
         override fun xtend(env: Env): Env {
             val type = env.getElementAs<IType.Type>(typeName) ?: return env
             val nMembers = members.map { IType.Member(it.key, it.value, type) }
 
-            return Env(env.elements + nMembers, env.refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements + nMembers, env.refs, env.contracts, env.projections, env.expressionCache)
         }
 
         override fun reduce(env: Env): Env {
@@ -137,7 +153,7 @@ sealed interface Decl : IPrecessComponent {
 
             val nElements = env.elements - type - mems
 
-            return Env(nElements, env.refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, nElements, env.refs, env.contracts, env.projections, env.expressionCache)
         }
     }
 
@@ -145,19 +161,19 @@ sealed interface Decl : IPrecessComponent {
         override fun exists(env: Env): Boolean = true
 
         override fun xtend(env: Env): Env
-            = Env(env.elements, env.refs, env.contracts, env.projections + org.orbit.precess.backend.components.Projection(source, target), env.expressionCache)
+            = Env(env.name, env.elements, env.refs, env.contracts, env.projections + org.orbit.precess.backend.components.Projection(source, target), env.expressionCache)
 
         override fun reduce(env: Env): Env
-            = Env(env.elements, env.refs, env.contracts, env.projections - org.orbit.precess.backend.components.Projection(source, target), env.expressionCache)
+            = Env(env.name, env.elements, env.refs, env.contracts, env.projections - org.orbit.precess.backend.components.Projection(source, target), env.expressionCache)
     }
 
     data class Cache(val expr: AnyExpr, val type: AnyType) : Decl {
         override fun exists(env: Env): Boolean = true
         override fun xtend(env: Env): Env
-            = Env(env.elements, env.refs, env.contracts, env.projections, env.expressionCache + (expr.toString() to type))
+            = Env(env.name, env.elements, env.refs, env.contracts, env.projections, env.expressionCache + (expr.toString() to type))
 
         override fun reduce(env: Env): Env
-            = Env(env.elements, env.refs, env.contracts, env.projections, env.expressionCache - expr.toString())
+            = Env(env.name, env.elements, env.refs, env.contracts, env.projections, env.expressionCache - expr.toString())
     }
 
     data class Compound<D: Decl, E: Decl>(val a: D, val b: E) : Decl {
@@ -166,15 +182,27 @@ sealed interface Decl : IPrecessComponent {
         override fun reduce(env: Env): Env = env.reduce(a) + env.reduce(b)
     }
 
+    data class Multi(val decls: List<Decl>) : Decl {
+        override fun exists(env: Env): Boolean = decls.all { it.exists(env) }
+
+        override fun xtend(env: Env): Env
+            = decls.fold(env) { acc, next -> acc.extend(next) }
+
+        override fun reduce(env: Env): Env
+            = decls.fold(env) { acc, next -> acc.reduce(next) }
+    }
+
+    operator fun plus(other: Decl) : Multi = when (other) {
+        is Multi -> Multi(listOf(this) + other.decls)
+        else -> Multi(listOf(this, other))
+    }
+
     fun exists(env: Env): Boolean
     fun xtend(env: Env): Env
 
     fun extend(env: Env): Env = Env.capture { xtend(env) }
     fun reduce(env: Env): Env
 }
-
-operator fun <D: Decl, E: Decl> D.plus(other: E) : Decl.Compound<D, E>
-    = Decl.Compound(this, other)
 
 operator fun List<Decl>.unaryPlus() : Decl
     = reduce { acc, next -> Decl.Compound(acc, next) }

@@ -62,6 +62,7 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
                 } as PathResolver<EntityDefNode>
 
                 resolver.resolve(decl, PathResolver.Pass.Initial, environment, graph)
+                resolver.resolve(decl, PathResolver.Pass.Last, environment, graph)
             }
         }
 

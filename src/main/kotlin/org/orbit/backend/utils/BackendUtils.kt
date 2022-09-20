@@ -1,10 +1,12 @@
 package org.orbit.backend.utils
 
 import org.orbit.backend.typegen.utils.TypeGenUtil
+import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.SourceProvider
 import org.orbit.frontend.rules.ProgramRule
 import org.orbit.frontend.utils.FrontendUtils
+import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 import org.orbit.precess.frontend.components.nodes.ProgramNode
@@ -25,8 +27,9 @@ object BackendUtils {
 
     fun check(sourceProvider: SourceProvider) : IType<*> {
         val program = FrontendUtils.parse(sourceProvider, ProgramRule)
-        val env = Env()
 
-        return TypeSystemUtils.infer(program.ast, env)
+        CanonicalNameResolver.execute(program)
+
+        return TypeSystem.execute(program.ast as org.orbit.core.nodes.ProgramNode)
     }
 }

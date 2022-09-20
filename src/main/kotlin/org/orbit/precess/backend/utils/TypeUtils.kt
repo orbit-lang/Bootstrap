@@ -61,6 +61,11 @@ object TypeUtils {
         }
     }
 
+    fun checkEq(env: Env, left: AnyType, right: AnyType) : Boolean = when (check(env, left, right)) {
+        is IType.Never -> false
+        else -> true
+    }
+
     fun unify(env: Env, typeA: IType.UnifiableType<*>, typeB: IType.UnifiableType<*>): IType.UnifiableType<*> =
         typeA.unify(env, typeB)
 

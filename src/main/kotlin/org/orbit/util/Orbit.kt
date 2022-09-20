@@ -10,8 +10,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
 import org.orbit.backend.typegen.components.walkers.*
-import org.orbit.backend.typesystem.inference.ITypeInference
-import org.orbit.backend.typesystem.inference.ProgramInference
+import org.orbit.backend.typesystem.inference.*
 import org.orbit.core.Path
 import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.nodes.*
@@ -80,6 +79,7 @@ val mainModule = module {
 		util.registerPathResolver(TypeBindingPatternPathResolver, TypeBindingPatternNode::class.java)
 		util.registerPathResolver(DiscardBindingPatternPathResolver, DiscardBindingPatternNode::class.java)
 		util.registerPathResolver(AnyPathResolver(), IdentifierBindingPatternNode::class.java)
+		util.registerPathResolver(AlgebraicConstructorPathResolver, AlgebraicConstructorNode::class.java)
 
 		util
 	}
@@ -112,7 +112,6 @@ val mainModule = module {
 	single { NodeAnnotationMap() }
 	single { ImportManager(emptyList()) }
 
-
 	single(ProgramWalker)
 	single(ContextWalker)
 	single(AnyEntityDefWalker)
@@ -126,6 +125,19 @@ val mainModule = module {
 	single(TypeExpressionWalker)
 
 	single(ProgramInference)
+	single(ModuleInference)
+	single(TypeDefInference)
+	single(ContextInference)
+	single(AlgebraicConstructorInference)
+	single(TypeIdentifierInference)
+	single(SignatureInference)
+	single(MethodDefInference)
+	single(BlockInference)
+	single(ReturnStatementInference)
+	single(RValueInference)
+	single(IdentifierInference)
+	single(ConstructorInvocationInference)
+	single(BinaryExpressionInference)
 }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: ITypeInference<N>) : BeanDefinition<ITypeInference<N>>

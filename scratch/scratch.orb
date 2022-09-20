@@ -1,7 +1,24 @@
-module M {
+module Orb::Core::Numbers {
     type Int
+}
 
-    (Int) zero (a Int, b Int) (Int) {
-        return a
+module Orb::Core::Strings {
+    type String
+}
+
+module Orb::Core::Booleans {
+    type Bool
+}
+
+module M with Orb::Core::* {
+    (Int) fizzBuzz (n Int) (Int) = select n % 15 {
+        case 0 = 3
+        case else = select n % 5 {
+            case 0 = 2
+            case else = select n % 3 {
+                case 0 = 1
+                case else = 0
+            }
+        }
     }
 }

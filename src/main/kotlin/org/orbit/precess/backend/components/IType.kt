@@ -1,6 +1,7 @@
 package org.orbit.precess.backend.components
 
 import org.orbit.core.components.IIntrinsicOperator
+import org.orbit.core.nodes.OperatorFixity
 import org.orbit.precess.backend.utils.*
 
 fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) : M? {
@@ -209,8 +210,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         }
     }
 
-    data class Member(val name: String, val type: Entity<*>, val owner: Type) : IType<Member> {
-        override val id: String = "${type.id}.${name}"
+    data class Member(val name: String, val type: AnyType, val owner: Type) : IType<Member> {
+        override val id: String = "${owner.id}.${name}"
 
         override fun substitute(substitution: Substitution): Member =
             Member(name, type.substitute(substitution), owner)
@@ -393,6 +394,43 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun unbox(env: Env): AnyType
             = Union(TypeUtils.unbox(env, left), TypeUtils.unbox(env, right))
+    }
+
+    sealed interface IOperatorArrow<A: IArrow<A>, Self: IOperatorArrow<A, Self>> : IArrow<Self> {
+        val fixity: OperatorFixity
+        val symbol: String
+        val identifier: String
+        val arrow: A
+
+        override val id: String get() = arrow.id
+
+        override fun getDomain(): List<AnyType> = arrow.getDomain()
+        override fun getCodomain(): AnyType = arrow.getCodomain()
+        override fun curry(): IArrow<*> = arrow.curry()
+        override fun never(args: List<AnyType>): Never = Never("")
+        override fun exists(env: Env): AnyType = arrow.exists(env)
+        override fun unbox(env: Env): AnyType = arrow.unbox(env)
+    }
+
+    data class PrefixOperator(override val symbol: String, override val identifier: String, override val arrow: Arrow1) : IOperatorArrow<Arrow1, PrefixOperator> {
+        override val fixity: OperatorFixity = OperatorFixity.Prefix
+
+        override fun substitute(substitution: Substitution): PrefixOperator
+            = PrefixOperator(symbol, identifier, arrow.substitute(substitution))
+    }
+
+    data class PostfixOperator(override val symbol: String, override val identifier: String, override val arrow: Arrow1) : IOperatorArrow<Arrow1, PostfixOperator> {
+        override val fixity: OperatorFixity = OperatorFixity.Postfix
+
+        override fun substitute(substitution: Substitution): PostfixOperator
+            = PostfixOperator(symbol, identifier, arrow.substitute(substitution))
+    }
+
+    data class InfixOperator(override val symbol: String, override val identifier: String, override val arrow: Arrow2) : IOperatorArrow<Arrow2, InfixOperator> {
+        override val fixity: OperatorFixity = OperatorFixity.Infix
+
+        override fun substitute(substitution: Substitution): InfixOperator
+            = InfixOperator(symbol, identifier, arrow.substitute(substitution))
     }
 
     sealed interface IArrow<Self : IArrow<Self>> : UnifiableType<Self>, UnboxableType {
