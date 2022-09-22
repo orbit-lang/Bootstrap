@@ -91,6 +91,18 @@ object SelectInference : ITypeInference<SelectNode>, KoinComponent {
             throw invocation.make<TypeSystem>("Type `${conditionType.id}` has an infinite number of cases and therefore requires an Else case", node)
         }
 
+        // If this is not an Infinite Type, ensure all possible cases are covered
+        val coveredCases = caseTypes.map { it.takes }.distinctBy { it.id }
+
+        // TODO - Is this check necessary? Maybe should just a warning?
+//        if (cardinality is ITypeCardinality.Mono && coveredCases.count() != 1)
+
+        val conditionCardinality = conditionType.getCardinality()
+        if (!hasElseCase && conditionCardinality is ITypeCardinality.Finite && coveredCases.count() != conditionCardinality.count) {
+            // TODO - Spit out actual missing cases if possible
+            throw invocation.make<TypeSystem>("Missing Cases for Select expression of Type `${conditionType.id}`", node)
+        }
+
         return conditionType
     }
 }

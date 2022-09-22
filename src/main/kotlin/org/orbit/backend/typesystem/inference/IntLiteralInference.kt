@@ -10,3 +10,4 @@ object IntLiteralInference : ITypeInference<IntLiteralNode> {
     override fun infer(node: IntLiteralNode, env: Env): IType<*>
         = OrbCoreNumbers.intType
 }
+

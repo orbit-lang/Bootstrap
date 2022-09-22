@@ -26,14 +26,16 @@ data class MethodSignatureNode(
 		else -> listOf(identifierNode, receiverTypeNode, returnTypeNode) + parameterNodes + typeConstraints
 	}
 
-	fun getAllParameters() : List<TypeExpressionNode> = when (isInstanceMethod) {
-		true -> listOf(receiverTypeNode) + parameterNodes.map { it.typeExpressionNode }
-		else -> parameterNodes.map { it.typeExpressionNode }
-	}
+	fun getAllParameters() : List<TypeExpressionNode> = parameterNodes.map { it.typeExpressionNode }
+//		when (isInstanceMethod) {
+//		true -> listOf(receiverTypeNode) + parameterNodes.map { it.typeExpressionNode }
+//		else -> parameterNodes.map { it.typeExpressionNode }
+//	}
 
-	fun getAllParameterPairs() : List<PairNode> = when (isInstanceMethod) {
-		// TODO - "self" name needs to be captured in MethodSignatureRule
-		true -> listOf(PairNode(Token.empty, Token.empty, IdentifierNode(Token.empty, Token.empty, "self"), receiverTypeNode))
-		else -> parameterNodes
-	}
+	fun getAllParameterPairs() : List<PairNode> = parameterNodes
+		//when (isInstanceMethod) {
+//		// TODO - "self" name needs to be captured in MethodSignatureRule
+//		true -> listOf(PairNode(Token.empty, Token.empty, IdentifierNode(Token.empty, Token.empty, "self"), receiverTypeNode)) + parameterNodes
+//		else -> parameterNodes
+//	}
 }

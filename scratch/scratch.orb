@@ -7,7 +7,15 @@ module Orb::Core::Strings {
 }
 
 module Orb::Core::Booleans {
-    type Bool
+    type Bool {
+        constructor True
+        constructor False
+    }
+
+    (self Bool) and (other Bool) (Bool) = select self {
+        case true = other
+        case false = false
+    }
 }
 
 module Orb::Core::Types {
@@ -27,6 +35,4 @@ module M with Orb::Core::* {
             }
         }
     }
-
-    (Self) main () () = Int.fizzBuzz(2)
 }

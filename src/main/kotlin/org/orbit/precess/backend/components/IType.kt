@@ -213,13 +213,12 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
             = generator.infer(env)
     }
 
-    data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList()) : Entity<Type> {
+    data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList(), private val explicitCardinality: ITypeCardinality = ITypeCardinality.Mono) : Entity<Type> {
         companion object {
             val self = Type("__Self")
         }
 
-        override fun getCardinality(): ITypeCardinality
-            = ITypeCardinality.Infinite
+        override fun getCardinality(): ITypeCardinality = explicitCardinality
 
         override val id: String = when (attributes.isEmpty()) {
             true -> name
@@ -345,9 +344,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun getElement(at: String): AnyType = members.first { it.name == at }
         override fun getConstructors(): List<IConstructor<Struct>> = listOf(StructConstructor(this, members))
         override fun substitute(substitution: Substitution): Struct = Struct(members.substituteAll(substitution))
-        override fun getCardinality(): ITypeCardinality
-            = members.map { it.getCardinality() }
-                .reduce(ITypeCardinality::plus)
+        override fun getCardinality(): ITypeCardinality = when (members.isEmpty()) {
+            true -> ITypeCardinality.Mono
+            else -> members.map { it.getCardinality() }.reduce(ITypeCardinality::plus)
+        }
 
         override fun exists(env: Env): AnyType {
             TODO("Member exists")

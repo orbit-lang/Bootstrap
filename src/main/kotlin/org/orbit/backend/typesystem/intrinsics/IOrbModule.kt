@@ -2,18 +2,25 @@ package org.orbit.backend.typesystem.intrinsics
 
 import org.orbit.precess.backend.components.Decl
 import org.orbit.precess.backend.components.Env
+import org.orbit.precess.backend.components.Expr
 import org.orbit.precess.backend.components.IType
 
 interface IOrbModule {
     fun getPublicTypes() : List<IType.Type>
+    fun getPublicTypeAliases() : List<IType.Alias>
     fun getPublicOperators() : List<IType.IOperatorArrow<*, *>>
 }
 
 private fun IOrbModule.getTypeDecls() : List<Decl.Type>
     = getPublicTypes().map { Decl.Type(it, emptyMap()) }
 
+private fun IOrbModule.getTypeAliasDecls() : List<Decl.TypeAlias>
+    = getPublicTypeAliases().map { Decl.TypeAlias(it.name, Expr.AnyTypeLiteral(it.type)) }
+
 private fun IOrbModule.getOperatorDecls() : List<Decl.Operator>
     = getPublicOperators().map { Decl.Operator(it) }
 
-fun IOrbModule.getPublicAPI() : Env
-    = Env().extendAll(getTypeDecls()).extendAll(getOperatorDecls())
+fun IOrbModule.getPublicAPI() : Env = Env()
+    .extendAll(getTypeDecls())
+    .extendAll(getTypeAliasDecls())
+    .extendAll(getOperatorDecls())

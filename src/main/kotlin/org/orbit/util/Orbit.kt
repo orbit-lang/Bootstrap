@@ -147,6 +147,7 @@ val mainModule = module {
 	single(StructuralPatternInference)
 	single(TypeBindingPatternInference)
 	single(MethodCallInference)
+	single(BoolLiteralInference)
 }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: ITypeInference<N>) : BeanDefinition<ITypeInference<N>>
