@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.definition.BeanDefinition
+import org.koin.core.parameter.DefinitionParameters
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
@@ -20,6 +21,7 @@ import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.ContextCompositionPathResolver
 import org.orbit.graph.pathresolvers.util.ContextInstantiationPathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
+import org.orbit.precess.backend.components.IType
 import org.orbit.precess.frontend.components.nodes.IPrecessNode
 import org.orbit.precess.frontend.components.nodes.PropositionNode
 import org.orbit.precess.frontend.components.nodes.TermExpressionNode
@@ -130,7 +132,7 @@ val mainModule = module {
 	single(ContextInference)
 	single(AlgebraicConstructorInference)
 	single(TypeIdentifierInference)
-	single(SignatureInference)
+	inferenceFactory { shouldDeclare -> SignatureInference(shouldDeclare.get()) }
 	single(MethodDefInference)
 	single(BlockInference)
 	single(ReturnStatementInference)
@@ -138,10 +140,20 @@ val mainModule = module {
 	single(IdentifierInference)
 	single(ConstructorInvocationInference)
 	single(BinaryExpressionInference)
+	single(SelectInference)
+	single(IntLiteralInference)
+	single(CaseInference)
+	single(ElseInference)
+	single(StructuralPatternInference)
+	single(TypeBindingPatternInference)
+	single(MethodCallInference)
 }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: ITypeInference<N>) : BeanDefinition<ITypeInference<N>>
 	= single(named("infer${N::class.java.simpleName}")) { inference }
+
+private inline fun <reified N: INode> org.koin.core.module.Module.inferenceFactory(crossinline generator: (DefinitionParameters) -> ITypeInference<N>) : BeanDefinition<ITypeInference<N>>
+	= factory(named("infer${N::class.java.simpleName}")) { params -> generator(params) }
 
 private inline fun <reified N: INode, reified P: IPrecessNode> org.koin.core.module.Module.single(walker: IPrecessNodeWalker<N, P>) : BeanDefinition<IPrecessNodeWalker<N, P>>
 	= single(named("${N::class.java.simpleName}${P::class.java.simpleName}")) { walker }

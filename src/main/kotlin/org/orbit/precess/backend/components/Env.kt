@@ -1,8 +1,8 @@
 package org.orbit.precess.backend.components
 
-import org.orbit.backend.typesystem.phase.IOrbModule
-import org.orbit.backend.typesystem.phase.getPublicAPI
-import org.orbit.core.nodes.OperatorFixity
+import org.orbit.backend.typesystem.intrinsics.IOrbModule
+import org.orbit.backend.typesystem.intrinsics.getPublicAPI
+import org.orbit.precess.backend.utils.AnyArrow
 import org.orbit.precess.backend.utils.AnyType
 import kotlin.reflect.KProperty
 
@@ -70,6 +70,9 @@ class Env(
     override val id: String get() {
         return "$name : ${toString()}"
     }
+
+    override fun getCardinality(): ITypeCardinality
+        = ITypeCardinality.Zero
 
     override fun substitute(substitution: Substitution): Env = this
 
@@ -147,11 +150,32 @@ class Env(
         reduceInPlace(decl)
     }
 
+    fun getArrows(name: String) : List<AnyArrow> {
+        val arrows = mutableListOf<AnyArrow>()
+        for (alias in elements.filterIsInstance<IType.Alias>()) {
+            if (alias.name == name && alias.type is AnyArrow) arrows.add(alias.type)
+        }
+
+        return arrows
+    }
+
     fun withSelf(type: AnyType) : Env
         = extend(Decl.TypeAlias("Self", Expr.AnyTypeLiteral(type)))
 
     fun withSelf(type: AnyType, block: (Env) -> Unit)
         = manage(Decl.TypeAlias("Self", Expr.AnyTypeLiteral(type)), block)
+
+    fun getSelfType() : AnyType
+        = elements.filterIsInstance<IType.Alias>().first { it.name == "Self" }.type
+
+    fun withMatch(type: AnyType): Env {
+        val decl = Decl.TypeAlias("__match", Expr.AnyTypeLiteral(type), Decl.ConflictStrategy.Replace)
+
+        return reduce(decl).extend(decl)
+    }
+
+    fun getMatchType() : AnyType
+        = elements.filterIsInstance<IType.Alias>().first { it.name == "__match" }.type
 
     fun denyElement(id: String): Env {
         val nElements = elements.map {

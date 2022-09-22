@@ -7,5 +7,5 @@ import org.orbit.precess.backend.components.IType
 
 object BlockInference : ITypeInference<BlockNode> {
     override fun infer(node: BlockNode, env: Env): IType<*>
-        = TypeSystemUtils.inferAll(node.body, env).last()
+        = TypeSystemUtils.inferAll(node.body, env).lastOrNull() ?: IType.Unit
 }

@@ -3,6 +3,7 @@ package org.orbit.precess.backend.components
 import org.orbit.core.components.IIntrinsicOperator
 import org.orbit.core.nodes.OperatorFixity
 import org.orbit.precess.backend.utils.*
+import java.time.Month
 
 fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) : M? {
     for (modifier in all()) {
@@ -38,6 +39,41 @@ enum class ContextOperator(override val symbol: String) : IIntrinsicOperator {
     }
 }
 
+sealed interface ITypeCardinality {
+    object Zero : ITypeCardinality {
+        override fun plus(other: ITypeCardinality): ITypeCardinality = when (other) {
+            is Finite -> Finite(other.count + 1)
+            is Infinite -> Infinite
+            is Mono -> Finite(2)
+            is Zero -> this
+        }
+    }
+
+    object Mono : ITypeCardinality {
+        override fun plus(other: ITypeCardinality): ITypeCardinality = when (other) {
+            is Finite -> Finite(other.count + 1)
+            is Infinite -> Infinite
+            else -> this
+        }
+    }
+
+    object Infinite : ITypeCardinality {
+        override fun plus(other: ITypeCardinality): ITypeCardinality
+            = this
+    }
+
+    data class Finite(val count: Int) : ITypeCardinality {
+        override fun plus(other: ITypeCardinality): ITypeCardinality = when (other) {
+            is Finite -> Finite(count + other.count)
+            is Infinite -> Infinite
+            is Mono -> Finite(count + 1)
+            is Zero -> this
+        }
+    }
+
+    operator fun plus(other: ITypeCardinality): ITypeCardinality
+}
+
 sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     interface UnifiableType<Self : UnifiableType<Self>> : IType<Self> {
         fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*>
@@ -59,6 +95,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun substitute(substitution: Substitution): Always = this
         override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = other
         override fun plus(other: IMetaType<*>): IMetaType<*> = other
+        override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
 
         override fun toString(): String = "✓"
     }
@@ -75,6 +112,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun getCodomain(): AnyType = this
         override fun curry(): IArrow<*> = this
         override fun never(args: List<AnyType>): Never = this
+        override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
 
         override fun substitute(substitution: Substitution): Never = this
         override fun equals(other: Any?): Boolean = this === other
@@ -88,9 +126,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     }
 
     object Unit : Entity<Unit> {
-        override val id: String = "_"
+        override val id: String = "Unit"
 
         override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = other
+        override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
 
         override fun substitute(substitution: Substitution): Unit = this
         override fun equals(other: Any?): Boolean = when (other) {
@@ -103,6 +142,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
     data class Safe(val type: AnyType) : IType<Safe> {
         override val id: String = type.id
+
+        override fun getCardinality(): ITypeCardinality
+            = type.getCardinality()
 
         override fun substitute(substitution: Substitution): Safe
             = Safe(type.substitute(substitution))
@@ -124,6 +166,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
     data class Alias(val name: String, val type: AnyType) : IType<Alias>, UnboxableType {
         override val id: String = "$name:${type.id}"
+
+        override fun getCardinality(): ITypeCardinality
+            = type.getCardinality()
 
         override fun substitute(substitution: Substitution): Alias
             = Alias(name, type.substitute(substitution))
@@ -154,6 +199,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun exists(env: Env): AnyType = this
 
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Infinite
+
         override fun equals(other: Any?): Boolean = when (other) {
             is Box -> other.generator == generator
             else -> false
@@ -169,6 +217,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         companion object {
             val self = Type("__Self")
         }
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Infinite
 
         override val id: String = when (attributes.isEmpty()) {
             true -> name
@@ -213,6 +264,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     data class Member(val name: String, val type: AnyType, val owner: Type) : IType<Member> {
         override val id: String = "${owner.id}.${name}"
 
+        override fun getCardinality(): ITypeCardinality
+            = type.getCardinality()
+
         override fun substitute(substitution: Substitution): Member =
             Member(name, type.substitute(substitution), owner)
 
@@ -250,6 +304,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override val id: String = "(${left.id} * ${right.id})"
 
         override fun getConstructors(): List<IConstructor<Tuple>> = emptyList()
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Finite(2)
 
         override fun getElement(at: Int): AnyType = when (at) {
             0 -> left
@@ -289,6 +345,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun getElement(at: String): AnyType = members.first { it.name == at }
         override fun getConstructors(): List<IConstructor<Struct>> = listOf(StructConstructor(this, members))
         override fun substitute(substitution: Substitution): Struct = Struct(members.substituteAll(substitution))
+        override fun getCardinality(): ITypeCardinality
+            = members.map { it.getCardinality() }
+                .reduce(ITypeCardinality::plus)
 
         override fun exists(env: Env): AnyType {
             TODO("Member exists")
@@ -304,6 +363,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun getDomain(): List<AnyType> = args.map { it.type }
         override fun getCodomain(): AnyType = constructedType
+        override fun getCardinality(): ITypeCardinality
+            = constructedType.getCardinality()
 
         override fun curry(): IArrow<*> = this
 
@@ -330,6 +391,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun getDomain(): List<AnyType> = listOf(arg)
         override fun getCodomain(): AnyType = constructedType.getElement(arg)
+        override fun getCardinality(): ITypeCardinality
+            = constructedType.getCardinality()
 
         override fun curry(): IArrow<*> = this
 
@@ -353,6 +416,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
     data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IAlgebraicType<Union> {
         override val id: String = "(${left.id} | ${right.id})"
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Finite(2)
 
         override fun getElement(at: AnyType): AnyType = when (at) {
             left -> left
@@ -410,6 +476,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun never(args: List<AnyType>): Never = Never("")
         override fun exists(env: Env): AnyType = arrow.exists(env)
         override fun unbox(env: Env): AnyType = arrow.unbox(env)
+        override fun getCardinality(): ITypeCardinality
+            = arrow.getCodomain().getCardinality()
     }
 
     data class PrefixOperator(override val symbol: String, override val identifier: String, override val arrow: Arrow1) : IOperatorArrow<Arrow1, PrefixOperator> {
@@ -436,6 +504,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     sealed interface IArrow<Self : IArrow<Self>> : UnifiableType<Self>, UnboxableType {
         fun getDomain(): List<AnyType>
         fun getCodomain(): AnyType
+        override fun getCardinality(): ITypeCardinality
+            = getCodomain().getCardinality()
 
         fun curry(): IArrow<*>
         fun never(args: List<AnyType>): Never
@@ -622,6 +692,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
                 return "${receiver.id}.$name($pParams)(${returns.id})"
             }
 
+        override fun getCardinality(): ITypeCardinality
+            = returns.getCardinality()
+
         fun toArrow(): AnyArrow {
             val takes = listOf(receiver) + parameters
 
@@ -653,6 +726,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     data class TypeVar(val name: String) : IType<TypeVar> {
         override val id: String = "?$name"
 
+        override fun getCardinality(): ITypeCardinality = ITypeCardinality.Infinite
         override fun substitute(substitution: Substitution): TypeVar = this
 
         override fun equals(other: Any?): Boolean = when (other) {
@@ -705,6 +779,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun exists(env: Env): AnyType {
             TODO("Not yet implemented")
         }
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Infinite
     }
 
     val id: String
@@ -714,4 +791,5 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     fun exists(env: Env) : AnyType
     fun flatten(env: Env) : AnyType = this
     fun getTypeCheckPosition() : TypeCheckPosition = TypeCheckPosition.Any
+    fun getCardinality() : ITypeCardinality
 }

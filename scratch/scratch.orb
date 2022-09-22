@@ -10,7 +10,13 @@ module Orb::Core::Booleans {
     type Bool
 }
 
+module Orb::Core::Types {
+    type Unit
+}
+
 module M with Orb::Core::* {
+    type Foo(x Int)
+
     (Int) fizzBuzz (n Int) (Int) = select n % 15 {
         case 0 = 3
         case else = select n % 5 {
@@ -21,4 +27,6 @@ module M with Orb::Core::* {
             }
         }
     }
+
+    (Self) main () () = Int.fizzBuzz(2)
 }

@@ -1,6 +1,8 @@
 package org.orbit.precess.backend.components
 
+import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.components.SourcePosition
+import org.orbit.core.components.Token
 import org.orbit.precess.backend.phase.Interpreter
 import org.orbit.precess.backend.utils.AnyExpr
 import org.orbit.precess.backend.utils.AnyType
@@ -8,6 +10,10 @@ import org.orbit.util.Invocation
 import org.orbit.util.getKoinInstance
 
 sealed interface Decl : IPrecessComponent {
+    enum class ConflictStrategy {
+        Reject, Replace, Ignore
+    }
+
     data class Clone(val name: String? = null, val cloneElements: Boolean = true, val cloneRefs: Boolean = true) : Decl {
         override fun exists(env: Env): Boolean = false
         override fun xtend(env: Env): Env = when (cloneElements) {
@@ -104,18 +110,38 @@ sealed interface Decl : IPrecessComponent {
             = Env(env.name, env.elements, env.refs - Ref(name, type), env.contracts, env.projections, env.expressionCache)
     }
 
-    data class TypeAlias(val name: String, val expr: AnyExpr) : Decl {
+    data class TypeAlias(val name: String, val expr: AnyExpr, val conflictStrategy: ConflictStrategy = ConflictStrategy.Reject) : Decl {
         override fun exists(env: Env): Boolean = env.elements.any { it.getCanonicalName() == name }
         override fun xtend(env: Env): Env {
             val type = expr.infer(env)
+            val isAlreadyDefined = when (conflictStrategy) {
+                ConflictStrategy.Ignore -> false
+                else -> env.elements.any { it is IType.Alias && it.name == name && it.type.id == type.id }
+            }
 
-            return Env(env.name, env.elements + IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
+            val nElements = if (isAlreadyDefined) {
+                if (conflictStrategy == ConflictStrategy.Reject) {
+                    val invocation = getKoinInstance<Invocation>()
+
+                    // TODO - There's probably a better way to catch naming conflicts, maybe in CanonicalNameResolver?
+                    throw invocation.make<TypeSystem>("Attempt to redeclare `$name : ${type.id}`", Token.empty)
+                } else if (conflictStrategy == ConflictStrategy.Replace) {
+                    env.elements.filterNot { it is IType.Alias && it.name == name }
+                } else {
+                    env.elements
+                }
+            } else {
+                env.elements
+            }
+
+            return Env(env.name, nElements + IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
         }
 
         override fun reduce(env: Env): Env {
             val type = expr.infer(env)
+            val nElements = env.elements.filterNot { it is IType.Alias && it.name == name }
 
-            return Env(env.name, env.elements - IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, nElements, env.refs, env.contracts, env.projections, env.expressionCache)
         }
     }
 
