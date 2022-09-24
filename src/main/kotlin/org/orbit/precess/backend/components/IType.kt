@@ -1,8 +1,12 @@
 package org.orbit.precess.backend.components
 
+import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.core.components.IIntrinsicOperator
 import org.orbit.core.nodes.OperatorFixity
 import org.orbit.precess.backend.utils.*
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
+import org.orbit.util.getKoinInstance
 import java.time.Month
 
 fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) : M? {
@@ -124,6 +128,13 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         }
 
         override fun unbox(env: Env): AnyType = this
+        override fun prettyPrint(depth: Int): String {
+            val printer = getKoinInstance<Printer>()
+
+            return printer.apply(message, PrintableKey.Error)
+        }
+
+        override fun toString(): String = prettyPrint()
     }
 
     object Unit : Entity<Unit> {
@@ -139,6 +150,14 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         }
 
         override fun exists(env: Env): AnyType = this
+
+        override fun prettyPrint(depth: Int): String {
+            val printer = getKoinInstance<Printer>()
+
+            return printer.apply(OrbCoreTypes.unitType.name, PrintableKey.Bold)
+        }
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class Safe(val type: AnyType) : IType<Safe> {
@@ -187,6 +206,14 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun unbox(env: Env): AnyType
             = TypeUtils.unbox(env, type)
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+
+            return "$indent${type.prettyPrint(depth)}"
+        }
+
+        override fun toString(): String = prettyPrint()
     }
 
     sealed interface UnboxableType {
@@ -212,6 +239,14 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun unbox(env: Env): AnyType
             = generator.infer(env)
+
+        override fun prettyPrint(depth: Int): String {
+            val printer = getKoinInstance<Printer>()
+
+            return printer.apply(id, PrintableKey.Bold)
+        }
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList(), private val explicitCardinality: ITypeCardinality = ITypeCardinality.Mono) : Entity<Type> {
@@ -259,6 +294,15 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
             }
             else -> other == this
         }
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+            val printer = getKoinInstance<Printer>()
+
+            return "$indent${printer.apply(name, PrintableKey.Bold)}"
+        }
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class Member(val name: String, val type: AnyType, val owner: Type) : IType<Member> {
@@ -279,6 +323,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
             null -> Never("Unknown member `$this`")
             else -> this
         }
+
+        override fun toString(): String = prettyPrint()
     }
 
     sealed interface IConstructor<T : AnyType> : IArrow<IConstructor<T>> {
@@ -337,6 +383,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun unbox(env: Env): AnyType
             = Tuple(TypeUtils.unbox(env, left), TypeUtils.unbox(env, right))
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class Struct(val members: List<Member>) : IProductType<String, Struct>, IAlgebraicType<Struct> {
@@ -357,6 +405,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun unbox(env: Env): AnyType {
             TODO("Not yet implemented")
         }
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class StructConstructor(override val constructedType: Struct, val args: List<Member>) : IConstructor<Struct> {
@@ -385,6 +435,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun unbox(env: Env): AnyType {
             TODO("Not yet implemented")
         }
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class UnionConstructor(override val constructedType: Union, val arg: AnyType) : IConstructor<Union> {
@@ -413,6 +465,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun unbox(env: Env): AnyType {
             TODO("Not yet implemented")
         }
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IAlgebraicType<Union> {
@@ -461,6 +515,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun unbox(env: Env): AnyType
             = Union(TypeUtils.unbox(env, left), TypeUtils.unbox(env, right))
+
+        override fun toString(): String = prettyPrint()
     }
 
     sealed interface IOperatorArrow<A: IArrow<A>, Self: IOperatorArrow<A, Self>> : IArrow<Self> {
@@ -479,6 +535,13 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun unbox(env: Env): AnyType = arrow.unbox(env)
         override fun getCardinality(): ITypeCardinality
             = arrow.getCodomain().getCardinality()
+
+        override fun prettyPrint(depth: Int): String {
+            val printer = getKoinInstance<Printer>()
+            val prettyName = printer.apply("${fixity.name} $identifier `$symbol`", PrintableKey.Italics)
+
+            return "$prettyName $arrow"
+        }
     }
 
     data class PrefixOperator(override val symbol: String, override val identifier: String, override val arrow: Arrow1) : IOperatorArrow<Arrow1, PrefixOperator> {
@@ -486,6 +549,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun substitute(substitution: Substitution): PrefixOperator
             = PrefixOperator(symbol, identifier, arrow.substitute(substitution))
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class PostfixOperator(override val symbol: String, override val identifier: String, override val arrow: Arrow1) : IOperatorArrow<Arrow1, PostfixOperator> {
@@ -493,6 +558,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun substitute(substitution: Substitution): PostfixOperator
             = PostfixOperator(symbol, identifier, arrow.substitute(substitution))
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class InfixOperator(override val symbol: String, override val identifier: String, override val arrow: Arrow2) : IOperatorArrow<Arrow2, InfixOperator> {
@@ -500,6 +567,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun substitute(substitution: Substitution): InfixOperator
             = InfixOperator(symbol, identifier, arrow.substitute(substitution))
+
+        override fun toString(): String = prettyPrint()
     }
 
     sealed interface IArrow<Self : IArrow<Self>> : UnifiableType<Self>, UnboxableType {
@@ -521,6 +590,13 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> =
             Never("Cannot unify Arrow Type $id with ${other.id}")
+
+        override fun prettyPrint(depth: Int): String {
+            val printer = getKoinInstance<Printer>()
+            val domainString = getDomain().joinToString(", ")
+
+            return "($domainString) -> ${getCodomain()}"
+        }
     }
 
     data class Arrow0(val gives: IType<*>) : IArrow<Arrow0> {
@@ -544,6 +620,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun unbox(env: Env): AnyType
             = Arrow0(TypeUtils.unbox(env, gives))
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class Arrow1(val takes: IType<*>, val gives: IType<*>) : IArrow<Arrow1> {
@@ -600,6 +678,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun unbox(env: Env): AnyType
             = Arrow1(TypeUtils.unbox(env, takes), TypeUtils.unbox(env, gives))
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class Arrow2(val a: IType<*>, val b: IType<*>, val gives: IType<*>) : IArrow<Arrow2> {
@@ -651,6 +731,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun unbox(env: Env): AnyType {
             TODO("Not yet implemented")
         }
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class Arrow3(val a: IType<*>, val b: IType<*>, val c: IType<*>, val gives: IType<*>) : IArrow<Arrow3> {
@@ -678,14 +760,23 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun unbox(env: Env): AnyType {
             TODO("Not yet implemented")
         }
+
+        override fun toString(): String = prettyPrint()
     }
 
-    data class Signature(val receiver: IType<*>, val name: String, val parameters: List<IType<*>>, val returns: IType<*>, val isInstanceSignature: Boolean) : IType<Signature> {
+    data class Signature(val receiver: IType<*>, val name: String, val parameters: List<IType<*>>, val returns: IType<*>, val isInstanceSignature: Boolean) : IArrow<Signature> {
         override val id: String get() {
             val pParams = parameters.joinToString(", ") { it.id }
 
             return "${receiver.id}.$name($pParams)(${returns.id})"
         }
+
+        override fun getDomain(): List<AnyType> = toArrow().getDomain()
+        override fun getCodomain(): AnyType = toArrow().getCodomain()
+
+        override fun curry(): IArrow<*> = toArrow().curry()
+        override fun never(args: List<AnyType>): Never = toArrow().never(args)
+        override fun unbox(env: Env): AnyType = this
 
         override fun getCardinality(): ITypeCardinality
             = returns.getCardinality()
@@ -698,6 +789,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         }
 
         fun toStaticArrow(): AnyArrow = when (parameters.count()) {
+            0 -> Arrow0(returns)
             1 -> Arrow1(parameters[0], returns)
             2 -> Arrow2(parameters[0], parameters[1], returns)
             3 -> Arrow3(parameters[0], parameters[1], parameters[2], returns)
@@ -718,6 +810,17 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         }
 
         override fun exists(env: Env): AnyType = this
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+            val prettyParams = parameters.joinToString(", ") { it.prettyPrint(0) }
+            val printer = getKoinInstance<Printer>()
+            val prettyName = printer.apply(name, PrintableKey.Italics)
+
+            return "$indent(${receiver.prettyPrint(0)}) $prettyName ($prettyParams) (${returns.prettyPrint(0)})"
+        }
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class TypeVar(val name: String) : IType<TypeVar> {
@@ -734,6 +837,8 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun exists(env: Env): AnyType {
             TODO("Not yet implemented")
         }
+
+        override fun toString(): String = prettyPrint()
     }
 
     data class Trait(override val id: String, val members: List<Member>, val signatures: List<Signature>) : Entity<Trait> {
@@ -753,7 +858,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         fun isImplementedBy(type: AnyType, env: Env) : Boolean {
             val projections = env.getProjections(type)
 
-            return projections.any { it.target === this }
+            return projections.any { it.target.id == id }
         }
 
         override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
@@ -763,6 +868,15 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         operator fun plus(other: Trait) : Trait
             = Trait("$id*${other.id}", members + other.members, signatures + other.signatures)
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+            val printer = getKoinInstance<Printer>()
+
+            return "$indent${printer.apply(id, PrintableKey.Bold)}"
+        }
+
+        override fun toString(): String = prettyPrint()
     }
 
     val id: String

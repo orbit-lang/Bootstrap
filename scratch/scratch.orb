@@ -43,10 +43,7 @@ module M with Orb::Core::* {
 
     (Printable) println (p Printable) (String) = p.printValue()
 
-    (self Main) main () (String) {
-        i = 1
-        v = Printable.println(i)
-    }
+    (self Main) main () (String) = Printable.println(1)
 
     projection Int : Printable
         with printValue by ::String

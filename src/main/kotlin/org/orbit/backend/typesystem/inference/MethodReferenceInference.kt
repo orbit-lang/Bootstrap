@@ -15,6 +15,11 @@ object MethodReferenceInference : ITypeInference<MethodReferenceNode>, KoinCompo
 
     override fun infer(node: MethodReferenceNode, env: Env): IType<*> {
         val receiverType = TypeSystemUtils.infer(node.typeExpressionNode, env)
+
+        if (node.isConstructor) {
+            return IType.Signature(receiverType, "__init__", emptyList(), receiverType, false)
+        }
+
         var possibleSignatures = env.getSignatures(node.identifierNode.identifier)
 
         val error = "No methods found matching `${node.identifierNode.identifier} : (${receiverType.id}, ???) -> ???`"

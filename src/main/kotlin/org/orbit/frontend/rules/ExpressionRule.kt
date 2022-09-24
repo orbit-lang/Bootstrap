@@ -19,11 +19,11 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 			SelectRule,
 			MirrorRule,
 			ExpandRule,
+			ConstructorInvocationRule,
 			MethodCallRule,
 			LambdaLiteralRule,
 			ReferenceCallRule,
 			UnaryExpressionRule,
-			ConstructorInvocationRule,
 			LiteralRule(),
 			AnonymousParameterRule
 		)

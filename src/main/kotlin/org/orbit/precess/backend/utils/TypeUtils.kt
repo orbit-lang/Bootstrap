@@ -24,17 +24,29 @@ object TypeUtils {
     }
 
     fun check(env: Env, left: AnyType, right: AnyType) : AnyType = prepare(env, left, right) { left, right ->
+        val error = IType.Never("Types `${left.id}` does not conform to Trait `${right.id}`")
+
         when (left == right) {
             true -> right
             else -> when (right) {
+                is IType.Signature -> when (left) {
+                    is IType.Signature -> when (checkSignatures(env, left, right)) {
+                        true -> left
+                        else -> error
+                    }
+                    else -> error
+                }
+
                 is IType.Trait -> when (right.isImplementedBy(left, env)) {
                     true -> left
-                    else -> IType.Never("Types `${left.id}` does not conform to Trait `${right.id}`")
+                    else -> IType.Never("Type `${left.id}` does not conform to Trait `${right.id}`")
                 }
+
                 is IType.Never -> left
-                else -> when (right) {
+
+                else -> when (left) {
                     is IType.Never -> right
-                    else -> IType.Never("Types are not equal: `${left.id}` & `${right.id}`")
+                    else -> error
                 }
             }
         }
@@ -68,6 +80,17 @@ object TypeUtils {
     fun checkEq(env: Env, left: AnyType, right: AnyType) : Boolean = when (check(env, left, right)) {
         is IType.Never -> false
         else -> true
+    }
+
+    fun checkSignatures(env: Env, left: IType.Signature, right: IType.Signature) : Boolean {
+        if (left.name != right.name) return false
+        if (!checkEq(env, left.receiver, right.receiver)) return false
+        if (left.parameters.count() != right.parameters.count()) return false
+        for (pair in left.parameters.zip(right.parameters)) {
+            if (!checkEq(env, pair.first, pair.second)) return false
+        }
+
+        return checkEq(env, left.returns, right.returns)
     }
 
     fun unify(env: Env, typeA: IType.UnifiableType<*>, typeB: IType.UnifiableType<*>): IType.UnifiableType<*> =

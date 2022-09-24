@@ -6,6 +6,7 @@ import org.orbit.core.components.Warning
 import org.orbit.core.nodes.INode
 import org.orbit.core.phase.Phase
 import org.orbit.core.phase.safeCast
+import org.orbit.precess.backend.components.IType
 
 open class OrbitException(override val message: String?) : Exception(message) {
 	companion object
@@ -154,16 +155,20 @@ class Invocation(val platform: Platform) {
 		""".trimMargin()
 	}
 
-	inline fun<reified P: Phase<*, *>> make(message: String, node: INode) : Exception {
+	inline fun <reified P: Phase<*, *>> make(message: String, node: INode) : Exception {
 		return make<P>(message, node.firstToken)
 	}
 
-	inline fun<reified P: Phase<*, *>> make(message: String, token: Token) : Exception {
+	inline fun <reified P: Phase<*, *>> make(message: String, token: Token) : Exception {
 		return make<P>(message, token.position)
 	}
 
-	inline fun<reified P: Phase<*, *>> make(message: String, sourcePosition: SourcePosition = SourcePosition.unknown) : Exception {
+	inline fun <reified P: Phase<*, *>> make(message: String, sourcePosition: SourcePosition = SourcePosition.unknown) : Exception {
 		return Exception(makeString<P>(message, sourcePosition))
+	}
+
+	inline fun <reified P: Phase<*, *>> make(reason: IType.Never, node: INode) : Exception {
+		return make<P>(reason.message, node)
 	}
 
 	inline fun<reified P: Phase<*, *>> compilerError(message: String, node: INode) : Exception {
