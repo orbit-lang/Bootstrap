@@ -26,7 +26,11 @@ object TypeUtils {
     fun check(env: Env, left: AnyType, right: AnyType) : AnyType = prepare(env, left, right) { left, right ->
         when (left == right) {
             true -> right
-            else -> when (left) {
+            else -> when (right) {
+                is IType.Trait -> when (right.isImplementedBy(left, env)) {
+                    true -> left
+                    else -> IType.Never("Types `${left.id}` does not conform to Trait `${right.id}`")
+                }
                 is IType.Never -> left
                 else -> when (right) {
                     is IType.Never -> right

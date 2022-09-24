@@ -69,6 +69,18 @@ sealed interface Decl : IPrecessComponent {
             = Env(env.name, env.elements - context, env.refs, env.contracts, env.projections, env.expressionCache)
     }
 
+    data class Signature(val signature: IType.Signature) : Decl {
+        override fun exists(env: Env): Boolean {
+            TODO("Not yet implemented")
+        }
+
+        override fun xtend(env: Env): Env
+            = Env(env.name, env.elements + signature, env.refs, env.contracts, env.projections, env.expressionCache)
+
+        override fun reduce(env: Env): Env
+            = Env(env.name, env.elements - signature, env.refs, env.contracts, env.projections, env.expressionCache)
+    }
+
     data class Operator(val op: IType.IOperatorArrow<*, *>) : Decl {
         override fun exists(env: Env): Boolean = env.elements.filterIsInstance<IType.IOperatorArrow<*, *>>().any { it == op }
         override fun xtend(env: Env): Env
@@ -92,6 +104,15 @@ sealed interface Decl : IPrecessComponent {
 
             return Env(env.name, env.elements - mems - type, env.refs, env.contracts, env.projections, env.expressionCache)
         }
+    }
+
+    data class Trait(val trait: IType.Trait) : Decl {
+        override fun exists(env: Env): Boolean = env.elements.any { it.id == trait.id }
+        override fun xtend(env: Env): Env
+            = Env(env.name, env.elements + trait, env.refs, env.contracts, env.projections, env.expressionCache)
+
+        override fun reduce(env: Env): Env
+            = Env(env.name, env.elements - trait, env.refs, env.contracts, env.projections, env.expressionCache)
     }
 
     data class Assignment(val name: String, val type: AnyType) : Decl {
@@ -183,7 +204,7 @@ sealed interface Decl : IPrecessComponent {
         }
     }
 
-    data class Projection(val source: IType.Type, val target: IType.ITrait) : Decl {
+    data class Projection(val source: AnyType, val target: IType.Trait) : Decl {
         override fun exists(env: Env): Boolean = true
 
         override fun xtend(env: Env): Env

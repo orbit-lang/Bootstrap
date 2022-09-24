@@ -33,21 +33,21 @@ interface ContextFunction {
             }
         }
 
-        data class Conforms(val type: IType.Type, val trait: IType.ITrait) : Clause {
-            private fun getContract(): Contract.Implements<*> = when (trait) {
-                is IType.ITrait.MembershipTrait -> Contract.Implements.Membership(type, trait)
-            }
-
-            override fun weaken(env: Env): Env {
-                val contract = getContract()
-
-                return when (contract.verify(env)) {
-                    is Contract.ContractResult.Verified -> env.extend(Decl.Projection(type, trait))
-                    is Contract.ContractResult.Violated -> IType.Never("Type ${type.id} does not conform to Trait ${trait.id}")
-                        .panic()
-                }
-            }
-        }
+//        data class Conforms(val type: IType.Type, val trait: IType.ITrait) : Clause {
+//            private fun getContract(): Contract.Implements<*> = when (trait) {
+//                is IType.ITrait.MembershipTrait -> Contract.Implements.Membership(type, trait)
+//            }
+//
+//            override fun weaken(env: Env): Env {
+//                val contract = getContract()
+//
+//                return when (contract.verify(env)) {
+//                    is Contract.ContractResult.Verified -> env.extend(Decl.Projection(type, trait))
+//                    is Contract.ContractResult.Violated -> IType.Never("Type ${type.id} does not conform to Trait ${trait.id}")
+//                        .panic()
+//                }
+//            }
+//        }
 
         data class Used(val name: String, val useCount: Int) : Predicate {
             override fun weaken(env: Env): Env {

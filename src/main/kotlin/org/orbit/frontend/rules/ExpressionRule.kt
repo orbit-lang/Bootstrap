@@ -29,7 +29,7 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 		)
 
 		val singleExpressionBodyRule = ExpressionRule(
-			PanicRule, SelectRule, MirrorRule, ExpandRule, LambdaLiteralRule, ReferenceCallRule, ConstructorInvocationRule, MethodCallRule, LiteralRule()
+			AssignmentRule, PanicRule, SelectRule, MirrorRule, ExpandRule, LambdaLiteralRule, ReferenceCallRule, ConstructorInvocationRule, MethodCallRule, LiteralRule()
 		)
 
 		val selectConditionRule = ExpressionRule(

@@ -107,8 +107,8 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 		val id = identifierNode ?: IdentifierNode(idStart, idStart, autoName)
 
 		return +when(receiverNode.first) {
-			null -> MethodSignatureNode(start, end, id, receiverNode.second!!, parameterNodes, returnTypeNode, typeParameters, emptyList(), isInstanceMethod)
-			else -> MethodSignatureNode(start, end, id, receiverNode.first!!.typeExpressionNode, listOf(receiverNode.first!!).plus(parameterNodes), returnTypeNode, typeParameters, emptyList(), isInstanceMethod)
+			null -> MethodSignatureNode(start, end, id, receiverNode.second!!, parameterNodes, returnTypeNode, typeParameters, emptyList(), false, null)
+			else -> MethodSignatureNode(start, end, id, receiverNode.first!!.typeExpressionNode, parameterNodes, returnTypeNode, typeParameters, emptyList(), true, receiverNode.first?.identifierNode)
 		}
 	}
 }

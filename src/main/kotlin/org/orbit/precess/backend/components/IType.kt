@@ -96,6 +96,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = other
         override fun plus(other: IMetaType<*>): IMetaType<*> = other
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
+        override fun equals(other: Any?): Boolean = true
 
         override fun toString(): String = "✓"
     }
@@ -228,17 +229,17 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun getCanonicalName(): String = name
 
         override fun exists(env: Env): AnyType = when (val t = env.getElement(name)) {
-            null -> Never("Unknown Type `$name` in current context: `$env`")
+            null -> Never("Unknown Type `$name` in current context:\n$env")
             else -> t
         }
 
-        fun api(env: Env): ITrait = ITrait.MembershipTrait("$id.__api", env.getMembers(this))
+        fun api(env: Env): Trait = Trait("$id.__api", env.getMembers(this), emptyList())
 
         override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
             this -> this
             Unit -> this
             is Type -> api(env) + other.api(env)
-            is ITrait -> api(env) + other
+            is Trait -> api(env) + other
             is Never -> other
             else -> Never("Cannot unify Types $id & ${other.id}")
         }
@@ -679,48 +680,44 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         }
     }
 
-    data class Signature(
-        val receiver: IType<*>,
-        val name: String,
-        val parameters: List<IType<*>>,
-        val returns: IType<*>
-    ) : IType<Signature> {
-        override val id: String
-            get() {
-                val pParams = parameters.joinToString(", ") { it.id }
+    data class Signature(val receiver: IType<*>, val name: String, val parameters: List<IType<*>>, val returns: IType<*>, val isInstanceSignature: Boolean) : IType<Signature> {
+        override val id: String get() {
+            val pParams = parameters.joinToString(", ") { it.id }
 
-                return "${receiver.id}.$name($pParams)(${returns.id})"
-            }
+            return "${receiver.id}.$name($pParams)(${returns.id})"
+        }
 
         override fun getCardinality(): ITypeCardinality
             = returns.getCardinality()
 
-        fun toArrow(): AnyArrow {
-            val takes = listOf(receiver) + parameters
-
-            return when (takes.count()) {
-                1 -> Arrow1(takes[0], returns)
-                2 -> Arrow2(takes[0], takes[1], returns)
-                3 -> Arrow3(takes[0], takes[1], takes[2], returns)
-                else -> TODO("4+-ary Arrows")
-            }
+        private fun toInstanceArrow() = when (parameters.count()) {
+            0 -> Arrow1(receiver, returns)
+            1 -> Arrow2(receiver, parameters[0], returns)
+            2 -> Arrow3(receiver, parameters[0], parameters[1], returns)
+            else -> TODO("3+-ary instance Arrows")
         }
 
-        override fun substitute(substitution: Substitution): Signature = Signature(
-            receiver.substitute(substitution),
-            name,
-            parameters.map { it.substitute(substitution) },
-            returns.substitute(substitution)
-        )
+        fun toStaticArrow(): AnyArrow = when (parameters.count()) {
+            1 -> Arrow1(parameters[0], returns)
+            2 -> Arrow2(parameters[0], parameters[1], returns)
+            3 -> Arrow3(parameters[0], parameters[1], parameters[2], returns)
+            else -> TODO("4+-ary Arrows")
+        }
+
+        fun toArrow() : AnyArrow = when (isInstanceSignature) {
+            true -> toInstanceArrow()
+            else -> toStaticArrow()
+        }
+
+        override fun substitute(substitution: Substitution): Signature
+            = Signature(receiver.substitute(substitution), name, parameters.map { it.substitute(substitution) }, returns.substitute(substitution), isInstanceSignature)
 
         override fun equals(other: Any?): Boolean = when (other) {
             is Signature -> other.name == name && other.receiver == receiver && other.parameters == parameters && other.returns == returns
             else -> false
         }
 
-        override fun exists(env: Env): AnyType {
-            TODO("Not yet implemented")
-        }
+        override fun exists(env: Env): AnyType = this
     }
 
     data class TypeVar(val name: String) : IType<TypeVar> {
@@ -739,49 +736,33 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         }
     }
 
-    sealed interface ITrait : Entity<ITrait> {
-        data class MembershipTrait(override val id: String, val requiredMembers: List<Member>) : ITrait {
-            private val env: Env by Env
+    data class Trait(override val id: String, val members: List<Member>, val signatures: List<Signature>) : Entity<Trait> {
+        override fun substitute(substitution: Substitution): Trait
+            = Trait(id, members.map { it.substitute(substitution) }, signatures.map { it.substitute(substitution) })
 
-            override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
-                is MembershipTrait -> plus(other)
-                else -> other.unify(env, this)
-            }
-
-            override fun plus(other: ITrait): ITrait = when (other) {
-                is MembershipTrait -> MembershipTrait(
-                    "($id & ${other.id})",
-                    requiredMembers + other.requiredMembers
-                )
-            }
-
-            override fun equals(other: Any?): Boolean = when (other) {
-                is MembershipTrait -> other.id == id
-                is Type -> when (Contract.Implements.Membership(other, this).verify(env)) {
-                    is Contract.ContractResult.Verified -> true
-                    is Contract.ContractResult.Violated -> false
-                }
-                else -> false
-            }
-        }
-
-        override fun substitute(substitution: Substitution): ITrait = when (substitution.old.id) {
-            id -> when (substitution.new) {
-                is ITrait -> substitution.new
-                else -> this
-            }
-
-            else -> this
-        }
-
-        operator fun plus(other: ITrait): ITrait
-
-        override fun exists(env: Env): AnyType {
-            TODO("Not yet implemented")
-        }
+        override fun exists(env: Env): AnyType = this
 
         override fun getCardinality(): ITypeCardinality
-            = ITypeCardinality.Infinite
+            = ITypeCardinality.Zero
+
+        override fun equals(other: Any?): Boolean = when (other) {
+            is Trait -> other.id == id
+            else -> false
+        }
+
+        fun isImplementedBy(type: AnyType, env: Env) : Boolean {
+            val projections = env.getProjections(type)
+
+            return projections.any { it.target === this }
+        }
+
+        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
+            is Trait -> Trait("$id*${other.id}", members + other.members, signatures + other.signatures)
+            else -> TODO()
+        }
+
+        operator fun plus(other: Trait) : Trait
+            = Trait("$id*${other.id}", members + other.members, signatures + other.signatures)
     }
 
     val id: String
@@ -792,4 +773,10 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     fun flatten(env: Env) : AnyType = this
     fun getTypeCheckPosition() : TypeCheckPosition = TypeCheckPosition.Any
     fun getCardinality() : ITypeCardinality
+
+    fun prettyPrint(depth: Int = 0) : String {
+        val indent = "\t".repeat(depth)
+
+        return "$indent$id"
+    }
 }

@@ -148,6 +148,13 @@ val mainModule = module {
 	single(TypeBindingPatternInference)
 	single(MethodCallInference)
 	single(BoolLiteralInference)
+	single(OperatorDefInference)
+	single(MethodReferenceInference)
+	single(ProjectionInference)
+	single(PairInference)
+	single(TraitDefInference)
+	single(AssignmentInference)
+	single(MethodDelegateInference)
 }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: ITypeInference<N>) : BeanDefinition<ITypeInference<N>>

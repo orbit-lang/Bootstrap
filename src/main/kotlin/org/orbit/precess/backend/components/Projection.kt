@@ -1,3 +1,5 @@
 package org.orbit.precess.backend.components
 
-data class Projection(val source: IType.Entity<*>, val target: IType.Entity<*>)
+import org.orbit.precess.backend.utils.AnyType
+
+data class Projection(val source: AnyType, val target: IType.Entity<*>)

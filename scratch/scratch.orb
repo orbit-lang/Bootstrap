@@ -14,25 +14,40 @@ module Orb::Core::Booleans {
 
     (self Bool) and (other Bool) (Bool) = select self {
         case true = other
-        case false = false
+        case else = false
     }
+
+    (self Bool) or (other Bool) (Bool) = select self {
+        case true = true
+        case else = other
+    }
+
+    infix operator boolAnd `&&` by Bool::and
+    infix operator boolOr  `||` by Bool::or
 }
 
 module Orb::Core::Types {
     type Unit
 }
 
+module Orb::Core::Main {
+    type Main
+}
+
 module M with Orb::Core::* {
     type Foo(x Int)
 
-    (Int) fizzBuzz (n Int) (Int) = select n % 15 {
-        case 0 = 3
-        case else = select n % 5 {
-            case 0 = 2
-            case else = select n % 3 {
-                case 0 = 1
-                case else = 0
-            }
-        }
+    trait Printable {
+        (self Self) printValue () (String)
     }
+
+    (Printable) println (p Printable) (String) = p.printValue()
+
+    (self Main) main () (String) {
+        i = 1
+        v = Printable.println(i)
+    }
+
+    projection Int : Printable
+        with printValue by ::String
 }

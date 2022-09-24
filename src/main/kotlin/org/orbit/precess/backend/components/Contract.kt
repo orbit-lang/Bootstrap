@@ -18,26 +18,33 @@ sealed interface Contract {
         }
     }
 
-    sealed interface Implements<T : IType.ITrait> : Contract {
-        data class Membership(val type: IType.Type, val trait: IType.ITrait.MembershipTrait) :
-            Implements<IType.ITrait.MembershipTrait> {
-            override fun verify(env: Env): ContractResult {
-                val members = env.getDeclaredMembers(type) + env.getProjectedMembers(type)
-
-                if (members.count() < trait.requiredMembers.count()) {
-                    return ContractResult.Violated(IType.Never("Type ${type.id} does not conform to Trait ${trait.id}"))
-                }
-
-                for (requiredMember in trait.requiredMembers) {
-                    if (!members.contains(requiredMember)) {
-                        return ContractResult.Violated(IType.Never("Type ${type.id} does not conform to Trait ${trait.id}. Missing member: ${requiredMember.id}"))
-                    }
-                }
-
-                return ContractResult.Verified(env.extend(Decl.Projection(type, trait)))
-            }
-        }
-    }
+//    sealed interface Implements<T : IType.ITrait> : Contract {
+//        data class Membership(val type: IType.Type, val trait: IType.ITrait.MembershipTrait) : Implements<IType.ITrait.MembershipTrait> {
+//            override fun verify(env: Env): ContractResult {
+//                val members = env.getDeclaredMembers(type) + env.getProjectedMembers(type)
+//
+//                if (members.count() < trait.requiredMembers.count()) {
+//                    return ContractResult.Violated(IType.Never("Type ${type.id} does not conform to Trait ${trait.id}"))
+//                }
+//
+//                for (requiredMember in trait.requiredMembers) {
+//                    if (!members.contains(requiredMember)) {
+//                        return ContractResult.Violated(IType.Never("Type ${type.id} does not conform to Trait ${trait.id}. Missing member: ${requiredMember.id}"))
+//                    }
+//                }
+//
+//                return ContractResult.Verified(env.extend(Decl.Projection(type, trait)))
+//            }
+//        }
+//
+//        data class Behaviour(val type: IType.Type, val trait: IType.ITrait.SignatureTrait) : Implements<IType.ITrait.SignatureTrait> {
+//            override fun verify(env: Env): ContractResult {
+//                val specialised = trait.requiredSignatures.map { it.substitute(Substitution(trait, type)) }
+//
+//                return ContractResult.Verified(env)
+//            }
+//        }
+//    }
 
     fun verify(env: Env): ContractResult
 }

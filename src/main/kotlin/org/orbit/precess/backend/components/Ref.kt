@@ -1,6 +1,5 @@
 package org.orbit.precess.backend.components
 
-import org.orbit.precess.backend.utils.AnyEntity
 import org.orbit.precess.backend.utils.AnyType
 
 interface IRef {
@@ -10,6 +9,12 @@ interface IRef {
 
     fun getHistory() : List<RefEntry>
     fun consume() : Ref
+
+    fun prettyPrint(depth: Int = 0) : String {
+        val indent = "\t".repeat(depth)
+
+        return "$indent$uniqueId"
+    }
 }
 
 inline fun <reified E : RefEntry> IRef.getHistoryInstances(): List<E> = getHistory().filterIsInstance<E>()

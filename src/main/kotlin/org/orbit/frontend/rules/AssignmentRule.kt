@@ -5,7 +5,7 @@ import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
-object AssignmentRule : ParseRule<AssignmentStatementNode>, WhereClauseExpressionRule<AssignmentStatementNode> {
+object AssignmentRule : ValueRule<AssignmentStatementNode>, WhereClauseExpressionRule<AssignmentStatementNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.peek()
         val identifier = context.attempt(IdentifierRule, true)!!

@@ -11,15 +11,10 @@ data class MethodSignatureNode(
     val returnTypeNode: TypeExpressionNode?,
 	val typeParameters: TypeParametersNode? = null,
 	val typeConstraints: List<TypeConstraintWhereClauseNode> = emptyList(),
-	val isInstanceMethod: Boolean
+	val isInstanceMethod: Boolean,
+	val receiverIdentifier: IdentifierNode?
 ) : INode {
-	inline fun <reified T> annotateParameter(idx: Int, value: T, tag: Annotations<T>) {
-		// TODO
-//		val nodeAnnotationMap = getKoinInstance<NodeAnnotationMap>()
-//
-		//nodeAnnotationMap.annotate(parameterNodes[idx], value)
-		//parameterNodes[idx].annotate(value, tag)
-	}
+	inline fun <reified T> annotateParameter(idx: Int, value: T, tag: Annotations<T>) {}
 
 	override fun getChildren() : List<INode> = when (returnTypeNode) {
 		null -> listOf(identifierNode, receiverTypeNode) + parameterNodes + typeConstraints
@@ -27,10 +22,6 @@ data class MethodSignatureNode(
 	}
 
 	fun getAllParameters() : List<TypeExpressionNode> = parameterNodes.map { it.typeExpressionNode }
-//		when (isInstanceMethod) {
-//		true -> listOf(receiverTypeNode) + parameterNodes.map { it.typeExpressionNode }
-//		else -> parameterNodes.map { it.typeExpressionNode }
-//	}
 
 	fun getAllParameterPairs() : List<PairNode> = parameterNodes
 		//when (isInstanceMethod) {

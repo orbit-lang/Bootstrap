@@ -29,8 +29,8 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrec
         override fun substitute(substitution: Substitution): Type = this
         override fun toString(): String = typeId
 
-        override fun infer(env: Env): IType<*>
-            = env.getElement(typeId) ?: IType.Never("Unknown Type `$typeId` in current context: `$env`")
+        override fun infer(env: Env): IType<*> =
+            env.getElement(typeId) ?: IType.Never("Unknown Type `$typeId` in current context:\n$env")
     }
 
     data class AnyTypeLiteral(val type: AnyType) : Expr<AnyTypeLiteral> {

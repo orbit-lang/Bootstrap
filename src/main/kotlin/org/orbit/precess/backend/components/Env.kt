@@ -4,6 +4,7 @@ import org.orbit.backend.typesystem.intrinsics.IOrbModule
 import org.orbit.backend.typesystem.intrinsics.getPublicAPI
 import org.orbit.precess.backend.utils.AnyArrow
 import org.orbit.precess.backend.utils.AnyType
+import org.orbit.precess.backend.utils.TypeUtils
 import kotlin.reflect.KProperty
 
 class Env(
@@ -94,14 +95,14 @@ class Env(
     inline fun <reified T : IType<T>> getElementAs(id: String): T? = getElement(id) as? T
     inline fun <reified T : IType<T>> getRefAs(of: String): T? = getRef(of) as? T
 
-    fun getProjections(of: IType.Entity<*>): List<Projection> = projections.filter { it.source == of }
+    fun getProjections(of: AnyType): List<Projection> = projections.filter { it.source == of }
 
     fun getProjectedMembers(of: IType.Entity<*>): List<IType.Member> {
         val projections = getProjections(of)
             .map { it.target }
-            .filterIsInstance<IType.ITrait.MembershipTrait>()
+            .filterIsInstance<IType.Trait>()
 
-        return projections.flatMap { it.requiredMembers }
+        return projections.flatMap { it.members }
     }
 
     fun projects(source: IType.Entity<*>, target: IType.Entity<*>): Boolean =
@@ -144,10 +145,12 @@ class Env(
     fun reduceAll(decls: List<Decl>) : Env
         = decls.fold(this) { acc, next -> acc.reduce(next) }
 
-    fun manage(decl: Decl, block: (Env) -> Unit) {
+    fun <R> manage(decl: Decl, block: (Env) -> R) : R {
         extendInPlace(decl)
-        block(this)
+        val result = block(this)
         reduceInPlace(decl)
+
+        return result
     }
 
     fun getArrows(name: String) : List<AnyArrow> {
@@ -159,10 +162,28 @@ class Env(
         return arrows
     }
 
+    fun getSignatures(name: String) : List<IType.Signature> {
+        val signatures = mutableListOf<IType.Signature>()
+        for (signature in elements.filterIsInstance<IType.Signature>()) {
+            if (signature.name == name) signatures.add(signature)
+        }
+
+        return signatures
+    }
+
+    fun getSignatures(name: String, receiverType: AnyType) : List<IType.Signature> {
+        val signatures = mutableListOf<IType.Signature>()
+        for (signature in elements.filterIsInstance<IType.Signature>()) {
+            if (signature.name == name && TypeUtils.checkEq(this, receiverType, signature.receiver)) signatures.add(signature)
+        }
+
+        return signatures
+    }
+
     fun withSelf(type: AnyType) : Env
         = extend(Decl.TypeAlias("Self", Expr.AnyTypeLiteral(type)))
 
-    fun withSelf(type: AnyType, block: (Env) -> Unit)
+    fun <R> withSelf(type: AnyType, block: (Env) -> R) : R
         = manage(Decl.TypeAlias("Self", Expr.AnyTypeLiteral(type)), block)
 
     fun getSelfType() : AnyType
@@ -229,11 +250,15 @@ class Env(
     operator fun plus(other: Env) : Env
         = other.extend(Decl.Merge(this))
 
-    private fun prettyPrint() : String {
-        val allTypes = elements.joinToString(", ") { it.id }
-        val allRefs = refs.joinToString(", ")
+    override fun prettyPrint(depth: Int) : String {
+        val allTypes = elements.joinToString("\n") { it.prettyPrint(depth + 1) }
+        val allRefs = refs.joinToString("\n") { it.prettyPrint(depth + 1) }
 
-        return "{$allTypes ; $allRefs}"
+        return """
+            $name
+            $allTypes
+            $allRefs
+        """.trimIndent()
     }
 
     override fun exists(env: Env): AnyType = this
