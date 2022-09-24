@@ -37,14 +37,14 @@ module Orb::Core::Main {
 module M with Orb::Core::* {
     type Foo(x Int)
 
-    trait Printable {
-        (self Self) printValue () (String)
+    trait Writer {
+        (self Self) write (s String) (String)
     }
 
-    (Printable) println (p Printable) (String) = p.printValue()
+    (self Main) main () (String) = EchoWriter().write(String())
 
-    (self Main) main () (String) = Printable.println(1)
+    type EchoWriter
 
-    projection Int : Printable
-        with printValue by ::String
+    projection EchoWriter : Writer
+        with write by $0
 }

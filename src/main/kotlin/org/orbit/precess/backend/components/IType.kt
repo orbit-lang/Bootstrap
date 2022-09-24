@@ -185,13 +185,16 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     }
 
     data class Alias(val name: String, val type: AnyType) : IType<Alias>, UnboxableType {
-        override val id: String = "$name:${type.id}"
+        override val id: String = type.id
 
         override fun getCardinality(): ITypeCardinality
             = type.getCardinality()
 
         override fun substitute(substitution: Substitution): Alias
-            = Alias(name, type.substitute(substitution))
+            = Alias(name, when (substitution.old) {
+                type -> substitution.new
+                else -> type
+            })
 
         override fun exists(env: Env): AnyType = type.exists(env)
         override fun getCanonicalName(): String = name

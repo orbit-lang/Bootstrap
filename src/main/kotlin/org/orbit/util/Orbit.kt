@@ -155,6 +155,7 @@ val mainModule = module {
 	single(TraitDefInference)
 	single(AssignmentInference)
 	single(MethodDelegateInference)
+	single(AnonymousParameterInference)
 }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: ITypeInference<N>) : BeanDefinition<ITypeInference<N>>

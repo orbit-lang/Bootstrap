@@ -33,6 +33,10 @@ object MethodCallInference : ITypeInference<MethodCallNode>, KoinComponent {
         }
 
         if (possibleArrows.count() > 1) {
+            possibleArrows = possibleArrows.filter { it.receiver.id == receiverType.id }
+        }
+
+        if (possibleArrows.count() > 1) {
             // We've failed to narrow down the results, we have to error now
             throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0].id}`", node)
         }

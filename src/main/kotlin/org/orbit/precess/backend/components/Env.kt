@@ -195,6 +195,29 @@ class Env(
         return reduce(decl).extend(decl)
     }
 
+    fun withProjectedTrait(trait: IType.Trait) : Env
+        = extend(Decl.TypeAlias("__projectedTrait", Expr.AnyTypeLiteral(trait)))
+
+    fun getProjectedTrait() : IType.Trait
+        = elements.filterIsInstance<IType.Alias>().first { it.name == "__projectedTrait" }.type as IType.Trait
+
+    fun withProjectedType(type: AnyType) : Env
+        = extend(Decl.TypeAlias("__projectedType", Expr.AnyTypeLiteral(type)))
+
+    fun getProjectedType() : AnyType
+        = elements.filterIsInstance<IType.Alias>().first { it.name == "__projectedType" }.type
+
+    fun withProjectedSignature(name: String) : Env? {
+        val trait = getProjectedTrait()
+        val signature = trait.signatures.firstOrNull { it.name == name }
+            ?: return null
+
+        return extend(Decl.Assignment("__projectedSignature", signature))
+    }
+
+    fun getProjectedSignature() : IType.Signature?
+        = refs.firstOrNull { it.name == "__projectedSignature" }?.type as? IType.Signature
+
     fun getMatchType() : AnyType
         = elements.filterIsInstance<IType.Alias>().first { it.name == "__match" }.type
 

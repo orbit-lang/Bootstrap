@@ -64,6 +64,8 @@ object ProjectionInference : ITypeInference<ProjectionNode>, KoinComponent {
         env.extendInPlace(projection)
 
         val nEnv = env.withSelf(projectedType)
+            .withProjectedType(projectedType)
+            .withProjectedTrait(projectedTrait)
 
         val bodyTypes = TypeSystemUtils.inferAll(node.body, nEnv)
         val signatures = bodyTypes.filterIsInstance<IType.Signature>()
