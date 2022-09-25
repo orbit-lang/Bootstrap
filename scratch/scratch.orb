@@ -43,6 +43,12 @@ module M with Orb::Core::* {
 
     (self Main) main () (String) = EchoWriter().write(String())
 
+    (self Int) add (other Int) (Int) = select self {
+        case 0 = 0
+        case 1 = 1
+#        case else = 3
+    }
+
     type EchoWriter
 
     projection EchoWriter : Writer

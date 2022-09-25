@@ -334,14 +334,15 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         val constructedType: T
     }
 
-    sealed interface ICompositeType<Self : ICompositeType<Self>> : Entity<Self>
+    sealed interface IConstructableType<Self: IConstructableType<Self>> : IType<Self> {
+        fun getConstructors() : List<IConstructor<Self>>
+    }
 
     sealed interface IIndexType<I, Self : IIndexType<I, Self>> : IType<Self> {
         fun getElement(at: I): AnyType
     }
 
-    interface IAlgebraicType<Self : IAlgebraicType<Self>> : IType<Self>, UnboxableType {
-        fun getConstructors(): List<IConstructor<Self>>
+    interface IAlgebraicType<Self : IAlgebraicType<Self>> : IType<Self>, UnboxableType, IConstructableType<Self> {
         override fun getTypeCheckPosition(): TypeCheckPosition
             = TypeCheckPosition.AlwaysLeft
     }

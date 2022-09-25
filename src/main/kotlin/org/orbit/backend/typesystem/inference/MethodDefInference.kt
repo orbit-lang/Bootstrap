@@ -58,23 +58,31 @@ object SelectInference : ITypeInference<SelectNode>, KoinComponent {
         val cardinality = caseTypes.fold(ITypeCardinality.Zero as ITypeCardinality) { acc, next -> acc + next.getCardinality() }
         val hasElseCase = node.cases.any { it.pattern is ElseNode }
 
-        if (cardinality is ITypeCardinality.Infinite && !hasElseCase) {
-            throw invocation.make<TypeSystem>("Type `${conditionType.id}` has an infinite number of cases and therefore requires an Else case", node)
+        if (cardinality is ITypeCardinality.Infinite) {
+            return when (hasElseCase) {
+                true -> conditionType
+                else -> throw invocation.make<TypeSystem>("Type `$conditionType` has an infinite number of cases and therefore requires an Else case", node)
+            }
         }
+
+        val constructableType = conditionType.flatten(nEnv) as? IType.IConstructableType<*>
+            ?: throw invocation.compilerError<TypeSystem>("Cannot perform Case analysis on non-constructable Type `$conditionType`", node.condition)
 
         // If this is not an Infinite Type, ensure all possible cases are covered
         val coveredCases = caseTypes.map { it.takes }.distinctBy { it.id }
+        val expectedCases = constructableType.getConstructors().flatMap { it.getDomain() }
+        val conditionCardinality = constructableType.getCardinality()
 
-        // TODO - Is this check necessary? Maybe should just a warning?
-//        if (cardinality is ITypeCardinality.Mono && coveredCases.count() != 1)
-
-        val conditionCardinality = conditionType.getCardinality()
         if (!hasElseCase && conditionCardinality is ITypeCardinality.Finite && coveredCases.count() != conditionCardinality.count) {
+            val coveredIds = coveredCases.map { it.id }
+            val missingCases = expectedCases.filterNot { it.id in coveredIds }
+            val prettyMissing = missingCases.joinToString("\n\t")
+
             // TODO - Spit out actual missing cases if possible
-            throw invocation.make<TypeSystem>("Missing Cases for Select expression of Type `${conditionType.id}`", node)
+            throw invocation.make<TypeSystem>("Missing Cases for Select expression of Type `${constructableType.id}`:\n\t$prettyMissing", node)
         }
 
-        return conditionType
+        return constructableType
     }
 }
 
