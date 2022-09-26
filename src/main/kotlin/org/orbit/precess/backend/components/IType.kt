@@ -186,7 +186,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     }
 
     data class Alias(val name: String, val type: AnyType) : IType<Alias>, UnboxableType {
-        override val id: String = type.id
+        override val id: String = "${type.id} as $name"
 
         override fun getCardinality(): ITypeCardinality
             = type.getCardinality()
@@ -693,7 +693,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         val identifier: String
         val arrow: A
 
-        override val id: String get() = arrow.id
+        override val id: String get() = "$identifier:${arrow.id}"
 
         override fun getDomain(): List<AnyType> = arrow.getDomain()
         override fun getCodomain(): AnyType = arrow.getCodomain()

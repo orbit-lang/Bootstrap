@@ -2,54 +2,27 @@ module Orb::Core::Numbers {
     type Int
 }
 
-module Orb::Core::Strings {
-    type String
-}
-
-module Orb::Core::Booleans {
-    type Bool {
-        constructor True
-        constructor False
-    }
-
-    (self Bool) and (other Bool) (Bool) = select (self, other) {
-        case (true, true) = true
-        case else = false
-    }
-
-    (self Bool) or (other Bool) (Bool) = select self {
-        case true = true
-        case else = other
-    }
-
-    infix operator boolAnd `&&` by Bool::and
-    infix operator boolOr  `||` by Bool::or
-}
-
 module Orb::Core::Types {
     type Unit
 }
 
-module Orb::Core::Main {
-    type Main
-}
-
 module M with Orb::Core::* {
-    type Foo(x Int)
+#    context OptionCtx [Value] {
+#        type Option {
+#            constructor None
+#            constructor Some(value Value)
+#        }
+#    }
+#
+#    extension OptionCtx {
+#
+#    }
 
-    trait Writer {
-        (self Self) write (s String) (String)
+    type Foo
+
+    extension Foo {
+        (Foo) new (i Int, j Int) (Foo) = Foo()
     }
 
-    (self Main) main () (String) = EchoWriter().write(String())
-
-    (self Int) add (other Int) (Int) = select (self, other) {
-        case (0, 0) = 0
-        case else = 1
-    }
-
-    type EchoWriter
-
-    projection EchoWriter : Writer
-        with write by $0
+    (Foo) main () () = f = Foo.new(1)
 }

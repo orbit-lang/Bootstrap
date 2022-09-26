@@ -181,26 +181,18 @@ sealed interface Decl : IPrecessComponent {
         }
     }
 
-    data class Extension(val typeName: String, val members: Map<String, AnyType>) : Decl {
-        constructor(type: IType.Type, members: List<IType.Member>) : this(type.id, members.associate { it.name to it.type })
-
-        override fun exists(env: Env): Boolean = env.elements.containsAll(members.values)
+    data class Extension(val type: AnyType, val signatures: List<IType.Signature>) : Decl {
+        override fun exists(env: Env): Boolean = type.exists(env) === type
         override fun xtend(env: Env): Env {
-            val type = env.getElementAs<IType.Type>(typeName) ?: return env
-            val nMembers = members.map { IType.Member(it.key, it.value, type) }
+            val signatureDecls = signatures.map(::Signature)
 
-            return Env(env.name, env.elements + nMembers, env.refs, env.contracts, env.projections, env.expressionCache)
+            return env.extendAll(signatureDecls)
         }
 
         override fun reduce(env: Env): Env {
-            val type = env.getElementAs<IType.Type>(typeName) ?: return env
-            val allNames = members.keys
-            val mems = env.elements.filterIsInstance<IType.Member>()
-                .filter { it.owner.name == type.name && it.name in allNames }
+            val signatureDecls = signatures.map(::Signature)
 
-            val nElements = env.elements - type - mems
-
-            return Env(env.name, nElements, env.refs, env.contracts, env.projections, env.expressionCache)
+            return env.reduceAll(signatureDecls)
         }
     }
 
@@ -247,7 +239,7 @@ sealed interface Decl : IPrecessComponent {
     fun exists(env: Env): Boolean
     fun xtend(env: Env): Env
 
-    fun extend(env: Env): Env = Env.capture { xtend(env) }
+    fun extend(env: Env): Env = xtend(env) //Env.capture { xtend(env) }
     fun reduce(env: Env): Env
 }
 

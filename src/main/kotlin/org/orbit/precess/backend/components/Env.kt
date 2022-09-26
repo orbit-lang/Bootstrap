@@ -132,6 +132,9 @@ class Env(
         _expressionCache = nEnv.expressionCache
     }
 
+    fun extendAllInPlace(decls: List<Decl>)
+        = decls.forEach(::extendInPlace)
+
     fun reduceInPlace(decl: Decl) {
         val nEnv = decl.reduce(this)
 
@@ -261,7 +264,7 @@ class Env(
             .filterIsInstance<O>()
 
     fun import(module: IOrbModule) : Env
-        = Decl.Merge(module.getPublicAPI()).extend(this)
+        = extend(Decl.Merge(module.getPublicAPI()))
 
     fun importInPlace(module: IOrbModule) {
         val nEnv = import(module)

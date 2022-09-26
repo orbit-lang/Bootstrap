@@ -8,9 +8,10 @@ object OrbCoreNumbers : IOrbModule {
 
     val intType = IType.Type("Orb::Core::Numbers::Int", explicitCardinality = ITypeCardinality.Infinite)
     val infixAddIntInt = IType.InfixOperator("+", "infixPlus", intIntArrow)
-    val infixSubIntInt = IType.InfixOperator("+", "infixSubtract", intIntArrow)
+    val infixSubIntInt = IType.InfixOperator("-", "infixSubtract", intIntArrow)
     val infixMulIntInt = IType.InfixOperator("*", "infixMultiply", intIntArrow)
     val infixModIntInt = IType.InfixOperator("%", "infixModulo", intIntArrow)
+    val pow = IType.InfixOperator("**", "infixPow", intIntArrow)
 
     override fun getPublicTypes() : List<IType.Type>
         = listOf(intType)
@@ -18,7 +19,7 @@ object OrbCoreNumbers : IOrbModule {
     override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
 
     override fun getPublicOperators() : List<IType.IOperatorArrow<*, *>>
-        = listOf(infixAddIntInt, infixSubIntInt, infixMulIntInt, infixModIntInt)
+        = listOf(infixAddIntInt, infixSubIntInt, infixMulIntInt, infixModIntInt, pow)
 }
 
 object OrbCoreBooleans : IOrbModule {

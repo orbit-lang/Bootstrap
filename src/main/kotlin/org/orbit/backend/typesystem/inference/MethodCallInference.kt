@@ -43,10 +43,6 @@ object MethodCallInference : ITypeInference<MethodCallNode>, KoinComponent {
 
         val arrow = possibleArrows[0]
 
-        if (!TypeUtils.checkEq(env, arrow.returns, expected)) {
-            throw invocation.make<TypeSystem>("Return Type of method `${receiverType.id}.${node.messageIdentifier.identifier}` does not match the expected Type in this context. Expected `${expected.id}`, found `${arrow.returns.id}`", node)
-        }
-
         val argsCount = argTypes.count()
         val paramsCount = arrow.parameters.count()
 
