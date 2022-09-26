@@ -10,14 +10,9 @@ interface ILiteralNode<T> : ConstantExpressionNode, ValueRepresentableNode, IPat
 	override fun getChildren() : List<INode> = emptyList()
 }
 
-data class IntLiteralNode(
-    override val firstToken: Token,
-    override val lastToken: Token,
-    override val value: Pair<Int, Int>
-) : ILiteralNode<Pair<Int, Int>> {
+data class IntLiteralNode(override val firstToken: Token, override val lastToken: Token, override val value: Pair<Int, Int>) : ILiteralNode<Pair<Int, Int>> {
 	// Ints are 32 bit by default
-	constructor(f: Token, l: Token, value: Int)
-		: this(f, l, Pair(32, value))
+	constructor(f: Token, l: Token, value: Int) : this(f, l, Pair(32, value))
 }
 
 data class RealLiteralNode(

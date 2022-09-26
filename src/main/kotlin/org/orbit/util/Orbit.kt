@@ -82,6 +82,7 @@ val mainModule = module {
 		util.registerPathResolver(DiscardBindingPatternPathResolver, DiscardBindingPatternNode::class.java)
 		util.registerPathResolver(AnyPathResolver(), IdentifierBindingPatternNode::class.java)
 		util.registerPathResolver(AlgebraicConstructorPathResolver, AlgebraicConstructorNode::class.java)
+		util.registerPathResolver(TupleLiteralPathResolver, TupleLiteralNode::class.java)
 
 		util
 	}
@@ -156,6 +157,7 @@ val mainModule = module {
 	single(AssignmentInference)
 	single(MethodDelegateInference)
 	single(AnonymousParameterInference)
+	single(TupleLiteralInference)
 }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: ITypeInference<N>) : BeanDefinition<ITypeInference<N>>

@@ -5,6 +5,9 @@ import org.orbit.backend.typesystem.intrinsics.getPublicAPI
 import org.orbit.precess.backend.utils.AnyArrow
 import org.orbit.precess.backend.utils.AnyType
 import org.orbit.precess.backend.utils.TypeUtils
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
+import org.orbit.util.getKoinInstance
 import kotlin.reflect.KProperty
 
 class Env(
@@ -274,14 +277,13 @@ class Env(
         = other.extend(Decl.Merge(this))
 
     override fun prettyPrint(depth: Int) : String {
-        val allTypes = elements.joinToString("\n") { it.prettyPrint(depth + 1) }
-        val allRefs = refs.joinToString("\n") { it.prettyPrint(depth + 1) }
+        val indent = "\t".repeat(depth)
+        val allTypes = elements.joinToString("\n$indent") { it.prettyPrint(depth + 1) }
+        val allRefs = refs.joinToString("\n$indent") { it.prettyPrint(depth + 1) }
+        val printer = getKoinInstance<Printer>()
+        val prettyName = printer.apply(name, PrintableKey.Bold, PrintableKey.Italics)
 
-        return """
-            $name
-            $allTypes
-            $allRefs
-        """.trimIndent()
+        return "$indent$prettyName\n$indent$allTypes\n$indent$allRefs"
     }
 
     override fun exists(env: Env): AnyType = this

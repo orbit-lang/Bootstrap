@@ -8,6 +8,7 @@ import org.orbit.frontend.phase.Parser
 class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRule<RValueNode> {
 	private companion object {
 		val Default = arrayOf<ValueRule<*>>(
+			TupleLiteralRule,
 			InvokableReferenceRule,
 			TypeIdentifierRule.Naked,
 			IdentifierRule,

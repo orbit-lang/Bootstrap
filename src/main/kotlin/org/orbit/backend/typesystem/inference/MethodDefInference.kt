@@ -37,14 +37,14 @@ object CaseInference : ITypeInference<CaseNode>, KoinComponent {
             ?: throw invocation.make<TypeSystem>("Could not infer `Self` Type in this context", node)
 
         if (!TypeUtils.checkEq(env, matchType, patternType)) {
-            throw invocation.make<TypeSystem>("Case patterns within a Select expression must match the condition type. Expected `${matchType.id}`, found `${patternType.id}`", node.pattern)
+            throw invocation.make<TypeSystem>("Case patterns within a Select expression must match the condition type. Expected `$matchType`, found `$patternType`", node.pattern)
         }
 
         if (!TypeUtils.checkEq(env, bodyType, selfType.returns)) {
-            throw invocation.make<TypeSystem>("Case expression expected to return Type `${selfType.returns.id}`, found `${bodyType.id}`", node.body)
+            throw invocation.make<TypeSystem>("Case expression expected to return Type `${selfType.returns}`, found `$bodyType`", node.body)
         }
 
-        return IType.Arrow1(patternType, bodyType)
+        return IType.Case(patternType, bodyType)
     }
 }
 
@@ -52,37 +52,41 @@ object SelectInference : ITypeInference<SelectNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(node: SelectNode, env: Env): IType<*> {
+        val typeAnnotation = TypeSystemUtils.popTypeAnnotation()
+            ?: TODO("CANNOT INFER TYPE ANNOTATION")
+
         val conditionType = TypeSystemUtils.infer(node.condition, env)
         val nEnv = env.withMatch(conditionType)
-        val caseTypes = TypeSystemUtils.inferAllAs<CaseNode, IType.Arrow1>(node.cases, nEnv)
+        val caseTypes = TypeSystemUtils.inferAllAs<CaseNode, IType.Case>(node.cases, nEnv)
         val cardinality = caseTypes.fold(ITypeCardinality.Zero as ITypeCardinality) { acc, next -> acc + next.getCardinality() }
         val hasElseCase = node.cases.any { it.pattern is ElseNode }
 
         if (cardinality is ITypeCardinality.Infinite) {
             return when (hasElseCase) {
-                true -> conditionType
+                true -> typeAnnotation
                 else -> throw invocation.make<TypeSystem>("Type `$conditionType` has an infinite number of cases and therefore requires an Else case", node)
             }
         }
 
-        val constructableType = conditionType.flatten(nEnv) as? IType.IConstructableType<*>
+        val constructableType = conditionType.flatten(nEnv) as? IType.ICaseIterable<*>
             ?: throw invocation.compilerError<TypeSystem>("Cannot perform Case analysis on non-constructable Type `$conditionType`", node.condition)
 
         // If this is not an Infinite Type, ensure all possible cases are covered
-        val coveredCases = caseTypes.map { it.takes }.distinctBy { it.id }
-        val expectedCases = constructableType.getConstructors().flatMap { it.getDomain() }
+        val actualCases = caseTypes.map { it.condition }
+        val expectedCases = constructableType.getCases(typeAnnotation).map { it.condition }
+
+        val coveredCases = actualCases.map { it.id }.distinct()
         val conditionCardinality = constructableType.getCardinality()
-
-        if (!hasElseCase && conditionCardinality is ITypeCardinality.Finite && coveredCases.count() != conditionCardinality.count) {
-            val coveredIds = coveredCases.map { it.id }
-            val missingCases = expectedCases.filterNot { it.id in coveredIds }
+//
+        if (!hasElseCase && conditionCardinality is ITypeCardinality.Finite && actualCases.count() != conditionCardinality.count) {
+            val missingCases = expectedCases.filterNot { it.id in coveredCases }
             val prettyMissing = missingCases.joinToString("\n\t")
-
-            // TODO - Spit out actual missing cases if possible
-            throw invocation.make<TypeSystem>("Missing Cases for Select expression of Type `${constructableType.id}`:\n\t$prettyMissing", node)
+//
+//            // TODO - Spit out actual missing cases if possible
+            throw invocation.make<TypeSystem>("Missing ${missingCases.count()}/${expectedCases.count()} Case(s) for Select expression of Type `$constructableType`:\n\t$prettyMissing", node)
         }
 
-        return constructableType
+        return typeAnnotation
     }
 }
 
@@ -116,7 +120,7 @@ object MethodDefInference : ITypeInference<MethodDefNode>, KoinComponent {
 
         return when (TypeUtils.checkEq(nEnv, returnType, signature.returns)) {
             true -> signature
-            else -> throw invocation.make<TypeSystem>("Method `${node.signature.identifierNode.identifier}` declared return Type of `${signature.returns.id}`, found `${returnType.id}`", node)
+            else -> throw invocation.make<TypeSystem>("Method `${node.signature.identifierNode.identifier}` declared return Type of `${signature.returns}`, found `${returnType}`", node)
         }
     }
 }

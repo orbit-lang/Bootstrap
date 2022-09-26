@@ -42,11 +42,18 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 
 		val lhs = when (start.type) {
 			TokenTypes.LParen -> {
-				val tok = context.expect(TokenTypes.LParen)
-				val expr = context.attempt(ExpressionRule(*valueRules))
-					?: throw invocation.make<Parser>("Expected expression after open parenthesis", tok)
-				context.expect(TokenTypes.RParen)
-				expr
+				// TODO - Not a big fan of shoehorning in special cases like this
+				when (val tuple = context.attempt(TupleLiteralRule)) {
+					null -> {
+						val tok = context.expect(TokenTypes.LParen)
+						val expr = context.attempt(ExpressionRule(*valueRules))
+							?: throw invocation.make<Parser>("Expected expression after open parenthesis", tok)
+						context.expect(TokenTypes.RParen)
+						expr
+					}
+
+					else -> tuple
+				}
 			}
 
 			TokenTypes.OperatorSymbol -> {

@@ -1,6 +1,6 @@
 package org.orbit.graph.pathresolvers
 
-import org.orbit.core.OrbitMangler
+import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.core.nodes.IntLiteralNode
 
-object IntLiteralPathResolver : LiteralPathResolver<IntLiteralNode>(OrbitMangler.unmangle("Orb::Core::Types::Int"))
+object IntLiteralPathResolver : LiteralPathResolver<IntLiteralNode>(OrbCoreNumbers.intType.getPath())

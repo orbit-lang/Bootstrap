@@ -1,13 +1,14 @@
 package org.orbit.precess.backend.components
 
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
+import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
 import org.orbit.core.components.IIntrinsicOperator
 import org.orbit.core.nodes.OperatorFixity
 import org.orbit.precess.backend.utils.*
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
-import java.time.Month
 
 fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) : M? {
     for (modifier in all()) {
@@ -301,9 +302,58 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)
             val printer = getKoinInstance<Printer>()
+            val simpleName = getPath().last()
 
-            return "$indent${printer.apply(name, PrintableKey.Bold)}"
+            return "$indent${printer.apply(simpleName, PrintableKey.Bold)}"
         }
+
+        override fun toString(): String = prettyPrint()
+
+        fun getPath() : Path
+            = OrbitMangler.unmangle(name)
+    }
+
+    data class Case(val condition: AnyType, val result: AnyType) : IArrow<Case> {
+        override val id: String = "case (${condition.id}) -> ${result.id}"
+
+        override fun getCardinality(): ITypeCardinality
+            = condition.getCardinality()
+
+        override fun getDomain(): List<AnyType> = listOf(condition)
+        override fun getCodomain(): AnyType = result
+
+        override fun never(args: List<AnyType>): Never {
+            TODO("Not yet implemented")
+        }
+
+        override fun curry(): IArrow<*> = this
+        override fun substitute(substitution: Substitution): Case
+            = Case(condition.substitute(substitution), result.substitute(substitution))
+
+        override fun unbox(env: Env): AnyType = when (condition) {
+            is UnboxableType -> Case(condition.unbox(env), when (result) {
+                is UnboxableType -> result.unbox(env)
+                else -> result
+            })
+
+            else -> when (result) {
+                is UnboxableType -> when (condition) {
+                    is UnboxableType -> Case(condition.unbox(env), result.unbox(env))
+                    else -> Case(condition, result.unbox(env))
+                }
+                else -> Case(condition, result)
+            }
+        }
+
+        override fun equals(other: Any?): Boolean = when (other) {
+            is Case -> other.condition == condition && other.result == result
+            else -> false
+        }
+
+        override fun exists(env: Env): AnyType = this
+
+        override fun prettyPrint(depth: Int): String
+            = "case ($condition) -> $result"
 
         override fun toString(): String = prettyPrint()
     }
@@ -334,8 +384,44 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         val constructedType: T
     }
 
+    data class TupleConstructor(val left: AnyType, val right: AnyType, override val constructedType: Tuple) : IConstructor<Tuple> {
+        override fun getDomain(): List<AnyType>
+            = listOf(left, right)
+
+        override fun getCodomain(): AnyType = constructedType
+
+        override fun curry(): IArrow<*> = this
+
+        override fun never(args: List<AnyType>): Never {
+            TODO("Not yet implemented")
+        }
+
+        override val id: String = "(${left.id} * ${left.id}) -> ${constructedType.id}"
+
+        override fun exists(env: Env): AnyType {
+            TODO("Not yet implemented")
+        }
+
+        override fun substitute(substitution: Substitution): IConstructor<Tuple>
+            = TupleConstructor(left.substitute(substitution), right.substitute(substitution), constructedType.substitute(substitution))
+
+        override fun unbox(env: Env): AnyType {
+            TODO("Not yet implemented")
+        }
+
+        override fun prettyPrint(depth: Int): String
+            = Arrow2(left, right, constructedType).prettyPrint(depth)
+
+        override fun toString(): String
+            = prettyPrint()
+    }
+
     sealed interface IConstructableType<Self: IConstructableType<Self>> : IType<Self> {
         fun getConstructors() : List<IConstructor<Self>>
+    }
+
+    sealed interface ICaseIterable<Self: ICaseIterable<Self>> : IType<Self> {
+        fun getCases(result: AnyType) : List<Case>
     }
 
     sealed interface IIndexType<I, Self : IIndexType<I, Self>> : IType<Self> {
@@ -350,12 +436,70 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     sealed interface IProductType<I, Self : IProductType<I, Self>> : IAlgebraicType<Self>, IIndexType<I, Self>
     sealed interface ISumType<Self : ISumType<Self>> : IAlgebraicType<Self>, IIndexType<AnyType, Self>
 
-    data class Tuple(val left: AnyType, val right: AnyType) : IProductType<Int, Tuple> {
+    data class Tuple(val left: AnyType, val right: AnyType) : IProductType<Int, Tuple>, ICaseIterable<Tuple> {
         override val id: String = "(${left.id} * ${right.id})"
 
-        override fun getConstructors(): List<IConstructor<Tuple>> = emptyList()
+        override fun getCases(result: AnyType): List<Case> {
+            val leftCases = when (left) {
+                is ICaseIterable<*> -> left.getCases(result)
+                else -> listOf(Case(left, result))
+            }
+
+            val rightCases = when (right) {
+                is ICaseIterable<*> -> right.getCases(result)
+                else -> listOf(Case(right, result))
+            }
+
+            val cases = mutableListOf<Case>()
+            for (lCase in leftCases) {
+                for (rCase in rightCases) {
+                    val nCase = Case(Tuple(lCase.condition, rCase.condition), result)
+                    val allCases = cases.map { it.id }
+
+                    if (!allCases.contains(nCase.id)) cases.add(nCase)
+                }
+            }
+
+            return cases
+        }
+
+        private fun getLeftConstructors() : List<IConstructor<*>> = when (left) {
+            is IConstructableType<*> -> left.getConstructors()
+            else -> emptyList()
+        }
+
+        private fun getRightConstructors() : List<IConstructor<*>> = when (right) {
+            is IConstructableType<*> -> right.getConstructors()
+            else -> emptyList()
+        }
+
+        /**
+         * alias TruthTable = (Bool, Bool)
+         *
+         * (true, true)
+         */
+        override fun getConstructors(): List<IConstructor<Tuple>> {
+            val constructors = mutableListOf<TupleConstructor>()
+            for (lConstructor in getLeftConstructors()) {
+                for (rConstructor in getRightConstructors()) {
+                    val lDomain = lConstructor.getDomain()
+                    val rDomain = rConstructor.getDomain()
+
+                    if (lDomain.count() > 1 || rDomain.count() > 1) TODO("2+-ary Tuple Constructors")
+
+                    val constructor = TupleConstructor(lDomain[0], rDomain[0], this)
+
+                    if (constructors.none { it.id == constructor.id }) {
+                        constructors.add(constructor)
+                    }
+                }
+            }
+
+            return constructors
+        }
+
         override fun getCardinality(): ITypeCardinality
-            = ITypeCardinality.Finite(2)
+            = left.getCardinality() + right.getCardinality()
 
         override fun getElement(at: Int): AnyType = when (at) {
             0 -> left
@@ -387,6 +531,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun unbox(env: Env): AnyType
             = Tuple(TypeUtils.unbox(env, left), TypeUtils.unbox(env, right))
+
+        override fun prettyPrint(depth: Int): String
+            = "($left, $right)"
 
         override fun toString(): String = prettyPrint()
     }
@@ -473,11 +620,25 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IAlgebraicType<Union> {
+    data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IAlgebraicType<Union>, ICaseIterable<Union> {
         override val id: String = "(${left.id} | ${right.id})"
 
         override fun getCardinality(): ITypeCardinality
             = ITypeCardinality.Finite(2)
+
+        override fun getCases(result: AnyType): List<Case> {
+            val lCases = when (left) {
+                is ICaseIterable<*> -> left.getCases(result)
+                else -> listOf(Case(left, result))
+            }
+
+            val rCases = when (right) {
+                is ICaseIterable<*> -> right.getCases(result)
+                else -> listOf(Case(right, result))
+            }
+
+            return lCases + rCases
+        }
 
         override fun getElement(at: AnyType): AnyType = when (at) {
             left -> left
@@ -519,6 +680,9 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun unbox(env: Env): AnyType
             = Union(TypeUtils.unbox(env, left), TypeUtils.unbox(env, right))
+
+        override fun prettyPrint(depth: Int): String
+            = "($left | $right)"
 
         override fun toString(): String = prettyPrint()
     }
