@@ -1,34 +1,53 @@
 package org.orbit.precess.backend.components
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.orbit.backend.typesystem.inference.evidence.ContextualEvidence
 import org.orbit.backend.typesystem.intrinsics.IOrbModule
 import org.orbit.backend.typesystem.intrinsics.getPublicAPI
+import org.orbit.backend.typesystem.phase.globalContext
 import org.orbit.precess.backend.utils.AnyArrow
 import org.orbit.precess.backend.utils.AnyType
 import org.orbit.precess.backend.utils.TypeUtils
+import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
-import kotlin.reflect.KProperty
+
+interface IContextualComponent
 
 class Env(
     val name: String = "",
-    private var _elements: List<IType<*>> = emptyList(),
+    private var _elements: List<AnyType> = emptyList(),
     private var _refs: List<IRef> = emptyList(),
     private var _contracts: List<Contract> = emptyList(),
     private var _projections: List<Projection> = emptyList(),
     private var _expressionCache: Map<String, AnyType> = emptyMap(),
     val parent: Env? = null
-) : IType<Env> {
-    companion object {
-        private var current: Env = Env()
+) : IType.SubstitutableType<Env> {
+    constructor() : this("\uD835\uDF92")
 
-        fun capture(fn: () -> Env): Env {
-            current = fn()
+    companion object : KoinComponent {
+        private val globalContext: Env by globalContext()
+        private val invocation: Invocation by inject()
 
-            return current
+        fun findEvidence(elementName: String) : ContextualEvidence? {
+            // First, check the easiest case where `elementName` is visible in the global context
+            val element = globalContext.getElement(elementName)
+
+            if (element != null) return ContextualEvidence(globalContext)
+
+            // No such luck! Let's start iterating over child contexts (seeing as how we know we're currently in global)
+            for (elem in globalContext.elements) {
+                if (elem !is Env) continue
+                val type = elem.getElement(elementName)
+
+                if (type != null) return ContextualEvidence(elem)
+            }
+
+            // If we didn't find our element in any visible context, it should mean the element is actually undefined
+            return null
         }
-
-        operator fun getValue(obj: Any, property: KProperty<*>): Env = current
     }
 
     val elements get() = _elements
@@ -49,8 +68,8 @@ class Env(
             }
         }
 
-        object TypeProtector : Protector<IType<*>?> {
-            override fun protect(block: () -> IType<*>?): IType<*>? {
+        object TypeProtector : Protector<AnyType?> {
+            override fun protect(block: () -> AnyType?): AnyType? {
                 val result = block() ?: return null
 
                 return when (result) {
@@ -69,18 +88,28 @@ class Env(
         fun <T> panic(never: IType.Never): T = never.panic()
     }
 
-    internal constructor(name: String = "", type: IType<*>, ref: IRef) : this(name, listOf(type), listOf(ref))
+    internal constructor(name: String = "", type: AnyType, ref: IRef) : this(name, listOf(type), listOf(ref))
 
     override val id: String get() {
         return "$name : ${toString()}"
     }
 
+    override fun getCanonicalName(): String = name
+
     override fun getCardinality(): ITypeCardinality
         = ITypeCardinality.Zero
 
-    override fun substitute(substitution: Substitution): Env = this
+    override fun substitute(substitution: Substitution): Env
+        = Env(name, elements.map { it.substitute(substitution) }, refs, contracts, projections, expressionCache, parent)
 
     private fun <T> protect(protector: Protector<T>, block: () -> T): T = protector.protect(block)
+
+    fun solving(typeVariable: IType.TypeVar, concrete: AnyType) : Env
+        = reduce(Decl.TypeVariable(typeVariable.name)).extend(Decl.TypeAlias(typeVariable.name, Expr.AnyTypeLiteral(concrete)))
+            .substitute(Substitution(typeVariable, concrete))
+
+    fun getUnsolvedTypeParameters() : List<IType.TypeVar>
+        = elements.filterIsInstance<IType.TypeVar>()
 
     fun getRef(of: String): IRef? = protect(Protector.RefProtector) {
         refs.firstOrNull { it.name == of }
@@ -91,12 +120,12 @@ class Env(
     fun contains(type: AnyType) : AnyType
         = type.exists(this)
 
-    fun getElement(id: String): IType<*>? = protect(Protector.TypeProtector) {
+    fun getElement(id: String): AnyType? = protect(Protector.TypeProtector) {
         elements.firstOrNull { it.getCanonicalName() == id }
     }
 
-    inline fun <reified T : IType<T>> getElementAs(id: String): T? = getElement(id) as? T
-    inline fun <reified T : IType<T>> getRefAs(of: String): T? = getRef(of) as? T
+    inline fun <reified T : IType.SubstitutableType<T>> getElementAs(id: String): T? = getElement(id) as? T
+    inline fun <reified T : IType.SubstitutableType<T>> getRefAs(of: String): T? = getRef(of) as? T
 
     fun getProjections(of: AnyType): List<Projection> = projections.filter { it.source == of }
 

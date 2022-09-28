@@ -6,6 +6,6 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object ElseInference : ITypeInference<ElseNode>, KoinComponent {
-    override fun infer(node: ElseNode, env: Env): IType<*>
+    override fun infer(node: ElseNode, env: Env): AnyType
         = env.getMatchType()
 }

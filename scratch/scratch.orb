@@ -4,25 +4,35 @@ module Orb::Core::Numbers {
 
 module Orb::Core::Types {
     type Unit
+    trait Any
 }
 
 module M with Orb::Core::* {
-#    context OptionCtx [Value] {
-#        type Option {
-#            constructor None
-#            constructor Some(value Value)
-#        }
-#    }
-#
-#    extension OptionCtx {
-#
-#    }
+    context OptionCtx [Value] {
+        type Option {
+            constructor None
+            constructor Some(value Value)
+        }
+    }
+
+    context TransformCtx [F, T] with trait Transformable {
+        (Self) map (value T) (F)
+    }
+
+    extension Option within OptionCtx [Any] {
+        (self Value) wrap () (Option) = Some()
+
+        projection Option : Transformable within TransformCtx [Value, Option] {
+            (Option) map (value Value) (Option) = Some()
+        }
+    }
 
     type Foo
 
-    extension Foo {
-        (Foo) new (i Int, j Int) (Foo) = Foo()
-    }
+    projection Foo : Any
 
-    (Foo) main () () = f = Foo.new(1)
+    (Foo) main () () within OptionCtx [Foo] {
+        foo = Foo()
+        opt = foo.wrap()
+    }
 }

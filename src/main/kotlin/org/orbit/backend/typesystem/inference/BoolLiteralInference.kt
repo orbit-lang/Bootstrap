@@ -6,7 +6,7 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object BoolLiteralInference : ITypeInference<BoolLiteralNode> {
-    override fun infer(node: BoolLiteralNode, env: Env): IType<*> = when (node.value) {
+    override fun infer(node: BoolLiteralNode, env: Env): AnyType = when (node.value) {
         true -> OrbCoreBooleans.trueType
         else -> OrbCoreBooleans.falseType
     }

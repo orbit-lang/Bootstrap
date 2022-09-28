@@ -13,7 +13,7 @@ import org.orbit.precess.backend.components.IType
 import org.orbit.precess.backend.utils.AnyType
 
 object AlgebraicConstructorInference : ITypeInference<AlgebraicConstructorNode> {
-    override fun infer(node: AlgebraicConstructorNode, env: Env): IType<*> {
+    override fun infer(node: AlgebraicConstructorNode, env: Env): AnyType {
         val path = node.getPath()
         // TODO - Allow recursive constructors
         val nType = IType.Type(path.toString(OrbitMangler))
@@ -30,7 +30,7 @@ object AlgebraicConstructorInference : ITypeInference<AlgebraicConstructorNode> 
 }
 
 object TypeDefInference : ITypeInference<TypeDefNode> {
-    override fun infer(node: TypeDefNode, env: Env): IType<*> {
+    override fun infer(node: TypeDefNode, env: Env): AnyType {
         val path = node.getPath()
         val type = IType.Type(path.toString(OrbitMangler))
 

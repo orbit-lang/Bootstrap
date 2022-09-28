@@ -14,12 +14,12 @@ import org.orbit.precess.backend.utils.TypeUtils
 import org.orbit.util.Invocation
 
 object TypeBindingPatternInference : ITypeInference<TypeBindingPatternNode> {
-    override fun infer(node: TypeBindingPatternNode, env: Env): IType<*>
+    override fun infer(node: TypeBindingPatternNode, env: Env): AnyType
         = TypeSystemUtils.infer(node.typeIdentifier, env)
 }
 
 object StructuralPatternInference : ITypeInference<StructuralPatternNode> {
-    override fun infer(node: StructuralPatternNode, env: Env): IType<*> {
+    override fun infer(node: StructuralPatternNode, env: Env): AnyType {
         val bindingTypes = TypeSystemUtils.inferAll(node.bindings, env)
 
         return IType.Always
@@ -29,7 +29,7 @@ object StructuralPatternInference : ITypeInference<StructuralPatternNode> {
 object CaseInference : ITypeInference<CaseNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: CaseNode, env: Env): IType<*> {
+    override fun infer(node: CaseNode, env: Env): AnyType {
         val patternType = TypeSystemUtils.infer(node.pattern, env)
         val bodyType = TypeSystemUtils.infer(node.body, env)
         val matchType = env.getMatchType()
@@ -51,7 +51,7 @@ object CaseInference : ITypeInference<CaseNode>, KoinComponent {
 object SelectInference : ITypeInference<SelectNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: SelectNode, env: Env): IType<*> {
+    override fun infer(node: SelectNode, env: Env): AnyType {
         val typeAnnotation = TypeSystemUtils.popTypeAnnotation()
             ?: TODO("CANNOT INFER TYPE ANNOTATION")
 
@@ -93,7 +93,13 @@ object SelectInference : ITypeInference<SelectNode>, KoinComponent {
 object MethodDefInference : ITypeInference<MethodDefNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: MethodDefNode, env: Env): IType<*> {
+    @Suppress("NAME_SHADOWING")
+    override fun infer(node: MethodDefNode, env: Env): AnyType {
+        val env = when (val n = node.context) {
+            null -> env
+            else -> env + TypeSystemUtils.inferAs(n, env)
+        }
+
         val signature = TypeSystemUtils.inferAs<MethodSignatureNode, IType.Signature>(node.signature, env, parametersOf(false))
 
         TypeSystemUtils.pushTypeAnnotation(signature.returns)

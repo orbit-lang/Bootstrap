@@ -9,10 +9,10 @@ import org.orbit.util.Invocation
 import org.orbit.util.getKoinInstance
 
 interface ITypeInference<N: INode> {
-    fun infer(node: N, env: Env) : IType<*>
+    fun infer(node: N, env: Env) : AnyType
 }
 
-fun <N: INode> ITypeInference<N>.run(node: N, env: Env) : IType<*> = when (val result = infer(node, env)) {
+fun <N: INode> ITypeInference<N>.run(node: N, env: Env) : AnyType = when (val result = infer(node, env)) {
     is IType.Never -> throw getKoinInstance<Invocation>().make<TypeSystem>(result.message, node)
     else -> result
 }

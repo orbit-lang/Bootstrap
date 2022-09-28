@@ -12,6 +12,7 @@ import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
 import org.orbit.backend.typegen.components.walkers.*
 import org.orbit.backend.typesystem.inference.*
+import org.orbit.backend.typesystem.inference.evidence.*
 import org.orbit.core.Path
 import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.nodes.*
@@ -127,6 +128,7 @@ val mainModule = module {
 	single(MethodBodyStatementWalker)
 	single(TypeExpressionWalker)
 
+	// Type Inference
 	single(ProgramInference)
 	single(ModuleInference)
 	single(TypeDefInference)
@@ -159,6 +161,13 @@ val mainModule = module {
 	single(AnonymousParameterInference)
 	single(TupleLiteralInference)
 	single(ExtensionInference)
+	single(ContextInstantiationInference)
+
+	// Contextual Evidence Gathering
+	single(TypeIdentifierEvidenceProvider)
+	single(SignatureEvidenceProvider)
+	single(MethodDefEvidenceProvider)
+	single(ProjectionEvidenceProvider)
 }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: ITypeInference<N>) : BeanDefinition<ITypeInference<N>>
@@ -170,6 +179,9 @@ private inline fun <reified N: INode> org.koin.core.module.Module.inferenceFacto
 private inline fun <reified N: INode, reified P: IPrecessNode> org.koin.core.module.Module.single(walker: IPrecessNodeWalker<N, P>) : BeanDefinition<IPrecessNodeWalker<N, P>>
 	= single(named("${N::class.java.simpleName}${P::class.java.simpleName}")) { walker }
 
+private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: IContextualEvidenceProvider<N>) : BeanDefinition<IContextualEvidenceProvider<N>>
+	= single(named("evidence${N::class.java.simpleName}")) { inference }
+
 inline fun <reified T> getKoinInstance(): T {
 	return object : KoinComponent {
 		val value: T by inject()
@@ -178,6 +190,9 @@ inline fun <reified T> getKoinInstance(): T {
 
 fun <T: Any> getKoinInstance(clazz: KClass<T>) : T
 	= KoinPlatformTools.defaultContext().get().get(clazz)
+
+inline fun <reified T: Any> getKoinInstance(named: String) : T
+	= KoinPlatformTools.defaultContext().get().get(named(named))
 
 class Orbit : CliktCommand() {
 	override fun run() {}

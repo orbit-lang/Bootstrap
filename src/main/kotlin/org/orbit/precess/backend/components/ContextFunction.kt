@@ -26,7 +26,7 @@ interface ContextFunction {
     }
 
     sealed interface Predicate : Clause {
-        data class Exists(val element: IType<*>) : Predicate {
+        data class Exists(val element: AnyType) : Predicate {
             override fun weaken(env: Env): Env = when (env.elements.contains(element)) {
                 true -> env
                 else -> env.extend(Decl.DenyElement(element.id))

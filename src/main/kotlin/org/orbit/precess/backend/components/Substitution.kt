@@ -1,10 +1,12 @@
 package org.orbit.precess.backend.components
 
-data class Substitution(val old: IType<*>, val new: IType<*>)
+import org.orbit.precess.backend.utils.AnyType
 
-fun <S: Substitutable<S>> List<S>.substituteAll(substitution: Substitution) : List<S>
+data class Substitution(val old: AnyType, val new: AnyType)
+
+fun List<IType.SubstitutableType>.substituteAll(substitution: Substitution) : List<IType.SubstitutableType>
     = map { it.substitute(substitution) }
 
-interface Substitutable<Self : Substitutable<Self>> {
-    fun substitute(substitution: Substitution): Self
+interface Substitutable {
+    fun substitute(substitution: Substitution): AnyType
 }

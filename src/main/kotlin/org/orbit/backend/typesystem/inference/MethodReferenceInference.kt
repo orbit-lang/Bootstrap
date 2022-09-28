@@ -13,7 +13,7 @@ import org.orbit.util.Invocation
 object MethodReferenceInference : ITypeInference<MethodReferenceNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: MethodReferenceNode, env: Env): IType<*> {
+    override fun infer(node: MethodReferenceNode, env: Env): AnyType {
         val receiverType = TypeSystemUtils.infer(node.typeExpressionNode, env)
 
         if (node.isConstructor) {

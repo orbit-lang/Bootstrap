@@ -13,7 +13,7 @@ import org.orbit.util.Invocation
 object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: ConstructorInvocationNode, env: Env): IType<*> {
+    override fun infer(node: ConstructorInvocationNode, env: Env): AnyType {
         val type = TypeSystemUtils.infer(node.typeExpressionNode, env)
         val constructableType = type as? IType.Type
             ?: throw invocation.make<TypeSystem>("Cannot construct value of uninhabited Type `${type.id}`", node.typeExpressionNode)

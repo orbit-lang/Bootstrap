@@ -1,6 +1,6 @@
 package org.orbit.precess.backend.components
 
-sealed interface Contract {
+sealed interface Contract : IContextualComponent {
     sealed interface ContractResult {
         data class Verified(val env: Env) : ContractResult
         data class Violated(val reason: IType.Never) : ContractResult

@@ -13,7 +13,7 @@ import org.orbit.util.Invocation
 object AnonymousParameterInference : ITypeInference<AnonymousParameterNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: AnonymousParameterNode, env: Env): IType<*> {
+    override fun infer(node: AnonymousParameterNode, env: Env): AnyType {
         val projectedType = env.getProjectedType()
         val projectedTrait = env.getProjectedTrait()
         val projectedSignature = env.getProjectedSignature()

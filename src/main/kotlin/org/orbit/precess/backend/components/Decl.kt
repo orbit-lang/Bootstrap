@@ -37,10 +37,14 @@ sealed interface Decl : IPrecessComponent {
             val nElements = (root.elements + env.elements).distinctBy { it.id }
             val nRefs = (root.refs + env.refs).distinctBy { it.uniqueId }
             val nContracts = (root.contracts + env.contracts)
-            val nProjections = (root.projections + env.projections)
+            val nProjections = (root.projections + env.projections).distinctBy { it.uniqueId }
             val nExpressionCache = (root.expressionCache + env.expressionCache)
+            val nName = when (root.name) {
+                env.name -> root.name
+                else -> "${root.name} & ${env.name}"
+            }
 
-            return Env(env.name, nElements, nRefs, nContracts, nProjections, nExpressionCache)
+            return Env(nName, nElements, nRefs, nContracts, nProjections, nExpressionCache)
         }
 
         override fun reduce(env: Env): Env = env
@@ -88,6 +92,15 @@ sealed interface Decl : IPrecessComponent {
 
         override fun reduce(env: Env): Env
             = Env(env.name, env.elements - IType.Alias(op.identifier, op), env.refs, env.contracts, env.projections, env.expressionCache)
+    }
+
+    data class TypeVariable(val name: String) : Decl {
+        override fun exists(env: Env): Boolean = env.elements.any { it is IType.TypeVar && it.name == name }
+        override fun xtend(env: Env): Env
+            = Env(env.name, env.elements + IType.TypeVar(name), env.refs, env.contracts, env.projections, env.expressionCache)
+
+        override fun reduce(env: Env): Env
+            = Env(env.name, env.elements - IType.TypeVar(name), env.refs, env.contracts, env.projections, env.expressionCache)
     }
 
     data class Type(val type: IType.Type, val members: List<IType.Member> = emptyList()) : Decl {

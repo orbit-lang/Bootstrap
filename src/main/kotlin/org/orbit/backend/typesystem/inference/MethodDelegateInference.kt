@@ -15,7 +15,7 @@ import org.orbit.util.Invocation
 object MethodDelegateInference : ITypeInference<MethodDelegateNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: MethodDelegateNode, env: Env): IType<*> {
+    override fun infer(node: MethodDelegateNode, env: Env): AnyType {
         val projectedTrait = env.getProjectedTrait()
         val nEnv = env.withProjectedSignature(node.methodName.identifier)
             ?: throw invocation.make<TypeSystem>("Trait `$projectedTrait` does not declare required Signature `${node.methodName.identifier}`", node.methodName)

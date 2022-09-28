@@ -9,13 +9,13 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object ContextInference : ITypeInference<ContextNode> {
-    override fun infer(node: ContextNode, env: Env): IType<*> {
+    override fun infer(node: ContextNode, env: Env): AnyType {
         val nEnv = env.extend(Decl.Clone(node.getPath().toString(OrbitMangler)))
 
         node.typeVariables.forEach {
             val name = it.getPath().toString(OrbitMangler)
 
-            nEnv.extendInPlace(Decl.Type(IType.Type(name), emptyMap()))
+            nEnv.extendInPlace(Decl.TypeVariable(name))
         }
 
         TypeSystemUtils.inferAll(node.body, nEnv)

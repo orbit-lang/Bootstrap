@@ -1,7 +1,13 @@
 package org.orbit.backend.typesystem.phase
 
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import org.koin.core.component.inject
+import org.koin.core.context.loadKoinModules
+import org.koin.core.qualifier.Qualifier
+import org.koin.core.qualifier.named
+import org.koin.dsl.module
+import org.koin.mp.KoinPlatformTools
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
@@ -19,6 +25,10 @@ object TypeSystem : Phase<ProgramNode, IType.IMetaType<*>>, KoinComponent {
             .import(OrbCoreNumbers)
             .import(OrbCoreTypes)
 
+        loadKoinModules(module {
+            single(named("globalContext")) { env }
+        })
+
         val result = TypeSystemUtils.inferAs<ProgramNode, IType.IMetaType<*>>(input, env)
 
         println(env)
@@ -26,3 +36,6 @@ object TypeSystem : Phase<ProgramNode, IType.IMetaType<*>>, KoinComponent {
         return result
     }
 }
+
+fun KoinComponent.globalContext(): Lazy<Env> =
+    lazy(KoinPlatformTools.defaultLazyMode()) { get(named("globalContext"), null) }

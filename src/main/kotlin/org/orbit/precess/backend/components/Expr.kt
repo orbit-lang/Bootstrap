@@ -2,11 +2,11 @@ package org.orbit.precess.backend.components
 
 import org.orbit.precess.backend.utils.*
 
-sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrecessComponent {
+sealed interface Expr<Self : Expr<Self>> : Substitutable, Inf<Self>, IPrecessComponent {
     data class Var(val name: String) : Expr<Var> {
         override fun substitute(substitution: Substitution): Var = this
 
-        override fun infer(env: Env): IType<*> =
+        override fun infer(env: Env): AnyType =
             env.getRef(name)?.type ?: IType.Never("`$name` is undefined in the current context")
 
         override fun toString(): String = name
@@ -21,7 +21,7 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrec
         override fun toString(): String
             = "safe $term"
 
-        override fun infer(env: Env): IType<*>
+        override fun infer(env: Env): AnyType
             = IType.Safe(term.infer(env))
     }
 
@@ -29,8 +29,9 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrec
         override fun substitute(substitution: Substitution): Type = this
         override fun toString(): String = typeId
 
-        override fun infer(env: Env): IType<*> =
-            env.getElement(typeId) ?: IType.Never("Unknown Type `$typeId` in current context:\n$env")
+        override fun infer(env: Env): AnyType =
+            env.getElement(typeId)
+                ?: IType.Never("Unknown Type `$typeId` in current context:\n$env")
     }
 
     data class AnyTypeLiteral(val type: AnyType) : Expr<AnyTypeLiteral> {
@@ -46,14 +47,14 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrec
 
         override fun toString(): String = "($domainExpr) -> $codomainExpr"
 
-        override fun infer(env: Env): IType<*>
+        override fun infer(env: Env): AnyType
             = IType.Arrow1(domainExpr.infer(env), codomainExpr.infer(env))
     }
 
     data class Block(val body: List<AnyExpr>) : Expr<Block> {
         override fun substitute(substitution: Substitution): Block = Block(body.map { it.substitute(substitution) })
 
-        override fun infer(env: Env): IType<*> = when (body.isEmpty()) {
+        override fun infer(env: Env): AnyType = when (body.isEmpty()) {
             true -> IType.Unit
             else -> body.last().infer(env)
         }
@@ -70,7 +71,7 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrec
 
         override fun toString(): String = "`return $expr`"
 
-        override fun infer(env: Env): IType<*> = expr.infer(env)
+        override fun infer(env: Env): AnyType = expr.infer(env)
     }
 
     sealed interface MatchResult {
@@ -84,7 +85,7 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrec
 
     object ElsePattern : IPattern {
         override fun substitute(substitution: Substitution): IPattern = this
-        override fun infer(env: Env): IType<*> = IType.Unit
+        override fun infer(env: Env): AnyType = IType.Unit
         override fun match(env: Env, target: AnyExpr): MatchResult = MatchResult.ReachablePattern(env)
 
         override fun toString(): String = "`else`"
@@ -109,26 +110,7 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrec
         override fun substitute(substitution: Substitution): Case =
             Case(pattern.substitute(substitution), block.substitute(substitution))
 
-        override fun infer(env: Env): IType<*> = IType.Arrow1(pattern.infer(env), block.infer(env))
-    }
-
-    data class Select(val target: AnyExpr, val cases: List<Case>) : Expr<Select> {
-        override fun substitute(substitution: Substitution): Select =
-            Select(target.substitute(substitution), cases.map { it.substitute(substitution) })
-
-        override fun infer(env: Env): IType<*> = cases.map { it.block.infer(env) as IType.UnifiableType<*> }
-            .reduce { acc, next -> TypeUtils.unify(env, acc, next) }
-
-        fun verify(env: Env): Select {
-            val unreachable = cases.map { it.pattern.match(env, target) }
-                .filterIsInstance<MatchResult.UnreachablePattern>()
-
-            if (unreachable.isEmpty()) return this
-
-            unreachable.fold(IType.Never("The following errors were found while verifying Select expression:")) { acc, next ->
-                acc.unify(env, next.reason) as IType.Never
-            }.panic()
-        }
+        override fun infer(env: Env): AnyType = IType.Arrow1(pattern.infer(env), block.infer(env))
     }
 
     data class Invoke(val arrow: AnyArrow, val args: List<AnyExpr>) : Expr<Invoke> {
@@ -139,7 +121,7 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrec
 
         override fun toString(): String = "${arrow.id}(${args.joinToString(", ") { it.toString() }})"
 
-        override fun infer(env: Env): IType<*> {
+        override fun infer(env: Env): AnyType {
             val exit = { arrow.never(args.map { it.infer(env) }) }
             val domain = arrow.getDomain()
 
@@ -159,19 +141,19 @@ sealed interface Expr<Self : Expr<Self>> : Substitutable<Self>, Inf<Self>, IPrec
 
     data class Symbol(val name: String) : Expr<Symbol> {
         override fun substitute(substitution: Substitution): Symbol = this
-        override fun infer(env: Env): IType<*> = IType.Never("TODO - Symbol")
+        override fun infer(env: Env): AnyType = IType.Never("TODO - Symbol")
         override fun toString(): String = name
     }
 
     data class Box(val term: AnyExpr) : Expr<Box> {
         override fun substitute(substitution: Substitution): Box = Box(term.substitute(substitution))
-        override fun infer(env: Env): IType<*> = IType.Box(term)
+        override fun infer(env: Env): AnyType = IType.Box(term)
         override fun toString(): String = "⎡$term⎦"
     }
 
     data class Unbox(val term: AnyExpr) : Expr<Unbox> {
         override fun substitute(substitution: Substitution): Unbox = Unbox(term.substitute(substitution))
-        override fun infer(env: Env): IType<*> = when (val box = term.infer(env).exists(env)) {
+        override fun infer(env: Env): AnyType = when (val box = term.infer(env).exists(env)) {
             is IType.UnboxableType -> box.unbox(env)
             else -> IType.Never("Cannot unbox non-boxed expression: `$term`")
         }

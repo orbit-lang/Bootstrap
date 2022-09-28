@@ -20,7 +20,13 @@ object MethodDefRule : ParseRule<MethodDefNode>, KoinComponent {
 		val signature = context.attempt(MethodSignatureRule(false), true)
 			?: TODO("@MethodDefRule:18")
 
-		val next = context.peek()
+		var next = context.peek()
+
+		var contextNode: ContextExpressionNode? = null
+		if (next.type == TokenTypes.Within) {
+			contextNode = context.attempt(ContextExpressionRule)
+			next = context.peek()
+		}
 
 		if (next.type == TokenTypes.Assignment) {
 			// Eat the '='
@@ -40,12 +46,12 @@ object MethodDefRule : ParseRule<MethodDefNode>, KoinComponent {
 			val returnStatement = ReturnStatementNode(expression.firstToken, expression.lastToken, expression)
 			val body = BlockNode(returnStatement.firstToken, returnStatement.lastToken, listOf(returnStatement))
 
-			return +MethodDefNode(start, body.lastToken, signature, body)
+			return +MethodDefNode(start, body.lastToken, signature, body, contextNode)
 		}
 
 		val body = context.attempt(BlockRule.methodBody, true)
 			?: TODO("@MethodDefRule:24")
 
-		return +MethodDefNode(start, body.lastToken, signature, body)
+		return +MethodDefNode(start, body.lastToken, signature, body, contextNode)
 	}
 }

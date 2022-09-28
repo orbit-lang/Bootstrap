@@ -7,7 +7,7 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object AssignmentInference : ITypeInference<AssignmentStatementNode> {
-    override fun infer(node: AssignmentStatementNode, env: Env): IType<*> {
+    override fun infer(node: AssignmentStatementNode, env: Env): AnyType {
         val valueType = TypeSystemUtils.infer(node.value, env)
 
         env.extendInPlace(Decl.Assignment(node.identifier.identifier, valueType))

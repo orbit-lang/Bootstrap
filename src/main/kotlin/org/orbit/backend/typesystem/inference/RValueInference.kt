@@ -6,6 +6,6 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object RValueInference : ITypeInference<RValueNode> {
-    override fun infer(node: RValueNode, env: Env): IType<*>
+    override fun infer(node: RValueNode, env: Env): AnyType
         = TypeSystemUtils.infer(node.expressionNode, env)
 }

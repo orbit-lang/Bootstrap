@@ -6,7 +6,7 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object TupleLiteralInference : ITypeInference<TupleLiteralNode> {
-    override fun infer(node: TupleLiteralNode, env: Env): IType<*> {
+    override fun infer(node: TupleLiteralNode, env: Env): AnyType {
         val left = TypeSystemUtils.infer(node.value.first, env)
         val right = TypeSystemUtils.infer(node.value.second, env)
 

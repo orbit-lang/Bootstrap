@@ -6,6 +6,6 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object BlockInference : ITypeInference<BlockNode> {
-    override fun infer(node: BlockNode, env: Env): IType<*>
+    override fun infer(node: BlockNode, env: Env): AnyType
         = TypeSystemUtils.inferAll(node.body, env).lastOrNull() ?: IType.Unit
 }

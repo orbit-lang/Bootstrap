@@ -9,6 +9,7 @@ import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.precess.backend.components.Decl
 import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
+import org.orbit.precess.backend.components.Projection
 import org.orbit.precess.backend.utils.AnyType
 import org.orbit.precess.backend.utils.TypeUtils
 import org.orbit.util.Invocation
@@ -39,7 +40,7 @@ object ProjectionInference : ITypeInference<ProjectionNode>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    private fun verifySignature(env: Env, type: AnyType, trait: IType.Trait, expected: IType.Signature, provided: List<IType.Signature>) : SignatureVerificationResult {
+    private fun verifySignature(env: Env, expected: IType.Signature, provided: List<IType.Signature>) : SignatureVerificationResult {
         val implementations = provided.filter { TypeUtils.checkSignatures(env, it, expected) }
 
         if (implementations.isEmpty()) {
@@ -50,13 +51,20 @@ object ProjectionInference : ITypeInference<ProjectionNode>, KoinComponent {
         if (implementations.count() > 1) {
             val tag = printer.apply("Multiple implementations found for Method:", PrintableKey.Error)
             val prettyImpls = implementations.joinToString("\n\t")
+
             return SignatureVerificationResult.NotImplemented("$tag `$expected`\n\t$prettyImpls")
         }
 
         return SignatureVerificationResult.Implemented(implementations)
     }
 
-    override fun infer(node: ProjectionNode, env: Env): IType<*> {
+    @Suppress("NAME_SHADOWING")
+    override fun infer(node: ProjectionNode, env: Env): AnyType {
+        val env = when (val n = node.context) {
+            null -> env
+            else -> env + TypeSystemUtils.inferAs(n, env)
+        }
+
         val projectedType = TypeSystemUtils.infer(node.typeIdentifier, env)
         val projectedTrait = TypeSystemUtils.inferAs<TypeExpressionNode, IType.Trait>(node.traitIdentifier, env)
 
@@ -71,11 +79,12 @@ object ProjectionInference : ITypeInference<ProjectionNode>, KoinComponent {
         val signatures = bodyTypes.filterIsInstance<IType.Signature>()
 
         val signatureResults = projectedTrait.signatures.fold(SignatureVerificationResult.Implemented(emptyList()) as SignatureVerificationResult) { acc, next ->
-            acc + verifySignature(nEnv, projectedType, projectedTrait, next, signatures)
+            acc + verifySignature(nEnv, next, signatures)
         }
 
         if (signatureResults is SignatureVerificationResult.NotImplemented) {
-            val header = "Projection `$projectedType : $projectedTrait` is incomplete for the following reasons:"
+            val projection = Projection(projectedType, projectedTrait)
+            val header = "Projection `$projection` is incomplete for the following reasons:"
             val errors = signatureResults.reasons.joinToString("\n\t")
 
             throw invocation.make<TypeSystem>("$header\n\t$errors", node)

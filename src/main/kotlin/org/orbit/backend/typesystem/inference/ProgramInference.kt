@@ -6,7 +6,7 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object ProgramInference : ITypeInference<ProgramNode> {
-    override fun infer(node: ProgramNode, env: Env): IType<*> {
+    override fun infer(node: ProgramNode, env: Env): AnyType {
         TypeSystemUtils.inferAll(node.getModuleDefs(), env)
 
         return IType.Always

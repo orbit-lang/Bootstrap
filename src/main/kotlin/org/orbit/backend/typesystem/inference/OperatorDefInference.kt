@@ -9,7 +9,7 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object OperatorDefInference : ITypeInference<OperatorDefNode> {
-    override fun infer(node: OperatorDefNode, env: Env): IType<*> {
+    override fun infer(node: OperatorDefNode, env: Env): AnyType {
         val delegateType = TypeSystemUtils.inferAs<MethodReferenceNode, IType.Signature>(node.methodReferenceNode, env)
         val operator = when (node.fixity) {
             OperatorFixity.Prefix -> IType.PrefixOperator(node.symbol, node.identifierNode.identifier, delegateType.toArrow() as IType.Arrow1)

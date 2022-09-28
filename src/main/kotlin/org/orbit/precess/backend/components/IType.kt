@@ -18,73 +18,10 @@ fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) 
     return null
 }
 
-enum class TypeAttribute(override val symbol: String) : IIntrinsicOperator {
-    Uninhabited("!");
+sealed interface IType : IPrecessComponent, IContextualComponent {
+    sealed interface SubstitutableType : IType, Substitutable
 
-    companion object : IIntrinsicOperator.Factory<TypeAttribute> {
-        override fun all(): List<TypeAttribute> = values().toList()
-    }
-
-    override fun toString(): String = symbol
-}
-
-enum class TypeOperator(override val symbol: String) : IIntrinsicOperator {
-    Product("∏"), Sum("∑");
-
-    companion object : IIntrinsicOperator.Factory<TypeOperator> {
-        override fun all(): List<TypeOperator> = values().toList()
-    }
-}
-
-enum class ContextOperator(override val symbol: String) : IIntrinsicOperator {
-    Extend("+"), Reduce("-");
-
-    companion object : IIntrinsicOperator.Factory<ContextOperator> {
-        override fun all(): List<ContextOperator> = values().toList()
-    }
-}
-
-sealed interface ITypeCardinality {
-    object Zero : ITypeCardinality {
-        override fun plus(other: ITypeCardinality): ITypeCardinality = when (other) {
-            is Finite -> Finite(other.count + 1)
-            is Infinite -> Infinite
-            is Mono -> Finite(2)
-            is Zero -> this
-        }
-    }
-
-    object Mono : ITypeCardinality {
-        override fun plus(other: ITypeCardinality): ITypeCardinality = when (other) {
-            is Finite -> Finite(other.count + 1)
-            is Infinite -> Infinite
-            else -> this
-        }
-    }
-
-    object Infinite : ITypeCardinality {
-        override fun plus(other: ITypeCardinality): ITypeCardinality
-            = this
-    }
-
-    data class Finite(val count: Int) : ITypeCardinality {
-        override fun plus(other: ITypeCardinality): ITypeCardinality = when (other) {
-            is Finite -> Finite(count + other.count)
-            is Infinite -> Infinite
-            is Mono -> Finite(count + 1)
-            is Zero -> this
-        }
-    }
-
-    operator fun plus(other: ITypeCardinality): ITypeCardinality
-}
-
-sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
-    interface UnifiableType<Self : UnifiableType<Self>> : IType<Self> {
-        fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*>
-    }
-
-    sealed interface Entity<E : Entity<E>> : UnifiableType<E>
+    sealed interface Entity<E : Entity<E>> : SubstitutableType
     sealed interface IMetaType<M: IMetaType<M>> : Entity<M> {
         fun toBoolean() : Boolean = when (this) {
             is Always -> true
@@ -98,7 +35,6 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     object Always : IMetaType<Always> {
         override val id: String = "*"
         override fun substitute(substitution: Substitution): Always = this
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = other
         override fun plus(other: IMetaType<*>): IMetaType<*> = other
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
         override fun equals(other: Any?): Boolean = true
@@ -108,11 +44,6 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
     data class Never(val message: String, override val id: String = "!") : IMetaType<Never>, IArrow<Never> {
         fun panic(): Nothing = throw RuntimeException(message)
-
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
-            is Never -> Never("$message\n${other.message}", "$id:${other.id}")
-            else -> this
-        }
 
         override fun getDomain(): List<AnyType> = emptyList()
         override fun getCodomain(): AnyType = this
@@ -141,9 +72,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
     object Unit : Entity<Unit> {
         override val id: String = "Unit"
 
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = other
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
-
         override fun substitute(substitution: Substitution): Unit = this
         override fun equals(other: Any?): Boolean = when (other) {
             is Unit -> true
@@ -161,7 +90,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Safe(val type: AnyType) : IType<Safe> {
+    data class Safe(val type: AnyType) : SubstitutableType {
         override val id: String = type.id
 
         override fun getCardinality(): ITypeCardinality
@@ -185,13 +114,13 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
             = type.getTypeCheckPosition()
     }
 
-    data class Alias(val name: String, val type: AnyType) : IType<Alias>, UnboxableType {
+    data class Alias(val name: String, val type: AnyType) : SubstitutableType, UnboxableType {
         override val id: String = "${type.id} as $name"
 
         override fun getCardinality(): ITypeCardinality
             = type.getCardinality()
 
-        override fun substitute(substitution: Substitution): Alias
+        override fun substitute(substitution: Substitution): AnyType
             = Alias(name, when (substitution.old) {
                 type -> substitution.new
                 else -> type
@@ -224,7 +153,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         fun unbox(env: Env) : AnyType
     }
 
-    data class Box(val generator: AnyExpr) : IType<Box>, UnboxableType {
+    data class Box(val generator: AnyExpr) : SubstitutableType, UnboxableType {
         override val id: String = "⎡$generator⎦"
         override fun substitute(substitution: Substitution): Box
             = Box(generator.substitute(substitution))
@@ -268,20 +197,13 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun getCanonicalName(): String = name
 
         override fun exists(env: Env): AnyType = when (val t = env.getElement(name)) {
-            null -> Never("Unknown Type `$name` in current context:\n$env")
+            null -> {
+                Never("Unknown Type `$name` in current context:\n$env")
+            }
             else -> t
         }
 
         fun api(env: Env): Trait = Trait("$id.__api", env.getMembers(this), emptyList())
-
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
-            this -> this
-            Unit -> this
-            is Type -> api(env) + other.api(env)
-            is Trait -> api(env) + other
-            is Never -> other
-            else -> Never("Cannot unify Types $id & ${other.id}")
-        }
 
         override fun substitute(substitution: Substitution): Type = when (substitution.old) {
             this -> when (substitution.new) {
@@ -358,7 +280,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Member(val name: String, val type: AnyType, val owner: Type) : IType<Member> {
+    data class Member(val name: String, val type: AnyType, val owner: Type) : SubstitutableType<Member> {
         override val id: String = "${owner.id}.${name}"
 
         override fun getCardinality(): ITypeCardinality
@@ -375,6 +297,13 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun exists(env: Env): AnyType = when (env.getElement(id)) {
             null -> Never("Unknown member `$this`")
             else -> this
+        }
+
+        override fun prettyPrint(depth: Int): String {
+            val printer = getKoinInstance<Printer>()
+            val prettyName = printer.apply(name, PrintableKey.Italics)
+
+            return "$owner.$prettyName : $type"
         }
 
         override fun toString(): String = prettyPrint()
@@ -416,19 +345,19 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
             = prettyPrint()
     }
 
-    sealed interface IConstructableType<Self: IConstructableType<Self>> : IType<Self> {
+    sealed interface IConstructableType<Self: IConstructableType<Self>> : SubstitutableType<Self> {
         fun getConstructors() : List<IConstructor<Self>>
     }
 
-    sealed interface ICaseIterable<Self: ICaseIterable<Self>> : IType<Self> {
+    sealed interface ICaseIterable<Self: ICaseIterable<Self>> : SubstitutableType<Self> {
         fun getCases(result: AnyType) : List<Case>
     }
 
-    sealed interface IIndexType<I, Self : IIndexType<I, Self>> : IType<Self> {
+    sealed interface IIndexType<I, Self : IIndexType<I, Self>> : SubstitutableType<Self> {
         fun getElement(at: I): AnyType
     }
 
-    interface IAlgebraicType<Self : IAlgebraicType<Self>> : IType<Self>, UnboxableType, IConstructableType<Self> {
+    interface IAlgebraicType<Self : IAlgebraicType<Self>> : SubstitutableType<Self>, UnboxableType, IConstructableType<Self> {
         override fun getTypeCheckPosition(): TypeCheckPosition
             = TypeCheckPosition.AlwaysLeft
     }
@@ -573,9 +502,6 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun substitute(substitution: Substitution): IConstructor<Struct> =
             StructConstructor(constructedType.substitute(substitution), args.substituteAll(substitution))
 
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> =
-            Never("Cannot unify Types $id & ${other.id}")
-
         override fun never(args: List<AnyType>): Never =
             Never("Cannot construct Type ${constructedType.id} with arguments (${args.joinToString("; ") { it.id }})")
 
@@ -602,9 +528,6 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun substitute(substitution: Substitution): IConstructor<Union> =
             UnionConstructor(constructedType.substitute(substitution), arg.substitute(substitution))
-
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> =
-            Never("Cannot unify Types $id & ${other.id}")
 
         override fun never(args: List<AnyType>): Never =
             Never("Union Type ${constructedType.id} cannot be constructed with argument ${arg.id}")
@@ -671,7 +594,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun equals(other: Any?): Boolean = when (other) {
             is Union -> left == other.left && right == other.right
-            is IType<*> -> left == other || right == other
+            is AnyType -> left == other || right == other
             else -> false
         }
 
@@ -739,7 +662,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun toString(): String = prettyPrint()
     }
 
-    sealed interface IArrow<Self : IArrow<Self>> : UnifiableType<Self>, UnboxableType {
+    sealed interface IArrow<Self : IArrow<Self>> : SubstitutableType<Self>, UnboxableType {
         fun getDomain(): List<AnyType>
         fun getCodomain(): AnyType
         override fun getCardinality(): ITypeCardinality
@@ -756,18 +679,14 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
             else -> Arrow0(this)
         }
 
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> =
-            Never("Cannot unify Arrow Type $id with ${other.id}")
-
         override fun prettyPrint(depth: Int): String {
-            val printer = getKoinInstance<Printer>()
             val domainString = getDomain().joinToString(", ")
 
-            return "($domainString) -> ${getCodomain()}"
+            return "${"\t".repeat(depth)}($domainString) -> ${getCodomain()}"
         }
     }
 
-    data class Arrow0(val gives: IType<*>) : IArrow<Arrow0> {
+    data class Arrow0(val gives: AnyType) : IArrow<Arrow0> {
         override val id: String = "() -> ${gives.id}"
 
         override fun getDomain(): List<AnyType> = emptyList()
@@ -792,7 +711,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Arrow1(val takes: IType<*>, val gives: IType<*>) : IArrow<Arrow1> {
+    data class Arrow1(val takes: AnyType, val gives: AnyType) : IArrow<Arrow1> {
         override val id: String = "(${takes.id}) -> ${gives.id}"
 
         override fun getDomain(): List<AnyType> = listOf(takes)
@@ -850,7 +769,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Arrow2(val a: IType<*>, val b: IType<*>, val gives: IType<*>) : IArrow<Arrow2> {
+    data class Arrow2(val a: AnyType, val b: AnyType, val gives: AnyType) : IArrow<Arrow2> {
         override val id: String = "(${a.id}, ${b.id}) -> ${gives.id}"
 
         override fun getDomain(): List<AnyType> = listOf(a, b)
@@ -903,7 +822,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Arrow3(val a: IType<*>, val b: IType<*>, val c: IType<*>, val gives: IType<*>) : IArrow<Arrow3> {
+    data class Arrow3(val a: AnyType, val b: AnyType, val c: AnyType, val gives: AnyType) : IArrow<Arrow3> {
         override val id: String = "(${a.id}, ${b.id}, ${c.id}) -> ${gives.id}"
 
         override fun getDomain(): List<AnyType> = listOf(a, b, c)
@@ -932,7 +851,7 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Signature(val receiver: IType<*>, val name: String, val parameters: List<IType<*>>, val returns: IType<*>, val isInstanceSignature: Boolean) : IArrow<Signature> {
+    data class Signature(val receiver: AnyType, val name: String, val parameters: List<AnyType>, val returns: AnyType, val isInstanceSignature: Boolean) : IArrow<Signature> {
         override val id: String get() {
             val pParams = parameters.joinToString(", ") { it.id }
 
@@ -991,11 +910,19 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
         override fun toString(): String = prettyPrint()
     }
 
-    data class TypeVar(val name: String) : IType<TypeVar> {
+    data class TypeVar(val name: String) : SubstitutableType<TypeVar> {
         override val id: String = "?$name"
 
+        override fun getCanonicalName(): String = name
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Infinite
-        override fun substitute(substitution: Substitution): TypeVar = this
+        override fun substitute(substitution: Substitution): TypeVar = when (substitution.old) {
+            is TypeVar -> when (substitution.old.name == name) {
+                true -> substitution.new
+                else -> substitution.old
+            }
+
+            else -> substitution.old
+        }
 
         override fun equals(other: Any?): Boolean = when (other) {
             is TypeVar -> id == other.id
@@ -1004,6 +931,14 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
 
         override fun exists(env: Env): AnyType {
             TODO("Not yet implemented")
+        }
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+            val printer = getKoinInstance<Printer>()
+            val prettyName = printer.apply("?$name", PrintableKey.Bold, PrintableKey.Italics)
+
+            return "$indent$prettyName"
         }
 
         override fun toString(): String = prettyPrint()
@@ -1027,11 +962,6 @@ sealed interface IType<T : IType<T>> : Substitutable<T>, IPrecessComponent {
             val projections = env.getProjections(type)
 
             return projections.any { it.target.id == id }
-        }
-
-        override fun unify(env: Env, other: UnifiableType<*>): UnifiableType<*> = when (other) {
-            is Trait -> Trait("$id*${other.id}", members + other.members, signatures + other.signatures)
-            else -> TODO()
         }
 
         operator fun plus(other: Trait) : Trait

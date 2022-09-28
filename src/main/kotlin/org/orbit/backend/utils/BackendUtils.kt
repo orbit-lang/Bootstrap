@@ -25,7 +25,7 @@ object BackendUtils {
         return program.toString()
     }
 
-    fun check(sourceProvider: SourceProvider) : IType<*> {
+    fun check(sourceProvider: SourceProvider) : AnyType {
         val program = FrontendUtils.parse(sourceProvider, ProgramRule)
 
         CanonicalNameResolver.execute(program)

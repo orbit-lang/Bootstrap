@@ -93,17 +93,9 @@ object TypeUtils {
         return checkEq(env, left.returns, right.returns)
     }
 
-    fun unify(env: Env, typeA: IType.UnifiableType<*>, typeB: IType.UnifiableType<*>): IType.UnifiableType<*> =
-        typeA.unify(env, typeB)
-
-    fun infer(env: Env, expression: Expr<*>): IType<*> = when (val t = expression.infer(env)) {
+    fun infer(env: Env, expression: Expr<*>): AnyType = when (val t = expression.infer(env)) {
         is IType.Alias -> t.type
         else -> t
-    }
-
-    fun unwrap(type: AnyType) : AnyType = when (type) {
-        is IType.Alias -> type.type
-        else -> type
     }
 
     fun unbox(env: Env, type: AnyType) : AnyType = when (type) {
@@ -112,7 +104,7 @@ object TypeUtils {
     }
 }
 
-typealias AnyType = IType<*>
+typealias AnyType = IType.SubstitutableType<*>
 typealias AnyEntity = IType.Entity<*>
 typealias AnyArrow = IType.IArrow<*>
 typealias AnyExpr = Expr<*>

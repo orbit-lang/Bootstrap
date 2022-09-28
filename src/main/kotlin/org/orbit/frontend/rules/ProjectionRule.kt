@@ -3,6 +3,7 @@ package org.orbit.frontend.rules
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.BlockNode
 import org.orbit.core.nodes.IProjectionDeclarationNode
 import org.orbit.core.nodes.ProjectionNode
 import org.orbit.frontend.extensions.unaryPlus
@@ -72,7 +73,8 @@ object ProjectionRule : ParseRule<ProjectionNode>, KoinComponent {
 
         // TODO - Body (properties & methods)
         val body = context.attempt(AnyProjectionDeclarationRule.toBlockRule())
-            ?: return ParseRule.Result.Failure.Throw("Expected Projection body after `projection ${typeIdentifier.value}` : ${traitIdentifierRule.value}", next)
+            ?: BlockNode(next, next, emptyList())
+            //?: return ParseRule.Result.Failure.Throw("Expected Projection body after `projection ${typeIdentifier.value}` : ${traitIdentifierRule.value}", next)
 
         return +ProjectionNode(start, traitIdentifierRule.lastToken, typeIdentifier, traitIdentifierRule, emptyList(), selfBinding, body.body as List<IProjectionDeclarationNode>, contextNode)
     }

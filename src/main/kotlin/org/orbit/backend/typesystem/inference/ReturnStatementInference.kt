@@ -6,6 +6,6 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object ReturnStatementInference : ITypeInference<ReturnStatementNode> {
-    override fun infer(node: ReturnStatementNode, env: Env): IType<*>
+    override fun infer(node: ReturnStatementNode, env: Env): AnyType
         = TypeSystemUtils.infer(node.valueNode, env)
 }

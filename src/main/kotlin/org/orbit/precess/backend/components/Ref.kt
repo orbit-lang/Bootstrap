@@ -1,6 +1,9 @@
 package org.orbit.precess.backend.components
 
 import org.orbit.precess.backend.utils.AnyType
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
+import org.orbit.util.getKoinInstance
 
 interface IRef {
     val name: String
@@ -29,7 +32,15 @@ class Ref(override val name: String, override val type: AnyType) : IRef {
         history.add(RefEntry.Use(this))
     }
 
-    override fun toString(): String = "$name:${type.id}"
+    override fun prettyPrint(depth: Int): String {
+        val indent = "\t".repeat(depth)
+        val printer = getKoinInstance<Printer>()
+        val prettyName = printer.apply(name, PrintableKey.Italics)
+
+        return "$indent$type.$prettyName"
+    }
+
+    override fun toString(): String = prettyPrint()
 }
 
 data class Alias(override val name: String, val ref: IRef) : IRef {

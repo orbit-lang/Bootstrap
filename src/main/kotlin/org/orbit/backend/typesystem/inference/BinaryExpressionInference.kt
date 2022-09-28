@@ -13,7 +13,7 @@ import org.orbit.util.Invocation
 object BinaryExpressionInference : ITypeInference<BinaryExpressionNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: BinaryExpressionNode, env: Env): IType<*> {
+    override fun infer(node: BinaryExpressionNode, env: Env): AnyType {
         val left = TypeSystemUtils.infer(node.left, env)
         val right = TypeSystemUtils.infer(node.right, env)
 

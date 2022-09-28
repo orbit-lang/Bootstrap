@@ -12,7 +12,7 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object TraitDefInference : ITypeInference<TraitDefNode> {
-    override fun infer(node: TraitDefNode, env: Env): IType<*> {
+    override fun infer(node: TraitDefNode, env: Env): AnyType {
         val path = node.getPath()
         val protoTrait = IType.Trait(path.toString(OrbitMangler), emptyList(), emptyList())
 

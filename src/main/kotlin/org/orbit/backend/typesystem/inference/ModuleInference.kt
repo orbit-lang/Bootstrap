@@ -9,7 +9,7 @@ import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.IType
 
 object ModuleInference : ITypeInference<ModuleNode> {
-    override fun infer(node: ModuleNode, env: Env): IType<*> {
+    override fun infer(node: ModuleNode, env: Env): AnyType {
         TypeSystemUtils.inferAll(node.contexts, env)
         TypeSystemUtils.inferAll(node.entityDefs.filterIsInstance<TypeDefNode>(), env)
         TypeSystemUtils.inferAll(node.entityDefs.filterIsInstance<TraitDefNode>(), env)

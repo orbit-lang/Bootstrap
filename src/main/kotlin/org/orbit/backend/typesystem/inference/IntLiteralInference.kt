@@ -7,7 +7,7 @@ import org.orbit.precess.backend.components.IType
 
 object IntLiteralInference : ITypeInference<IntLiteralNode> {
     // TODO - Integer width
-    override fun infer(node: IntLiteralNode, env: Env): IType<*>
+    override fun infer(node: IntLiteralNode, env: Env): AnyType
         = OrbCoreNumbers.intType
 }
 

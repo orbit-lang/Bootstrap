@@ -13,7 +13,7 @@ import org.orbit.util.Invocation
 object MethodCallInference : ITypeInference<MethodCallNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: MethodCallNode, env: Env): IType<*> {
+    override fun infer(node: MethodCallNode, env: Env): AnyType {
         val receiverType = TypeSystemUtils.infer(node.receiverExpression, env)
         val argTypes = TypeSystemUtils.inferAll(node.parameterNodes, env)
         var possibleArrows = env.getSignatures(node.messageIdentifier.identifier, receiverType)
