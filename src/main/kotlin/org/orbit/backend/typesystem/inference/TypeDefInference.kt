@@ -10,7 +10,6 @@ import org.orbit.core.getPath
 import org.orbit.core.nodes.AlgebraicConstructorNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.core.nodes.TypeExpressionNode
-import org.orbit.precess.backend.components.Expr
 
 object AlgebraicConstructorInference : ITypeInference<AlgebraicConstructorNode> {
     override fun infer(node: AlgebraicConstructorNode, env: Env): AnyType {
@@ -41,7 +40,7 @@ object TypeDefInference : ITypeInference<TypeDefNode> {
         val decl = when (constructors.count()) {
             0 -> Decl.Type(type, emptyMap())
             1 -> Decl.Type(constructors[0], emptyMap())
-            2 -> Decl.TypeAlias(path.toString(OrbitMangler), Expr.AnyTypeLiteral(IType.Union(constructors[0], constructors[1])))
+            2 -> Decl.TypeAlias(path.toString(OrbitMangler), IType.Union(constructors[0], constructors[1]))
             else -> TODO("Union > 3")
         }
 

@@ -10,7 +10,6 @@ import org.koin.core.parameter.DefinitionParameters
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
-import org.orbit.backend.typegen.components.walkers.*
 import org.orbit.backend.typesystem.inference.*
 import org.orbit.backend.typesystem.inference.evidence.*
 import org.orbit.core.Path
@@ -22,8 +21,6 @@ import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.ContextCompositionPathResolver
 import org.orbit.graph.pathresolvers.util.ContextInstantiationPathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.precess.frontend.components.nodes.IPrecessNode
-import org.orbit.precess.frontend.components.nodes.TermExpressionNode
 import kotlin.reflect.KClass
 
 val mainModule = module {
@@ -114,18 +111,6 @@ val mainModule = module {
 	single { NodeAnnotationMap() }
 	single { ImportManager(emptyList()) }
 
-	single(ProgramWalker)
-	single(ContextWalker)
-	single(AnyEntityDefWalker)
-	single(SumConstructorWalker as IPrecessNodeWalker<ITypeDefBodyNode, TermExpressionNode<*>>)
-	single(ModuleWalker)
-	single(TypeDefWalker)
-	single(MethodDefWalker)
-	single(SignatureWalker)
-	single(MethodBodyWalker)
-	single(MethodBodyStatementWalker)
-	single(TypeExpressionWalker)
-
 	// Type Inference
 	single(ProgramInference)
 	single(ModuleInference)
@@ -173,9 +158,6 @@ private inline fun <reified N: INode> org.koin.core.module.Module.single(inferen
 
 private inline fun <reified N: INode> org.koin.core.module.Module.inferenceFactory(crossinline generator: (DefinitionParameters) -> ITypeInference<N>) : BeanDefinition<ITypeInference<N>>
 	= factory(named("infer${N::class.java.simpleName}")) { params -> generator(params) }
-
-private inline fun <reified N: INode, reified P: IPrecessNode> org.koin.core.module.Module.single(walker: IPrecessNodeWalker<N, P>) : BeanDefinition<IPrecessNodeWalker<N, P>>
-	= single(named("${N::class.java.simpleName}${P::class.java.simpleName}")) { walker }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: IContextualEvidenceProvider<N>) : BeanDefinition<IContextualEvidenceProvider<N>>
 	= single(named("evidence${N::class.java.simpleName}")) { inference }

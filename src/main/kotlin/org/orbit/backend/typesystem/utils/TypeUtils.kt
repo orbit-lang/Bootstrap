@@ -2,7 +2,6 @@ package org.orbit.backend.typesystem.utils
 
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Env
-import org.orbit.precess.backend.components.Expr
 import org.orbit.backend.typesystem.components.IType
 
 enum class TypeCheckPosition {
@@ -63,13 +62,7 @@ object TypeUtils {
 
         return checkEq(env, left.returns, right.returns)
     }
-
-    fun infer(env: Env, expression: Expr<*>): AnyType = when (val t = expression.infer(env)) {
-        is IType.Alias -> t.type
-        else -> t
-    }
 }
 
 typealias AnyEntity = IType.Entity<*>
 typealias AnyArrow = IType.IArrow<*>
-typealias AnyExpr = Expr<*>

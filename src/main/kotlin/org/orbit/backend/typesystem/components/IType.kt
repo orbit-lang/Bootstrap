@@ -2,15 +2,11 @@ package org.orbit.backend.typesystem.components
 
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.backend.typesystem.utils.AnyArrow
-import org.orbit.backend.typesystem.utils.AnyExpr
 import org.orbit.backend.typesystem.utils.TypeCheckPosition
-import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.IIntrinsicOperator
 import org.orbit.core.nodes.OperatorFixity
-import org.orbit.precess.backend.components.IPrecessComponent
-import org.orbit.precess.backend.utils.*
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
@@ -23,7 +19,7 @@ fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) 
     return null
 }
 
-sealed interface IType : IPrecessComponent, IContextualComponent, Substitutable {
+sealed interface IType : IContextualComponent, Substitutable {
     sealed interface Entity<E : Entity<E>> : IType
     sealed interface IMetaType<M: IMetaType<M>> : Entity<M> {
         fun toBoolean() : Boolean = when (this) {

@@ -8,8 +8,6 @@ import org.orbit.backend.typesystem.intrinsics.getPublicAPI
 import org.orbit.backend.typesystem.phase.globalContext
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeUtils
-import org.orbit.precess.backend.components.Contract
-import org.orbit.precess.backend.components.Expr
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
@@ -21,7 +19,6 @@ class Env(
     val name: String = "",
     private var _elements: List<AnyType> = emptyList(),
     private var _refs: List<IRef> = emptyList(),
-    private var _contracts: List<Contract> = emptyList(),
     private var _projections: List<Projection> = emptyList(),
     private var _expressionCache: Map<String, AnyType> = emptyMap(),
     val parent: Env? = null
@@ -53,7 +50,6 @@ class Env(
 
     val elements get() = _elements
     val refs get() = _refs
-    val contracts get() = _contracts
     val projections get() = _projections
     val expressionCache get() = _expressionCache
 
@@ -101,13 +97,12 @@ class Env(
         = ITypeCardinality.Zero
 
     override fun substitute(substitution: Substitution): Env
-        = Env(name, elements.map { it.substitute(substitution) }, refs, contracts, projections, expressionCache, parent)
+        = Env(name, elements.map { it.substitute(substitution) }, refs, projections, expressionCache, parent)
 
     private fun <T> protect(protector: Protector<T>, block: () -> T): T = protector.protect(block)
 
     fun solving(typeVariable: IType.TypeVar, concrete: AnyType) : Env
-        = reduce(Decl.TypeVariable(typeVariable.name)).extend(Decl.TypeAlias(typeVariable.name,
-        Expr.AnyTypeLiteral(concrete)))
+        = reduce(Decl.TypeVariable(typeVariable.name)).extend(Decl.TypeAlias(typeVariable.name, concrete))
             .substitute(Substitution(typeVariable, concrete))
 
     fun getUnsolvedTypeParameters() : List<IType.TypeVar>
@@ -158,7 +153,6 @@ class Env(
 
         _elements = nEnv.elements
         _refs = nEnv.refs
-        _contracts = nEnv.contracts
         _projections = nEnv.projections
         _expressionCache = nEnv.expressionCache
     }
@@ -171,7 +165,6 @@ class Env(
 
         _elements = nEnv.elements
         _refs = nEnv.refs
-        _contracts = nEnv.contracts
         _projections = nEnv.projections
         _expressionCache = nEnv.expressionCache
     }
@@ -218,28 +211,28 @@ class Env(
     }
 
     fun withSelf(type: AnyType) : Env
-        = extend(Decl.TypeAlias("Self", Expr.AnyTypeLiteral(type)))
+        = extend(Decl.TypeAlias("Self", type))
 
     fun <R> withSelf(type: AnyType, block: (Env) -> R) : R
-        = manage(Decl.TypeAlias("Self", Expr.AnyTypeLiteral(type)), block)
+        = manage(Decl.TypeAlias("Self", type), block)
 
     fun getSelfType() : AnyType
         = elements.filterIsInstance<IType.Alias>().first { it.name == "Self" }.type
 
     fun withMatch(type: AnyType): Env {
-        val decl = Decl.TypeAlias("__match", Expr.AnyTypeLiteral(type), Decl.ConflictStrategy.Replace)
+        val decl = Decl.TypeAlias("__match", type, Decl.ConflictStrategy.Replace)
 
         return reduce(decl).extend(decl)
     }
 
     fun withProjectedTrait(trait: IType.Trait) : Env
-        = extend(Decl.TypeAlias("__projectedTrait", Expr.AnyTypeLiteral(trait)))
+        = extend(Decl.TypeAlias("__projectedTrait", trait))
 
     fun getProjectedTrait() : IType.Trait
         = elements.filterIsInstance<IType.Alias>().first { it.name == "__projectedTrait" }.type as IType.Trait
 
     fun withProjectedType(type: AnyType) : Env
-        = extend(Decl.TypeAlias("__projectedType", Expr.AnyTypeLiteral(type)))
+        = extend(Decl.TypeAlias("__projectedType", type))
 
     fun getProjectedType() : AnyType
         = elements.filterIsInstance<IType.Alias>().first { it.name == "__projectedType" }.type
@@ -266,7 +259,7 @@ class Env(
             }
         }
 
-        return Env(name, nElements, refs, contracts, projections, expressionCache)
+        return Env(name, nElements, refs, projections, expressionCache)
     }
 
     fun denyRef(name: String): Env {
@@ -277,16 +270,7 @@ class Env(
             }
         }
 
-        return Env(name, elements, nRefs, contracts, projections, expressionCache)
-    }
-
-    fun accept(contract: Contract): Env = Env(name, elements, refs, contracts + contract)
-    fun verifyContracts() = contracts.forEach {
-        when (val result = it.verify(this)) {
-            is Contract.ContractResult.Verified -> {
-            }
-            is Contract.ContractResult.Violated -> result.reason.panic()
-        }
+        return Env(name, elements, nRefs, projections, expressionCache)
     }
 
     inline fun <reified O: IType.IOperatorArrow<*, *>> getOperators() : List<O>
@@ -302,7 +286,6 @@ class Env(
 
         _elements = nEnv.elements
         _refs = nEnv.refs
-        _contracts = nEnv.contracts
         _projections = nEnv.projections
         _expressionCache = nEnv.expressionCache
     }

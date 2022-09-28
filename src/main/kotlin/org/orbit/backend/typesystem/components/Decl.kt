@@ -1,15 +1,12 @@
 package org.orbit.backend.typesystem.components
 
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.AnyExpr
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
-import org.orbit.precess.backend.components.IPrecessComponent
-import org.orbit.precess.backend.phase.Interpreter
 import org.orbit.util.Invocation
 import org.orbit.util.getKoinInstance
 
-sealed interface Decl : IPrecessComponent {
+sealed interface Decl {
     enum class ConflictStrategy {
         Reject, Replace, Ignore
     }
@@ -19,13 +16,13 @@ sealed interface Decl : IPrecessComponent {
         override fun exists(env: Env): Boolean = false
         override fun xtend(env: Env): Env = when (cloneElements) {
             true -> when (cloneRefs) {
-                true -> Env(name ?: env.name, env.elements, env.refs, env.contracts, env.projections, env.expressionCache, env)
-                else -> Env(name ?: env.name, env.elements, emptyList(), env.contracts, env.projections, env.expressionCache, env)
+                true -> Env(name ?: env.name, env.elements, env.refs, env.projections, env.expressionCache, env)
+                else -> Env(name ?: env.name, env.elements, emptyList(), env.projections, env.expressionCache, env)
             }
 
             else -> when (cloneRefs) {
-                true -> Env(name ?: env.name, emptyList(), env.refs, env.contracts, env.projections, env.expressionCache, env)
-                else -> Env(name ?: env.name, emptyList(), emptyList(), env.contracts, env.projections, env.expressionCache, env)
+                true -> Env(name ?: env.name, emptyList(), env.refs, env.projections, env.expressionCache, env)
+                else -> Env(name ?: env.name, emptyList(), emptyList(), env.projections, env.expressionCache, env)
             }
         }
 
@@ -37,7 +34,6 @@ sealed interface Decl : IPrecessComponent {
         override fun xtend(env: Env): Env {
             val nElements = (root.elements + env.elements).distinctBy { it.id }
             val nRefs = (root.refs + env.refs).distinctBy { it.uniqueId }
-            val nContracts = (root.contracts + env.contracts)
             val nProjections = (root.projections + env.projections).distinctBy { it.uniqueId }
             val nExpressionCache = (root.expressionCache + env.expressionCache)
             val nName = when (root.name) {
@@ -45,7 +41,7 @@ sealed interface Decl : IPrecessComponent {
                 else -> "${root.name} & ${env.name}"
             }
 
-            return Env(nName, nElements, nRefs, nContracts, nProjections, nExpressionCache)
+            return Env(nName, nElements, nRefs, nProjections, nExpressionCache)
         }
 
         override fun reduce(env: Env): Env = env
@@ -68,10 +64,10 @@ sealed interface Decl : IPrecessComponent {
     data class Context(val context: Env) : Decl {
         override fun exists(env: Env): Boolean = env.elements.any { it.id == context.id }
         override fun xtend(env: Env): Env
-            = Env(env.name, env.elements + context, env.refs, env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements + context, env.refs, env.projections, env.expressionCache)
 
         override fun reduce(env: Env): Env
-            = Env(env.name, env.elements - context, env.refs, env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements - context, env.refs, env.projections, env.expressionCache)
     }
 
     data class Signature(val signature: IType.Signature) : Decl {
@@ -80,28 +76,28 @@ sealed interface Decl : IPrecessComponent {
         }
 
         override fun xtend(env: Env): Env
-            = Env(env.name, env.elements + signature, env.refs, env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements + signature, env.refs, env.projections, env.expressionCache)
 
         override fun reduce(env: Env): Env
-            = Env(env.name, env.elements - signature, env.refs, env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements - signature, env.refs, env.projections, env.expressionCache)
     }
 
     data class Operator(val op: IType.IOperatorArrow<*, *>) : Decl {
         override fun exists(env: Env): Boolean = env.elements.filterIsInstance<IType.IOperatorArrow<*, *>>().any { it == op }
         override fun xtend(env: Env): Env
-            = Env(env.name,env.elements + IType.Alias(op.identifier, op), env.refs, env.contracts, env.projections, env.expressionCache)
+            = Env(env.name,env.elements + IType.Alias(op.identifier, op), env.refs, env.projections, env.expressionCache)
 
         override fun reduce(env: Env): Env
-            = Env(env.name, env.elements - IType.Alias(op.identifier, op), env.refs, env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements - IType.Alias(op.identifier, op), env.refs, env.projections, env.expressionCache)
     }
 
     data class TypeVariable(val name: String) : Decl {
         override fun exists(env: Env): Boolean = env.elements.any { it is IType.TypeVar && it.name == name }
         override fun xtend(env: Env): Env
-            = Env(env.name, env.elements + IType.TypeVar(name), env.refs, env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements + IType.TypeVar(name), env.refs, env.projections, env.expressionCache)
 
         override fun reduce(env: Env): Env
-            = Env(env.name, env.elements - IType.TypeVar(name), env.refs, env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements - IType.TypeVar(name), env.refs, env.projections, env.expressionCache)
     }
 
     data class Type(val type: IType.Type, val members: List<IType.Member> = emptyList()) : Decl {
@@ -114,23 +110,23 @@ sealed interface Decl : IPrecessComponent {
         override fun exists(env: Env): Boolean = env.elements.any { it.id == type.id }
         override fun xtend(env: Env): Env {
             val refs = members.map { Ref(it.id, it.type) }
-            return Env(env.name, env.elements + type, env.refs + refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements + type, env.refs + refs, env.projections, env.expressionCache)
         }
 
         override fun reduce(env: Env): Env {
             val mems = env.getDeclaredMembers(type)
 
-            return Env(env.name, env.elements - mems - type, env.refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements - mems - type, env.refs, env.projections, env.expressionCache)
         }
     }
 
     data class Trait(val trait: IType.Trait) : Decl {
         override fun exists(env: Env): Boolean = env.elements.any { it.id == trait.id }
         override fun xtend(env: Env): Env
-            = Env(env.name, env.elements + trait, env.refs, env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements + trait, env.refs, env.projections, env.expressionCache)
 
         override fun reduce(env: Env): Env
-            = Env(env.name, env.elements - trait, env.refs, env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements - trait, env.refs, env.projections, env.expressionCache)
     }
 
     data class Assignment(val name: String, val type: AnyType) : Decl {
@@ -139,21 +135,20 @@ sealed interface Decl : IPrecessComponent {
             if (env.getRef(name) != null) {
                 val invocation = getKoinInstance<Invocation>()
 
-                throw invocation.make<Interpreter>("`$name` is already bound in the current context: `$env`", SourcePosition.unknown)
+                throw invocation.make<TypeSystem>("`$name` is already bound in the current context: `$env`", SourcePosition.unknown)
             }
 
-            return Env(env.name, env.elements, env.refs + Ref(name, type), env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements, env.refs + Ref(name, type), env.projections, env.expressionCache)
         }
 
         override fun reduce(env: Env): Env
-            = Env(env.name, env.elements, env.refs - Ref(name, type), env.contracts, env.projections, env.expressionCache)
+            = Env(env.name, env.elements, env.refs - Ref(name, type), env.projections, env.expressionCache)
     }
 
-    data class TypeAlias(val name: String, val expr: AnyExpr, val conflictStrategy: ConflictStrategy = ConflictStrategy.Reject) :
+    data class TypeAlias(val name: String, val type: AnyType, val conflictStrategy: ConflictStrategy = ConflictStrategy.Reject) :
         Decl {
         override fun exists(env: Env): Boolean = env.elements.any { it.getCanonicalName() == name }
         override fun xtend(env: Env): Env {
-            val type = expr.infer(env)
             val isAlreadyDefined = when (conflictStrategy) {
                 ConflictStrategy.Ignore -> false
                 else -> env.elements.any { it is IType.Alias && it.name == name && it.type.id == type.id }
@@ -174,14 +169,13 @@ sealed interface Decl : IPrecessComponent {
                 env.elements
             }
 
-            return Env(env.name, nElements + IType.Alias(name, type), env.refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, nElements + IType.Alias(name, type), env.refs, env.projections, env.expressionCache)
         }
 
         override fun reduce(env: Env): Env {
-            val type = expr.infer(env)
             val nElements = env.elements.filterNot { it is IType.Alias && it.name == name }
 
-            return Env(env.name, nElements, env.refs, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, nElements, env.refs, env.projections, env.expressionCache)
         }
     }
 
@@ -190,13 +184,13 @@ sealed interface Decl : IPrecessComponent {
         override fun xtend(env: Env): Env {
             val alias = org.orbit.backend.typesystem.components.Alias(name, ref)
 
-            return Env(env.name, env.elements, env.refs + alias, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements, env.refs + alias, env.projections, env.expressionCache)
         }
 
         override fun reduce(env: Env): Env {
             val alias = org.orbit.backend.typesystem.components.Alias(name, ref)
 
-            return Env(env.name, env.elements, env.refs - alias, env.contracts, env.projections, env.expressionCache)
+            return Env(env.name, env.elements, env.refs - alias, env.projections, env.expressionCache)
         }
     }
 
@@ -219,23 +213,10 @@ sealed interface Decl : IPrecessComponent {
         override fun exists(env: Env): Boolean = true
 
         override fun xtend(env: Env): Env
-            = Env(env.name, env.elements, env.refs, env.contracts, env.projections + org.orbit.backend.typesystem.components.Projection(
-            source,
-            target), env.expressionCache)
+            = Env(env.name, env.elements, env.refs, env.projections + org.orbit.backend.typesystem.components.Projection(source, target), env.expressionCache)
 
         override fun reduce(env: Env): Env
-            = Env(env.name, env.elements, env.refs, env.contracts, env.projections - org.orbit.backend.typesystem.components.Projection(
-            source,
-            target), env.expressionCache)
-    }
-
-    data class Cache(val expr: AnyExpr, val type: AnyType) : Decl {
-        override fun exists(env: Env): Boolean = true
-        override fun xtend(env: Env): Env
-            = Env(env.name, env.elements, env.refs, env.contracts, env.projections, env.expressionCache + (expr.toString() to type))
-
-        override fun reduce(env: Env): Env
-            = Env(env.name, env.elements, env.refs, env.contracts, env.projections, env.expressionCache - expr.toString())
+            = Env(env.name, env.elements, env.refs,env.projections - org.orbit.backend.typesystem.components.Projection(source, target), env.expressionCache)
     }
 
     data class Compound<D: Decl, E: Decl>(val a: D, val b: E) : Decl {

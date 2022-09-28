@@ -11,6 +11,3 @@ ContextNode
    PairNode
     IdentifierNode
     TypeIdentifierNode
-   PairNode
-    IdentifierNode
-    TypeIdentifierNode
