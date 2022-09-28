@@ -1,10 +1,11 @@
 package org.orbit.backend.typesystem.inference
 
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.Decl
+import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.nodes.AssignmentStatementNode
-import org.orbit.precess.backend.components.Decl
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
 
 object AssignmentInference : ITypeInference<AssignmentStatementNode> {
     override fun infer(node: AssignmentStatementNode, env: Env): AnyType {

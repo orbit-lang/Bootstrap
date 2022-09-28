@@ -5,7 +5,7 @@ import org.orbit.core.nodes.CaseMode
 import org.orbit.core.nodes.CaseNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
-import org.orbit.precess.backend.components.parse
+import org.orbit.backend.typesystem.components.parse
 
 object CaseRule : ParseRule<CaseNode> {
     override fun parse(context: Parser): ParseRule.Result {

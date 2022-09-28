@@ -8,7 +8,7 @@ import org.orbit.frontend.StringSourceProvider
 import org.orbit.frontend.phase.CommentParser
 import org.orbit.frontend.phase.Lexer
 import org.orbit.frontend.phase.Parser
-import org.orbit.precess.backend.components.IType
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.precess.backend.phase.Interpreter
 import org.orbit.precess.frontend.components.TokenTypes
 import org.orbit.precess.frontend.components.nodes.ProgramNode

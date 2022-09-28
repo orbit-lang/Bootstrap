@@ -1,4 +1,0 @@
-#Contains
-Dump @dbg: {A, B, C:(A * B) ; }
-
-Type checking completed successfully

@@ -4,7 +4,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
-import org.koin.core.qualifier.Qualifier
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
@@ -13,8 +12,8 @@ import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.core.phase.Phase
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
+import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.util.Invocation
 
 object TypeSystem : Phase<ProgramNode, IType.IMetaType<*>>, KoinComponent {

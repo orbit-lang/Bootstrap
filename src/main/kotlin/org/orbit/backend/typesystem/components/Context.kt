@@ -1,7 +1,5 @@
 package org.orbit.backend.typesystem.components
 
-import org.orbit.precess.backend.components.IType
-import org.orbit.precess.backend.utils.AnyType
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance

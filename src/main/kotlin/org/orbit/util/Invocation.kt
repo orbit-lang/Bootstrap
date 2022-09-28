@@ -6,7 +6,7 @@ import org.orbit.core.components.Warning
 import org.orbit.core.nodes.INode
 import org.orbit.core.phase.Phase
 import org.orbit.core.phase.safeCast
-import org.orbit.precess.backend.components.IType
+import org.orbit.backend.typesystem.components.IType
 
 open class OrbitException(override val message: String?) : Exception(message) {
 	companion object

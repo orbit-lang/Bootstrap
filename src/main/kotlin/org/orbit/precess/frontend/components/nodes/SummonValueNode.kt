@@ -2,9 +2,9 @@ package org.orbit.precess.frontend.components.nodes
 
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.INode
-import org.orbit.precess.backend.components.Decl
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
+import org.orbit.backend.typesystem.components.Decl
+import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.IType
 
 data class SummonValueNode(override val firstToken: Token, override val lastToken: Token, val matchTerm: TermExpressionNode<*>, val ref: RefLiteralNode) : DeclNode<Decl.Alias> {
     override fun getChildren(): List<INode> = listOf(matchTerm, ref)

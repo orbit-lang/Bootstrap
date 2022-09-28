@@ -2,7 +2,7 @@ package org.orbit.precess.frontend.components.nodes
 
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.INode
-import org.orbit.precess.backend.components.ContextOperator
+import org.orbit.backend.typesystem.components.ContextOperator
 import org.orbit.precess.backend.phase.Interpreter
 import org.orbit.precess.backend.phase.Proposition
 import org.orbit.precess.backend.phase.PropositionResult

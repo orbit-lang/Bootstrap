@@ -3,8 +3,8 @@ package org.orbit.precess.frontend.rules
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.rules.ParseRule
-import org.orbit.precess.backend.components.ContextOperator
-import org.orbit.precess.backend.components.parse
+import org.orbit.backend.typesystem.components.ContextOperator
+import org.orbit.backend.typesystem.components.parse
 import org.orbit.precess.frontend.components.TokenTypes
 import org.orbit.precess.frontend.components.nodes.*
 

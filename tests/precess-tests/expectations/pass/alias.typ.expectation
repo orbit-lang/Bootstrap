@@ -1,4 +1,0 @@
-#Equal
-Dump: {T, U:T, V:(T | T) ; }
-
-Type checking completed successfully

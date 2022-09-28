@@ -1,12 +1,12 @@
 package org.orbit.backend.typesystem.inference
 
 import org.koin.core.parameter.parametersOf
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.nodes.ModuleNode
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.core.nodes.TypeDefNode
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
 
 object ModuleInference : ITypeInference<ModuleNode> {
     override fun infer(node: ModuleNode, env: Env): AnyType {

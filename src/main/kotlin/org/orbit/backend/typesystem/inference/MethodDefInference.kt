@@ -3,14 +3,11 @@ package org.orbit.backend.typesystem.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.parameter.parametersOf
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.*
-import org.orbit.precess.backend.components.Decl
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
-import org.orbit.precess.backend.components.ITypeCardinality
-import org.orbit.precess.backend.utils.TypeUtils
 import org.orbit.util.Invocation
 
 object TypeBindingPatternInference : ITypeInference<TypeBindingPatternNode> {

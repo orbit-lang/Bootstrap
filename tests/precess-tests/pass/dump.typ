@@ -1,2 +1,0 @@
-Dump => dump(∆)
-run Dump(∆)

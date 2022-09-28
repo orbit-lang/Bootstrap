@@ -1,7 +1,7 @@
 package org.orbit.backend.typesystem.intrinsics
 
-import org.orbit.precess.backend.components.IType
-import org.orbit.precess.backend.components.ITypeCardinality
+import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.ITypeCardinality
 
 object OrbCoreNumbers : IOrbModule {
     private val intIntArrow get() = IType.Arrow2(intType, intType, intType)

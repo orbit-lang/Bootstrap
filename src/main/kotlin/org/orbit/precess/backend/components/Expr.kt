@@ -1,5 +1,9 @@
 package org.orbit.precess.backend.components
 
+import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.utils.AnyArrow
+import org.orbit.backend.typesystem.utils.AnyExpr
+import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.precess.backend.utils.*
 
 sealed interface Expr<Self : Expr<Self>> : Substitutable, Inf<Self>, IPrecessComponent {

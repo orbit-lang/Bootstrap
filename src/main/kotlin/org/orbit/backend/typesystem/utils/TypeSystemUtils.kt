@@ -5,16 +5,14 @@ import org.koin.core.parameter.DefinitionParameters
 import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 import org.koin.mp.KoinPlatformTools
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.inference.ITypeInference
 import org.orbit.backend.typesystem.inference.evidence.ContextualEvidence
 import org.orbit.backend.typesystem.inference.evidence.IContextualEvidenceProvider
 import org.orbit.backend.typesystem.inference.evidence.IEvidence
 import org.orbit.backend.typesystem.inference.run
-import org.orbit.backend.typesystem.phase.globalContext
 import org.orbit.core.nodes.INode
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
-import org.orbit.precess.backend.utils.AnyType
 import org.orbit.util.getKoinInstance
 
 object TypeSystemUtils : KoinComponent {

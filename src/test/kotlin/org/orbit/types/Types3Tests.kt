@@ -3,6 +3,8 @@ package org.orbit.types
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.precess.backend.components.*
 import org.orbit.precess.backend.utils.*
 import org.orbit.util.assertIs

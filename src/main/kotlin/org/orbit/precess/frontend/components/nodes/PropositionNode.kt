@@ -2,7 +2,7 @@ package org.orbit.precess.frontend.components.nodes
 
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.INode
-import org.orbit.precess.backend.components.IType
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.precess.backend.phase.Interpreter
 
 interface IStatementNode : IPrecessNode {

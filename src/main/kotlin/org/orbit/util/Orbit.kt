@@ -22,9 +22,7 @@ import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.ContextCompositionPathResolver
 import org.orbit.graph.pathresolvers.util.ContextInstantiationPathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
-import org.orbit.precess.backend.components.IType
 import org.orbit.precess.frontend.components.nodes.IPrecessNode
-import org.orbit.precess.frontend.components.nodes.PropositionNode
 import org.orbit.precess.frontend.components.nodes.TermExpressionNode
 import kotlin.reflect.KClass
 

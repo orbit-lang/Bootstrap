@@ -3,7 +3,7 @@ package org.orbit.backend.typesystem.inference.evidence
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.MethodSignatureNode
-import org.orbit.precess.backend.components.Env
+import org.orbit.backend.typesystem.components.Env
 
 object SignatureEvidenceProvider : IContextualEvidenceProvider<MethodSignatureNode> {
     override fun provideEvidence(env: Env, node: MethodSignatureNode): IEvidence {

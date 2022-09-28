@@ -9,7 +9,7 @@ import org.orbit.core.nodes.ContextExpressionNode
 import org.orbit.core.nodes.ContextInstantiationNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
-import org.orbit.precess.backend.components.parse
+import org.orbit.backend.typesystem.components.parse
 import org.orbit.util.Invocation
 
 enum class IntrinsicContextCompositionOperator(override val symbol: String) : IIntrinsicOperator {

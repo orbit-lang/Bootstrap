@@ -2,12 +2,12 @@ package org.orbit.precess.frontend.components.nodes
 
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.INode
-import org.orbit.precess.backend.components.Decl
-import org.orbit.precess.backend.components.IType
+import org.orbit.backend.typesystem.components.Decl
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.precess.backend.phase.Interpreter
 import org.orbit.precess.backend.phase.Proposition
 import org.orbit.precess.backend.phase.PropositionResult
-import org.orbit.precess.backend.utils.TypeUtils
+import org.orbit.backend.typesystem.utils.TypeUtils
 
 data class CheckNode(override val firstToken: Token, override val lastToken: Token, val lhs: TermExpressionNode<*>, val rhs: TermExpressionNode<*>) : PropositionExpressionNode {
     override fun getChildren(): List<INode> = listOf(lhs, rhs)

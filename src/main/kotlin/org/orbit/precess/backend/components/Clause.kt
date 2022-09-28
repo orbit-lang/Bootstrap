@@ -1,5 +1,7 @@
 package org.orbit.precess.backend.components
 
+import org.orbit.backend.typesystem.components.Env
+
 sealed interface Clause {
     data class ContextFunctionCall(val contextFunction: ContextFunction) : Clause {
         override fun weaken(env: Env): Env = when (val result = contextFunction.invoke(env)) {

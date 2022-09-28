@@ -1,16 +1,16 @@
 package org.orbit.backend.typesystem.inference
 
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.Decl
+import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.AlgebraicConstructorNode
 import org.orbit.core.nodes.TypeDefNode
 import org.orbit.core.nodes.TypeExpressionNode
-import org.orbit.precess.backend.components.Decl
-import org.orbit.precess.backend.components.Env
 import org.orbit.precess.backend.components.Expr
-import org.orbit.precess.backend.components.IType
-import org.orbit.precess.backend.utils.AnyType
 
 object AlgebraicConstructorInference : ITypeInference<AlgebraicConstructorNode> {
     override fun infer(node: AlgebraicConstructorNode, env: Env): AnyType {

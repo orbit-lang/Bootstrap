@@ -2,7 +2,7 @@ package org.orbit.precess.frontend.components.nodes
 
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.INode
-import org.orbit.precess.backend.components.Env
+import org.orbit.backend.typesystem.components.Env
 import org.orbit.precess.backend.components.Expr
 
 sealed interface LookupNode<E: Expr<E>> : TermExpressionNode<E>

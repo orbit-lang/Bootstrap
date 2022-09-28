@@ -2,12 +2,12 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.Substitution
 import org.orbit.backend.typesystem.phase.TypeSystem
+import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.AnonymousParameterNode
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
-import org.orbit.precess.backend.components.Substitution
-import org.orbit.precess.backend.utils.TypeUtils
 import org.orbit.util.Invocation
 
 object AnonymousParameterInference : ITypeInference<AnonymousParameterNode>, KoinComponent {

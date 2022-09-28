@@ -5,8 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.backend.typegen.phase.TypeGen
 import org.orbit.backend.typegen.utils.TypeGenUtil
 import org.orbit.core.nodes.*
-import org.orbit.precess.backend.components.ContextOperator
-import org.orbit.precess.backend.components.Decl
+import org.orbit.backend.typesystem.components.ContextOperator
 import org.orbit.precess.backend.components.Expr
 import org.orbit.precess.frontend.components.nodes.*
 import org.orbit.precess.frontend.components.nodes.TypeAliasNode

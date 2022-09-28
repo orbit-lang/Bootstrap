@@ -1,12 +1,13 @@
 package org.orbit.backend.typesystem.inference
 
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.Decl
+import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.nodes.MethodReferenceNode
 import org.orbit.core.nodes.OperatorDefNode
 import org.orbit.core.nodes.OperatorFixity
-import org.orbit.precess.backend.components.Decl
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
 
 object OperatorDefInference : ITypeInference<OperatorDefNode> {
     override fun infer(node: OperatorDefNode, env: Env): AnyType {

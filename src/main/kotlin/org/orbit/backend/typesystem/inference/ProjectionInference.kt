@@ -2,20 +2,15 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.ProjectionNode
 import org.orbit.core.nodes.TypeExpressionNode
-import org.orbit.precess.backend.components.Decl
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
-import org.orbit.precess.backend.components.Projection
-import org.orbit.precess.backend.utils.AnyType
-import org.orbit.precess.backend.utils.TypeUtils
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
-import kotlin.math.exp
 
 private sealed interface SignatureVerificationResult {
     data class Implemented(val signatures: List<IType.Signature>) : SignatureVerificationResult

@@ -1,7 +1,7 @@
 package org.orbit.backend.typegen.components.walkers
 
 import org.orbit.core.nodes.INode
-import org.orbit.precess.backend.components.Decl
+import org.orbit.backend.typesystem.components.Decl
 import org.orbit.precess.backend.components.Expr
 import org.orbit.precess.frontend.components.nodes.*
 

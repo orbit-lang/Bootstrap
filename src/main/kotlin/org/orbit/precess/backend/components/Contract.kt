@@ -1,5 +1,7 @@
 package org.orbit.precess.backend.components
 
+import org.orbit.backend.typesystem.components.*
+
 sealed interface Contract : IContextualComponent {
     sealed interface ContractResult {
         data class Verified(val env: Env) : ContractResult

@@ -1,4 +1,0 @@
-#Equal
-Dump @dbg: {T, Unit ; tCons:(Unit) -> T, t:T}
-
-Type checking completed successfully

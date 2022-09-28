@@ -1,10 +1,10 @@
 package org.orbit.backend.typesystem.inference
 
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.nodes.INode
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
-import org.orbit.precess.backend.components.Inf
 import org.orbit.util.Invocation
 import org.orbit.util.getKoinInstance
 

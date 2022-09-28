@@ -1,12 +1,11 @@
 package org.orbit.backend.typesystem.inference.evidence
 
 import org.koin.core.component.KoinComponent
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.TypeVariable
 import org.orbit.backend.typesystem.phase.globalContext
 import org.orbit.core.nodes.INode
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
-import org.orbit.precess.backend.utils.AnyType
 
 sealed interface IEvidence {
     operator fun plus(other: IEvidence) : IEvidence

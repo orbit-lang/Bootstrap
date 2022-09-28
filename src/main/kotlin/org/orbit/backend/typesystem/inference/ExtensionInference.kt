@@ -2,12 +2,13 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.Decl.Signature
+import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.nodes.ContextExpressionNode
 import org.orbit.core.nodes.ExtensionNode
-import org.orbit.precess.backend.components.Decl.Signature
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
 import org.orbit.util.Invocation
 
 object ExtensionInference : ITypeInference<ExtensionNode>, KoinComponent {

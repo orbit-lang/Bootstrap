@@ -2,11 +2,11 @@ package org.orbit.precess.frontend.components.nodes
 
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.INode
-import org.orbit.precess.backend.components.Env
+import org.orbit.backend.typesystem.components.Env
 import org.orbit.precess.backend.components.Expr
-import org.orbit.precess.backend.components.IType
-import org.orbit.precess.backend.components.TypeOperator
-import org.orbit.precess.backend.utils.AnyType
+import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.TypeOperator
+import org.orbit.backend.typesystem.utils.AnyType
 
 abstract class AlgebraicTypeExpressionNode(open val left: TermExpressionNode<*>, open val right: TermExpressionNode<*>, open val op: TypeOperator) : TermExpressionNode<Expr.AnyTypeLiteral> {
     override fun getChildren(): List<INode> = listOf(left, right)

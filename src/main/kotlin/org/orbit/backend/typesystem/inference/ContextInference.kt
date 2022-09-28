@@ -1,12 +1,12 @@
 package org.orbit.backend.typesystem.inference
 
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.Decl
+import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.ContextNode
-import org.orbit.precess.backend.components.Decl
-import org.orbit.precess.backend.components.Env
-import org.orbit.precess.backend.components.IType
 
 object ContextInference : ITypeInference<ContextNode> {
     override fun infer(node: ContextNode, env: Env): AnyType {

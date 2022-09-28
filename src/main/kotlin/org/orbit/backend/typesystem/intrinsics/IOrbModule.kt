@@ -1,9 +1,9 @@
 package org.orbit.backend.typesystem.intrinsics
 
-import org.orbit.precess.backend.components.Decl
-import org.orbit.precess.backend.components.Env
+import org.orbit.backend.typesystem.components.Decl
+import org.orbit.backend.typesystem.components.Env
 import org.orbit.precess.backend.components.Expr
-import org.orbit.precess.backend.components.IType
+import org.orbit.backend.typesystem.components.IType
 
 interface IOrbModule {
     fun getPublicTypes() : List<IType.Type>
