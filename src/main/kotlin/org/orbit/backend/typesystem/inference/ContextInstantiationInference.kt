@@ -16,18 +16,17 @@ object ContextInstantiationInference : ITypeInference<ContextInstantiationNode>,
     private val invocation: Invocation by inject()
 
     override fun infer(node: ContextInstantiationNode, env: Env): AnyType {
-        val ctx = TypeSystemUtils.inferAs<TypeExpressionNode, Env>(node.contextIdentifierNode, globalContext)
-        val abstractTypeParameters = ctx.getUnsolvedTypeParameters()
+        val nEnv = env + TypeSystemUtils.inferAs<TypeExpressionNode, Env>(node.contextIdentifierNode, globalContext)
+        val abstractTypeParameters = nEnv.getUnsolvedTypeParameters()
         val concreteTypeParameters = TypeSystemUtils.inferAll(node.typeVariables, env)
 
         if (concreteTypeParameters.count() != abstractTypeParameters.count()) {
-            throw invocation.make<TypeSystem>("Context `$ctx` declares ${abstractTypeParameters.count()} Type Variables, found ${concreteTypeParameters.count()}",
+            throw invocation.make<TypeSystem>("Context `${nEnv.name}` declares ${abstractTypeParameters.count()} Type Variables, found ${concreteTypeParameters.count()}",
                 node)
         }
 
         // TODO - Enforce Type Variable Constraints (if any)
 
-        return abstractTypeParameters.zip(concreteTypeParameters)
-            .fold(ctx + env) { acc, next -> acc.solving(next.first, next.second) }
+        return nEnv.solvingAll(abstractTypeParameters.zip(concreteTypeParameters))
     }
 }

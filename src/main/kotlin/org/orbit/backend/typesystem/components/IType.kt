@@ -137,8 +137,12 @@ sealed interface IType : IContextualComponent, Substitutable {
 
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)
+            val printer = getKoinInstance<Printer>()
+            val path = OrbitMangler.unmangle(name)
+            val simpleName = path.last()
+            val prettyName = printer.apply(simpleName, PrintableKey.Bold)
 
-            return "$indent${type.prettyPrint(depth)}"
+            return "$indent($prettyName = ${type.prettyPrint(depth)})"
         }
 
         override fun toString(): String = prettyPrint()
@@ -345,11 +349,6 @@ sealed interface IType : IContextualComponent, Substitutable {
             else -> emptyList()
         }
 
-        /**
-         * alias TruthTable = (Bool, Bool)
-         *
-         * (true, true)
-         */
         override fun getConstructors(): List<IConstructor<Tuple>> {
             val constructors = mutableListOf<TupleConstructor>()
             for (lConstructor in getLeftConstructors()) {
@@ -471,8 +470,7 @@ sealed interface IType : IContextualComponent, Substitutable {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IAlgebraicType<Union>,
-        ICaseIterable<Union> {
+    data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IAlgebraicType<Union>, ICaseIterable<Union> {
         override val id: String = "(${left.id} | ${right.id})"
 
         override fun getCardinality(): ITypeCardinality
@@ -831,14 +829,14 @@ sealed interface IType : IContextualComponent, Substitutable {
         override fun substitute(substitution: Substitution): AnyType = when (substitution.old) {
             is TypeVar -> when (substitution.old.name == name) {
                 true -> substitution.new
-                else -> substitution.old
+                else -> this
             }
 
-            else -> substitution.old
+            else -> this
         }
 
         override fun equals(other: Any?): Boolean = when (other) {
-            is TypeVar -> id == other.id
+            is TypeVar -> name == other.name
             else -> false
         }
 
@@ -849,7 +847,9 @@ sealed interface IType : IContextualComponent, Substitutable {
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)
             val printer = getKoinInstance<Printer>()
-            val prettyName = printer.apply("?$name", PrintableKey.Bold, PrintableKey.Italics)
+            val path = OrbitMangler.unmangle(name)
+            val simpleName = path.last()
+            val prettyName = printer.apply("?$simpleName", PrintableKey.Bold, PrintableKey.Italics)
 
             return "$indent$prettyName"
         }
@@ -857,8 +857,7 @@ sealed interface IType : IContextualComponent, Substitutable {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Trait(override val id: String, val members: List<Member>, val signatures: List<Signature>) :
-        Entity<Trait> {
+    data class Trait(override val id: String, val members: List<Member>, val signatures: List<Signature>) : Entity<Trait> {
         override fun substitute(substitution: Substitution): Trait
             = Trait(id, members.map { it.substitute(substitution) }, signatures.map { it.substitute(substitution) })
 
@@ -884,8 +883,10 @@ sealed interface IType : IContextualComponent, Substitutable {
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)
             val printer = getKoinInstance<Printer>()
+            val path = OrbitMangler.unmangle(id)
+            val simpleName = path.last()
 
-            return "$indent${printer.apply(id, PrintableKey.Bold)}"
+            return "$indent${printer.apply(simpleName, PrintableKey.Bold)}"
         }
 
         override fun toString(): String = prettyPrint()

@@ -12,6 +12,7 @@ import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
+import kotlin.math.exp
 
 interface IContextualComponent
 
@@ -101,9 +102,16 @@ class Env(
 
     private fun <T> protect(protector: Protector<T>, block: () -> T): T = protector.protect(block)
 
-    fun solving(typeVariable: IType.TypeVar, concrete: AnyType) : Env
-        = reduce(Decl.TypeVariable(typeVariable.name)).extend(Decl.TypeAlias(typeVariable.name, concrete))
-            .substitute(Substitution(typeVariable, concrete))
+    fun solving(typeVariable: IType.TypeVar, concrete: AnyType) : Env {
+        val nElements = elements.filterNot { it == typeVariable } + IType.Alias(typeVariable.name, concrete)
+
+        _elements = nElements.map { it.substitute(Substitution(typeVariable, concrete)) }
+
+        return this
+    }
+
+    fun solvingAll(pairs: List<Pair<IType.TypeVar, AnyType>>) : Env
+        = pairs.fold(this) { acc, next -> acc.solving(next.first, next.second) }
 
     fun getUnsolvedTypeParameters() : List<IType.TypeVar>
         = elements.filterIsInstance<IType.TypeVar>()

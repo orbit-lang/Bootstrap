@@ -15,8 +15,8 @@ module M with Orb::Core::* {
         }
     }
 
-    context TransformCtx [F, T] with trait Transformable {
-        (Self) map (value T) (F)
+    context TransformCtx [A, B] with trait Transformable {
+        (Self) map (value A) (B)
     }
 
     extension Option within OptionCtx [Any] {
@@ -34,5 +34,6 @@ module M with Orb::Core::* {
     (Foo) main () () within OptionCtx [Foo] {
         foo = Foo()
         opt = foo.wrap()
+        typeOf opt
     }
 }
