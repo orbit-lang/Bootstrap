@@ -10,7 +10,7 @@ import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
 
-class DelimitedRule<N: INode>(private val openingType: TokenType, private val closingType: TokenType, private val innerRule: ParseRule<N>, private val delimiterType: TokenType = TokenTypes.Comma) : ParseRule<DelimitedNode<N>>, KoinComponent {
+class DelimitedRule<N: INode>(private val openingType: TokenType = TokenTypes.LParen, private val closingType: TokenType = TokenTypes.RParen, private val innerRule: ParseRule<N>, private val delimiterType: TokenType = TokenTypes.Comma) : ParseRule<DelimitedNode<N>>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun parse(context: Parser): ParseRule.Result {

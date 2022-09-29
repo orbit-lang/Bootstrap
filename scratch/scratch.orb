@@ -7,6 +7,26 @@ module Orb::Core::Booleans {
         constructor True
         constructor False
     }
+
+    (self Bool) and (other Bool) (Bool) = select self {
+        case true = other
+        case else = false
+    }
+
+    (self Bool) or (other Bool) (Bool) = select self {
+        case true = true
+        case else = other
+    }
+
+    (self Bool) not () (Bool) = select self {
+        case true = false
+        case else = true
+    }
+
+    infix operator boolAnd `&&` by Bool::and
+    infix operator boolOr  `||` by Bool::or
+    prefix operator boolNot `!` by Bool::not
+    postfix operator boolThing `!` by Bool::not
 }
 
 module Orb::Core::Types {
@@ -15,12 +35,11 @@ module Orb::Core::Types {
 }
 
 module M with Orb::Core::* {
-    context ValueCtx [V, v V] {
-        (V) foo () (V) = v
-    }
+    context ValueCtx [V, v V]
+        with (V) foo () (V) = v
 
-    (Int) main () () within ValueCtx [Bool, true] {
-        f = Bool.foo()
+    (Int) main () () within ValueCtx [Bool, true] & ValueCtx [Int, 0] {
+        f = true.foo()
         typeOf f
     }
 }

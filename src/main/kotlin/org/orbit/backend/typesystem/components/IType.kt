@@ -909,3 +909,4 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 }
 
 typealias AnyType = IType
+typealias AnyOperator = IType.IOperatorArrow<*, *>

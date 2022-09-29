@@ -59,11 +59,20 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 			TokenTypes.OperatorSymbol -> {
 				// Prefix operator
 				val op = context.consume()
-				val expr = context.attemptAny(*valueRules)
-					as? IExpressionNode
-					?: throw invocation.make<Parser>("Expected expression after Prefix Operator", op)
+				val next = context.peek()
+				if (next.type == TokenTypes.LParen) {
+					val delim = DelimitedRule(innerRule = ExpressionRule(*valueRules))
+					val expr = context.attempt(delim)
+						?: throw invocation.make<Parser>("Expected expression after Prefix Operator", op)
 
-				UnaryExpressionNode(op, expr.lastToken, op.text.replace("`", ""), expr, OperatorFixity.Prefix)
+					UnaryExpressionNode(op, expr.lastToken, op.text.replace("`", ""), expr.nodes[0], OperatorFixity.Prefix)
+				} else {
+					val expr = context.attemptAny(*valueRules)
+						as? IExpressionNode
+						?: throw invocation.make<Parser>("Expected expression after Prefix Operator", op)
+
+					UnaryExpressionNode(op, expr.lastToken, op.text.replace("`", ""), expr, OperatorFixity.Prefix)
+				}
 			}
 
 			else -> context.attemptAny(*valueRules)

@@ -8,6 +8,7 @@ import org.orbit.backend.typesystem.intrinsics.getPublicAPI
 import org.orbit.backend.typesystem.phase.globalContext
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeUtils
+import org.orbit.core.nodes.OperatorFixity
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
@@ -26,6 +27,7 @@ class Env(
     val components: List<String> = listOf(name)
 ) : AnyType {
     constructor() : this("\uD835\uDF92", context = Context())
+    constructor(name: String) : this(name, context = Context())
 
     companion object : KoinComponent {
         private val globalContext: Env by globalContext()
@@ -279,6 +281,16 @@ class Env(
         }
 
         return Env(name, elements, nRefs, projections, expressionCache, context)
+    }
+
+    fun getPrefixOperators() : List<IType.PrefixOperator> = getOperators()
+    fun getInfixOperators() : List<IType.InfixOperator> = getOperators()
+    fun getPostfixOperators() : List<IType.PostfixOperator> = getOperators()
+
+    fun getOperators(fixity: OperatorFixity) : List<AnyOperator> = when (fixity) {
+        OperatorFixity.Prefix -> getPrefixOperators()
+        OperatorFixity.Infix -> getInfixOperators()
+        OperatorFixity.Postfix -> getPostfixOperators()
     }
 
     inline fun <reified O: IType.IOperatorArrow<*, *>> getOperators() : List<O>

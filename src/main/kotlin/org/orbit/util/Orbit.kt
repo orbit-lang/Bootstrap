@@ -148,6 +148,7 @@ val mainModule = module {
 	single(TypeOfInference)
 	single(PanicInference)
 	single(TypeAliasInference)
+	single(UnaryExpressionInference)
 
 	// Contextual Evidence Gathering
 	single(TypeIdentifierEvidenceProvider)

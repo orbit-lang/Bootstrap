@@ -20,10 +20,7 @@ object BinaryExpressionInference : ITypeInference<BinaryExpressionNode>, KoinCom
 
         val possibleOps = env.getOperators<IType.InfixOperator>()
             .filter { it.symbol == node.operator }
-            .filter { TypeUtils.checkEq(env, left, it.getDomain()[0]) && TypeUtils.checkEq(env,
-                right,
-                it.getDomain()[1])
-            }
+            .filter { TypeUtils.checkEq(env, left, it.getDomain()[0]) && TypeUtils.checkEq(env, right, it.getDomain()[1]) }
 
         if (possibleOps.isEmpty()) throw invocation.make<TypeSystem>("Could not find Infix Operator `${node.operator}` of Type `(${left.id}, ${right.id}) -> ???`", node)
         if (possibleOps.count() > 1) {

@@ -48,11 +48,13 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
                 environment.bind(Binding.Kind.TypeParameter, typeParameter.value.value, nPath, vertexID)
             }
 
-            for (pair in input.variables) {
-                val nPath = path + pair.typeExpressionNode.value
+            pathResolverUtil.resolveAll(input.variables, pass, environment, graph)
 
-                pair.typeExpressionNode.annotate(nPath, Annotations.path)
-                pair.annotate(nPath, Annotations.path)
+            for (pair in input.variables) {
+//                val nPath = path + pair.typeExpressionNode.value
+//
+//                pair.typeExpressionNode.annotate(nPath, Annotations.path)
+//                pair.annotate(nPath, Annotations.path)
             }
         } else {
             val parentGraphID = input.getGraphID()
