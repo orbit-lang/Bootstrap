@@ -12,5 +12,6 @@ object IdentifierInference : ITypeInference<IdentifierNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(node: IdentifierNode, env: Env): AnyType
-        = env.getRef(node.identifier)?.type ?: throw invocation.make<TypeSystem>("`${node.identifier}` is not defined in the current context", node)
+        = env.getRef(node.identifier)?.type
+            ?: throw invocation.make<TypeSystem>("`${node.identifier}` is not defined in the current context", node)
 }

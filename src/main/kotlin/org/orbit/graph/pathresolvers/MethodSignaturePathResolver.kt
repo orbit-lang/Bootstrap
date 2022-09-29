@@ -56,9 +56,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 			try {
 				input.returnTypeNode.annotateByKey(graphID, Annotations.graphId)
 				TypeExpressionPathResolver.resolve(input.returnTypeNode, pass, environment, graph)
-			} catch (e: Exception) {
-				println("HERE")
-			}
+			} catch (e: Exception) {}
 		}
 
 		val retResult = environment.getBinding(ret, Binding.Kind.Union.entityMethodOrConstructorOrParameter, graph, input.getGraphIDOrNull())

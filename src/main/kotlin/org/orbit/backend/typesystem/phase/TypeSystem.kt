@@ -30,7 +30,7 @@ object TypeSystem : Phase<ProgramNode, IType.IMetaType<*>>, KoinComponent {
 
         val result = TypeSystemUtils.inferAs<ProgramNode, IType.IMetaType<*>>(input, env)
 
-        println(env)
+//        println(env)
 
         return result
     }

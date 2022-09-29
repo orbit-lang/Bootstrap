@@ -16,7 +16,7 @@ class TypeDefNode(
     override val properties: List<ParameterNode> = emptyList(),
     val traitConformances: List<TypeExpressionNode> = emptyList(),
     val body: List<ITypeDefBodyNode> = emptyList(),
-) : EntityDefNode {
+) : EntityDefNode, IContextDeclarationNode {
     override fun getChildren() : List<INode>
 		= listOf(typeIdentifierNode) + traitConformances + properties + body
 }

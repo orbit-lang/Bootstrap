@@ -15,7 +15,7 @@ object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode
     private val invocation: Invocation by inject()
 
     override fun infer(node: ConstructorInvocationNode, env: Env): AnyType {
-        val type = TypeSystemUtils.infer(node.typeExpressionNode, env)
+        val type = TypeSystemUtils.infer(node.typeExpressionNode, env).flatten(env)
         val constructableType = type as? IType.Type
             ?: throw invocation.make<TypeSystem>("Cannot construct value of uninhabited Type `${type.id}`", node.typeExpressionNode)
 

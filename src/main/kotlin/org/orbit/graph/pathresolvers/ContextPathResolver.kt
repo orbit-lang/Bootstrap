@@ -5,6 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.*
+import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -42,8 +43,16 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
                 val vertexID = graph.insert(typeParameter.value.value)
 
                 graph.link(graphID, vertexID)
+                graph.alias(nPath.toString(OrbitMangler), vertexID)
 
                 environment.bind(Binding.Kind.TypeParameter, typeParameter.value.value, nPath, vertexID)
+            }
+
+            for (pair in input.variables) {
+                val nPath = path + pair.typeExpressionNode.value
+
+                pair.typeExpressionNode.annotate(nPath, Annotations.path)
+                pair.annotate(nPath, Annotations.path)
             }
         } else {
             val parentGraphID = input.getGraphID()
@@ -51,15 +60,19 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
             input.clauses.forEach { it.annotateByKey(parentGraphID, Annotations.graphId) }
             pathResolverUtil.resolveAll(input.clauses, pass, environment, graph)
 
+            input.body.forEach { it.annotate(parentGraphID, Annotations.graphId) }
+
             val typeResolver = TypeDefPathResolver(parentPath)
             val traitResolver = TraitDefPathResolver(parentPath)
+            val methodResolver = MethodDefPathResolver()
 
             for (decl in input.body) {
                 val resolver = when (decl) {
                     is TypeDefNode -> typeResolver
                     is TraitDefNode -> traitResolver
-                    is FamilyNode -> TODO("FamilyNode")
-                } as PathResolver<EntityDefNode>
+                    is MethodDefNode -> methodResolver
+                    else -> TODO("WHAT?")
+                } as PathResolver<IContextDeclarationNode>
 
                 resolver.resolve(decl, PathResolver.Pass.Initial, environment, graph)
                 resolver.resolve(decl, PathResolver.Pass.Last, environment, graph)

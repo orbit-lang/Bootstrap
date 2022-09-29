@@ -18,11 +18,11 @@ object ContextInstantiationPathResolver : PathResolver<ContextInstantiationNode>
 
     override fun resolve(input: ContextInstantiationNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
         input.contextIdentifierNode.annotateByKey(input.getGraphID(), Annotations.graphId)
-        input.typeVariables.forEach { it.annotateByKey(input.getGraphID(), Annotations.graphId) }
+        input.typeParameters.forEach { it.annotateByKey(input.getGraphID(), Annotations.graphId) }
 
         val result = pathResolverUtil.resolve(input.contextIdentifierNode, pass, environment, graph)
 
-        pathResolverUtil.resolveAll(input.typeVariables, pass, environment, graph)
+        pathResolverUtil.resolveAll(input.typeParameters, pass, environment, graph)
 
         return result
     }

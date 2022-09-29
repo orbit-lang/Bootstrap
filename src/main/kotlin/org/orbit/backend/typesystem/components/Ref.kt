@@ -4,7 +4,7 @@ import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 
-interface IRef {
+interface IRef : Substitutable<IRef> {
     val name: String
     val type: AnyType
     val uniqueId: String
@@ -31,12 +31,15 @@ class Ref(override val name: String, override val type: AnyType) : IRef {
         history.add(RefEntry.Use(this))
     }
 
+    override fun substitute(substitution: Substitution): IRef
+        = Ref(name, type.substitute(substitution))
+
     override fun prettyPrint(depth: Int): String {
         val indent = "\t".repeat(depth)
         val printer = getKoinInstance<Printer>()
         val prettyName = printer.apply(name, PrintableKey.Italics)
 
-        return "$indent$type.$prettyName"
+        return "$indent$prettyName : $type"
     }
 
     override fun toString(): String = prettyPrint()
@@ -45,6 +48,9 @@ class Ref(override val name: String, override val type: AnyType) : IRef {
 data class Alias(override val name: String, val ref: IRef) : IRef {
     override val type: AnyType = ref.type
     override val uniqueId: String = "$name:${ref.type.id}"
+
+    override fun substitute(substitution: Substitution): IRef
+        = Alias(name, ref.substitute(substitution))
 
     override fun getHistory(): List<RefEntry> = ref.getHistory()
     override fun consume(): Ref = ref.consume()

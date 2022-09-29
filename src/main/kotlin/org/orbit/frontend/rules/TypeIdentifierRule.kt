@@ -52,16 +52,3 @@ enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : Valu
 		return +TypeIdentifierNode(start, start, typeId.text)
 	}
 }
-
-object CollectionTypeLiteralRule : ValueRule<CollectionTypeLiteralNode> {
-	override fun parse(context: Parser): ParseRule.Result {
-		val start = context.expect(TokenTypes.LBracket)
-
-		val typeExpression = context.attempt(TypeExpressionRule)
-			?: return ParseRule.Result.Failure.Rewind(listOf(start))
-
-		val end = context.expect(TokenTypes.RBracket)
-
-		return +CollectionTypeLiteralNode(start, end, typeExpression.value, typeExpression)
-	}
-}

@@ -1,6 +1,8 @@
 package org.orbit.backend.typesystem.components
 
 import org.orbit.backend.typesystem.phase.TypeSystem
+import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.util.Invocation
@@ -11,18 +13,17 @@ sealed interface Decl {
         Reject, Replace, Ignore
     }
 
-    data class Clone(val name: String? = null, val cloneElements: Boolean = true, val cloneRefs: Boolean = true) :
-        Decl {
+    data class Clone(val name: String? = null, val cloneElements: Boolean = true, val cloneRefs: Boolean = true) : Decl {
         override fun exists(env: Env): Boolean = false
         override fun xtend(env: Env): Env = when (cloneElements) {
             true -> when (cloneRefs) {
-                true -> Env(name ?: env.name, env.elements, env.refs, env.projections, env.expressionCache, env)
-                else -> Env(name ?: env.name, env.elements, emptyList(), env.projections, env.expressionCache, env)
+                true -> Env(name ?: env.name, env.elements, env.refs, env.projections, env.expressionCache, env.context)
+                else -> Env(name ?: env.name, env.elements, emptyList(), env.projections, env.expressionCache, env.context)
             }
 
             else -> when (cloneRefs) {
-                true -> Env(name ?: env.name, emptyList(), env.refs, env.projections, env.expressionCache, env)
-                else -> Env(name ?: env.name, emptyList(), emptyList(), env.projections, env.expressionCache, env)
+                true -> Env(name ?: env.name, emptyList(), env.refs, env.projections, env.expressionCache, env.context)
+                else -> Env(name ?: env.name, emptyList(), emptyList(), env.projections, env.expressionCache, env.context)
             }
         }
 
@@ -32,6 +33,9 @@ sealed interface Decl {
     data class Merge(val root: Env) : Decl {
         override fun exists(env: Env): Boolean = true
         override fun xtend(env: Env): Env {
+//            if (root.components.contains(env.name)) return root
+//            if (env.components.contains(root.name)) return env
+
             val nElements = (root.elements + env.elements).distinctBy { it.id }
             val nRefs = (root.refs + env.refs).distinctBy { it.uniqueId }
             val nProjections = (root.projections + env.projections).distinctBy { it.uniqueId }
@@ -41,7 +45,7 @@ sealed interface Decl {
                 else -> "${root.name} & ${env.name}"
             }
 
-            return Env(nName, nElements, nRefs, nProjections, nExpressionCache)
+            return Env(nName, nElements, nRefs, nProjections, nExpressionCache, root.context + env.context, listOf(root.name, env.name))
         }
 
         override fun reduce(env: Env): Env = env
@@ -63,11 +67,8 @@ sealed interface Decl {
 
     data class Context(val context: Env) : Decl {
         override fun exists(env: Env): Boolean = env.elements.any { it.id == context.id }
-        override fun xtend(env: Env): Env
-            = Env(env.name, env.elements + context, env.refs, env.projections, env.expressionCache)
-
-        override fun reduce(env: Env): Env
-            = Env(env.name, env.elements - context, env.refs, env.projections, env.expressionCache)
+        override fun xtend(env: Env): Env = env.withElement(context)
+        override fun reduce(env: Env): Env = env.withoutElement(context)
     }
 
     data class Signature(val signature: IType.Signature) : Decl {
@@ -75,58 +76,38 @@ sealed interface Decl {
             TODO("Not yet implemented")
         }
 
-        override fun xtend(env: Env): Env
-            = Env(env.name, env.elements + signature, env.refs, env.projections, env.expressionCache)
-
-        override fun reduce(env: Env): Env
-            = Env(env.name, env.elements - signature, env.refs, env.projections, env.expressionCache)
+        override fun xtend(env: Env): Env = env.withElement(signature)
+        override fun reduce(env: Env): Env = env.withoutElement(signature)
     }
 
     data class Operator(val op: IType.IOperatorArrow<*, *>) : Decl {
         override fun exists(env: Env): Boolean = env.elements.filterIsInstance<IType.IOperatorArrow<*, *>>().any { it == op }
-        override fun xtend(env: Env): Env
-            = Env(env.name,env.elements + IType.Alias(op.identifier, op), env.refs, env.projections, env.expressionCache)
-
-        override fun reduce(env: Env): Env
-            = Env(env.name, env.elements - IType.Alias(op.identifier, op), env.refs, env.projections, env.expressionCache)
+        override fun xtend(env: Env): Env = env.withElement(IType.Alias(op.identifier, op))
+        override fun reduce(env: Env): Env = env.withoutElement(IType.Alias(op.identifier, op))
     }
 
     data class TypeVariable(val name: String) : Decl {
         override fun exists(env: Env): Boolean = env.elements.any { it is IType.TypeVar && it.name == name }
-        override fun xtend(env: Env): Env
-            = Env(env.name, env.elements + IType.TypeVar(name), env.refs, env.projections, env.expressionCache)
-
-        override fun reduce(env: Env): Env
-            = Env(env.name, env.elements - IType.TypeVar(name), env.refs, env.projections, env.expressionCache)
+        override fun xtend(env: Env): Env = env.withElement(IType.TypeVar(name))
+        override fun reduce(env: Env): Env = env.withoutElement(IType.TypeVar(name))
     }
 
     data class Type(val type: IType.Type, val members: List<IType.Member> = emptyList()) : Decl {
         constructor(type: IType.Type, members: Map<String, IType.Entity<*>> = emptyMap()) : this(type, members.map {
-            IType.Member(it.key,
-                it.value,
-                type)
+            IType.Member(it.key, it.value, type)
         })
 
         override fun exists(env: Env): Boolean = env.elements.any { it.id == type.id }
-        override fun xtend(env: Env): Env {
-            val refs = members.map { Ref(it.id, it.type) }
-            return Env(env.name, env.elements + type, env.refs + refs, env.projections, env.expressionCache)
-        }
+        override fun xtend(env: Env): Env = env.withElement(type)
+            .withRefs(members.map { Ref(it.id, it.type) })
 
-        override fun reduce(env: Env): Env {
-            val mems = env.getDeclaredMembers(type)
-
-            return Env(env.name, env.elements - mems - type, env.refs, env.projections, env.expressionCache)
-        }
+        override fun reduce(env: Env): Env = env.withoutElements(env.getDeclaredMembers(type) + type)
     }
 
     data class Trait(val trait: IType.Trait) : Decl {
         override fun exists(env: Env): Boolean = env.elements.any { it.id == trait.id }
-        override fun xtend(env: Env): Env
-            = Env(env.name, env.elements + trait, env.refs, env.projections, env.expressionCache)
-
-        override fun reduce(env: Env): Env
-            = Env(env.name, env.elements - trait, env.refs, env.projections, env.expressionCache)
+        override fun xtend(env: Env): Env = env.withElement(trait)
+        override fun reduce(env: Env): Env = env.withoutElement(trait)
     }
 
     data class Assignment(val name: String, val type: AnyType) : Decl {
@@ -138,15 +119,15 @@ sealed interface Decl {
                 throw invocation.make<TypeSystem>("`$name` is already bound in the current context: `$env`", SourcePosition.unknown)
             }
 
-            return Env(env.name, env.elements, env.refs + Ref(name, type), env.projections, env.expressionCache)
+            return env.withRef(Ref(name, type))
         }
 
-        override fun reduce(env: Env): Env
-            = Env(env.name, env.elements, env.refs - Ref(name, type), env.projections, env.expressionCache)
+        override fun reduce(env: Env): Env = env.withoutRef(Ref(name, type))
     }
 
-    data class TypeAlias(val name: String, val type: AnyType, val conflictStrategy: ConflictStrategy = ConflictStrategy.Reject) :
-        Decl {
+    data class TypeAlias(val name: String, val type: AnyType, val conflictStrategy: ConflictStrategy = ConflictStrategy.Reject) : Decl {
+        constructor(path: Path, type: AnyType) : this(path.toString(OrbitMangler), type)
+
         override fun exists(env: Env): Boolean = env.elements.any { it.getCanonicalName() == name }
         override fun xtend(env: Env): Env {
             val isAlreadyDefined = when (conflictStrategy) {
@@ -155,43 +136,32 @@ sealed interface Decl {
             }
 
             val nElements = if (isAlreadyDefined) {
-                if (conflictStrategy == ConflictStrategy.Reject) {
-                    val invocation = getKoinInstance<Invocation>()
+                when (conflictStrategy) {
+                    ConflictStrategy.Reject -> {
+                        val invocation = getKoinInstance<Invocation>()
 
-                    // TODO - There's probably a better way to catch naming conflicts, maybe in CanonicalNameResolver?
-                    throw invocation.make<TypeSystem>("Attempt to redeclare `$name : ${type.id}`", Token.empty)
-                } else if (conflictStrategy == ConflictStrategy.Replace) {
-                    env.elements.filterNot { it is IType.Alias && it.name == name }
-                } else {
-                    env.elements
+                        // TODO - There's probably a better way to catch naming conflicts, maybe in CanonicalNameResolver?
+                        throw invocation.make<TypeSystem>("Attempt to redeclare `$name : ${type.id}`", Token.empty)
+                    }
+
+                    ConflictStrategy.Replace -> env.elements.filterNot { it is IType.Alias && it.name == name }
+
+                    else -> env.elements
                 }
             } else {
                 env.elements
             }
 
-            return Env(env.name, nElements + IType.Alias(name, type), env.refs, env.projections, env.expressionCache)
+            return env.withElementsReplaced(nElements + IType.Alias(name, type))
         }
 
-        override fun reduce(env: Env): Env {
-            val nElements = env.elements.filterNot { it is IType.Alias && it.name == name }
-
-            return Env(env.name, nElements, env.refs, env.projections, env.expressionCache)
-        }
+        override fun reduce(env: Env): Env = env.withoutElements { it is IType.Alias && it.name == name }
     }
 
     data class Alias(val name: String, val ref: IRef) : Decl {
         override fun exists(env: Env): Boolean = env.refs.any { it.name == name }
-        override fun xtend(env: Env): Env {
-            val alias = org.orbit.backend.typesystem.components.Alias(name, ref)
-
-            return Env(env.name, env.elements, env.refs + alias, env.projections, env.expressionCache)
-        }
-
-        override fun reduce(env: Env): Env {
-            val alias = org.orbit.backend.typesystem.components.Alias(name, ref)
-
-            return Env(env.name, env.elements, env.refs - alias, env.projections, env.expressionCache)
-        }
+        override fun xtend(env: Env): Env = env.withAlias(name, ref)
+        override fun reduce(env: Env): Env = env.withoutAlias(name)
     }
 
     data class Extension(val type: AnyType, val signatures: List<IType.Signature>) : Decl {
@@ -212,11 +182,8 @@ sealed interface Decl {
     data class Projection(val source: AnyType, val target: IType.Trait) : Decl {
         override fun exists(env: Env): Boolean = true
 
-        override fun xtend(env: Env): Env
-            = Env(env.name, env.elements, env.refs, env.projections + org.orbit.backend.typesystem.components.Projection(source, target), env.expressionCache)
-
-        override fun reduce(env: Env): Env
-            = Env(env.name, env.elements, env.refs,env.projections - org.orbit.backend.typesystem.components.Projection(source, target), env.expressionCache)
+        override fun xtend(env: Env): Env = env.withProjection(source, target)
+        override fun reduce(env: Env): Env = env.withoutProjection(source, target)
     }
 
     data class Compound<D: Decl, E: Decl>(val a: D, val b: E) : Decl {

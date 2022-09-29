@@ -22,13 +22,13 @@ class Env(
     private var _refs: List<IRef> = emptyList(),
     private var _projections: List<Projection> = emptyList(),
     private var _expressionCache: Map<String, AnyType> = emptyMap(),
-    val parent: Env? = null
+    val context: Context,
+    val components: List<String> = listOf(name)
 ) : AnyType {
-    constructor() : this("\uD835\uDF92")
+    constructor() : this("\uD835\uDF92", context = Context())
 
     companion object : KoinComponent {
         private val globalContext: Env by globalContext()
-        private val invocation: Invocation by inject()
 
         fun findEvidence(elementName: String) : ContextualEvidence? {
             // First, check the easiest case where `elementName` is visible in the global context
@@ -86,7 +86,7 @@ class Env(
         fun <T> panic(never: IType.Never): T = never.panic()
     }
 
-    internal constructor(name: String = "", type: AnyType, ref: IRef) : this(name, listOf(type), listOf(ref))
+    internal constructor(name: String = "", type: AnyType, ref: IRef) : this(name, listOf(type), listOf(ref), context = Context())
 
     override val id: String get() {
         return "$name : ${toString()}"
@@ -98,16 +98,16 @@ class Env(
         = ITypeCardinality.Zero
 
     override fun substitute(substitution: Substitution): Env
-        = Env(name, elements.map { it.substitute(substitution) }, refs, projections, expressionCache, parent)
+        = Env(name, elements.map { it.substitute(substitution) }, refs, projections, expressionCache, context.substitute(substitution))
 
     private fun <T> protect(protector: Protector<T>, block: () -> T): T = protector.protect(block)
 
     fun solving(typeVariable: IType.TypeVar, concrete: AnyType) : Env {
-        val nElements = elements.filterNot { it == typeVariable } + IType.Alias(typeVariable.name, concrete)
+        val substitution = Substitution(typeVariable, concrete)
+        val nElements = (elements.filterNot { it == typeVariable } + IType.Alias(typeVariable.name, concrete))
+            .substitute(substitution)
 
-        _elements = nElements.map { it.substitute(Substitution(typeVariable, concrete)) }
-
-        return this
+        return Env(name, nElements, refs.substitute(substitution), projections, expressionCache, context.substitute(substitution))
     }
 
     fun solvingAll(pairs: List<Pair<IType.TypeVar, AnyType>>) : Env
@@ -267,7 +267,7 @@ class Env(
             }
         }
 
-        return Env(name, nElements, refs, projections, expressionCache)
+        return Env(name, nElements, refs, projections, expressionCache, context)
     }
 
     fun denyRef(name: String): Env {
@@ -278,7 +278,7 @@ class Env(
             }
         }
 
-        return Env(name, elements, nRefs, projections, expressionCache)
+        return Env(name, elements, nRefs, projections, expressionCache, context)
     }
 
     inline fun <reified O: IType.IOperatorArrow<*, *>> getOperators() : List<O>
@@ -289,15 +289,6 @@ class Env(
     fun import(module: IOrbModule) : Env
         = extend(Decl.Merge(module.getPublicAPI()))
 
-    fun importInPlace(module: IOrbModule) {
-        val nEnv = import(module)
-
-        _elements = nEnv.elements
-        _refs = nEnv.refs
-        _projections = nEnv.projections
-        _expressionCache = nEnv.expressionCache
-    }
-
     operator fun plus(other: Env) : Env
         = other.extend(Decl.Merge(this))
 
@@ -306,7 +297,7 @@ class Env(
         val allTypes = elements.joinToString("\n$indent") { it.prettyPrint(depth + 1) }
         val allRefs = refs.joinToString("\n$indent") { it.prettyPrint(depth + 1) }
         val printer = getKoinInstance<Printer>()
-        val prettyName = printer.apply(name, PrintableKey.Bold, PrintableKey.Italics)
+        val prettyName = printer.apply(components.joinToString(" & "), PrintableKey.Bold, PrintableKey.Italics)
 
         return "$indent$prettyName\n$indent$allTypes\n$indent$allRefs"
     }
@@ -318,3 +309,25 @@ class Env(
         else -> prettyPrint()
     }
 }
+
+fun Env.withName(newName: String) : Env = Env(newName, elements, refs, projections, expressionCache, context)
+
+fun Env.withElements(newElements: List<AnyType>) : Env = Env(name, elements + newElements, refs, projections, expressionCache, context)
+fun Env.withElementsReplaced(newElements: List<AnyType>) : Env = Env(name, newElements, refs, projections, expressionCache, context)
+fun Env.withElement(newElement: AnyType) : Env = withElements(listOf(newElement))
+fun Env.withoutElement(element: AnyType) : Env = Env(name, elements - element, refs, projections, expressionCache, context)
+fun Env.withoutElements(predicate: (AnyType) -> Boolean) : Env = withElements(elements.filterNot(predicate))
+fun Env.withoutElements(elems: List<AnyType>) : Env = Env(name, elements - elems.toSet(), refs, projections, expressionCache, context)
+
+fun Env.withRefs(newRefs: List<IRef>) : Env = Env(name, elements, refs + newRefs, projections, expressionCache, context)
+fun Env.withRef(newRef: IRef) : Env = withRefs(listOf(newRef))
+fun Env.withAlias(name: String, ref: IRef) : Env = withRef(Alias(name, ref))
+fun Env.withoutRef(ref: IRef) : Env = Env(name, elements, refs - ref, projections, expressionCache, context)
+fun Env.withoutAlias(name: String) : Env = Env(name, elements, refs.filterNot { it.name == name }, projections, expressionCache, context)
+
+fun Env.withProjections(newProjections: List<Projection>) : Env = Env(name, elements, refs, projections + newProjections, expressionCache, context)
+fun Env.withProjection(newProjection: Projection) : Env = withProjections(listOf(newProjection))
+fun Env.withProjection(type: AnyType, trait: IType.Trait) : Env = withProjection(Projection(type, trait))
+fun Env.withoutProjection(type: AnyType, trait: IType.Trait) : Env = Env(name, elements, refs, projections - Projection(type, trait), expressionCache, context)
+
+fun Env.withContext(newContext: Context) : Env = Env(name, elements, refs, projections, expressionCache, context + newContext)

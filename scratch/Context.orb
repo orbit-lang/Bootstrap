@@ -1,43 +1,39 @@
-module Orb::Types::Intrinsics {
-    type Unit
+module Orb::Core::Numbers {
     type Int
-    type Symbol
+}
+
+module Orb::Core::Types {
+    type Unit
     trait Any
 }
 
-module Orb::Core::Contexts {
-    context Eq [A, B]
-        where A = B
+module M with Orb::Core::* {
+    context OptionCtx [Value] {
+        type Option {
+            constructor None
+            constructor Some(value Value)
+        }
+    }
 
-    context Impl [A, B]
-        where A : B
-}
+    context TransformCtx [A, B] with trait Transformable {
+        (Self) map (value A) (B)
+    }
 
-module Orb::Meta {
-    trait Type
-}
+    extension Option within OptionCtx [Any] {
+        (self Value) wrap () (Option) = Some()
 
-module Orb::Meta::Kinds with Orb::Meta with Orb::Core::Contexts {
-    trait Kind
-    type Type : Kind
-    type Trait : Kind
+        projection Option : Transformable within TransformCtx [Value, Option] {
+            (Option) map (value Value) (Option) = Some()
+        }
+    }
 
-    type constructor Mirror<T>(reflectedType T)
-        within Impl [T, Type]
-
-    (self Kind) reflect () (Kind) = mirror self
-}
-
-module Context with Orb::* {
     type Foo
 
-    type constructor Functor<F>
-        within Eq [mirror F, Kinds::Type]
+    projection Foo : Any
 
-    (Foo) f () () {
-        print expand mirror Functor
-        print expand Kinds::Type
+    alias Bar = Foo
 
-        f = Functor<Foo>()
+    (Foo) main () (Foo) within OptionCtx [Foo] {
+        return Bar()
     }
 }

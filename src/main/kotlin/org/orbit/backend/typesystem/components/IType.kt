@@ -19,7 +19,7 @@ fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) 
     return null
 }
 
-sealed interface IType : IContextualComponent, Substitutable {
+sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     sealed interface Entity<E : Entity<E>> : IType
     sealed interface IMetaType<M: IMetaType<M>> : Entity<M> {
         fun toBoolean() : Boolean = when (this) {
@@ -411,7 +411,7 @@ sealed interface IType : IContextualComponent, Substitutable {
 
         override fun getElement(at: String): AnyType = members.first { it.name == at }
         override fun getConstructors(): List<IConstructor<Struct>> = listOf(StructConstructor(this, members))
-        override fun substitute(substitution: Substitution): Struct = Struct(members.substituteAll(substitution) as List<Member>)
+        override fun substitute(substitution: Substitution): Struct = Struct(members.map { it.substitute(substitution) })
         override fun getCardinality(): ITypeCardinality = when (members.isEmpty()) {
             true -> ITypeCardinality.Mono
             else -> members.map { it.getCardinality() }.reduce(ITypeCardinality::plus)
@@ -435,7 +435,7 @@ sealed interface IType : IContextualComponent, Substitutable {
         override fun curry(): IArrow<*> = this
 
         override fun substitute(substitution: Substitution): IConstructor<Struct> =
-            StructConstructor(constructedType.substitute(substitution), args.substituteAll(substitution) as List<Member>)
+            StructConstructor(constructedType.substitute(substitution), args.map { it.substitute(substitution) })
 
         override fun never(args: List<AnyType>): Never =
             Never("Cannot construct Type ${constructedType.id} with arguments (${args.joinToString("; ") { it.id }})")

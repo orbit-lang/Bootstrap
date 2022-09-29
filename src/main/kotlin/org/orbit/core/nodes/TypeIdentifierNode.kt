@@ -38,6 +38,9 @@ data class TypeIdentifierNode(
 	val isWildcard: Boolean
 		get() = value.endsWith("*")
 
+	val isDiscard: Boolean
+		get() = value == "_"
+
 	override fun equals(other: Any?): Boolean = when (other) {
 		is TypeIdentifierNode -> value == other.value
 		else -> false

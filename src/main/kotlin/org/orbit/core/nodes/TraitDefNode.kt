@@ -9,7 +9,7 @@ data class TraitDefNode(
     override val properties: List<ParameterNode> = emptyList(),
     val traitConformances: List<TypeIdentifierNode> = emptyList(),
     val signatures: List<MethodSignatureNode> = emptyList()
-) : EntityDefNode {
+) : EntityDefNode, IContextDeclarationNode {
 	override fun getChildren() : List<INode>
 		= listOf(typeIdentifierNode) + traitConformances + properties + signatures
 }

@@ -3,7 +3,6 @@ package org.orbit.backend.typesystem.inference.evidence
 import org.koin.core.component.KoinComponent
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Env
-import org.orbit.backend.typesystem.components.TypeVariable
 import org.orbit.backend.typesystem.phase.globalContext
 import org.orbit.core.nodes.INode
 
@@ -25,22 +24,6 @@ data class ContextualEvidence(val context: Env) : IEvidence {
     override fun plus(other: IEvidence): IEvidence = when (other) {
         is ContextualEvidence -> ContextualEvidence(context + other.context)
         else -> TODO()
-    }
-}
-
-data class TypeVariableEvidence(val abstract: TypeVariable, val concrete: AnyType) : IEvidence {
-    override fun plus(other: IEvidence): IEvidence = when (other) {
-        // Ensure these pieces of evidence don't contradict each other
-        is TypeVariableEvidence -> when (other.abstract.name == abstract.name) {
-            true -> when (other.concrete === concrete) {
-                true -> this
-                else -> Contradiction(this, other)
-            }
-
-            else -> CompoundEvidence(listOf(this, other))
-        }
-
-        else -> CompoundEvidence(listOf(this, other))
     }
 }
 

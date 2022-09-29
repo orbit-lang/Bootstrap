@@ -145,6 +145,9 @@ val mainModule = module {
 	single(TupleLiteralInference)
 	single(ExtensionInference)
 	single(ContextInstantiationInference)
+	single(TypeOfInference)
+	single(PanicInference)
+	single(TypeAliasInference)
 
 	// Contextual Evidence Gathering
 	single(TypeIdentifierEvidenceProvider)

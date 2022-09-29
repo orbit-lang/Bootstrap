@@ -1,11 +1,16 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.components.TokenTypes
-import org.orbit.core.nodes.ContextNode
-import org.orbit.core.nodes.EntityDefNode
-import org.orbit.core.nodes.WhereClauseNode
+import org.orbit.core.nodes.*
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
+
+object AnyContextVariableRule : ParseRule<ILiteralNode<String>> {
+    override fun parse(context: Parser): ParseRule.Result = when (val node = context.attemptAny(listOf(PairRule, TypeIdentifierRule.Naked))) {
+        null -> ParseRule.Result.Failure.Abort
+        else -> +node
+    }
+}
 
 object ContextRule : ParseRule<ContextNode> {
     override fun parse(context: Parser): ParseRule.Result {
@@ -23,12 +28,12 @@ object ContextRule : ParseRule<ContextNode> {
             return ParseRule.Result.Failure.Throw("Expected Type Variables after Context declaration", contextIdentifier.lastToken)
         }
 
-        val typeVariablesRule = DelimitedRule(TokenTypes.LBracket, TokenTypes.RBracket, TypeIdentifierRule.Naked)
-        val delim = context.attempt(typeVariablesRule)
+        val allVariablesRule = DelimitedRule(TokenTypes.LBracket, TokenTypes.RBracket, AnyContextVariableRule)
+        val delim = context.attempt(allVariablesRule)
             ?: return ParseRule.Result.Failure.Abort
 
         if (delim.nodes.isEmpty()) {
-            return ParseRule.Result.Failure.Throw("Expected Type Variables after Context declaration", contextIdentifier.lastToken)
+            return ParseRule.Result.Failure.Throw("Expected Type/Value Variables after Context declaration", contextIdentifier.lastToken)
         }
 
         if (!context.hasMore) {
@@ -52,19 +57,22 @@ object ContextRule : ParseRule<ContextNode> {
 
         next = context.peek()
 
+        val typeVariables = delim.nodes.filterIsInstance<TypeIdentifierNode>()
+        val valueVariables = delim.nodes.filterIsInstance<PairNode>()
+
         if (next.type == TokenTypes.With) {
             context.consume()
 
             // Single declaration body
-            val decl = context.attemptAny(listOf(TypeDefRule, TraitDefRule))
-                as? EntityDefNode
+            val decl = context.attemptAny(listOf(TypeDefRule, TraitDefRule, MethodDefRule))
+                as? IContextDeclarationNode
                 ?: return ParseRule.Result.Failure.Throw("Expected entity def after `with` following Context declaration", next)
 
-            return +ContextNode(start, delim.lastToken, contextIdentifier, delim.nodes, clauses, listOf(decl))
+            return +ContextNode(start, delim.lastToken, contextIdentifier, typeVariables, valueVariables, clauses, listOf(decl))
         }
 
         // TODO - Allow Projections & Extensions here
-        val blockRule = BlockRule(TypeDefRule, TraitDefRule)
+        val blockRule = BlockRule(TypeDefRule, TraitDefRule, MethodDefRule)
         val body = context.attempt(blockRule)
             ?: return ParseRule.Result.Failure.Throw("Context declaration body must contain at least one of the following declarations: Type, Trait", next)
 
@@ -72,6 +80,6 @@ object ContextRule : ParseRule<ContextNode> {
             return ParseRule.Result.Failure.Throw("Empty Context declaration body is not allowed. Expected one or more of the following declarations: Type, Trait", next)
         }
 
-        return +ContextNode(start, delim.lastToken, contextIdentifier, delim.nodes, clauses, body.body as List<EntityDefNode>)
+        return +ContextNode(start, delim.lastToken, contextIdentifier, typeVariables, valueVariables, clauses, body.body as List<IContextDeclarationNode>)
     }
 }

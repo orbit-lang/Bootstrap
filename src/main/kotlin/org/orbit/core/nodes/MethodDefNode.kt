@@ -8,7 +8,7 @@ data class MethodDefNode(
     val signature: MethodSignatureNode,
     val body: BlockNode,
     override val context: ContextExpressionNode? = null
-) : TopLevelDeclarationNode, ScopedNode, IExtensionDeclarationNode, IProjectionDeclarationNode {
+) : TopLevelDeclarationNode, ScopedNode, IExtensionDeclarationNode, IProjectionDeclarationNode, IContextDeclarationNode {
 	override fun getChildren() : List<INode>
 		= listOf(signature, body)
 }
