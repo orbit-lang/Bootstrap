@@ -13,6 +13,19 @@ data class InferNode(
 	override val value: String = "_"
 }
 
+data class StructTypeNode(override val firstToken: Token, override val lastToken: Token, val members: List<PairNode>) : TypeExpressionNode {
+	override val value: String = members.joinToString(", ")
+
+	override fun getChildren(): List<INode> = members
+}
+
+data class TupleTypeNode(override val firstToken: Token, override val lastToken: Token, val left: TypeExpressionNode, val right: TypeExpressionNode) : TypeExpressionNode {
+	override val value: String = "(${left.value}, ${right.value})"
+
+	override fun getChildren(): List<INode>
+		= listOf(left, right)
+}
+
 data class TypeIdentifierNode(
     override val firstToken: Token,
     override val lastToken: Token,

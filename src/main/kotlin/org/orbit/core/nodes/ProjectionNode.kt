@@ -13,7 +13,7 @@ data class ProjectionNode(
     val instanceBinding: IdentifierNode?,
     val body: List<IProjectionDeclarationNode> = emptyList(),
     override val context: ContextExpressionNode? = null
-) : IExtensionDeclarationNode, IWithStatementNode, ContextAwareNode {
+) : IExtensionDeclarationNode, IWithStatementNode, ContextAwareNode, IContextDeclarationNode {
     override fun getChildren(): List<INode> = when (instanceBinding) {
         null -> listOf(typeIdentifier, traitIdentifier) + whereNodes + body
         else -> listOf(typeIdentifier, traitIdentifier) + whereNodes + body + instanceBinding

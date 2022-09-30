@@ -19,7 +19,7 @@ object TypeUtils {
     }
 
     fun check(env: Env, left: AnyType, right: AnyType) : AnyType = prepare(env, left, right) { left, right ->
-        val error = IType.Never("Types `${left.id}` does not conform to Trait `${right.id}`")
+        val error = IType.Never("Types are not equal: `${left}` & `${right}`")
 
         when (left == right) {
             true -> right
@@ -34,7 +34,7 @@ object TypeUtils {
 
                 is IType.Trait -> when (right.isImplementedBy(left, env)) {
                     true -> left
-                    else -> IType.Never("Type `${left.id}` does not conform to Trait `${right.id}`")
+                    else -> IType.Never("Type `$left` does not conform to Trait `$right`")
                 }
 
                 is IType.Never -> left
@@ -66,3 +66,6 @@ object TypeUtils {
 
 typealias AnyEntity = IType.Entity<*>
 typealias AnyArrow = IType.IArrow<*>
+
+fun AnyArrow.toSignature(receiver: AnyType, name: String) : IType.Signature
+    = IType.Signature(receiver, name, getDomain(), getCodomain(), false)

@@ -27,6 +27,11 @@ class Ref(override val name: String, override val type: AnyType) : IRef {
 
     override fun getHistory(): List<RefEntry> = history
 
+    override fun equals(other: Any?): Boolean = when (other) {
+        is Ref -> other.uniqueId == uniqueId
+        else -> false
+    }
+
     override fun consume(): Ref = apply {
         history.add(RefEntry.Use(this))
     }

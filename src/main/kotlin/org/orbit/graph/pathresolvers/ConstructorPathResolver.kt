@@ -20,7 +20,7 @@ class ConstructorPathResolver : PathResolver<ConstructorInvocationNode> {
 		input.typeExpressionNode.annotateByKey(input.getGraphID(), Annotations.graphId)
 		TypeExpressionPathResolver.resolve(input.typeExpressionNode, pass, environment, graph)
 
-		val binding = environment.getBinding(input.typeExpressionNode.value, Binding.Kind.Union.entityOrConstructor)
+		val binding = environment.getBinding(input.typeExpressionNode.value, Binding.Kind.Union.entity)
 
 		return when (binding) {
 			is Scope.BindingSearchResult.Success -> {

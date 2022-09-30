@@ -42,12 +42,11 @@ object SelectInference : ITypeInference<SelectNode>, KoinComponent {
 
         val coveredCases = actualCases.map { it.id }.distinct()
         val conditionCardinality = constructableType.getCardinality()
-//
+
         if (!hasElseCase && conditionCardinality is ITypeCardinality.Finite && actualCases.count() != conditionCardinality.count) {
             val missingCases = expectedCases.filterNot { it.id in coveredCases }
             val prettyMissing = missingCases.joinToString("\n\t")
-//
-//            // TODO - Spit out actual missing cases if possible
+
             throw invocation.make<TypeSystem>("Missing ${missingCases.count()}/${expectedCases.count()} Case(s) for Select expression of Type `$constructableType`:\n\t$prettyMissing", node)
         }
 

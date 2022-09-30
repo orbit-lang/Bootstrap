@@ -23,11 +23,14 @@ object ContextInference : ITypeInference<ContextNode> {
             typeVars.add(IType.TypeVar(name))
         }
 
-        node.variables.forEach {
+        val vDecls = node.variables.map {
             val type = TypeSystemUtils.infer(it, nEnv)
+            val decl = Decl.Assignment(it.identifierNode.value, type)
 
-            nEnv.extendInPlace(Decl.Assignment(it.identifierNode.value, type))
+            nEnv.extendInPlace(decl)
             values.add(Ref(it.identifierNode.value, type))
+
+            decl
         }
 
         val mEnv = nEnv.withContext(Context(envName, typeVars, values))
@@ -37,6 +40,10 @@ object ContextInference : ITypeInference<ContextNode> {
         mEnv.extendAllInPlace(signatures.map { Decl.Signature(it) })
 
         TypeSystemUtils.inferAll(node.body, mEnv)
+
+        vDecls.forEach {
+            mEnv.reduceInPlace(it)
+        }
 
         env.extendInPlace(Decl.Context(mEnv))
 

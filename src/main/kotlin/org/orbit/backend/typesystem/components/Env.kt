@@ -186,6 +186,8 @@ class Env(
         = decls.fold(this) { acc, next -> acc.reduce(next) }
 
     fun <R> manage(decl: Decl, block: (Env) -> R) : R {
+        // Ensure we don't create a duplicate record
+        reduceInPlace(decl)
         extendInPlace(decl)
         val result = block(this)
         reduceInPlace(decl)
@@ -328,7 +330,7 @@ fun Env.withElements(newElements: List<AnyType>) : Env = Env(name, elements + ne
 fun Env.withElementsReplaced(newElements: List<AnyType>) : Env = Env(name, newElements, refs, projections, expressionCache, context)
 fun Env.withElement(newElement: AnyType) : Env = withElements(listOf(newElement))
 fun Env.withoutElement(element: AnyType) : Env = Env(name, elements - element, refs, projections, expressionCache, context)
-fun Env.withoutElements(predicate: (AnyType) -> Boolean) : Env = withElements(elements.filterNot(predicate))
+fun Env.withoutElements(predicate: (AnyType) -> Boolean) : Env = Env(name, elements.filterNot(predicate), refs, projections, expressionCache, context)
 fun Env.withoutElements(elems: List<AnyType>) : Env = Env(name, elements - elems.toSet(), refs, projections, expressionCache, context)
 
 fun Env.withRefs(newRefs: List<IRef>) : Env = Env(name, elements, refs + newRefs, projections, expressionCache, context)

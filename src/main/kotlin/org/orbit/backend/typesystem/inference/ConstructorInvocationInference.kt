@@ -16,18 +16,26 @@ object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode
 
     override fun infer(node: ConstructorInvocationNode, env: Env): AnyType {
         val type = TypeSystemUtils.infer(node.typeExpressionNode, env).flatten(env)
-        val constructableType = type as? IType.Type
-            ?: throw invocation.make<TypeSystem>("Cannot construct value of uninhabited Type `${type.id}`", node.typeExpressionNode)
+        val constructableType = type as? IType.IConstructableType<*>
+            ?: throw invocation.make<TypeSystem>("Cannot construct value of uninhabited Type `$type`", node.typeExpressionNode)
 
         val args = TypeSystemUtils.inferAll(node.parameterNodes, env)
-        val params = env.getDeclaredMembers(type)
+        val params = constructableType.getConstructors()[0].getDomain()
 
-        if (args.count() != params.count()) throw invocation.make<TypeSystem>("Constructor for Type `${type.id}` expects ${params.count()} arguments, found ${args.count()}", node)
+        if (args.count() != params.count()) throw invocation.make<TypeSystem>("Constructor for Type `$type` expects ${params.count()} arguments, found ${args.count()}", node)
 
+        val errors = mutableListOf<IType.Never>()
         args.zip(params).forEach {
             val result = TypeUtils.check(env, it.first, it.second)
 
-            if (result is IType.Never) throw invocation.make<TypeSystem>(result.message, node)
+            if (result is IType.Never) errors.add(result)
+        }
+
+        if (errors.isNotEmpty()) {
+            val header = "Cannot construct instance of Type `$constructableType` because the supplied arguments are mismatched in the following way(s):"
+            val error = errors.joinToString("\n\t") { it.message }
+
+            throw invocation.make<TypeSystem>("$header\n\t$error", node)
         }
 
         return constructableType

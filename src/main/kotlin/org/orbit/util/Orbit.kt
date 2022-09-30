@@ -79,6 +79,8 @@ val mainModule = module {
 		util.registerPathResolver(AnyPathResolver(), IdentifierBindingPatternNode::class.java)
 		util.registerPathResolver(AlgebraicConstructorPathResolver, AlgebraicConstructorNode::class.java)
 		util.registerPathResolver(TupleLiteralPathResolver, TupleLiteralNode::class.java)
+		util.registerPathResolver(TupleTypePathResolver, TupleTypeNode::class.java)
+		util.registerPathResolver(StructTypePathResolver, StructTypeNode::class.java)
 
 		util
 	}
@@ -98,15 +100,6 @@ val mainModule = module {
 //	single<Mangler>(CodeGeneratorQualifier.Swift) {
 //		SwiftMangler
 //	}
-
-	single<Gson> {
-		GsonBuilder()
-			.registerTypeAdapter(Binding.Kind::class.java, KindSerialiser)
-			.registerTypeAdapter(Binding.Kind::class.java, KindDeserialiser)
-			.registerTypeAdapter(Path::class.java, PathSerialiser)
-			.registerTypeAdapter(Path::class.java, PathDeserialiser)
-			.create()
-	}
 
 	single { NodeAnnotationMap() }
 	single { ImportManager(emptyList()) }
@@ -145,10 +138,15 @@ val mainModule = module {
 	single(TupleLiteralInference)
 	single(ExtensionInference)
 	single(ContextInstantiationInference)
+	single(ContextCompositionInference)
 	single(TypeOfInference)
 	single(PanicInference)
 	single(TypeAliasInference)
 	single(UnaryExpressionInference)
+	single(LambdaLiteralInference)
+	single(ParameterInference)
+	single(TupleTypeInference)
+	single(StructTypeInference)
 
 	// Contextual Evidence Gathering
 	single(TypeIdentifierEvidenceProvider)

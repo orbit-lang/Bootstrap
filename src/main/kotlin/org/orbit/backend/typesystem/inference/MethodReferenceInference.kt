@@ -23,7 +23,7 @@ object MethodReferenceInference : ITypeInference<MethodReferenceNode>, KoinCompo
 
         var possibleSignatures = env.getSignatures(node.identifierNode.identifier)
 
-        val error = "No methods found matching `${node.identifierNode.identifier} : (${receiverType.id}, ???) -> ???`"
+        val error = "No methods found matching `${node.identifierNode.identifier} : (${receiverType}, ???) -> ???`"
 
         if (possibleSignatures.isEmpty()) {
             throw invocation.make<TypeSystem>(error, node.identifierNode)

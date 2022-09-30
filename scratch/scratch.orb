@@ -26,7 +26,6 @@ module Orb::Core::Booleans {
     infix operator boolAnd `&&` by Bool::and
     infix operator boolOr  `||` by Bool::or
     prefix operator boolNot `!` by Bool::not
-    postfix operator boolThing `!` by Bool::not
 }
 
 module Orb::Core::Types {
@@ -35,11 +34,32 @@ module Orb::Core::Types {
 }
 
 module M with Orb::Core::* {
-    context ValueCtx [V, v V]
-        with (V) foo () (V) = v
+    alias Foo = { x Int, y Int }
 
-    (Int) main () () within ValueCtx [Bool, true] & ValueCtx [Int, 0] {
-        f = true.foo()
-        typeOf f
+#    (self Foo) bar () (Int) = self
+
+    (Int) fib (n Int) (Int) = select n {
+        case 0 = 1
+        case 1 = 1
+        case else = Int.fib(n - 1) + Int.fib(n - 2)
+    }
+
+    (Unit) main () () {
+        f = Foo(1, 2)
+    }
+
+    trait Factory {
+        (Self) build () (Self)
+    }
+
+    context AutoFactory [T, t T] {
+        projection T : Factory
+            with build by { t }
+    }
+
+    context TupleCtx [A] with alias Tuple = (A, A)
+
+    (Int) main () () within TupleCtx [Int] & TupleCtx [Bool] {
+        i = Tuple(1, 2)
     }
 }

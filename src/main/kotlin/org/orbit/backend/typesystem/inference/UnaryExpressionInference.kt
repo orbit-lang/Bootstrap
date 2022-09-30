@@ -24,7 +24,7 @@ object UnaryExpressionInference : ITypeInference<UnaryExpressionNode>, KoinCompo
         if (possibleOps.isEmpty())
             throw invocation.make<TypeSystem>("Could not find ${node.fixity} Operator `${node.operator}` of Type `($operand) -> ???`", node)
         if (possibleOps.count() > 1) {
-            val pretty = possibleOps.joinToString("\n\t") { "${it.identifier} ${it.symbol} ${it.id}" }
+            val pretty = possibleOps.joinToString("\n\t") { "${it.identifier} ${it.symbol} $it" }
 
             throw invocation.make<TypeSystem>("Multiple ${node.fixity} Operators found matching `${node.operator}` of Type `($operand) -> ???`:\n\t$pretty", node)
         }

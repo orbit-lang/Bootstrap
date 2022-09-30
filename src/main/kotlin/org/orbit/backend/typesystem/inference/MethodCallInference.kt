@@ -21,7 +21,7 @@ object MethodCallInference : ITypeInference<MethodCallNode>, KoinComponent {
         val expected = TypeSystemUtils.popTypeAnnotation() ?: IType.Always
 
         if (possibleArrows.isEmpty()) {
-            throw invocation.make<TypeSystem>("No methods found matching signature `${receiverType.id}.${node.messageIdentifier.identifier} : (${argTypes.map { it.id }.joinToString(", ")}) -> ???`", node)
+            throw invocation.make<TypeSystem>("No methods found matching signature `$receiverType.${node.messageIdentifier.identifier} : (${argTypes.joinToString(", ")}) -> ???`", node)
         }
 
         if (possibleArrows.count() > 1) {
@@ -30,7 +30,7 @@ object MethodCallInference : ITypeInference<MethodCallNode>, KoinComponent {
         }
 
         if (possibleArrows.isEmpty()) {
-            throw invocation.make<TypeSystem>("No methods found matching signature `${receiverType.id}.${node.messageIdentifier.identifier} : (${argTypes.map { it.id }.joinToString(", ")}) -> ???`", node)
+            throw invocation.make<TypeSystem>("No methods found matching signature `$receiverType.${node.messageIdentifier.identifier} : (${argTypes.joinToString(", ")}) -> ???`", node)
         }
 
         if (possibleArrows.count() > 1) {
@@ -39,7 +39,7 @@ object MethodCallInference : ITypeInference<MethodCallNode>, KoinComponent {
 
         if (possibleArrows.count() > 1) {
             // We've failed to narrow down the results, we have to error now
-            throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0].id}`", node)
+            throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0]}`", node)
         }
 
         val arrow = possibleArrows[0]
@@ -54,7 +54,7 @@ object MethodCallInference : ITypeInference<MethodCallNode>, KoinComponent {
         val zip = argTypes.zip(arrow.parameters)
         for ((idx, pair) in zip.withIndex()) {
             if (!TypeUtils.checkEq(env, pair.first, pair.second)) {
-                throw invocation.make<TypeSystem>("Method `${node.messageIdentifier.identifier}` expects argument of Type `${pair.second.id}` at index $idx, found `${pair.first.id}`", node.parameterNodes[idx])
+                throw invocation.make<TypeSystem>("Method `${node.messageIdentifier.identifier}` expects argument of Type `$pair.second` at index $idx, found `$pair`", node.parameterNodes[idx])
             }
         }
 

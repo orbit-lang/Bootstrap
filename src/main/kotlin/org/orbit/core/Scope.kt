@@ -171,24 +171,6 @@ class Scope(
 
 		// If bindings have associated records in the graph, we can try to order by "distance"
 		if (parentVertexID == null || graph == null) {
-			if (context!!.contains(Binding.Kind.TypeParameter)) {
-				// A cheeky hack to allow for using relative names for of Type Parameters
-				val tp = matches.filter { it.kind is Binding.Kind.TypeParameter }
-
-				if (tp.count() == 1) {
-					val invocation = getKoinInstance<Invocation>()
-					val printer = getKoinInstance<Printer>()
-
-					val options = matches.joinToString(", ") { it.path.toString(printer) }
-					invocation.warn(Warning("The name $name is bound to multiple components. Proceeding with the assumption that $name = ${tp[0].path.toString(OrbitMangler)} in this context.\n\tIf this is not correct, please use the fully qualified name instead. Possible options in this context:\n\t\t$options", SourcePosition.unknown))
-
-					return BindingSearchResult.Success(tp[0])
-				} else if (tp.count() > 1) {
-					// If multiple Type Parameters with the same relative name (e.g. `T`), we can attempt to find the
-					// "closest" one by simply checking for membership within the enclosing context
-				}
-			}
-
 			val vertexIDs = matches.mapNotNull { graph?.findOrNull(it) }
 
 			// NOTE - This is a workaround for allowing mid-length aliases for Type Family members, e.g. Days::Monday

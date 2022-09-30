@@ -11,9 +11,9 @@ import org.orbit.core.nodes.TypeDefNode
 
 object ModuleInference : ITypeInference<ModuleNode> {
     override fun infer(node: ModuleNode, env: Env): AnyType {
-        TypeSystemUtils.inferAll(node.contexts, env)
         TypeSystemUtils.inferAll(node.entityDefs.filterIsInstance<TypeDefNode>(), env)
         TypeSystemUtils.inferAll(node.entityDefs.filterIsInstance<TraitDefNode>(), env)
+        TypeSystemUtils.inferAll(node.contexts, env)
         TypeSystemUtils.inferAll(node.typeAliasNodes, env)
         TypeSystemUtils.inferAll(node.methodDefs.map { it.signature }, env, parametersOf(true))
         TypeSystemUtils.inferAll(node.operatorDefs, env)

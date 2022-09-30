@@ -1,17 +1,42 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.components.SourcePosition
-import org.orbit.core.nodes.CollectionTypeLiteralNode
-import org.orbit.core.nodes.TypeExpressionNode
-import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.frontend.components.ParseError
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.*
 import org.orbit.frontend.phase.Parser
 import org.orbit.frontend.extensions.unaryPlus
 
+object StructTypeRule : ValueRule<StructTypeNode> {
+	override fun parse(context: Parser): ParseRule.Result {
+		val delim = DelimitedRule(TokenTypes.LBrace, TokenTypes.RBrace, PairRule)
+		val delimResult = context.attempt(delim)
+			?: return ParseRule.Result.Failure.Abort
+
+		return +StructTypeNode(delimResult.firstToken, delimResult.lastToken, delimResult.nodes)
+	}
+}
+
+object TupleTypeRule : ValueRule<TupleTypeNode> {
+	override fun parse(context: Parser): ParseRule.Result {
+		val start = context.expect(TokenTypes.LParen)
+		val left = context.attempt(TypeExpressionRule)
+			?: return ParseRule.Result.Failure.Abort
+
+		context.expect(TokenTypes.Comma)
+
+		val right = context.attempt(TypeExpressionRule)
+			?: return ParseRule.Result.Failure.Abort
+
+		val end = context.expect(TokenTypes.RParen)
+
+		return +TupleTypeNode(start, end, left, right)
+	}
+}
+
 object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
-		val node = context.attemptAny(listOf(MirrorRule, ExpandRule, TypeIndexRule, MetaTypeRule, TypeIdentifierRule.Naked))
+		val node = context.attemptAny(listOf(MirrorRule, ExpandRule, TypeIndexRule, MetaTypeRule, StructTypeRule, TupleTypeRule, TypeIdentifierRule.Naked))
 			as? TypeExpressionNode
 			?: return ParseRule.Result.Failure.Rewind()
 

@@ -22,11 +22,11 @@ object BinaryExpressionInference : ITypeInference<BinaryExpressionNode>, KoinCom
             .filter { it.symbol == node.operator }
             .filter { TypeUtils.checkEq(env, left, it.getDomain()[0]) && TypeUtils.checkEq(env, right, it.getDomain()[1]) }
 
-        if (possibleOps.isEmpty()) throw invocation.make<TypeSystem>("Could not find Infix Operator `${node.operator}` of Type `(${left.id}, ${right.id}) -> ???`", node)
+        if (possibleOps.isEmpty()) throw invocation.make<TypeSystem>("Could not find Infix Operator `${node.operator}` of Type `($left, $right) -> ???`", node)
         if (possibleOps.count() > 1) {
-            val pretty = possibleOps.joinToString("\n\t") { "${it.identifier} ${it.symbol} ${it.id}" }
+            val pretty = possibleOps.joinToString("\n\t") { "${it.identifier} ${it.symbol} $it" }
 
-            throw invocation.make<TypeSystem>("Multiple Infix Operators found matching `${node.operator}` of Type `(${left.id}, ${right.id}) -> ???`:\n\t$pretty", node)
+            throw invocation.make<TypeSystem>("Multiple Infix Operators found matching `${node.operator}` of Type `($left, $right) -> ???`:\n\t$pretty", node)
         }
 
         return possibleOps[0].getCodomain()

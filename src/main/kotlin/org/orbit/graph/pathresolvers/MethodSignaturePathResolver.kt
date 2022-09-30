@@ -39,7 +39,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 			}
 		}
 
-		val receiverBinding = environment.getBinding(receiver, Binding.Kind.Union.receiver, graph, graphID)
+		val receiverBinding = environment.getBinding(receiver, Binding.Kind.Union.entityOrMethod, graph, graphID)
 			.unwrap(this, input.receiverTypeNode.firstToken.position)
 
 		input.receiverTypeNode.annotateByKey(graphID, Annotations.graphId)
@@ -59,7 +59,7 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 			} catch (e: Exception) {}
 		}
 
-		val retResult = environment.getBinding(ret, Binding.Kind.Union.entityMethodOrConstructorOrParameter, graph, input.getGraphIDOrNull())
+		val retResult = environment.getBinding(ret, Binding.Kind.Union.entityOrMethod, graph, input.getGraphIDOrNull())
 		val retPath = retResult.unwrap(this, input.returnTypeNode?.firstToken?.position ?: SourcePosition.unknown)
 		// TODO - Should method names contain parameter names as well as/instead of types?
 		// i.e. Are parameter names important/overloadable?

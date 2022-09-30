@@ -35,8 +35,9 @@ object OrbCoreBooleans : IOrbModule {
 
 object OrbCoreTypes : IOrbModule {
     val unitType = IType.Type("Orb::Core::Types::Unit")
+    val tupleType = IType.Type("Orb::Core::Types::Tuple")
 
-    override fun getPublicTypes(): List<IType.Type> = listOf(unitType)
+    override fun getPublicTypes(): List<IType.Type> = listOf(unitType, tupleType)
     override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
     override fun getPublicOperators(): List<IType.IOperatorArrow<*, *>> = emptyList()
 }

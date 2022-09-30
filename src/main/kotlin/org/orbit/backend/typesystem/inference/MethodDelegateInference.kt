@@ -7,6 +7,7 @@ import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.toSignature
 import org.orbit.core.nodes.IDelegateNode
 import org.orbit.core.nodes.MethodDelegateNode
 import org.orbit.util.Invocation
@@ -20,6 +21,6 @@ object MethodDelegateInference : ITypeInference<MethodDelegateNode>, KoinCompone
             ?: throw invocation.make<TypeSystem>("Trait `$projectedTrait` does not declare required Signature `${node.methodName.identifier}`",
                 node.methodName)
 
-        return TypeSystemUtils.inferAs<IDelegateNode, AnyArrow>(node.delegate, nEnv)
+        return TypeSystemUtils.inferAs<IDelegateNode, AnyArrow>(node.delegate, nEnv).toSignature(env.getSelfType(), node.methodName.value)
     }
 }

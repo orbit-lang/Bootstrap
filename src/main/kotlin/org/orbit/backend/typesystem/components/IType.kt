@@ -406,28 +406,45 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Struct(val members: List<Member>) : IProductType<String, Struct>, IAlgebraicType<Struct> {
-        override val id: String = "{${members.joinToString("; ") { it.id }}}"
+    data class Struct(val members: List<Pair<String, AnyType>>) : IProductType<String, Struct>, IAlgebraicType<Struct> {
+        override val id: String = "{${members.joinToString("; ") { it.second.id }}}"
 
-        override fun getElement(at: String): AnyType = members.first { it.name == at }
-        override fun getConstructors(): List<IConstructor<Struct>> = listOf(StructConstructor(this, members))
-        override fun substitute(substitution: Substitution): Struct = Struct(members.map { it.substitute(substitution) })
+        override fun getElement(at: String): AnyType = members.first { it.first == at }.second
+        override fun getConstructors(): List<IConstructor<Struct>> = listOf(StructConstructor(this, members.map { it.second }))
+        override fun substitute(substitution: Substitution): Struct = Struct(members.map { Pair(it.first, it.second.substitute(substitution)) })
         override fun getCardinality(): ITypeCardinality = when (members.isEmpty()) {
             true -> ITypeCardinality.Mono
-            else -> members.map { it.getCardinality() }.reduce(ITypeCardinality::plus)
+            else -> members.map { it.second.getCardinality() }.reduce(ITypeCardinality::plus)
+        }
+
+        override fun equals(other: Any?): Boolean = when (other) {
+            is Struct -> other.members.count() == members.count() && other.members.zip(members).all { it.first == it.second }
+            else -> false
         }
 
         override fun exists(env: Env): AnyType {
             TODO("Member exists")
         }
 
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+            val printer = getKoinInstance<Printer>()
+            val prettyMembers = members.joinToString(", ") {
+                val prettyName = printer.apply(it.first, PrintableKey.Italics)
+
+                "$prettyName : ${it.second}"
+            }
+
+            return "$indent{ $prettyMembers }"
+        }
+
         override fun toString(): String = prettyPrint()
     }
 
-    data class StructConstructor(override val constructedType: Struct, val args: List<Member>) : IConstructor<Struct> {
+    data class StructConstructor(override val constructedType: Struct, val args: List<AnyType>) : IConstructor<Struct> {
         override val id: String = "(${args.joinToString(", ") { it.id }}) -> ${constructedType.id}"
 
-        override fun getDomain(): List<AnyType> = args.map { it.type }
+        override fun getDomain(): List<AnyType> = args
         override fun getCodomain(): AnyType = constructedType
         override fun getCardinality(): ITypeCardinality
             = constructedType.getCardinality()
@@ -438,7 +455,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             StructConstructor(constructedType.substitute(substitution), args.map { it.substitute(substitution) })
 
         override fun never(args: List<AnyType>): Never =
-            Never("Cannot construct Type ${constructedType.id} with arguments (${args.joinToString("; ") { it.id }})")
+            Never("Cannot construct Type $constructedType with arguments (${args.joinToString("; ")})")
 
         override fun exists(env: Env): AnyType {
             TODO("Not yet implemented")
@@ -461,7 +478,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             UnionConstructor(constructedType.substitute(substitution), arg.substitute(substitution))
 
         override fun never(args: List<AnyType>): Never =
-            Never("Union Type ${constructedType.id} cannot be constructed with argument ${arg.id}")
+            Never("Union Type $constructedType cannot be constructed with argument $arg")
 
         override fun exists(env: Env): AnyType {
             TODO("Not yet implemented")
@@ -493,7 +510,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun getElement(at: AnyType): AnyType = when (at) {
             left -> left
             right -> right
-            else -> Never("Sum Type $id will never contain a value of Type ${at.id}")
+            else -> Never("Sum Type $this will never contain a value of Type $at")
         }
 
         override fun getConstructors(): List<IConstructor<Union>> =
@@ -591,6 +608,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     sealed interface IArrow<Self : IArrow<Self>> : AnyType {
         fun getDomain(): List<AnyType>
         fun getCodomain(): AnyType
+
         override fun getCardinality(): ITypeCardinality
             = getCodomain().getCardinality()
 
@@ -646,7 +664,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun curry(): Arrow0 = Arrow0(Arrow1(takes, gives))
 
         override fun never(args: List<AnyType>): Never =
-            Never("$id expects argument of Type ${takes.id}, found ${args[0].id}")
+            Never("$id expects argument of Type $takes, found $args[0]")
 
         override fun exists(env: Env): AnyType {
             val dType = takes.exists(env)
@@ -701,7 +719,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun curry(): Arrow1 = Arrow1(a, Arrow1(b, gives))
 
         override fun never(args: List<AnyType>): Never =
-            Never("$id expects arguments of (${a.id}, ${b.id}), found (${args.joinToString(", ") { it.id }})")
+            Never("$this expects arguments of ($a, $b), found (${args.joinToString(", ")})")
 
         override fun exists(env: Env): AnyType {
             val type1 = a.exists(env)
@@ -754,7 +772,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun curry(): Arrow2 = Arrow2(a, b, Arrow1(c, gives))
 
         override fun never(args: List<AnyType>): Never =
-            Never("$id expects arguments of (${a.id}, ${b.id}, ${c.id}), found (${args.joinToString(", ") { it.id }})")
+            Never("$id expects arguments of ($a, $b, $c), found (${args.joinToString(", ")})")
 
         override fun exists(env: Env): AnyType {
             TODO("Fill in 'when table' for Arrow3")
@@ -767,7 +785,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override val id: String get() {
             val pParams = parameters.joinToString(", ") { it.id }
 
-            return "${receiver.id}.$name($pParams)(${returns.id})"
+            return "$receiver.$name($pParams)($returns)"
         }
 
         override fun getDomain(): List<AnyType> = toArrow().getDomain()
@@ -786,13 +804,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> TODO("3+-ary instance Arrows")
         }
 
-        fun toStaticArrow(): AnyArrow = when (parameters.count()) {
-            0 -> Arrow0(returns)
-            1 -> Arrow1(parameters[0], returns)
-            2 -> Arrow2(parameters[0], parameters[1], returns)
-            3 -> Arrow3(parameters[0], parameters[1], parameters[2], returns)
-            else -> TODO("4+-ary Arrows")
-        }
+        fun toStaticArrow(): AnyArrow = parameters.arrowOf(returns)
 
         fun toArrow() : AnyArrow = when (isInstanceSignature) {
             true -> toInstanceArrow()
@@ -910,3 +922,11 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
 typealias AnyType = IType
 typealias AnyOperator = IType.IOperatorArrow<*, *>
+
+fun List<AnyType>.arrowOf(codomain: AnyType) : AnyArrow = when (count()) {
+    0 -> IType.Arrow0(codomain)
+    1 -> IType.Arrow1(this[0], codomain)
+    2 -> IType.Arrow2(this[1], this[2], codomain)
+    3 -> IType.Arrow3(this[1], this[2], this[3], codomain)
+    else -> TODO("4+-ary Arrows")
+}

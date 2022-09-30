@@ -64,7 +64,7 @@ object ContextRule : ParseRule<ContextNode> {
             context.consume()
 
             // Single declaration body
-            val decl = context.attemptAny(listOf(TypeDefRule, TraitDefRule, MethodDefRule))
+            val decl = context.attemptAny(listOf(TypeDefRule, TraitDefRule, MethodDefRule, ProjectionRule, OperatorDefRule, TypeAliasRule))
                 as? IContextDeclarationNode
                 ?: return ParseRule.Result.Failure.Throw("Expected entity def after `with` following Context declaration", next)
 
@@ -72,7 +72,7 @@ object ContextRule : ParseRule<ContextNode> {
         }
 
         // TODO - Allow Projections & Extensions here
-        val blockRule = BlockRule(TypeDefRule, TraitDefRule, MethodDefRule)
+        val blockRule = BlockRule(TypeDefRule, TraitDefRule, MethodDefRule, ProjectionRule, OperatorDefRule, TypeAliasRule)
         val body = context.attempt(blockRule)
             ?: return ParseRule.Result.Failure.Throw("Context declaration body must contain at least one of the following declarations: Type, Trait", next)
 

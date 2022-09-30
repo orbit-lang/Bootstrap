@@ -16,15 +16,12 @@ object TraitDefInference : ITypeInference<TraitDefNode> {
     override fun infer(node: TraitDefNode, env: Env): AnyType {
         val path = node.getPath()
         val protoTrait = IType.Trait(path.toString(OrbitMangler), emptyList(), emptyList())
+        val nEnv = env.withSelf(protoTrait)
+        val members = TypeSystemUtils.inferAllAs<ParameterNode, IType.Member>(node.properties, nEnv)
+        val signatures = TypeSystemUtils.inferAllAs<MethodSignatureNode, IType.Signature>(node.signatures, nEnv, parametersOf(true))
+        val trait = IType.Trait(path.toString(OrbitMangler), members, signatures)
 
-        val trait = env.withSelf(protoTrait) { nEnv ->
-            val members = TypeSystemUtils.inferAllAs<ParameterNode, IType.Member>(node.properties, nEnv)
-            val signatures = TypeSystemUtils.inferAllAs<MethodSignatureNode, IType.Signature>(node.signatures, nEnv, parametersOf(true))
-            val trait = IType.Trait(path.toString(OrbitMangler), members, signatures)
-
-            env.extendInPlace(Decl.Trait(trait))
-            trait
-        }
+        env.extendInPlace(Decl.Trait(trait))
 
         return trait
     }

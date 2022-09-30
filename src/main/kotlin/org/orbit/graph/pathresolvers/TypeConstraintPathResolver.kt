@@ -15,10 +15,11 @@ object TypeConstraintPathResolver : PathResolver<TraitConformanceTypeConstraintN
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: TraitConformanceTypeConstraintNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		val constrainedTypePath = environment.getBinding(input.constrainedTypeNode.value, Binding.Kind.TypeParameter).unwrap(this, input.constrainedTypeNode.firstToken.position)
+		val constrainedTypePath = environment.getBinding(input.constrainedTypeNode.value, Binding.Kind.Type)
+			.unwrap(this, input.constrainedTypeNode.firstToken.position)
 		// NOTE - We were using the context Binding.Kind.Union(Binding.Kind.Trait, Binding.Kind.TraitConstructor) here,
 		//  but maybe its best to let the Type System limit what can appear on the right-hand side here
-		val constraintTraitPath = environment.getBinding(input.constraintTraitNode.value, Binding.Kind.Union.entityOrConstructorOrParameter).unwrap(this, input.constraintTraitNode.firstToken.position)
+		val constraintTraitPath = environment.getBinding(input.constraintTraitNode.value, Binding.Kind.Union.entity).unwrap(this, input.constraintTraitNode.firstToken.position)
 
 		input.constrainedTypeNode.annotateByKey(constrainedTypePath.path, Annotations.path)
 		input.constraintTraitNode.annotateByKey(constraintTraitPath.path, Annotations.path)

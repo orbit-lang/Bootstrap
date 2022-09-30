@@ -45,17 +45,10 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
                 graph.link(graphID, vertexID)
                 graph.alias(nPath.toString(OrbitMangler), vertexID)
 
-                environment.bind(Binding.Kind.TypeParameter, typeParameter.value.value, nPath, vertexID)
+                environment.bind(Binding.Kind.Type, typeParameter.value.value, nPath, vertexID)
             }
 
             pathResolverUtil.resolveAll(input.variables, pass, environment, graph)
-
-            for (pair in input.variables) {
-//                val nPath = path + pair.typeExpressionNode.value
-//
-//                pair.typeExpressionNode.annotate(nPath, Annotations.path)
-//                pair.annotate(nPath, Annotations.path)
-            }
         } else {
             val parentGraphID = input.getGraphID()
 
@@ -73,7 +66,10 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
                     is TypeDefNode -> typeResolver
                     is TraitDefNode -> traitResolver
                     is MethodDefNode -> methodResolver
-                    else -> TODO("WHAT?")
+                    is ProjectionNode -> ProjectionPathResolver
+                    is OperatorDefNode -> OperatorDefPathResolver(parentPath)
+                    is TypeAliasNode -> TypeAliasPathResolver(parentPath)
+//                    else -> pathResolverUtil.resolve(decl, pass, environment, graph)
                 } as PathResolver<IContextDeclarationNode>
 
                 resolver.resolve(decl, PathResolver.Pass.Initial, environment, graph)

@@ -33,9 +33,6 @@ sealed interface Decl {
     data class Merge(val root: Env) : Decl {
         override fun exists(env: Env): Boolean = true
         override fun xtend(env: Env): Env {
-//            if (root.components.contains(env.name)) return root
-//            if (env.components.contains(root.name)) return env
-
             val nElements = (root.elements + env.elements).distinctBy { it.id }
             val nRefs = (root.refs + env.refs).distinctBy { it.uniqueId }
             val nProjections = (root.projections + env.projections).distinctBy { it.uniqueId }
@@ -141,7 +138,7 @@ sealed interface Decl {
                         val invocation = getKoinInstance<Invocation>()
 
                         // TODO - There's probably a better way to catch naming conflicts, maybe in CanonicalNameResolver?
-                        throw invocation.make<TypeSystem>("Attempt to redeclare `$name : ${type.id}`", Token.empty)
+                        throw invocation.make<TypeSystem>("Attempt to redeclare `$name : ${type}`", Token.empty)
                     }
 
                     ConflictStrategy.Replace -> env.elements.filterNot { it is IType.Alias && it.name == name }
