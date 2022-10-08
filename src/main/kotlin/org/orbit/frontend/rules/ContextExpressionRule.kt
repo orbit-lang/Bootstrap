@@ -26,7 +26,7 @@ private object AnyContextInstantiationValueRule : ParseRule<IExpressionNode> {
     }
 }
 
-object ContextInstantiationRule : ParseRule<ContextExpressionNode>, KoinComponent {
+object ContextInstantiationRule : ParseRule<IContextExpressionNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun parse(context: Parser): ParseRule.Result {
@@ -51,7 +51,7 @@ object ContextInstantiationRule : ParseRule<ContextExpressionNode>, KoinComponen
 
             val leftContext = ContextInstantiationNode(contextIdentifier.firstToken, delim.lastToken, contextIdentifier, typeVariables, values)
             val rightContext = context.attemptAny(ContextExpressionRule.any)
-                as? ContextExpressionNode
+                as? IContextExpressionNode
                 ?: throw invocation.make<Parser>("Expected expression on right-hand side of Context Instantiation", leftContext.lastToken)
 
             return +ContextCompositionNode(contextIdentifier.firstToken, rightContext.lastToken, op, leftContext, rightContext)
@@ -61,7 +61,17 @@ object ContextInstantiationRule : ParseRule<ContextExpressionNode>, KoinComponen
     }
 }
 
-object ContextExpressionRule : ParseRule<ContextExpressionNode>, KoinComponent {
+object ContextOfRule : ParseRule<ContextOfNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val start = context.expect(TokenTypes.ContextOf)
+        val expr = context.attempt(TypeExpressionRule)
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +ContextOfNode(start, expr.lastToken, expr)
+    }
+}
+
+object ContextExpressionRule : ParseRule<IContextExpressionNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     val any = listOf(ContextInstantiationRule)
@@ -70,7 +80,7 @@ object ContextExpressionRule : ParseRule<ContextExpressionNode>, KoinComponent {
         context.expect(TokenTypes.Within)
 
         val next = context.peek()
-        val expr = context.attempt(ContextInstantiationRule)
+        val expr = context.attemptAny(listOf(ContextOfRule, ContextInstantiationRule))
             ?: throw invocation.make<Parser>("Expected Context expression after `within`", next)
 
         return +expr

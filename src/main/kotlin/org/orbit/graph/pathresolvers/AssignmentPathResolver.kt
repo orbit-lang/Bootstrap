@@ -15,8 +15,15 @@ class AssignmentPathResolver : PathResolver<AssignmentStatementNode> {
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: AssignmentStatementNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		input.value.annotateByKey(input.getGraphID(), Annotations.graphId)
+		val graphID = input.getGraphID()
+
+		input.value.annotateByKey(graphID, Annotations.graphId)
 		val valuePath = pathResolverUtil.resolve(input.value, pass, environment, graph)
+
+		input.context?.let {
+			it.annotateByKey(graphID, Annotations.graphId)
+			pathResolverUtil.resolve(it, pass, environment, graph)
+		}
 
 		if (input.typeAnnotationNode != null) {
 			val typeAnnotationPath = pathResolverUtil.resolve(input.typeAnnotationNode, pass, environment, graph)

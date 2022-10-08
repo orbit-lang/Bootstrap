@@ -33,6 +33,25 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
             input.annotateByKey(graphID, Annotations.graphId)
             input.clauses.forEach { it.annotateByKey(graphID, Annotations.graphId) }
 
+//            for (typeParameter in input.typeVariables.withIndex()) {
+//                val nPath = path + typeParameter.value.value
+//
+//                typeParameter.value.annotateByKey(nPath, Annotations.path)
+//                typeParameter.value.annotateByKey(graphID, Annotations.graphId)
+//                typeParameter.value.annotateByKey(typeParameter.index, Annotations.index)
+//
+//                val vertexID = graph.insert(typeParameter.value.value)
+//
+//                graph.link(graphID, vertexID)
+//                graph.alias(nPath.toString(OrbitMangler), vertexID)
+//
+//                environment.bind(Binding.Kind.Type, typeParameter.value.value, nPath, vertexID)
+//            }
+
+            pathResolverUtil.resolveAll(input.variables, pass, environment, graph)
+        } else {
+            val graphID = input.getGraphID()
+
             for (typeParameter in input.typeVariables.withIndex()) {
                 val nPath = path + typeParameter.value.value
 
@@ -48,14 +67,10 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
                 environment.bind(Binding.Kind.Type, typeParameter.value.value, nPath, vertexID)
             }
 
-            pathResolverUtil.resolveAll(input.variables, pass, environment, graph)
-        } else {
-            val parentGraphID = input.getGraphID()
-
-            input.clauses.forEach { it.annotateByKey(parentGraphID, Annotations.graphId) }
+            input.clauses.forEach { it.annotateByKey(graphID, Annotations.graphId) }
             pathResolverUtil.resolveAll(input.clauses, pass, environment, graph)
 
-            input.body.forEach { it.annotate(parentGraphID, Annotations.graphId) }
+            input.body.forEach { it.annotate(graphID, Annotations.graphId) }
 
             val typeResolver = TypeDefPathResolver(parentPath)
             val traitResolver = TraitDefPathResolver(parentPath)
@@ -75,6 +90,11 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
                 resolver.resolve(decl, PathResolver.Pass.Initial, environment, graph)
                 resolver.resolve(decl, PathResolver.Pass.Last, environment, graph)
             }
+        }
+
+        for (typeParameter in input.typeVariables.withIndex()) {
+            val nPath = path + typeParameter.value.value
+            environment.unbind(Binding.Kind.Type, typeParameter.value.value, nPath)
         }
 
         return PathResolver.Result.Success(path)

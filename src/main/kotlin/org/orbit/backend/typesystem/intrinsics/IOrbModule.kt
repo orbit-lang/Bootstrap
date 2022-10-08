@@ -11,7 +11,7 @@ interface IOrbModule {
 }
 
 private fun IOrbModule.getTypeDecls() : List<Decl.Type>
-    = getPublicTypes().map { Decl.Type(it, emptyMap()) }
+    = getPublicTypes().map { Decl.Type(it) }
 
 private fun IOrbModule.getTypeAliasDecls() : List<Decl.TypeAlias>
     = getPublicTypeAliases().map { Decl.TypeAlias(it.name, it.type) }

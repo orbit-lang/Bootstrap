@@ -6,6 +6,7 @@ import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.ContextNode
+import org.orbit.core.nodes.EntityDefNode
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.MethodSignatureNode
 
@@ -34,6 +35,10 @@ object ContextInference : ITypeInference<ContextNode> {
         }
 
         val mEnv = nEnv.withContext(Context(envName, typeVars, values))
+        val entityDefs = node.body.filterIsInstance<EntityDefNode>()
+
+        TypeSystemUtils.inferAll(entityDefs, mEnv)
+
         val signatureNodes = node.body.filterIsInstance<MethodDefNode>().map { it.signature }
         val signatures = TypeSystemUtils.inferAllAs<MethodSignatureNode, IType.Signature>(signatureNodes, mEnv, parametersOf(false))
 

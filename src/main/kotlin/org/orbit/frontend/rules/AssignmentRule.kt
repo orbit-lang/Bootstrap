@@ -2,6 +2,7 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.AssignmentStatementNode
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.IContextExpressionNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
@@ -11,7 +12,7 @@ object AssignmentRule : ValueRule<AssignmentStatementNode>, WhereClauseExpressio
         val identifier = context.attempt(IdentifierRule, true)!!
         //val typeAnnotationNode = context.attempt(TypeExpressionRule)
 
-        val next = context.peek()
+        var next = context.peek()
 
         if (next.type != TokenTypes.Assignment) {
             return ParseRule.Result.Failure.Rewind(listOf(start))
@@ -22,6 +23,17 @@ object AssignmentRule : ValueRule<AssignmentStatementNode>, WhereClauseExpressio
         val value = context.attempt(ExpressionRule.defaultValue)
             ?: throw context.invocation.make<Parser>("@AssignmentRule:27", context.peek().position)
 
-        return +AssignmentStatementNode(start, value.lastToken, identifier, value, null)
+        if (!context.hasMore) return +AssignmentStatementNode(start, value.lastToken, identifier, value, null, null)
+
+        next = context.peek()
+
+        val contextNode: IContextExpressionNode? = when (next.type) {
+            TokenTypes.Within -> context.attempt(ContextExpressionRule)
+                ?: return ParseRule.Result.Failure.Abort
+
+            else -> null
+        }
+
+        return +AssignmentStatementNode(start, value.lastToken, identifier, value, null, contextNode)
     }
 }

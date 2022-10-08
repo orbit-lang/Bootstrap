@@ -43,6 +43,7 @@ object TokenTypes : TokenTypeProvider {
     object Invoke : TokenType("Invoke", "\\binvoke\\b", true, false, Family.Keyword)
     object Of : TokenType("Of", "\\bof\\b", true, false, Family.Keyword)
     object TypeOf : TokenType("TypeOf", "\\btypeOf\\b", true, false, Family.Keyword)
+    object ContextOf : TokenType("ContextOf", "\\bcontextOf\\b", true, false, Family.Keyword)
     object Expand : TokenType("Expand", "\\bexpand\\b", true, false, Family.Keyword)
     object Mirror : TokenType("Mirror", "\\bmirror\\b", true, false, Family.Keyword)
     object Context : TokenType("Context", "\\bcontext\\b", true, false, Family.Keyword)
@@ -83,7 +84,7 @@ object TokenTypes : TokenTypeProvider {
             TypeIdentifier,
             Colon, Comma, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
-            Expand, Mirror, TypeOf, Type, Trait, Within, With, Return, Family,
+            Expand, Mirror, TypeOf, ContextOf, Type, Trait, Within, With, Return, Family,
             OperatorSymbol, Identifier, Dot
         )
     }

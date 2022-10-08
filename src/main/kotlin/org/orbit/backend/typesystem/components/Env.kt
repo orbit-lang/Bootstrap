@@ -1,19 +1,21 @@
 package org.orbit.backend.typesystem.components
 
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import org.orbit.backend.typesystem.inference.evidence.ContextualEvidence
 import org.orbit.backend.typesystem.intrinsics.IOrbModule
 import org.orbit.backend.typesystem.intrinsics.getPublicAPI
+import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.phase.globalContext
-import org.orbit.backend.typesystem.utils.AnyArrow
+import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
+import org.orbit.core.OrbitMangler
+import org.orbit.core.Path
+import org.orbit.core.components.Token
 import org.orbit.core.nodes.OperatorFixity
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
-import kotlin.math.exp
 
 interface IContextualComponent
 
@@ -32,6 +34,20 @@ class Env(
     companion object : KoinComponent {
         private val globalContext: Env by globalContext()
 
+        fun findType(name: String) : AnyType? {
+            val allTypes = ((globalContext.elements.filterIsInstance<Env>()
+                .flatMap { it.elements }) + globalContext.elements).distinctBy { it.id }
+
+            for (type in allTypes) {
+                if (type.getCanonicalName() == name) return type
+            }
+
+            return null
+        }
+
+        fun findEvidence(path: Path) : ContextualEvidence?
+            = findEvidence(path.toString(OrbitMangler))
+
         fun findEvidence(elementName: String) : ContextualEvidence? {
             // First, check the easiest case where `elementName` is visible in the global context
             val element = globalContext.getElement(elementName)
@@ -47,6 +63,21 @@ class Env(
             }
 
             // If we didn't find our element in any visible context, it should mean the element is actually undefined
+            return null
+        }
+
+        fun findRefEvidence(name: String) : ContextualEvidence? {
+            val globalRef = globalContext.getRef(name)
+
+            if (globalRef != null) return ContextualEvidence(globalContext)
+
+            for (element in globalContext.elements) {
+                if (element !is Env) continue
+                val ref = element.getRef(name)
+
+                if (ref != null) return ContextualEvidence(element)
+            }
+
             return null
         }
     }
@@ -105,8 +136,9 @@ class Env(
     private fun <T> protect(protector: Protector<T>, block: () -> T): T = protector.protect(block)
 
     fun solving(typeVariable: IType.TypeVar, concrete: AnyType) : Env {
-        val substitution = Substitution(typeVariable, concrete)
-        val nElements = (elements.filterNot { it == typeVariable } + IType.Alias(typeVariable.name, concrete))
+        val special = IType.Specialisation(typeVariable, concrete)
+        val substitution = Substitution(typeVariable, special)
+        val nElements = (elements.filterNot { it == typeVariable } + IType.Alias(typeVariable.name, special))
             .substitute(substitution)
 
         return Env(name, nElements, refs.substitute(substitution), projections, expressionCache, context.substitute(substitution))
@@ -124,11 +156,18 @@ class Env(
             ?.consume()
     }
 
-    fun contains(type: AnyType) : AnyType
-        = type.exists(this)
-
     fun getElement(id: String): AnyType? = protect(Protector.TypeProtector) {
-        elements.firstOrNull { it.getCanonicalName() == id }
+        val possibleMatches = elements.filter { it.getCanonicalName() == id }
+
+        if (possibleMatches.count() == 1) return@protect possibleMatches[0]
+        if (possibleMatches.count() > 1) {
+            val firstName = possibleMatches[0].getCanonicalName()
+            if (possibleMatches.all { it.getCanonicalName() == firstName }) return@protect possibleMatches[0]
+        }
+
+        // No match in local Env, let's try and find this type in another context
+
+        findType(id)
     }
 
     inline fun <reified T : AnyType> getElementAs(id: String): T? = getElement(id) as? T
@@ -136,27 +175,8 @@ class Env(
 
     fun getProjections(of: AnyType): List<Projection> = projections.filter { it.source == of }
 
-    fun getProjectedMembers(of: IType.Entity<*>): List<IType.Member> {
-        val projections = getProjections(of)
-            .map { it.target }
-            .filterIsInstance<IType.Trait>()
-
-        return projections.flatMap { it.members }
-    }
-
-    fun projects(source: IType.Entity<*>, target: IType.Entity<*>): Boolean =
-        projections.any { it.source == source && it.target == target }
-
-    fun getDeclaredMembers(of: IType.Type): List<IType.Member> = elements.filterIsInstance<IType.Member>()
-        .filter { it.owner == of }
-
-    fun getMembers(of: IType.Type): List<IType.Member> = getDeclaredMembers(of) + getProjectedMembers(of)
-
-    fun extend(decl: Decl): Env
-        = decl.extend(this)
-
-    fun extendAll(decls: List<Decl>) : Env
-        = decls.fold(this) { acc, next -> acc.extend(next) }
+    fun extend(decl: Decl): Env = decl.extend(this)
+    fun extendAll(decls: List<Decl>) : Env = decls.fold(this) { acc, next -> acc.extend(next) }
 
     fun extendInPlace(decl: Decl) {
         val nEnv = decl.extend(this)
@@ -167,8 +187,7 @@ class Env(
         _expressionCache = nEnv.expressionCache
     }
 
-    fun extendAllInPlace(decls: List<Decl>)
-        = decls.forEach(::extendInPlace)
+    fun extendAllInPlace(decls: List<Decl>) = decls.forEach(::extendInPlace)
 
     fun reduceInPlace(decl: Decl) {
         val nEnv = decl.reduce(this)
@@ -179,11 +198,7 @@ class Env(
         _expressionCache = nEnv.expressionCache
     }
 
-    fun reduce(decl: Decl) : Env
-        = decl.reduce(this)
-
-    fun reduceAll(decls: List<Decl>) : Env
-        = decls.fold(this) { acc, next -> acc.reduce(next) }
+    fun reduce(decl: Decl) : Env = decl.reduce(this)
 
     fun <R> manage(decl: Decl, block: (Env) -> R) : R {
         // Ensure we don't create a duplicate record
@@ -193,15 +208,6 @@ class Env(
         reduceInPlace(decl)
 
         return result
-    }
-
-    fun getArrows(name: String) : List<AnyArrow> {
-        val arrows = mutableListOf<AnyArrow>()
-        for (alias in elements.filterIsInstance<IType.Alias>()) {
-            if (alias.name == name && alias.type is AnyArrow) arrows.add(alias.type)
-        }
-
-        return arrows
     }
 
     fun getSignatures(name: String) : List<IType.Signature> {
@@ -224,9 +230,6 @@ class Env(
 
     fun withSelf(type: AnyType) : Env
         = extend(Decl.TypeAlias("Self", type))
-
-    fun <R> withSelf(type: AnyType, block: (Env) -> R) : R
-        = manage(Decl.TypeAlias("Self", type), block)
 
     fun getSelfType() : AnyType
         = elements.filterIsInstance<IType.Alias>().first { it.name == "Self" }.type
@@ -315,8 +318,6 @@ class Env(
 
         return "$indent$prettyName\n$indent$allTypes\n$indent$allRefs"
     }
-
-    override fun exists(env: Env): AnyType = this
 
     override fun toString(): String = when (elements.isEmpty()) {
         true -> "{}"

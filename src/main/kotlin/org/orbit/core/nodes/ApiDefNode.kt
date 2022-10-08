@@ -3,7 +3,7 @@ package org.orbit.core.nodes
 import org.orbit.core.components.Token
 
 interface ContextAwareNode : INode {
-	val context: ContextExpressionNode?
+	val context: IContextExpressionNode?
 }
 
 interface TopLevelDeclarationNode : ContextAwareNode
@@ -28,7 +28,7 @@ data class ApiDefNode(
 	override val within: TypeIdentifierNode?,
 	override val with: List<TypeIdentifierNode>,
 	val standardEntityDefs: List<EntityDefNode>,
-	override val context: ContextExpressionNode? = null,
+	override val context: IContextExpressionNode? = null,
 	override val operatorDefs: List<OperatorDefNode> = emptyList()
 ) : ContainerNode {
 	override val contexts: List<ContextNode> = emptyList()

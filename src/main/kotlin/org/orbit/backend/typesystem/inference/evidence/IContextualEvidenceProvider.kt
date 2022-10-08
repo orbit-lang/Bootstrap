@@ -3,15 +3,27 @@ package org.orbit.backend.typesystem.inference.evidence
 import org.koin.core.component.KoinComponent
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.phase.globalContext
 import org.orbit.core.nodes.INode
+import java.lang.reflect.TypeVariable
 
 sealed interface IEvidence {
     operator fun plus(other: IEvidence) : IEvidence
 }
 
+fun IEvidence.asSuccessOrNull() : Env? = when (this) {
+    is ContextualEvidence -> context
+    is CompoundEvidence -> evidence.reduce(IEvidence::plus).asSuccessOrNull()
+    else -> null
+}
+
 data class Contradiction(val exhibitA: IEvidence, val exhibitB: IEvidence) : IEvidence {
     override fun plus(other: IEvidence): IEvidence = this
+}
+
+data class TypeVariableEvidence(val abstract: IType.TypeVar, val concrete: AnyType) : IEvidence {
+    override fun plus(other: IEvidence): IEvidence = CompoundEvidence(listOf(this, other))
 }
 
 data class ContextualEvidence(val context: Env) : IEvidence {

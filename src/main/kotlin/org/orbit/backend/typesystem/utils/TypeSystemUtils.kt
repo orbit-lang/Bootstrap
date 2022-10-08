@@ -17,6 +17,7 @@ import org.orbit.util.getKoinInstance
 
 object TypeSystemUtils : KoinComponent {
     private var typeAnnotation: AnyType? = null
+    private var constructorArgsAnnotation: List<AnyType>? = null
 
     inline fun <reified N: INode> infer(node: N, env: Env, parameters: DefinitionParameters? = null) : AnyType {
         val inference = KoinPlatformTools.defaultContext().get().get<ITypeInference<N>>(named("infer${node::class.java.simpleName}")) { parameters ?: parametersOf() }
@@ -50,4 +51,11 @@ object TypeSystemUtils : KoinComponent {
     fun popTypeAnnotation() : AnyType? {
         return typeAnnotation?.also { typeAnnotation = null }
     }
+
+    fun pushConstructorArgsAnnotation(args: List<AnyType>) {
+        constructorArgsAnnotation = args
+    }
+
+    fun popConstructorArgsAnnotation() : List<AnyType>?
+        = constructorArgsAnnotation?.also { constructorArgsAnnotation = null }
 }

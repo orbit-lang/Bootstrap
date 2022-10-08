@@ -7,7 +7,7 @@ import org.orbit.backend.typesystem.components.Decl.Signature
 import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
-import org.orbit.core.nodes.ContextExpressionNode
+import org.orbit.core.nodes.IContextExpressionNode
 import org.orbit.core.nodes.ExtensionNode
 import org.orbit.util.Invocation
 
@@ -15,9 +15,9 @@ object ExtensionInference : ITypeInference<ExtensionNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(node: ExtensionNode, env: Env): AnyType {
-        val explicitContext = when (val ctx = node.context) {
+        val explicitContext = when (node.context) {
             null -> null
-            else -> TypeSystemUtils.inferAs<ContextExpressionNode, Env>(node.context, env)
+            else -> TypeSystemUtils.inferAs<IContextExpressionNode, Env>(node.context, env)
         }
 
 //        val targetEvidence = TypeSystemUtils.gatherEvidence(node.targetTypeNode)

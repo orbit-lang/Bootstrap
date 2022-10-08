@@ -81,6 +81,7 @@ val mainModule = module {
 		util.registerPathResolver(TupleLiteralPathResolver, TupleLiteralNode::class.java)
 		util.registerPathResolver(TupleTypePathResolver, TupleTypeNode::class.java)
 		util.registerPathResolver(StructTypePathResolver, StructTypeNode::class.java)
+		util.registerPathResolver(ContextOfPathResolver, ContextOfNode::class.java)
 
 		util
 	}
@@ -147,12 +148,21 @@ val mainModule = module {
 	single(ParameterInference)
 	single(TupleTypeInference)
 	single(StructTypeInference)
+	single(ContextOfInference)
 
 	// Contextual Evidence Gathering
 	single(TypeIdentifierEvidenceProvider)
 	single(SignatureEvidenceProvider)
 	single(MethodDefEvidenceProvider)
 	single(ProjectionEvidenceProvider)
+	single(ConstructorInvocationEvidenceProvider)
+	single(RValueEvidenceProvider)
+	single(IntLiteralEvidenceProvider)
+	single(IdentifierEvidenceProvider)
+	single(ReturnEvidenceProvider)
+	single(SelectEvidenceProvider)
+	single(AssignmentEvidenceProvider)
+	single(TypeOfEvidenceProvider)
 }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: ITypeInference<N>) : BeanDefinition<ITypeInference<N>>

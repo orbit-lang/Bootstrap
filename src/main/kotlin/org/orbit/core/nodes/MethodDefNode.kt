@@ -7,7 +7,7 @@ data class MethodDefNode(
     override val lastToken: Token,
     val signature: MethodSignatureNode,
     val body: BlockNode,
-    override val context: ContextExpressionNode? = null
+    override val context: IContextExpressionNode? = null
 ) : TopLevelDeclarationNode, ScopedNode, IExtensionDeclarationNode, IProjectionDeclarationNode, IContextDeclarationNode {
 	override fun getChildren() : List<INode>
 		= listOf(signature, body)

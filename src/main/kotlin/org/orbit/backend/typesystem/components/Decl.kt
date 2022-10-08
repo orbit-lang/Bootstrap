@@ -42,7 +42,7 @@ sealed interface Decl {
                 else -> "${root.name} & ${env.name}"
             }
 
-            return Env(nName, nElements, nRefs, nProjections, nExpressionCache, root.context + env.context, listOf(root.name, env.name))
+            return Env(nName, nElements, nRefs, nProjections, nExpressionCache, env.context, listOf(root.name, env.name))
         }
 
         override fun reduce(env: Env): Env = env
@@ -89,16 +89,10 @@ sealed interface Decl {
         override fun reduce(env: Env): Env = env.withoutElement(IType.TypeVar(name))
     }
 
-    data class Type(val type: IType.Type, val members: List<IType.Member> = emptyList()) : Decl {
-        constructor(type: IType.Type, members: Map<String, IType.Entity<*>> = emptyMap()) : this(type, members.map {
-            IType.Member(it.key, it.value, type)
-        })
-
+    data class Type(val type: IType.Type) : Decl {
         override fun exists(env: Env): Boolean = env.elements.any { it.id == type.id }
         override fun xtend(env: Env): Env = env.withElement(type)
-            .withRefs(members.map { Ref(it.id, it.type) })
-
-        override fun reduce(env: Env): Env = env.withoutElements(env.getDeclaredMembers(type) + type)
+        override fun reduce(env: Env): Env = env.withoutElement(type)
     }
 
     data class Trait(val trait: IType.Trait) : Decl {
@@ -122,7 +116,7 @@ sealed interface Decl {
         override fun reduce(env: Env): Env = env.withoutRef(Ref(name, type))
     }
 
-    data class TypeAlias(val name: String, val type: AnyType, val conflictStrategy: ConflictStrategy = ConflictStrategy.Reject) : Decl {
+    data class TypeAlias(val name: String, val type: AnyType, val conflictStrategy: ConflictStrategy = ConflictStrategy.Replace) : Decl {
         constructor(path: Path, type: AnyType) : this(path.toString(OrbitMangler), type)
 
         override fun exists(env: Env): Boolean = env.elements.any { it.getCanonicalName() == name }
@@ -159,21 +153,6 @@ sealed interface Decl {
         override fun exists(env: Env): Boolean = env.refs.any { it.name == name }
         override fun xtend(env: Env): Env = env.withAlias(name, ref)
         override fun reduce(env: Env): Env = env.withoutAlias(name)
-    }
-
-    data class Extension(val type: AnyType, val signatures: List<IType.Signature>) : Decl {
-        override fun exists(env: Env): Boolean = type.exists(env) === type
-        override fun xtend(env: Env): Env {
-            val signatureDecls = signatures.map(Decl::Signature)
-
-            return env.extendAll(signatureDecls)
-        }
-
-        override fun reduce(env: Env): Env {
-            val signatureDecls = signatures.map(Decl::Signature)
-
-            return env.reduceAll(signatureDecls)
-        }
     }
 
     data class Projection(val source: AnyType, val target: IType.Trait) : Decl {

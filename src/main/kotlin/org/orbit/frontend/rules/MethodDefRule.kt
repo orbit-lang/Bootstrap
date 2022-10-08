@@ -22,7 +22,7 @@ object MethodDefRule : ParseRule<MethodDefNode>, KoinComponent {
 
 		var next = context.peek()
 
-		var contextNode: ContextExpressionNode? = null
+		var contextNode: IContextExpressionNode? = null
 		if (next.type == TokenTypes.Within) {
 			contextNode = context.attempt(ContextExpressionRule)
 			next = context.peek()

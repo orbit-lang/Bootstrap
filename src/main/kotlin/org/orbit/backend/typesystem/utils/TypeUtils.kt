@@ -64,7 +64,6 @@ object TypeUtils {
     }
 }
 
-typealias AnyEntity = IType.Entity<*>
 typealias AnyArrow = IType.IArrow<*>
 
 fun AnyArrow.toSignature(receiver: AnyType, name: String) : IType.Signature

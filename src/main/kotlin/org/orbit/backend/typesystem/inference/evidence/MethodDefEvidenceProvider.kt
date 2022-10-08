@@ -19,7 +19,10 @@ object SignatureEvidenceProvider : IContextualEvidenceProvider<MethodSignatureNo
 }
 
 object MethodDefEvidenceProvider : IContextualEvidenceProvider<MethodDefNode> {
-    override fun provideEvidence(env: Env, node: MethodDefNode): IEvidence
-        // TODO - Gather evidence from body
-        = TypeSystemUtils.gatherEvidence(node.signature)
+    override fun provideEvidence(env: Env, node: MethodDefNode): IEvidence {
+        val signatureEvidence = TypeSystemUtils.gatherEvidence(node.signature)
+        val bodyEvidence = TypeSystemUtils.gatherAllEvidence(node.body.body)
+
+        return signatureEvidence + bodyEvidence
+    }
 }

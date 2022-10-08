@@ -7,6 +7,7 @@ import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Decl
 import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.inference.evidence.asSuccessOrNull
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
@@ -19,10 +20,13 @@ object MethodDefInference : ITypeInference<MethodDefNode>, KoinComponent {
 
     @Suppress("NAME_SHADOWING")
     override fun infer(node: MethodDefNode, env: Env): AnyType {
-        val env = when (val n = node.context) {
-            null -> env
-            else -> env + TypeSystemUtils.inferAs(n, env)
-        }
+//        val env = when (val n = node.context) {
+//            null -> when (val e = TypeSystemUtils.gatherEvidence(node).asSuccessOrNull()) {
+//                null -> env
+//                else -> e
+//            }
+//            else -> env + TypeSystemUtils.inferAs(n, env)
+//        }
 
         val signature = TypeSystemUtils.inferAs<MethodSignatureNode, IType.Signature>(node.signature, env, parametersOf(false))
 

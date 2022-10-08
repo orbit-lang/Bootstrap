@@ -23,7 +23,7 @@ data class OperatorDefNode(
     val symbol: String,
     val methodReferenceNode: MethodReferenceNode
 ) : TopLevelDeclarationNode, IContextDeclarationNode {
-    override val context: ContextExpressionNode
+    override val context: IContextExpressionNode
         get() = throw NotImplementedError()
 
     override fun getChildren(): List<INode>

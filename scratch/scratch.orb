@@ -34,32 +34,39 @@ module Orb::Core::Types {
 }
 
 module M with Orb::Core::* {
-    alias Foo = { x Int, y Int }
+    context TupleCtx [A, B] with alias Tuple = (A, B)
+    context BoxCtx [A] {
+        alias Box = { value A }
 
-#    (self Foo) bar () (Int) = self
-
-    (Int) fib (n Int) (Int) = select n {
-        case 0 = 1
-        case 1 = 1
-        case else = Int.fib(n - 1) + Int.fib(n - 2)
+        (self Box) unbox () (A) = A()
     }
 
-    (Unit) main () () {
-        f = Foo(1, 2)
+    context TripleCtx [A, B, C]
+        with alias Triple = { a A, b B, c C }
+
+    context UnoCtx [A] {
+        type Uno
+
+        (Uno) new () (Uno) = Uno()
     }
 
-    trait Factory {
-        (Self) build () (Self)
-    }
+    (Int) main () () {
+        i = Tuple(1, false)
+        j = Tuple(true, 0)
 
-    context AutoFactory [T, t T] {
-        projection T : Factory
-            with build by { t }
-    }
+        b1 = Box(1)
+        b2 = Box(b1)
 
-    context TupleCtx [A] with alias Tuple = (A, A)
+        typeOf b1.unbox()
 
-    (Int) main () () within TupleCtx [Int] & TupleCtx [Bool] {
-        i = Tuple(1, 2)
+        t1 = Triple(1, 2, 3)
+        t2 = Triple(t1, 2, false)
+
+        typeOf t1
+        typeOf t2
+
+        u = Uno.new()
+
+        typeOf u
     }
 }

@@ -7,19 +7,19 @@ import org.koin.core.context.loadKoinModules
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
+import org.orbit.backend.typesystem.components.AnyMetaType
+import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.core.phase.Phase
-import org.orbit.backend.typesystem.components.Env
-import org.orbit.backend.typesystem.components.IType
 import org.orbit.util.Invocation
 
-object TypeSystem : Phase<ProgramNode, IType.IMetaType<*>>, KoinComponent {
+object TypeSystem : Phase<ProgramNode, AnyMetaType>, KoinComponent {
     override val invocation: Invocation by inject()
 
-    override fun execute(input: ProgramNode): IType.IMetaType<*> {
+    override fun execute(input: ProgramNode): AnyMetaType {
         val env = Env()
             .import(OrbCoreNumbers)
             .import(OrbCoreTypes)
@@ -28,7 +28,7 @@ object TypeSystem : Phase<ProgramNode, IType.IMetaType<*>>, KoinComponent {
             single(named("globalContext")) { env }
         })
 
-        val result = TypeSystemUtils.inferAs<ProgramNode, IType.IMetaType<*>>(input, env)
+        val result = TypeSystemUtils.inferAs<ProgramNode, AnyMetaType>(input, env)
 
 //        println(env)
 

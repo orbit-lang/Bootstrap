@@ -7,8 +7,9 @@ data class AssignmentStatementNode(
     override val lastToken: Token,
     val identifier: IdentifierNode,
     val value: IExpressionNode,
-    val typeAnnotationNode: TypeExpressionNode? = null
-) : WhereClauseExpressionNode, IMethodBodyStatementNode, IExpressionNode {
+    val typeAnnotationNode: TypeExpressionNode? = null,
+    override val context: IContextExpressionNode?
+) : WhereClauseExpressionNode, IMethodBodyStatementNode, IExpressionNode, ContextAwareNode {
     override fun getChildren(): List<INode> = when (typeAnnotationNode) {
         null -> listOf(identifier, value)
         else -> listOf(identifier, value, typeAnnotationNode)

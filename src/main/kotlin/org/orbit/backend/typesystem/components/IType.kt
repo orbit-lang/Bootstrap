@@ -1,5 +1,6 @@
 package org.orbit.backend.typesystem.components
 
+import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeCheckPosition
@@ -19,6 +20,15 @@ fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) 
     return null
 }
 
+private object TypeIndexer {
+    private var index = 0
+
+    fun next() : Int {
+        index += 1
+        return index
+    }
+}
+
 sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     sealed interface Entity<E : Entity<E>> : IType
     sealed interface IMetaType<M: IMetaType<M>> : Entity<M> {
@@ -28,7 +38,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         }
 
         operator fun plus(other: IMetaType<*>) : IMetaType<*>
-        override fun exists(env: Env): AnyType = this
     }
 
     object Always : IMetaType<Always> {
@@ -37,7 +46,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun plus(other: IMetaType<*>): IMetaType<*> = other
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
         override fun equals(other: Any?): Boolean = true
-
         override fun toString(): String = "✓"
     }
 
@@ -77,8 +85,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> false
         }
 
-        override fun exists(env: Env): AnyType = this
-
         override fun prettyPrint(depth: Int): String {
             val printer = getKoinInstance<Printer>()
 
@@ -97,9 +103,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun substitute(substitution: Substitution): Safe
             = Safe(type.substitute(substitution))
 
-        override fun exists(env: Env): AnyType
-            = type.exists(env)
-
         override fun getCanonicalName(): String
             = type.getCanonicalName()
 
@@ -112,19 +115,30 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             = type.getTypeCheckPosition()
     }
 
-    data class Alias(val name: String, val type: AnyType) : AnyType {
+    sealed interface ISpecialisedType : AnyType {
+        fun isSpecialised() : Boolean
+    }
+
+    data class Alias(val name: String, val type: AnyType) : ISpecialisedType {
         override val id: String = "${type.id} as $name"
+
+        override fun getConstructors(): List<IConstructor<*>>
+            = type.getConstructors()
+
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = type.getUnsolvedTypeVariables()
+
+        override fun isSpecialised(): Boolean = when (type) {
+            is ISpecialisedType -> type.isSpecialised()
+            else -> false
+        }
 
         override fun getCardinality(): ITypeCardinality
             = type.getCardinality()
 
         override fun substitute(substitution: Substitution): AnyType
-            = Alias(name, when (substitution.old) {
-                type -> substitution.new
-                else -> type
-            })
+            = Alias(name, type.substitute(substitution))
 
-        override fun exists(env: Env): AnyType = type.exists(env)
         override fun getCanonicalName(): String = name
         override fun flatten(env: Env): AnyType
             = type.flatten(env)
@@ -148,28 +162,39 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList(), private val explicitCardinality: ITypeCardinality = ITypeCardinality.Mono) : Entity<Type> {
+    data class SingletonConstructor(val type: AnyType) : IConstructor<AnyType> {
+        override val id: String = "() -> ${type.id}"
+        override val constructedType: AnyType = type
+
+        override fun getDomain(): List<AnyType> = emptyList()
+        override fun getCodomain(): AnyType = type
+        override fun curry(): IArrow<*> = this
+
+        override fun never(args: List<AnyType>): Never {
+            TODO("Not yet implemented")
+        }
+
+        override fun substitute(substitution: Substitution): AnyType
+            = SingletonConstructor(type.substitute(substitution))
+    }
+
+    data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList(), private val explicitCardinality: ITypeCardinality = ITypeCardinality.Mono) : Entity<Type>, IConstructableType<Type> {
         companion object {
             val self = Type("__Self")
         }
 
-        override fun getCardinality(): ITypeCardinality = explicitCardinality
+        override fun isSpecialised(): Boolean = false
 
         override val id: String = when (attributes.isEmpty()) {
             true -> name
             else -> name + attributes.joinToString("")
         }
 
+        override fun getConstructors(): List<IConstructor<Type>>
+            = listOf(SingletonConstructor(this) as IConstructor<Type>)
+
+        override fun getCardinality(): ITypeCardinality = explicitCardinality
         override fun getCanonicalName(): String = name
-
-        override fun exists(env: Env): AnyType = when (val t = env.getElement(name)) {
-            null -> {
-                Never("Unknown Type `$name` in current context:\n$env")
-            }
-            else -> t
-        }
-
-        fun api(env: Env): Trait = Trait("$id.__api", env.getMembers(this), emptyList())
 
         override fun substitute(substitution: Substitution): Type = when (substitution.old) {
             this -> when (substitution.new) {
@@ -223,8 +248,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> false
         }
 
-        override fun exists(env: Env): AnyType = this
-
         override fun prettyPrint(depth: Int): String
             = "case ($condition) -> $result"
 
@@ -243,11 +266,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun equals(other: Any?): Boolean = when (other) {
             is Member -> name == other.name && type == other.type
             else -> false
-        }
-
-        override fun exists(env: Env): AnyType = when (env.getElement(id)) {
-            null -> Never("Unknown member `$this`")
-            else -> this
         }
 
         override fun prettyPrint(depth: Int): String {
@@ -278,10 +296,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override val id: String = "(${left.id} * ${left.id}) -> ${constructedType.id}"
 
-        override fun exists(env: Env): AnyType {
-            TODO("Not yet implemented")
-        }
-
         override fun substitute(substitution: Substitution): IConstructor<Tuple>
             = TupleConstructor(left.substitute(substitution), right.substitute(substitution), constructedType.substitute(substitution))
 
@@ -292,9 +306,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             = prettyPrint()
     }
 
-    sealed interface IConstructableType<Self: IConstructableType<Self>> : AnyType {
-        fun getConstructors() : List<IConstructor<Self>>
-    }
+    sealed interface IConstructableType<Self: IConstructableType<Self>> : ISpecialisedType
 
     sealed interface ICaseIterable<Self: ICaseIterable<Self>> : AnyType {
         fun getCases(result: AnyType) : List<Case>
@@ -314,6 +326,17 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
     data class Tuple(val left: AnyType, val right: AnyType) : IProductType<Int, Tuple>, ICaseIterable<Tuple> {
         override val id: String = "(${left.id} * ${right.id})"
+
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = left.getUnsolvedTypeVariables() + right.getUnsolvedTypeVariables()
+
+        override fun isSpecialised(): Boolean = when (left) {
+            is ISpecialisedType -> left.isSpecialised()
+            else -> when (right) {
+                is ISpecialisedType -> right.isSpecialised()
+                else -> false
+            }
+        }
 
         override fun getCases(result: AnyType): List<Case> {
             val leftCases = when (left) {
@@ -353,10 +376,18 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             val constructors = mutableListOf<TupleConstructor>()
             for (lConstructor in getLeftConstructors()) {
                 for (rConstructor in getRightConstructors()) {
-                    val lDomain = lConstructor.getDomain()
-                    val rDomain = rConstructor.getDomain()
+                    var lDomain = lConstructor.getDomain()
+                    var rDomain = rConstructor.getDomain()
 
                     if (lDomain.count() > 1 || rDomain.count() > 1) TODO("2+-ary Tuple Constructors")
+
+                    if (lDomain.isEmpty() && lConstructor is SingletonConstructor) {
+                        lDomain = listOf(lConstructor.getCodomain())
+                    }
+
+                    if (rDomain.isEmpty() && rConstructor is SingletonConstructor) {
+                        rDomain = listOf(rConstructor.getCodomain())
+                    }
 
                     val constructor = TupleConstructor(lDomain[0], rDomain[0], this)
 
@@ -378,24 +409,8 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> Never("Attempt to retrieve element from Tuple at index $at")
         }
 
-        override fun substitute(substitution: Substitution): Tuple = Tuple(left.substitute(substitution), right.substitute(substitution))
-
-        override fun exists(env: Env): AnyType {
-            val lType = left.exists(env)
-            val rType = right.exists(env)
-
-            return when (lType) {
-                is Never -> when (rType) {
-                    is Never -> lType + rType
-                    else -> lType
-                }
-
-                else -> when (rType) {
-                    is Never -> rType
-                    else -> this
-                }
-            }
-        }
+        override fun substitute(substitution: Substitution): Tuple
+            = Tuple(left.substitute(substitution), right.substitute(substitution))
 
         override fun flatten(env: Env): AnyType
             = Tuple(left.flatten(env), right.flatten(env))
@@ -409,6 +424,12 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     data class Struct(val members: List<Pair<String, AnyType>>) : IProductType<String, Struct>, IAlgebraicType<Struct> {
         override val id: String = "{${members.joinToString("; ") { it.second.id }}}"
 
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = members.flatMap { it.second.getUnsolvedTypeVariables() }
+
+        override fun isSpecialised(): Boolean
+            = members.any { it.second is ISpecialisedType && (it.second as ISpecialisedType).isSpecialised() }
+
         override fun getElement(at: String): AnyType = members.first { it.first == at }.second
         override fun getConstructors(): List<IConstructor<Struct>> = listOf(StructConstructor(this, members.map { it.second }))
         override fun substitute(substitution: Substitution): Struct = Struct(members.map { Pair(it.first, it.second.substitute(substitution)) })
@@ -420,10 +441,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun equals(other: Any?): Boolean = when (other) {
             is Struct -> other.members.count() == members.count() && other.members.zip(members).all { it.first == it.second }
             else -> false
-        }
-
-        override fun exists(env: Env): AnyType {
-            TODO("Member exists")
         }
 
         override fun prettyPrint(depth: Int): String {
@@ -457,10 +474,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun never(args: List<AnyType>): Never =
             Never("Cannot construct Type $constructedType with arguments (${args.joinToString("; ")})")
 
-        override fun exists(env: Env): AnyType {
-            TODO("Not yet implemented")
-        }
-
         override fun toString(): String = prettyPrint()
     }
 
@@ -480,15 +493,19 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun never(args: List<AnyType>): Never =
             Never("Union Type $constructedType cannot be constructed with argument $arg")
 
-        override fun exists(env: Env): AnyType {
-            TODO("Not yet implemented")
-        }
-
         override fun toString(): String = prettyPrint()
     }
 
     data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IAlgebraicType<Union>, ICaseIterable<Union> {
         override val id: String = "(${left.id} | ${right.id})"
+
+        override fun isSpecialised(): Boolean = when (left) {
+            is ISpecialisedType -> left.isSpecialised()
+            else -> when (right) {
+                is ISpecialisedType -> right.isSpecialised()
+                else -> false
+            }
+        }
 
         override fun getCardinality(): ITypeCardinality
             = ITypeCardinality.Finite(2)
@@ -513,28 +530,38 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> Never("Sum Type $this will never contain a value of Type $at")
         }
 
-        override fun getConstructors(): List<IConstructor<Union>> =
-            listOf(left, right).map { UnionConstructor(this, it) }
+        override fun getConstructors(): List<IConstructor<Union>> {
+            val lConstructors = when (left) {
+                is IConstructableType<*> -> left.getConstructors()
+                else -> TODO("HERE!!!")
+            }
+
+            val rConstructors = when (right) {
+                is IConstructableType<*> -> right.getConstructors()
+                else -> TODO("HERE!!!")
+            }
+
+            return lConstructors.zip(rConstructors).map {
+                // NOTE - Kotlin won't accept casting `it.first/second` directly to SingletonConstructor for some reason, so we need to erase the type
+                val lConstructor = it.first as IConstructor<*>
+                val rConstructor = it.second as IConstructor<*>
+
+                val lDomain = when (lConstructor) {
+                    is SingletonConstructor -> lConstructor.getCodomain()
+                    else -> lConstructor.getDomain()[0]
+                }
+
+                val rDomain = when (rConstructor) {
+                    is SingletonConstructor -> rConstructor.getCodomain()
+                    else -> rConstructor.getDomain()[0]
+                }
+
+                UnionConstructor(Union(lDomain, rDomain), this)
+            }
+        }
 
         override fun substitute(substitution: Substitution): Union =
             Union(left.substitute(substitution), right.substitute(substitution))
-
-        override fun exists(env: Env): AnyType {
-            val lType = left.exists(env)
-            val rType = right.exists(env)
-
-            return when (lType) {
-                is Never -> when (rType) {
-                    is Never -> lType + rType
-                    else -> lType
-                }
-
-                else -> when (rType) {
-                    is Never -> rType
-                    else -> this
-                }
-            }
-        }
 
         override fun equals(other: Any?): Boolean = when (other) {
             is Union -> left == other.left && right == other.right
@@ -563,7 +590,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun getCodomain(): AnyType = arrow.getCodomain()
         override fun curry(): IArrow<*> = arrow.curry()
         override fun never(args: List<AnyType>): Never = Never("")
-        override fun exists(env: Env): AnyType = arrow.exists(env)
         override fun getCardinality(): ITypeCardinality
             = arrow.getCodomain().getCardinality()
 
@@ -639,7 +665,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun substitute(substitution: Substitution): Arrow0 = Arrow0(gives.substitute(substitution))
         override fun curry(): Arrow0 = this
         override fun never(args: List<AnyType>): Never = Never("Unreachable")
-        override fun exists(env: Env): AnyType = gives.exists(env)
 
         override fun flatten(env: Env): AnyType
             = Arrow0(gives.flatten(env))
@@ -665,23 +690,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun never(args: List<AnyType>): Never =
             Never("$id expects argument of Type $takes, found $args[0]")
-
-        override fun exists(env: Env): AnyType {
-            val dType = takes.exists(env)
-            val cType = gives.exists(env)
-
-            return when (dType) {
-                is Never -> when (cType) {
-                    is Never -> dType + cType
-                    else -> dType
-                }
-
-                else -> when (cType) {
-                    is Never -> cType
-                    else -> this
-                }
-            }
-        }
 
         override fun flatten(env: Env): AnyType {
             val domain = takes.flatten(env)
@@ -721,38 +729,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun never(args: List<AnyType>): Never =
             Never("$this expects arguments of ($a, $b), found (${args.joinToString(", ")})")
 
-        override fun exists(env: Env): AnyType {
-            val type1 = a.exists(env)
-            val type2 = b.exists(env)
-            val type3 = gives.exists(env)
-
-            return when (type1) {
-                is Never -> when (type2) {
-                    is Never -> when (type3) {
-                        is Never -> type1 + type2 + type3
-                        else -> type1 + type2
-                    }
-
-                    else -> when (type3) {
-                        is Never -> type1 + type3
-                        else -> type1
-                    }
-                }
-
-                else -> when (type2) {
-                    is Never -> when (type3) {
-                        is Never -> type2 + type3
-                        else -> type2
-                    }
-
-                    else -> when (type3) {
-                        is Never -> type3
-                        else -> this
-                    }
-                }
-            }
-        }
-
         override fun toString(): String = prettyPrint()
     }
 
@@ -773,10 +749,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun never(args: List<AnyType>): Never =
             Never("$id expects arguments of ($a, $b, $c), found (${args.joinToString(", ")})")
-
-        override fun exists(env: Env): AnyType {
-            TODO("Fill in 'when table' for Arrow3")
-        }
 
         override fun toString(): String = prettyPrint()
     }
@@ -819,8 +791,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> false
         }
 
-        override fun exists(env: Env): AnyType = this
-
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)
             val prettyParams = parameters.joinToString(", ") { it.prettyPrint(0) }
@@ -833,9 +803,35 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class TypeVar(val name: String) : AnyType {
+    data class Specialisation(val abstract: TypeVar, val concrete: AnyType) : ISpecialisedType {
+        override val id: String get() = "${abstract.id} => ${concrete.id}"
+
+        override fun isSpecialised(): Boolean = true
+        override fun flatten(env: Env): AnyType = concrete
+        override fun getCardinality(): ITypeCardinality = concrete.getCardinality()
+
+        override fun substitute(substitution: Substitution): AnyType
+            = Specialisation(abstract, concrete.substitute(substitution))
+
+        override fun equals(other: Any?): Boolean = when (other) {
+            is Specialisation -> other.abstract == abstract && other.concrete == concrete
+            is AnyType -> other == concrete
+            else -> false
+        }
+
+        override fun prettyPrint(depth: Int): String
+            = concrete.prettyPrint(depth)
+
+        override fun toString(): String = prettyPrint()
+    }
+
+    data class TypeVar(val name: String) : AnyType, IConstructableType<TypeVar> {
         override val id: String = "?$name"
 
+        override fun getUnsolvedTypeVariables(): List<TypeVar> = listOf(this)
+
+        override fun isSpecialised(): Boolean = false
+        override fun getConstructors(): List<IConstructor<TypeVar>> = listOf(SingletonConstructor(this) as IConstructor<TypeVar>)
         override fun getCanonicalName(): String = name
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Infinite
         override fun substitute(substitution: Substitution): AnyType = when (substitution.old) {
@@ -850,10 +846,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun equals(other: Any?): Boolean = when (other) {
             is TypeVar -> name == other.name
             else -> false
-        }
-
-        override fun exists(env: Env): AnyType {
-            TODO("Not yet implemented")
         }
 
         override fun prettyPrint(depth: Int): String {
@@ -872,8 +864,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     data class Trait(override val id: String, val members: List<Member>, val signatures: List<Signature>) : Entity<Trait> {
         override fun substitute(substitution: Substitution): Trait
             = Trait(id, members.map { it.substitute(substitution) }, signatures.map { it.substitute(substitution) })
-
-        override fun exists(env: Env): AnyType = this
 
         override fun getCardinality(): ITypeCardinality
             = ITypeCardinality.Zero
@@ -905,13 +895,14 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     val id: String
+    val index: Int get() = TypeIndexer.next()
 
     fun getCanonicalName() : String = id
-
-    fun exists(env: Env) : AnyType
     fun flatten(env: Env) : AnyType = this
     fun getTypeCheckPosition() : TypeCheckPosition = TypeCheckPosition.Any
     fun getCardinality() : ITypeCardinality
+    fun getConstructors() : List<IConstructor<*>> = emptyList()
+    fun getUnsolvedTypeVariables() : List<IType.TypeVar> = emptyList()
 
     fun prettyPrint(depth: Int = 0) : String {
         val indent = "\t".repeat(depth)
@@ -920,8 +911,65 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 }
 
+sealed interface IIntrinsicType : IType {
+    sealed interface IIntegralType<Self: IIntegralType<Self>> : IType.IConstructableType<Self> {
+        val maxValue: Int
+        val minValue: Int
+    }
+
+    // 32-bit Signed Integer (Kotlin default)
+    object RawInt : IIntrinsicType, IIntegralType<RawInt> {
+        private object RawIntConstructor : IType.IConstructor<RawInt> {
+            override val id: String = "(ℤ) -> ℤ"
+
+            override val constructedType: RawInt = RawInt
+            override fun getDomain(): List<AnyType> = listOf(RawInt)
+            override fun getCodomain(): AnyType = RawInt
+            override fun curry(): IType.IArrow<*> = this
+
+            override fun never(args: List<AnyType>): IType.Never {
+                TODO("Not yet implemented")
+            }
+
+            override fun substitute(substitution: Substitution): AnyType = this
+            override fun equals(other: Any?): Boolean = other is RawIntConstructor
+        }
+
+        override val id: String = "ℤ"
+        override val maxValue: Int = Int.MAX_VALUE
+        override val minValue: Int = Int.MIN_VALUE
+
+        override fun isSpecialised(): Boolean = false
+
+        override fun equals(other: Any?): Boolean = when (other) {
+            is RawInt -> true
+            OrbCoreNumbers.intType -> true
+            else -> false
+        }
+
+        override fun getConstructors(): List<IType.IConstructor<RawInt>> = listOf(RawIntConstructor)
+        override fun getCardinality(): ITypeCardinality = ITypeCardinality.Infinite
+
+        override fun substitute(substitution: Substitution): AnyType = when (substitution.old) {
+            this -> substitution.new
+            else -> this
+        }
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+            val printer = getKoinInstance<Printer>()
+
+            return "$indent${printer.apply(id, PrintableKey.Bold)}"
+        }
+
+        override fun toString(): String = prettyPrint()
+    }
+}
+
 typealias AnyType = IType
 typealias AnyOperator = IType.IOperatorArrow<*, *>
+typealias AnyMetaType = IType.IMetaType<*>
+typealias AnyInt = IIntrinsicType.IIntegralType<*>
 
 fun List<AnyType>.arrowOf(codomain: AnyType) : AnyArrow = when (count()) {
     0 -> IType.Arrow0(codomain)
