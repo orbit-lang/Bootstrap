@@ -8,7 +8,7 @@ import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.nodes.IdentifierNode
 import org.orbit.util.Invocation
 
-object IdentifierInference : ITypeInference<IdentifierNode>, KoinComponent {
+object IdentifierInference : ITypeInferenceOLD<IdentifierNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(node: IdentifierNode, env: Env): AnyType

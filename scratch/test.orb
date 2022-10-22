@@ -1,92 +1,74 @@
-module Orb::Types::Intrinsics {
-    type Unit
+module Orb::Core::Numbers {
+    type Int
 }
 
-module Test with Orb::* {
-    type constructor A<T>(a T)
-    type constructor B<T>(b A<T>)
-    type C
-
-    alias D = B<C>
-
-    (self D) release () () within Defer { +{self}.use() } {
-        # ...
+module Orb::Core::Booleans {
+    type Bool {
+        constructor True
+        constructor False
     }
 
-    type Var()
-
-    context KindEq [k, K] where k ^ K
-
-    context Value [v] where KindEq[v, Kinds::Value]
-    context ConstValue [v, T] where Value[v] + AssertEq [typeOf v, T]
-    context MaxUse(v Var) [c] where ConstValue[c, Int] ensures v.useCount() < c
-
-    context List [Element] {
-        type List(elements [Element])
+    (self Bool) and (other Bool) (Bool) = select self {
+        case true = other
+        case else = false
     }
 
-    context Option [Value] {
-        type None
-        type Some(value Value)
+    (self Bool) or (other Bool) (Bool) = select self {
+        case true = true
+        case else = other
     }
 
-    extension List within AssertEq [Element, Int] {
-
+    (self Bool) not () (Bool) = select self {
+        case true = false
+        case else = true
     }
 
-    context Comparable [T] {
-        family Comparison {
-            type Equal(a T, b T)
-            type GreaterThan(a T, b T)
-            type LessThan(a T, b T)
-        }
+    infix operator boolAnd `&&` by Bool::and
+    infix operator boolOr  `||` by Bool::or
+    prefix operator boolNot `!` by Bool::not
+}
 
-        trait Comparator {
-            (Self) compare (a T, b T) (Comparison)
-        }
+module Orb::Core::Types {
+    type Unit
+    trait Any
+}
 
-        (self T) greaterThan (other T) (Bool) = self > other
-        (self T) lessThan (other T) (Bool) = self < other
+module M with Orb::Core::* {
+    context TupleCtx [A, B]
+        with alias Tuple = (A, B)
+
+    context BoxCtx [A] {
+        alias Box = { value A }
+
+        (self Box) unbox () (A) = A()
     }
 
-    projection Int : Comparator within Comparable [Int] {
-        (Self) compare (a Int, b Int) (Comparison) =
+    context TripleCtx [A, B, C]
+        with alias Triple = { a A, b B, c C }
+
+    context UnoCtx [A] {
+        type Uno
+
+        (Uno) new () (Uno) = Uno()
     }
 
-    context RangeExpressible [T] within T : Comparable {
-        type Range(start T, end T)
+    (Int) main () () {
+        i = Tuple(1, false)
+        j = Tuple(true, 0)
 
-        (self Range) contains (element T) (Bool)
-            = element >= self.start && element <= self.end
-    }
+        b1 = Box(1)
+        b2 = Box(b1)
 
-    case operator GreaterThan `>` [T] within T : Comparable by T::greaterThan
-    case operator InRange `in` [T] within RangeExpressible [T] by Range::contains
+        typeOf b1.unbox()
 
-    (Unit) foo (x Int) (Bool) = partial select x {
-        case x = true # Identity pattern - OK, typeOf x == typeOf x && returns Bool
-        case 1 = true # ConstValue pattern - OK, typeOF 1 == typeOf x && returns Bool
-        case > 99 = true # Infix Operator pattern - OK, typeOf x > 99 == typeOf x && returns Bool
-        case in 3 to 33 = false # Range pattern - OK, typeOf x in Range(3, 33) == typeOf x && returns Bool
-        case ::add(5) as y = select y case 7 = true else false # Nested pattern - OK, typeOf 7 == typeOf x && returns Bool
-        case(mustHandle) ::pow(x) # Case Propagation pattern - OK, typeOf x.pow(x) == typeOf x && returns Case<Int>
-        case Box(value) = false # Destructuring pattern - Error: `x` of Type `Int` will never match case `Box(value)`
-    }
+        t1 = Triple(1, 2, 3)
+        t2 = Triple(t1, 2, false)
 
-    (D) main () () {
-        d = D(C()) within MaxUse [d, 1]
+        typeOf t1
+        typeOf t2
 
-        o = Some(123) # OK, context `Option [Int]` can be inferred
-        l = List() # Error: `Complete Context cannot be inferred for List, please specify parameters`
+        u = Uno.new()
 
-        d.release() # OK
-        d.release() # Error: `d` no longer exists in this Context
-
-        n = foo(5) # Error: `foo` propagates case `mustHandle : Int` which is not handled
-
-        m = foo(5) by select as x {
-            case mustHandle = false
-            else !x  # This case is optional, by default it just returns the result of foo(5)
-        }
+        typeOf u
     }
 }

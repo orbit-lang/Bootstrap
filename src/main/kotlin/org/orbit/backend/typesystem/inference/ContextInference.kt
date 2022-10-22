@@ -2,7 +2,7 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.parameter.parametersOf
 import org.orbit.backend.typesystem.components.*
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.ContextNode
@@ -10,7 +10,7 @@ import org.orbit.core.nodes.EntityDefNode
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.MethodSignatureNode
 
-object ContextInference : ITypeInference<ContextNode> {
+object ContextInference : ITypeInferenceOLD<ContextNode> {
     override fun infer(node: ContextNode, env: Env): AnyType {
         val envName = node.getPath().toString(OrbitMangler)
         val nEnv = env.extend(Decl.Clone(envName))
@@ -25,7 +25,7 @@ object ContextInference : ITypeInference<ContextNode> {
         }
 
         val vDecls = node.variables.map {
-            val type = TypeSystemUtils.infer(it, nEnv)
+            val type = TypeSystemUtilsOLD.infer(it, nEnv)
             val decl = Decl.Assignment(it.identifierNode.value, type)
 
             nEnv.extendInPlace(decl)
@@ -34,17 +34,17 @@ object ContextInference : ITypeInference<ContextNode> {
             decl
         }
 
-        val mEnv = nEnv.withContext(Context(envName, typeVars, values))
+        val mEnv = nEnv
         val entityDefs = node.body.filterIsInstance<EntityDefNode>()
 
-        TypeSystemUtils.inferAll(entityDefs, mEnv)
+        TypeSystemUtilsOLD.inferAll(entityDefs, mEnv)
 
         val signatureNodes = node.body.filterIsInstance<MethodDefNode>().map { it.signature }
-        val signatures = TypeSystemUtils.inferAllAs<MethodSignatureNode, IType.Signature>(signatureNodes, mEnv, parametersOf(false))
+        val signatures = TypeSystemUtilsOLD.inferAllAs<MethodSignatureNode, IType.Signature>(signatureNodes, mEnv, parametersOf(false))
 
         mEnv.extendAllInPlace(signatures.map { Decl.Signature(it) })
 
-        TypeSystemUtils.inferAll(node.body, mEnv)
+        TypeSystemUtilsOLD.inferAll(node.body, mEnv)
 
         vDecls.forEach {
             mEnv.reduceInPlace(it)

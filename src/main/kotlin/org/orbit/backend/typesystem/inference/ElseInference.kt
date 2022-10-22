@@ -5,7 +5,7 @@ import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Env
 import org.orbit.core.nodes.ElseNode
 
-object ElseInference : ITypeInference<ElseNode>, KoinComponent {
+object ElseInference : ITypeInferenceOLD<ElseNode>, KoinComponent {
     override fun infer(node: ElseNode, env: Env): AnyType
         = env.getMatchType()
 }

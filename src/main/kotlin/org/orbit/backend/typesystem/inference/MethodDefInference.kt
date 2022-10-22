@@ -7,15 +7,14 @@ import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Decl
 import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.inference.evidence.asSuccessOrNull
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.util.Invocation
 
-object MethodDefInference : ITypeInference<MethodDefNode>, KoinComponent {
+object MethodDefInference : ITypeInferenceOLD<MethodDefNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     @Suppress("NAME_SHADOWING")
@@ -28,9 +27,9 @@ object MethodDefInference : ITypeInference<MethodDefNode>, KoinComponent {
 //            else -> env + TypeSystemUtils.inferAs(n, env)
 //        }
 
-        val signature = TypeSystemUtils.inferAs<MethodSignatureNode, IType.Signature>(node.signature, env, parametersOf(false))
+        val signature = TypeSystemUtilsOLD.inferAs<MethodSignatureNode, IType.Signature>(node.signature, env, parametersOf(false))
 
-        TypeSystemUtils.pushTypeAnnotation(signature.returns)
+        TypeSystemUtilsOLD.pushTypeAnnotation(signature.returns)
 
         val nEnv = env.extend(Decl.Clone())
             .withSelf(signature)
@@ -43,14 +42,14 @@ object MethodDefInference : ITypeInference<MethodDefNode>, KoinComponent {
 
         if (node.signature.parameterNodes.isNotEmpty()) {
             val pDecl = node.signature.getAllParameterPairs().map {
-                Decl.Assignment(it.identifierNode.identifier, TypeSystemUtils.infer(it.typeExpressionNode, nEnv))
+                Decl.Assignment(it.identifierNode.identifier, TypeSystemUtilsOLD.infer(it.typeExpressionNode, nEnv))
             }
             .reduce(Decl::plus)
 
             nEnv.extendInPlace(pDecl)
         }
 
-        val returnType = TypeSystemUtils.infer(node.body, nEnv)
+        val returnType = TypeSystemUtilsOLD.infer(node.body, nEnv)
 
         return when (TypeUtils.checkEq(nEnv, returnType, signature.returns)) {
             true -> signature

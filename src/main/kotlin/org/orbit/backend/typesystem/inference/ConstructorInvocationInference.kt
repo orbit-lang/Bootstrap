@@ -6,22 +6,21 @@ import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.Substitution
-import org.orbit.backend.typesystem.inference.evidence.asSuccessOrNull
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.ConstructorInvocationNode
 import org.orbit.util.Invocation
 
-object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode>, KoinComponent {
+object ConstructorInvocationInference : ITypeInferenceOLD<ConstructorInvocationNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(node: ConstructorInvocationNode, env: Env): AnyType {
-        val args = TypeSystemUtils.inferAll(node.parameterNodes, env)
+        val args = TypeSystemUtilsOLD.inferAll(node.parameterNodes, env)
 
-        TypeSystemUtils.pushConstructorArgsAnnotation(args)
+        TypeSystemUtilsOLD.pushConstructorArgsAnnotation(args)
 
-        val type = TypeSystemUtils.infer(node.typeExpressionNode, env).flatten(env)
+        val type = TypeSystemUtilsOLD.infer(node.typeExpressionNode, env).flatten(env)
         var constructableType = type as? IType.IConstructableType<*>
             ?: throw invocation.make<TypeSystem>("Cannot construct value of uninhabited Type `$type`", node.typeExpressionNode)
 

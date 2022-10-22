@@ -11,7 +11,7 @@ import org.orbit.backend.typesystem.components.AnyMetaType
 import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.core.phase.Phase
 import org.orbit.util.Invocation
@@ -28,7 +28,7 @@ object TypeSystem : Phase<ProgramNode, AnyMetaType>, KoinComponent {
             single(named("globalContext")) { env }
         })
 
-        val result = TypeSystemUtils.inferAs<ProgramNode, AnyMetaType>(input, env)
+        val result = TypeSystemUtilsOLD.inferAs<ProgramNode, AnyMetaType>(input, env)
 
 //        println(env)
 

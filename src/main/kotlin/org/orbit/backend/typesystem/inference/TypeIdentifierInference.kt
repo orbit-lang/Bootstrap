@@ -11,7 +11,7 @@ import org.orbit.core.getPath
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.util.Invocation
 
-object TypeIdentifierInference : ITypeInference<TypeIdentifierNode>, KoinComponent {
+object TypeIdentifierInference : ITypeInferenceOLD<TypeIdentifierNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(node: TypeIdentifierNode, env: Env): AnyType {

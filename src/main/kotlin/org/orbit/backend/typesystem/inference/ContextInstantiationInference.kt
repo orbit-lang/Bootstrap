@@ -6,20 +6,20 @@ import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.phase.globalContext
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.ContextInstantiationNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.util.Invocation
 
-object ContextInstantiationInference : ITypeInference<ContextInstantiationNode>, KoinComponent {
+object ContextInstantiationInference : ITypeInferenceOLD<ContextInstantiationNode>, KoinComponent {
     private val globalContext: Env by globalContext()
     private val invocation: Invocation by inject()
 
     override fun infer(node: ContextInstantiationNode, env: Env): AnyType {
-        val nEnv = env + TypeSystemUtils.inferAs<TypeExpressionNode, Env>(node.contextIdentifierNode, globalContext)
+        val nEnv = env + TypeSystemUtilsOLD.inferAs<TypeExpressionNode, Env>(node.contextIdentifierNode, globalContext)
         val abstractTypeParameters = nEnv.getUnsolvedTypeParameters()
-        val concreteTypeParameters = TypeSystemUtils.inferAll(node.typeParameters, nEnv)
+        val concreteTypeParameters = TypeSystemUtilsOLD.inferAll(node.typeParameters, nEnv)
 
         if (concreteTypeParameters.count() != abstractTypeParameters.count()) {
             val prettyParameters = abstractTypeParameters.joinToString("\n") { it.prettyPrint(1) }
@@ -29,8 +29,8 @@ object ContextInstantiationInference : ITypeInference<ContextInstantiationNode>,
         // TODO - Enforce Type Variable Constraints (if any)
         val mEnv = nEnv.solvingAll(abstractTypeParameters.zip(concreteTypeParameters))
 
-        val abstractValueParameters = mEnv.context.values
-        val concreteValueParameters = TypeSystemUtils.inferAll(node.valueParameters, mEnv)
+        val abstractValueParameters = mEnv.context.bindings.map { it.abstract }
+        val concreteValueParameters = TypeSystemUtilsOLD.inferAll(node.valueParameters, mEnv)
 
         if (concreteValueParameters.count() != abstractValueParameters.count()) {
             val prettyParameters = abstractValueParameters.joinToString("\n") { it.prettyPrint(1) }
@@ -40,8 +40,8 @@ object ContextInstantiationInference : ITypeInference<ContextInstantiationNode>,
         for ((idx, abstract) in abstractValueParameters.withIndex()) {
             val concrete = concreteValueParameters[idx]
 
-            if (!TypeUtils.checkEq(mEnv, concrete, abstract.type)) {
-                throw invocation.make<TypeSystem>("Value Parameter at index $idx cannot be satisfied by Type `$concrete`, expected `${abstract.type}`", node)
+            if (!TypeUtils.checkEq(mEnv, concrete, abstract)) {
+                throw invocation.make<TypeSystem>("Value Parameter at index $idx cannot be satisfied by Type `$concrete`, expected `${abstract}`", node)
             }
         }
 

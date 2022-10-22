@@ -1,12 +1,17 @@
-# Module M
-MkInt => ∆ + Int
-MkZero => ∆ + Zero : (box ∆.Int) -> (box ∆.Int) -> box ∆.Int
-OpenZero => ∆ + TZero : unbox ∆.Zero
-         => check(∆.TZero, unbox ∆.Zero)
+Zero :: Given a set S, f(x) = {}
+Mono :: Given a set S, there is exactly one mapping x -> e where e ∈ S
+Finite :: Given a set S, there are mappings x -> Sₖ for all e ∈ S where |S| < ∞
 
-OpenM => MkInt(∆)
-      => MkZero(∆)
-      => OpenZero(∆)
-      => dump(∆)
+∉
 
-run OpenM(∆)
+~ Zero ~
+S = {}
+f(x) = {}
+
+~ Mono ~
+S = {1}
+f(x) = x
+
+~ Finite ~
+S = {1, 2, 3}
+f(x) =

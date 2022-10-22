@@ -109,7 +109,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun equals(other: Any?): Boolean
             = type == other
 
-        override fun flatten(env: Env): AnyType = this
+        override fun flatten(env: ITypeEnvironment): AnyType = this
 
         override fun getTypeCheckPosition(): TypeCheckPosition
             = type.getTypeCheckPosition()
@@ -120,6 +120,8 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class Alias(val name: String, val type: AnyType) : ISpecialisedType {
+        constructor(path: Path, type: AnyType) : this(path.toString(OrbitMangler), type)
+
         override val id: String = "${type.id} as $name"
 
         override fun getConstructors(): List<IConstructor<*>>
@@ -140,7 +142,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             = Alias(name, type.substitute(substitution))
 
         override fun getCanonicalName(): String = name
-        override fun flatten(env: Env): AnyType
+        override fun flatten(env: ITypeEnvironment): AnyType
             = type.flatten(env)
 
         override fun equals(other: Any?): Boolean
@@ -182,6 +184,8 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         companion object {
             val self = Type("__Self")
         }
+
+        constructor(path: Path) : this(path.toString(OrbitMangler))
 
         override fun isSpecialised(): Boolean = false
 
@@ -412,7 +416,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun substitute(substitution: Substitution): Tuple
             = Tuple(left.substitute(substitution), right.substitute(substitution))
 
-        override fun flatten(env: Env): AnyType
+        override fun flatten(env: ITypeEnvironment): AnyType
             = Tuple(left.flatten(env), right.flatten(env))
 
         override fun prettyPrint(depth: Int): String
@@ -569,7 +573,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> false
         }
 
-        override fun flatten(env: Env): AnyType
+        override fun flatten(env: ITypeEnvironment): AnyType
             = Union(left.flatten(env), right.flatten(env))
 
         override fun prettyPrint(depth: Int): String
@@ -666,7 +670,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun curry(): Arrow0 = this
         override fun never(args: List<AnyType>): Never = Never("Unreachable")
 
-        override fun flatten(env: Env): AnyType
+        override fun flatten(env: ITypeEnvironment): AnyType
             = Arrow0(gives.flatten(env))
 
         override fun equals(other: Any?): Boolean = when (other) {
@@ -691,7 +695,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun never(args: List<AnyType>): Never =
             Never("$id expects argument of Type $takes, found $args[0]")
 
-        override fun flatten(env: Env): AnyType {
+        override fun flatten(env: ITypeEnvironment): AnyType {
             val domain = takes.flatten(env)
 
             if (domain is Never) return domain
@@ -803,28 +807,6 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Specialisation(val abstract: TypeVar, val concrete: AnyType) : ISpecialisedType {
-        override val id: String get() = "${abstract.id} => ${concrete.id}"
-
-        override fun isSpecialised(): Boolean = true
-        override fun flatten(env: Env): AnyType = concrete
-        override fun getCardinality(): ITypeCardinality = concrete.getCardinality()
-
-        override fun substitute(substitution: Substitution): AnyType
-            = Specialisation(abstract, concrete.substitute(substitution))
-
-        override fun equals(other: Any?): Boolean = when (other) {
-            is Specialisation -> other.abstract == abstract && other.concrete == concrete
-            is AnyType -> other == concrete
-            else -> false
-        }
-
-        override fun prettyPrint(depth: Int): String
-            = concrete.prettyPrint(depth)
-
-        override fun toString(): String = prettyPrint()
-    }
-
     data class TypeVar(val name: String) : AnyType, IConstructableType<TypeVar> {
         override val id: String = "?$name"
 
@@ -873,7 +855,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> false
         }
 
-        fun isImplementedBy(type: AnyType, env: Env) : Boolean {
+        fun isImplementedBy(type: AnyType, env: ITypeEnvironment) : Boolean {
             val projections = env.getProjections(type)
 
             return projections.any { it.target.id == id }
@@ -898,7 +880,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     val index: Int get() = TypeIndexer.next()
 
     fun getCanonicalName() : String = id
-    fun flatten(env: Env) : AnyType = this
+    fun flatten(env: ITypeEnvironment) : AnyType = this
     fun getTypeCheckPosition() : TypeCheckPosition = TypeCheckPosition.Any
     fun getCardinality() : ITypeCardinality
     fun getConstructors() : List<IConstructor<*>> = emptyList()

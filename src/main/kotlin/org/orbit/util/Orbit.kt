@@ -1,8 +1,6 @@
 package org.orbit.util
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.definition.BeanDefinition
@@ -10,13 +8,12 @@ import org.koin.core.parameter.DefinitionParameters
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
+import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.backend.typesystem.inference.*
 import org.orbit.backend.typesystem.inference.evidence.*
-import org.orbit.core.Path
 import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.nodes.*
 import org.orbit.core.phase.CompilerGenerator
-import org.orbit.graph.components.*
 import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.ContextCompositionPathResolver
 import org.orbit.graph.pathresolvers.util.ContextInstantiationPathResolver
@@ -106,36 +103,45 @@ val mainModule = module {
 	single { ImportManager(emptyList()) }
 
 	// Type Inference
+	single(AlgebraicConstructorInference)
+	single(TypeDefInference)
+	single(AssignmentInference)
+	single(BinaryExpressionInference)
+	single(BlockInference)
+	single(BoolLiteralInference)
+	single(CaseInference)
+
+	// Type Inference OLD
 	single(ProgramInference)
 	single(ModuleInference)
-	single(TypeDefInference)
+	single(TypeDefInferenceOLD)
 	single(ContextInference)
-	single(AlgebraicConstructorInference)
+	single(AlgebraicConstructorInferenceOLD)
 	single(TypeIdentifierInference)
 	inferenceFactory { shouldDeclare -> SignatureInference(shouldDeclare.get()) }
 	single(MethodDefInference)
-	single(BlockInference)
+	single(BlockInferenceOLD)
 	single(ReturnStatementInference)
 	single(RValueInference)
 	single(IdentifierInference)
 	single(ConstructorInvocationInference)
-	single(BinaryExpressionInference)
+	single(BinaryExpressionInferenceOLD)
 	single(SelectInference)
 	single(IntLiteralInference)
-	single(CaseInference)
+	single(CaseInferenceOLD)
 	single(ElseInference)
 	single(StructuralPatternInference)
 	single(TypeBindingPatternInference)
 	single(MethodCallInference)
-	single(BoolLiteralInference)
+	single(BoolLiteralInferenceOLD)
 	single(OperatorDefInference)
 	single(MethodReferenceInference)
 	single(ProjectionInference)
 	single(PairInference)
 	single(TraitDefInference)
-	single(AssignmentInference)
+	single(AssignmentInferenceOLD)
 	single(MethodDelegateInference)
-	single(AnonymousParameterInference)
+	single(AnonymousParameterInferenceOLD)
 	single(TupleLiteralInference)
 	single(ExtensionInference)
 	single(ContextInstantiationInference)
@@ -165,10 +171,13 @@ val mainModule = module {
 	single(TypeOfEvidenceProvider)
 }
 
-private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: ITypeInference<N>) : BeanDefinition<ITypeInference<N>>
+private inline fun <reified N: INode, reified E: ITypeEnvironment> org.koin.core.module.Module.single(inference: ITypeInference<N, E>) : BeanDefinition<ITypeInference<N, E>>
 	= single(named("infer${N::class.java.simpleName}")) { inference }
 
-private inline fun <reified N: INode> org.koin.core.module.Module.inferenceFactory(crossinline generator: (DefinitionParameters) -> ITypeInference<N>) : BeanDefinition<ITypeInference<N>>
+private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: ITypeInferenceOLD<N>) : BeanDefinition<ITypeInferenceOLD<N>>
+	= single(named("infer${N::class.java.simpleName}")) { inference }
+
+private inline fun <reified N: INode> org.koin.core.module.Module.inferenceFactory(crossinline generator: (DefinitionParameters) -> ITypeInferenceOLD<N>) : BeanDefinition<ITypeInferenceOLD<N>>
 	= factory(named("infer${N::class.java.simpleName}")) { params -> generator(params) }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(inference: IContextualEvidenceProvider<N>) : BeanDefinition<IContextualEvidenceProvider<N>>

@@ -4,15 +4,11 @@ import org.koin.core.component.KoinComponent
 import org.orbit.backend.typesystem.inference.evidence.ContextualEvidence
 import org.orbit.backend.typesystem.intrinsics.IOrbModule
 import org.orbit.backend.typesystem.intrinsics.getPublicAPI
-import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.phase.globalContext
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.core.components.Token
 import org.orbit.core.nodes.OperatorFixity
-import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
@@ -27,9 +23,9 @@ class Env(
     private var _expressionCache: Map<String, AnyType> = emptyMap(),
     val context: Context,
     val components: List<String> = listOf(name)
-) : AnyType {
-    constructor() : this("\uD835\uDF92", context = Context())
-    constructor(name: String) : this(name, context = Context())
+) : AnyType, ITypeEnvironment {
+    constructor() : this("\uD835\uDF92", context = Context.root)
+    constructor(name: String) : this(name, context = Context.root)
 
     companion object : KoinComponent {
         private val globalContext: Env by globalContext()
@@ -119,7 +115,7 @@ class Env(
         fun <T> panic(never: IType.Never): T = never.panic()
     }
 
-    internal constructor(name: String = "", type: AnyType, ref: IRef) : this(name, listOf(type), listOf(ref), context = Context())
+    internal constructor(name: String = "", type: AnyType, ref: IRef) : this(name, listOf(type), listOf(ref), context = Context.root)
 
     override val id: String get() {
         return "$name : ${toString()}"
@@ -131,17 +127,18 @@ class Env(
         = ITypeCardinality.Zero
 
     override fun substitute(substitution: Substitution): Env
-        = Env(name, elements.map { it.substitute(substitution) }, refs, projections, expressionCache, context.substitute(substitution))
+        = Env(name, elements.map { it.substitute(substitution) }, refs, projections, expressionCache, context)
 
     private fun <T> protect(protector: Protector<T>, block: () -> T): T = protector.protect(block)
 
     fun solving(typeVariable: IType.TypeVar, concrete: AnyType) : Env {
-        val special = IType.Specialisation(typeVariable, concrete)
-        val substitution = Substitution(typeVariable, special)
-        val nElements = (elements.filterNot { it == typeVariable } + IType.Alias(typeVariable.name, special))
-            .substitute(substitution)
-
-        return Env(name, nElements, refs.substitute(substitution), projections, expressionCache, context.substitute(substitution))
+        return this
+//        val special = IType.Specialisation(typeVariable, concrete)
+//        val substitution = Substitution(typeVariable, special)
+//        val nElements = (elements.filterNot { it == typeVariable } + IType.Alias(typeVariable.name, special))
+//            .substitute(substitution)
+//
+//        return Env(name, nElements, refs.substitute(substitution), projections, expressionCache, context)
     }
 
     fun solvingAll(pairs: List<Pair<IType.TypeVar, AnyType>>) : Env
@@ -155,6 +152,9 @@ class Env(
             // NOTE - A lookup for a defined Ref `r` bumps its use count
             ?.consume()
     }
+
+    override fun getTypeOrNull(name: String): AnyType?
+        = getElement(name)
 
     fun getElement(id: String): AnyType? = protect(Protector.TypeProtector) {
         val possibleMatches = elements.filter { it.getCanonicalName() == id }
@@ -344,5 +344,3 @@ fun Env.withProjections(newProjections: List<Projection>) : Env = Env(name, elem
 fun Env.withProjection(newProjection: Projection) : Env = withProjections(listOf(newProjection))
 fun Env.withProjection(type: AnyType, trait: IType.Trait) : Env = withProjection(Projection(type, trait))
 fun Env.withoutProjection(type: AnyType, trait: IType.Trait) : Env = Env(name, elements, refs, projections - Projection(type, trait), expressionCache, context)
-
-fun Env.withContext(newContext: Context) : Env = Env(name, elements, refs, projections, expressionCache, context + newContext)

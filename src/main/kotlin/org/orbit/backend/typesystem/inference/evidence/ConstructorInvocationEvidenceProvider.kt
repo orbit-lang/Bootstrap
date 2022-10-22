@@ -1,8 +1,7 @@
 package org.orbit.backend.typesystem.inference.evidence
 
 import org.orbit.backend.typesystem.components.Env
-import org.orbit.backend.typesystem.components.Substitution
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
 import org.orbit.core.getPath
 import org.orbit.core.nodes.ConstructorInvocationNode
 
@@ -16,7 +15,7 @@ object ConstructorInvocationEvidenceProvider : IContextualEvidenceProvider<Const
             }
         }
 
-        nEnv = when (val e = TypeSystemUtils.gatherAllEvidence(node.parameterNodes).asSuccessOrNull()) {
+        nEnv = when (val e = TypeSystemUtilsOLD.gatherAllEvidence(node.parameterNodes).asSuccessOrNull()) {
             null -> nEnv
             else -> nEnv + e
         }

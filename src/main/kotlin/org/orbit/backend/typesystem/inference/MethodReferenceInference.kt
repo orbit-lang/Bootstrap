@@ -6,16 +6,16 @@ import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.MethodReferenceNode
 import org.orbit.util.Invocation
 
-object MethodReferenceInference : ITypeInference<MethodReferenceNode>, KoinComponent {
+object MethodReferenceInference : ITypeInferenceOLD<MethodReferenceNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(node: MethodReferenceNode, env: Env): AnyType {
-        val receiverType = TypeSystemUtils.infer(node.typeExpressionNode, env)
+        val receiverType = TypeSystemUtilsOLD.infer(node.typeExpressionNode, env)
 
         if (node.isConstructor) {
             return IType.Signature(receiverType, "__init__", emptyList(), receiverType, false)

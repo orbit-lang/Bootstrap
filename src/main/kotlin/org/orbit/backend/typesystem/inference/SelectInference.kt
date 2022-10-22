@@ -7,22 +7,22 @@ import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeCardinality
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
 import org.orbit.core.nodes.CaseNode
 import org.orbit.core.nodes.ElseNode
 import org.orbit.core.nodes.SelectNode
 import org.orbit.util.Invocation
 
-object SelectInference : ITypeInference<SelectNode>, KoinComponent {
+object SelectInference : ITypeInferenceOLD<SelectNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(node: SelectNode, env: Env): AnyType {
-        val typeAnnotation = TypeSystemUtils.popTypeAnnotation()
+        val typeAnnotation = TypeSystemUtilsOLD.popTypeAnnotation()
             ?: TODO("CANNOT INFER TYPE ANNOTATION")
 
-        val conditionType = TypeSystemUtils.infer(node.condition, env)
+        val conditionType = TypeSystemUtilsOLD.infer(node.condition, env)
         val nEnv = env.withMatch(conditionType)
-        val caseTypes = TypeSystemUtils.inferAllAs<CaseNode, IType.Case>(node.cases, nEnv)
+        val caseTypes = TypeSystemUtilsOLD.inferAllAs<CaseNode, IType.Case>(node.cases, nEnv)
         val cardinality = caseTypes.fold(ITypeCardinality.Zero as ITypeCardinality) { acc, next -> acc + next.getCardinality() }
         val hasElseCase = node.cases.any { it.pattern is ElseNode }
 

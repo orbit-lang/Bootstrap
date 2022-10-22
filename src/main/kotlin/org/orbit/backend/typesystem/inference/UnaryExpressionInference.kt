@@ -4,18 +4,17 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Env
-import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.UnaryExpressionNode
 import org.orbit.util.Invocation
 
-object UnaryExpressionInference : ITypeInference<UnaryExpressionNode>, KoinComponent {
+object UnaryExpressionInference : ITypeInferenceOLD<UnaryExpressionNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(node: UnaryExpressionNode, env: Env): AnyType {
-        val operand = TypeSystemUtils.infer(node.operand, env)
+        val operand = TypeSystemUtilsOLD.infer(node.operand, env)
 
         val possibleOps = env.getOperators(node.fixity)
             .filter { it.symbol == node.operator }

@@ -3,13 +3,14 @@ package org.orbit.backend.typesystem.utils
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.ITypeEnvironment
 
 enum class TypeCheckPosition {
     Any, AlwaysLeft, AlwaysRight;
 }
 
 object TypeUtils {
-    private fun <R> prepare(env: Env, left: AnyType, right: AnyType, block: (AnyType, AnyType) -> R) : R {
+    private fun <R> prepare(env: ITypeEnvironment, left: AnyType, right: AnyType, block: (AnyType, AnyType) -> R) : R {
         val lRaw = left.flatten(env)
         val rRaw = right.flatten(env)
 
@@ -18,7 +19,7 @@ object TypeUtils {
         return block(lRaw, rRaw)
     }
 
-    fun check(env: Env, left: AnyType, right: AnyType) : AnyType = prepare(env, left, right) { left, right ->
+    fun check(env: ITypeEnvironment, left: AnyType, right: AnyType) : AnyType = prepare(env, left, right) { left, right ->
         val error = IType.Never("Types are not equal: `${left}` & `${right}`")
 
         when (left == right) {
@@ -47,12 +48,12 @@ object TypeUtils {
         }
     }
 
-    fun checkEq(env: Env, left: AnyType, right: AnyType) : Boolean = when (check(env, left, right)) {
+    fun checkEq(env: ITypeEnvironment, left: AnyType, right: AnyType) : Boolean = when (check(env, left, right)) {
         is IType.Never -> false
         else -> true
     }
 
-    fun checkSignatures(env: Env, left: IType.Signature, right: IType.Signature) : Boolean {
+    fun checkSignatures(env: ITypeEnvironment, left: IType.Signature, right: IType.Signature) : Boolean {
         if (left.name != right.name) return false
         if (!checkEq(env, left.receiver, right.receiver)) return false
         if (left.parameters.count() != right.parameters.count()) return false

@@ -6,19 +6,19 @@ import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
+import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.MethodCallNode
 import org.orbit.util.Invocation
 
-object MethodCallInference : ITypeInference<MethodCallNode>, KoinComponent {
+object MethodCallInference : ITypeInferenceOLD<MethodCallNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun infer(node: MethodCallNode, env: Env): AnyType {
-        val receiverType = TypeSystemUtils.infer(node.receiverExpression, env)
-        val argTypes = TypeSystemUtils.inferAll(node.parameterNodes, env)
+        val receiverType = TypeSystemUtilsOLD.infer(node.receiverExpression, env)
+        val argTypes = TypeSystemUtilsOLD.inferAll(node.parameterNodes, env)
         var possibleArrows = env.getSignatures(node.messageIdentifier.identifier, receiverType)
-        val expected = TypeSystemUtils.popTypeAnnotation() ?: IType.Always
+        val expected = TypeSystemUtilsOLD.popTypeAnnotation() ?: IType.Always
 
         if (possibleArrows.isEmpty()) {
             throw invocation.make<TypeSystem>("No methods found matching signature `$receiverType.${node.messageIdentifier.identifier} : (${argTypes.joinToString(", ")}) -> ???`", node)

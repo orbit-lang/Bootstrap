@@ -1,48 +1,30 @@
 package org.orbit.backend.typesystem.inference
 
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.Decl
-import org.orbit.backend.typesystem.components.Env
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.utils.TypeSystemUtils
-import org.orbit.core.OrbitMangler
+import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.getPath
 import org.orbit.core.nodes.AlgebraicConstructorNode
 import org.orbit.core.nodes.TypeDefNode
-import org.orbit.core.nodes.TypeExpressionNode
 
-object AlgebraicConstructorInference : ITypeInference<AlgebraicConstructorNode> {
-    override fun infer(node: AlgebraicConstructorNode, env: Env): AnyType {
+object TypeDefInference: ITypeInference<TypeDefNode, GlobalEnvironment> {
+    override fun infer(node: TypeDefNode, env: GlobalEnvironment): AnyType {
         val path = node.getPath()
-        // TODO - Allow recursive constructors
-        // TODO - Allow Structs, Tuples, Aliases
-        val nType = IType.Type(path.toString(OrbitMangler))
+        val nType = IType.Type(path)
+        val nEnv = env.fork()
 
-        env.extendInPlace(Decl.Type(nType))
-
-        return nType
-    }
-}
-
-object TypeDefInference : ITypeInference<TypeDefNode> {
-    override fun infer(node: TypeDefNode, env: Env): AnyType {
-        val path = node.getPath()
-        val type = IType.Type(path.toString(OrbitMangler))
-
-        env.extendInPlace(Decl.Type(type))
+        nEnv.add(nType)
 
         val constructorNodes = node.body.filterIsInstance<AlgebraicConstructorNode>()
-        val constructors = TypeSystemUtils.inferAllAs<AlgebraicConstructorNode, IType.Type>(constructorNodes, env)
-        val decl = when (constructors.count()) {
-            0 -> Decl.Type(type)
-            1 -> Decl.Type(constructors[0])
-            2 -> Decl.TypeAlias(path.toString(OrbitMangler), IType.Union(constructors[0], constructors[1]))
-            else -> TODO("Union > 3")
+        val constructors = TypeInferenceUtils.inferAllAs<AlgebraicConstructorNode, IType.Type>(constructorNodes, nEnv)
+        val mType = when (constructors.count()) {
+            0 -> nType
+            1 -> constructors[0]
+            2 -> IType.Alias(path, IType.Union(constructors[0], constructors[1]))
+            else -> TODO("Union > 2")
         }
 
-        env.reduceInPlace(Decl.Type(type))
-        env.extendInPlace(decl)
+        env.add(mType)
 
-        return type
+        return mType
     }
 }
