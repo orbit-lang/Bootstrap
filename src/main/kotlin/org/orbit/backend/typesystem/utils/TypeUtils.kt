@@ -1,7 +1,6 @@
 package org.orbit.backend.typesystem.utils
 
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
 

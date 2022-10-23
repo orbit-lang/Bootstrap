@@ -3,57 +3,42 @@ package org.orbit.backend.typesystem.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.parameter.parametersOf
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.Decl
-import org.orbit.backend.typesystem.components.Env
-import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
+import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.MethodDefNode
 import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.util.Invocation
 
-object MethodDefInference : ITypeInferenceOLD<MethodDefNode>, KoinComponent {
+object MethodDefInference : ITypeInference<MethodDefNode, IMutableTypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    @Suppress("NAME_SHADOWING")
-    override fun infer(node: MethodDefNode, env: Env): AnyType {
-//        val env = when (val n = node.context) {
-//            null -> when (val e = TypeSystemUtils.gatherEvidence(node).asSuccessOrNull()) {
-//                null -> env
-//                else -> e
-//            }
-//            else -> env + TypeSystemUtils.inferAs(n, env)
-//        }
+    override fun infer(node: MethodDefNode, env: IMutableTypeEnvironment): AnyType {
+        val nEnv = LocalEnvironment(env)
+        val mEnv = when (val n = node.context) {
+            null -> env
+            else -> ContextualTypeEnvironment(env, TypeInferenceUtils.inferAs(n, nEnv))
+        }
 
-        val signature = TypeSystemUtilsOLD.inferAs<MethodSignatureNode, IType.Signature>(node.signature, env, parametersOf(false))
-
-        TypeSystemUtilsOLD.pushTypeAnnotation(signature.returns)
-
-        val nEnv = env.extend(Decl.Clone())
-            .withSelf(signature)
+        val signature = TypeInferenceUtils.inferAs<MethodSignatureNode, IType.Signature>(node.signature, mEnv, parametersOf(false))
+        val oEnv = SelfTypeEnvironment(mEnv, signature)
 
         if (node.signature.isInstanceMethod) {
-            val decl = Decl.Assignment(node.signature.receiverIdentifier!!.identifier, signature.receiver)
-
-            nEnv.extendInPlace(decl)
+            oEnv.bind(node.signature.receiverIdentifier!!.identifier, signature.receiver)
         }
 
-        if (node.signature.parameterNodes.isNotEmpty()) {
-            val pDecl = node.signature.getAllParameterPairs().map {
-                Decl.Assignment(it.identifierNode.identifier, TypeSystemUtilsOLD.infer(it.typeExpressionNode, nEnv))
-            }
-            .reduce(Decl::plus)
+        node.signature.getAllParameterPairs().forEach {
+            val type = TypeInferenceUtils.infer(it.typeExpressionNode, oEnv)
 
-            nEnv.extendInPlace(pDecl)
+            oEnv.bind(it.identifierNode.identifier, type)
         }
 
-        val returnType = TypeSystemUtilsOLD.infer(node.body, nEnv)
+        val returns = TypeInferenceUtils.infer(node.body, oEnv)
 
-        return when (TypeUtils.checkEq(nEnv, returnType, signature.returns)) {
+        return when (TypeUtils.checkEq(oEnv, returns, signature.returns)) {
             true -> signature
-            else -> throw invocation.make<TypeSystem>("Method `${node.signature.identifierNode.identifier}` declared return Type of `${signature.returns}`, found `${returnType}`", node)
+            else -> throw invocation.make<TypeSystem>("Method `${node.signature.identifierNode.identifier}` declared return Type of `${signature.returns}`, found `$returns`", node)
         }
     }
 }

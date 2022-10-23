@@ -1,17 +1,18 @@
 package org.orbit.backend.typesystem.inference
 
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.inference.evidence.asSuccessOrNull
-import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
+import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.ContextOfNode
 
-object ContextOfInference : ITypeInferenceOLD<ContextOfNode> {
-    override fun infer(node: ContextOfNode, env: Env): AnyType {
-        val evidence = TypeSystemUtilsOLD.gatherEvidence(node.typeExpressionNode)
+object ContextOfInference : ITypeInference<ContextOfNode, ITypeEnvironment> {
+    override fun infer(node: ContextOfNode, env: ITypeEnvironment): AnyType {
+        val type = TypeInferenceUtils.infer(node.typeExpressionNode, env)
+        val decl = env.getTypeOrNull(type.getCanonicalName())
+            ?: return IType.Always
 
-        evidence.asSuccessOrNull()?.let { println(it) }
+        println(decl.context)
 
         return IType.Always
     }

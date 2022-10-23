@@ -61,9 +61,9 @@ internal class ContextTest {
         assertEquals(res.name, sut.name)
         assertEquals(3, res.bindings.count())
 
-        val nA = res.bindings[0]
-        val nB = res.bindings[1]
-        val nC = res.bindings[2]
+        val nA = res.bindings.elementAt(0)
+        val nB = res.bindings.elementAt(1)
+        val nC = res.bindings.elementAt(2)
 
         assertTrue(nA.concrete === t)
         assertTrue(nB.concrete === u)

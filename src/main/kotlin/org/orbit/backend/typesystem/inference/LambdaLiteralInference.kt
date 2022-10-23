@@ -1,20 +1,25 @@
 package org.orbit.backend.typesystem.inference
 
-import org.orbit.backend.typesystem.components.*
-import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
+import org.orbit.backend.typesystem.components.LocalEnvironment
+import org.orbit.backend.typesystem.components.arrowOf
+import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.LambdaLiteralNode
 
-object LambdaLiteralInference : ITypeInferenceOLD<LambdaLiteralNode> {
-    override fun infer(node: LambdaLiteralNode, env: Env): AnyType {
+object LambdaLiteralInference : ITypeInference<LambdaLiteralNode, IMutableTypeEnvironment> {
+    override fun infer(node: LambdaLiteralNode, env: IMutableTypeEnvironment): AnyType {
+        val nEnv = LocalEnvironment(env)
         val parameters = node.bindings.map {
-            val type = TypeSystemUtilsOLD.infer(it.typeNode, env)
+            val type = TypeInferenceUtils.infer(it.typeNode, nEnv)
 
-            Ref(it.identifierNode.identifier, type)
+            nEnv.bind(it.identifierNode.identifier, type)
+
+            type
         }
 
-        val nEnv = env.withRefs(parameters)
-        val body = TypeSystemUtilsOLD.infer(node.body, nEnv)
+        val body = TypeInferenceUtils.infer(node.body, nEnv)
 
-        return parameters.map { it.type }.arrowOf(body)
+        return parameters.arrowOf(body)
     }
 }

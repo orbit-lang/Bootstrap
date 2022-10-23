@@ -4,7 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
+import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.ProjectionNode
 import org.orbit.core.nodes.TypeExpressionNode
@@ -31,11 +31,11 @@ private sealed interface SignatureVerificationResult {
     }
 }
 
-object ProjectionInference : ITypeInferenceOLD<ProjectionNode>, KoinComponent {
+object ProjectionInference : ITypeInference<ProjectionNode, GlobalEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    private fun verifySignature(env: Env, expected: IType.Signature, provided: List<IType.Signature>) : SignatureVerificationResult {
+    private fun verifySignature(env: IMutableTypeEnvironment, expected: IType.Signature, provided: List<IType.Signature>) : SignatureVerificationResult {
         val implementations = provided.filter { TypeUtils.checkSignatures(env, it, expected) }
 
         if (implementations.isEmpty()) {
@@ -54,23 +54,22 @@ object ProjectionInference : ITypeInferenceOLD<ProjectionNode>, KoinComponent {
     }
 
     @Suppress("NAME_SHADOWING")
-    override fun infer(node: ProjectionNode, env: Env): AnyType {
-        val env = when (val n = node.context) {
+    override fun infer(node: ProjectionNode, env: GlobalEnvironment): AnyType {
+        val nEnv = when (val n = node.context) {
             null -> env
-            else -> env + TypeSystemUtilsOLD.inferAs(n, env)
+            else -> ContextualTypeEnvironment(env, TypeInferenceUtils.inferAs(n, env))
         }
 
-        val projectedType = TypeSystemUtilsOLD.infer(node.typeIdentifier, env)
-        val projectedTrait = TypeSystemUtilsOLD.inferAs<TypeExpressionNode, IType.Trait>(node.traitIdentifier, env)
+        val projectedType = TypeInferenceUtils.infer(node.typeIdentifier, nEnv)
+        val projectedTrait = TypeInferenceUtils.inferAs<TypeExpressionNode, IType.Trait>(node.traitIdentifier, nEnv)
+        val projection = Projection(projectedType, projectedTrait)
+        val mEnv = ProjectionEnvironment(nEnv, projection)
 
-        val projection = Decl.Projection(projectedType, projectedTrait)
-        env.extendInPlace(projection)
+        env.add(projection, projectedType)
 
-        val nEnv = env.withSelf(projectedType)
-            .withProjectedType(projectedType)
-            .withProjectedTrait(projectedTrait)
+        val oEnv = SelfTypeEnvironment(mEnv, projectedType)
 
-        val bodyTypes = TypeSystemUtilsOLD.inferAll(node.body, nEnv)
+        val bodyTypes = TypeInferenceUtils.inferAll(node.body, oEnv)
         val signatures = bodyTypes.filterIsInstance<IType.Signature>()
 
         val signatureResults = projectedTrait.signatures.fold(SignatureVerificationResult.Implemented(emptyList()) as SignatureVerificationResult) { acc, next ->
@@ -86,7 +85,7 @@ object ProjectionInference : ITypeInferenceOLD<ProjectionNode>, KoinComponent {
         }
 
         for (signature in (signatureResults as SignatureVerificationResult.Implemented).signatures) {
-            env.extendInPlace(Decl.Signature(signature))
+            env.add(signature)
         }
 
         val signatureNames = signatures.map { it.name }

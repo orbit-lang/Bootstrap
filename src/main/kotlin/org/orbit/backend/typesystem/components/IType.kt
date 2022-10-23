@@ -858,7 +858,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         fun isImplementedBy(type: AnyType, env: ITypeEnvironment) : Boolean {
             val projections = env.getProjections(type)
 
-            return projections.any { it.target.id == id }
+            return projections.any { it.component.target.id == id }
         }
 
         operator fun plus(other: Trait) : Trait

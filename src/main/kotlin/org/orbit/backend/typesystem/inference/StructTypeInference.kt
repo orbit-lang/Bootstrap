@@ -1,15 +1,15 @@
 package org.orbit.backend.typesystem.inference
 
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
+import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.StructTypeNode
 
-object StructTypeInference : ITypeInferenceOLD<StructTypeNode> {
-    override fun infer(node: StructTypeNode, env: Env): AnyType {
+object StructTypeInference : ITypeInference<StructTypeNode, ITypeEnvironment> {
+    override fun infer(node: StructTypeNode, env: ITypeEnvironment): AnyType {
         val members = node.members.map {
-            val type = TypeSystemUtilsOLD.infer(it.typeExpressionNode, env)
+            val type = TypeInferenceUtils.infer(it.typeExpressionNode, env)
 
             Pair(it.identifierNode.identifier, type)
         }

@@ -1,18 +1,18 @@
 package org.orbit.backend.typesystem.inference
 
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.Decl
-import org.orbit.backend.typesystem.components.Env
-import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
+import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
+import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.getPath
 import org.orbit.core.nodes.TypeAliasNode
 
-object TypeAliasInference : ITypeInferenceOLD<TypeAliasNode> {
-    override fun infer(node: TypeAliasNode, env: Env): AnyType {
-        val type = TypeSystemUtilsOLD.infer(node.targetTypeIdentifier, env)
+object TypeAliasInference : ITypeInference<TypeAliasNode, IMutableTypeEnvironment> {
+    override fun infer(node: TypeAliasNode, env: IMutableTypeEnvironment): AnyType {
+        val type = TypeInferenceUtils.infer(node.targetTypeIdentifier, env)
         val path = node.getPath()
 
-        env.extendInPlace(Decl.TypeAlias(path, type))
+        env.add(IType.Alias(path, type))
 
         return type
     }

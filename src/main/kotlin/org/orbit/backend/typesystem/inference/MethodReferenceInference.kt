@@ -3,27 +3,27 @@ package org.orbit.backend.typesystem.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.Env
 import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.components.getSignatures
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
+import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.MethodReferenceNode
 import org.orbit.util.Invocation
 
-object MethodReferenceInference : ITypeInferenceOLD<MethodReferenceNode>, KoinComponent {
+object MethodReferenceInference : ITypeInference<MethodReferenceNode, ITypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: MethodReferenceNode, env: Env): AnyType {
-        val receiverType = TypeSystemUtilsOLD.infer(node.typeExpressionNode, env)
+    override fun infer(node: MethodReferenceNode, env: ITypeEnvironment): AnyType {
+        val receiver = TypeInferenceUtils.infer(node.typeExpressionNode, env)
 
         if (node.isConstructor) {
-            return IType.Signature(receiverType, "__init__", emptyList(), receiverType, false)
+            return IType.Signature(receiver, "__init__", emptyList(), receiver, false)
         }
 
         var possibleSignatures = env.getSignatures(node.identifierNode.identifier)
-
-        val error = "No methods found matching `${node.identifierNode.identifier} : (${receiverType}, ???) -> ???`"
+        val error = "No methods found matching `${node.identifierNode.identifier} : (${receiver}, ???) -> ???`"
 
         if (possibleSignatures.isEmpty()) {
             throw invocation.make<TypeSystem>(error, node.identifierNode)
@@ -31,21 +31,21 @@ object MethodReferenceInference : ITypeInferenceOLD<MethodReferenceNode>, KoinCo
 
         if (possibleSignatures.count() == 1) {
             val signature = possibleSignatures[0]
-            if (TypeUtils.checkEq(env, signature.receiver, receiverType)) {
-                return signature
+            if (TypeUtils.checkEq(env, signature.component.receiver, receiver)) {
+                return signature.component
             }
 
             throw invocation.make<TypeSystem>(error, node.identifierNode)
         }
 
-        possibleSignatures = possibleSignatures.filter { TypeUtils.checkEq(env, it.receiver, receiverType) }
+        possibleSignatures = possibleSignatures.filter { TypeUtils.checkEq(env, it.component.receiver, receiver) }
 
         if (possibleSignatures.isEmpty()) {
             throw invocation.make<TypeSystem>(error, node.identifierNode)
         }
 
         if (possibleSignatures.count() == 1) {
-            return possibleSignatures[0]
+            return possibleSignatures[0].component
         }
 
         throw invocation.make<TypeSystem>(error, node)

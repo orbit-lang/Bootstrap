@@ -1,11 +1,10 @@
 package org.orbit.backend.typesystem.inference
 
-import org.koin.core.component.KoinComponent
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.CaseTypeEnvironment
 import org.orbit.core.nodes.ElseNode
 
-object ElseInference : ITypeInferenceOLD<ElseNode>, KoinComponent {
-    override fun infer(node: ElseNode, env: Env): AnyType
-        = env.getMatchType()
+object ElseInference : ITypeInference<ElseNode, CaseTypeEnvironment> {
+    override fun infer(node: ElseNode, env: CaseTypeEnvironment): AnyType
+        = env.match
 }

@@ -1,11 +1,12 @@
 package org.orbit.backend.typesystem.inference
 
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.Env
-import org.orbit.backend.typesystem.utils.TypeSystemUtilsOLD
+import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.PairNode
 
-object PairInference : ITypeInferenceOLD<PairNode> {
-    override fun infer(node: PairNode, env: Env): AnyType
-        = TypeSystemUtilsOLD.infer(node.typeExpressionNode, env)
+// NOTE - A `Pair` does not refer to the Kotlin concept of a Pair, but rather a name-type pair, e.g. (i Int)
+object PairInference : ITypeInference<PairNode, ITypeEnvironment> {
+    override fun infer(node: PairNode, env: ITypeEnvironment): AnyType
+        = TypeInferenceUtils.infer(node.typeExpressionNode, env)
 }

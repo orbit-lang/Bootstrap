@@ -6,8 +6,8 @@ import org.orbit.core.getPath
 import org.orbit.core.nodes.AlgebraicConstructorNode
 import org.orbit.core.nodes.TypeDefNode
 
-object TypeDefInference: ITypeInference<TypeDefNode, GlobalEnvironment> {
-    override fun infer(node: TypeDefNode, env: GlobalEnvironment): AnyType {
+object TypeDefInference: ITypeInference<TypeDefNode, IMutableTypeEnvironment> {
+    override fun infer(node: TypeDefNode, env: IMutableTypeEnvironment): AnyType {
         val path = node.getPath()
         val nType = IType.Type(path)
         val nEnv = env.fork()

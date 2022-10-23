@@ -1,7 +1,6 @@
 package org.orbit.backend.typesystem.intrinsics
 
-import org.orbit.backend.typesystem.components.Decl
-import org.orbit.backend.typesystem.components.Env
+import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
 import org.orbit.backend.typesystem.components.IType
 
 interface IOrbModule {
@@ -10,16 +9,8 @@ interface IOrbModule {
     fun getPublicOperators() : List<IType.IOperatorArrow<*, *>>
 }
 
-private fun IOrbModule.getTypeDecls() : List<Decl.Type>
-    = getPublicTypes().map { Decl.Type(it) }
-
-private fun IOrbModule.getTypeAliasDecls() : List<Decl.TypeAlias>
-    = getPublicTypeAliases().map { Decl.TypeAlias(it.name, it.type) }
-
-private fun IOrbModule.getOperatorDecls() : List<Decl.Operator>
-    = getPublicOperators().map { Decl.Operator(it) }
-
-fun IOrbModule.getPublicAPI() : Env = Env()
-    .extendAll(getTypeDecls())
-    .extendAll(getTypeAliasDecls())
-    .extendAll(getOperatorDecls())
+fun IMutableTypeEnvironment.import(module: IOrbModule) : IMutableTypeEnvironment = this.apply {
+    module.getPublicTypes().forEach(::add)
+    module.getPublicTypeAliases().forEach(::add)
+    module.getPublicOperators().forEach(::add)
+}
