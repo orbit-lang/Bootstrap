@@ -10,19 +10,20 @@ import org.orbit.core.nodes.ElseNode
 import org.orbit.core.nodes.SelectNode
 import org.orbit.util.Invocation
 
-object SelectInference : ITypeInference<SelectNode, AnnotatedTypeEnvironment>, KoinComponent {
+object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: SelectNode, env: AnnotatedTypeEnvironment): AnyType {
+    override fun infer(node: SelectNode, env: AnnotatedSelfTypeEnvironment): AnyType {
+        val typeAnnotation = env.typeAnnotation
         val conditionType = TypeInferenceUtils.infer(node.condition, env)
-        val nEnv = SelectTypeEnvironment(env, conditionType)
+        val nEnv = CaseTypeEnvironment(env, env.getSelfType(), conditionType)
         val caseTypes = TypeInferenceUtils.inferAllAs<CaseNode, IType.Case>(node.cases, nEnv)
         val cardinality = caseTypes.fold(ITypeCardinality.Zero as ITypeCardinality) { acc, next -> acc + next.getCardinality() }
         val hasElseCase = node.cases.any { it.pattern is ElseNode }
 
         if (cardinality is ITypeCardinality.Infinite) {
             return when (hasElseCase) {
-                true -> env.typeAnnotation
+                true -> typeAnnotation
                 else -> throw invocation.make<TypeSystem>("Type `$conditionType` has an infinite number of cases and therefore requires an Else case", node)
             }
         }
@@ -32,7 +33,7 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedTypeEnvironment>, K
 
         // If this is not an Infinite Type, ensure all possible cases are covered
         val actualCases = caseTypes.map { it.condition }
-        val expectedCases = constructableType.getCases(env.typeAnnotation).map { it.condition }
+        val expectedCases = constructableType.getCases(typeAnnotation).map { it.condition }
 
         val coveredCases = actualCases.map { it.id }.distinct()
         val conditionCardinality = constructableType.getCardinality()
@@ -44,6 +45,6 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedTypeEnvironment>, K
             throw invocation.make<TypeSystem>("Missing ${missingCases.count()}/${expectedCases.count()} Case(s) for Select expression of Type `$constructableType`:\n\t$prettyMissing", node)
         }
 
-        return env.typeAnnotation
+        return typeAnnotation
     }
 }

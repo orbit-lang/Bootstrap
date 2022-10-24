@@ -4,6 +4,7 @@ import org.koin.core.component.inject
 import org.orbit.core.*
 import org.orbit.core.nodes.*
 import org.orbit.core.nodes.Annotations
+import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -115,6 +116,8 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 		val containerPath = input.getPath()
 
 		environment.withScope(input) {
+			it.setContainerPath(containerPath)
+
 			// TODO - Would be nice to inject these but the parentPath property makes it tricky
 			val typeResolver = TypeDefPathResolver(containerPath)
 			val traitResolver = TraitDefPathResolver(containerPath)

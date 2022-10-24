@@ -2,6 +2,9 @@ package org.orbit.backend.typesystem.components
 
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
+import org.orbit.util.getKoinInstance
 
 data class Context private constructor(val name: String, val bindings: Set<Specialisation>) : IType {
     companion object {
@@ -20,6 +23,13 @@ data class Context private constructor(val name: String, val bindings: Set<Speci
     override val id: String = name
 
     override fun getCardinality(): ITypeCardinality = ITypeCardinality.Zero
+
+    fun <T: AnyType> specialise(type: T) : T {
+        val subs = bindings.map { Substitution(it.abstract, it.concrete) }
+
+        return subs.fold(type) { acc, next -> acc.substitute(next) as T }
+    }
+
 
     override fun substitute(substitution: Substitution): AnyType {
         TODO("Not yet implemented")
@@ -41,9 +51,13 @@ data class Context private constructor(val name: String, val bindings: Set<Speci
     fun isComplete() : Boolean = getUnsolved().isEmpty()
 
     fun getUnsolved() : List<IType.TypeVar> = bindings.mapNotNull { when (it.concrete) {
-        is IType.Always -> it.abstract
+        is IType.Never -> it.abstract
         else -> null
     }}
+
+    fun isSolvedBy(specialisations: Collection<Specialisation>) : Boolean = specialisations.count() == bindings.count() && specialisations.zip(bindings).all {
+        it.first == it.second
+    }
 
     operator fun plus(other: Context) : Context
         = Context("$name & ${other.name}", bindings + other.bindings)
@@ -52,4 +66,13 @@ data class Context private constructor(val name: String, val bindings: Set<Speci
         is Context -> other.name == name && other.bindings == bindings
         else -> false
     }
+
+    override fun prettyPrint(depth: Int) : String {
+        val printer = getKoinInstance<Printer>()
+        val pretty = bindings.joinToString(", ")
+        return "${"\t".repeat(depth)}${printer.apply(name, PrintableKey.Italics, PrintableKey.Bold)}($pretty)"
+    }
+
+    override fun toString(): String
+        = prettyPrint(0)
 }

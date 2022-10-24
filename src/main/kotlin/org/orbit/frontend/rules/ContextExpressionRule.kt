@@ -64,7 +64,7 @@ object ContextInstantiationRule : ParseRule<IContextExpressionNode>, KoinCompone
 object ContextOfRule : ParseRule<ContextOfNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.ContextOf)
-        val expr = context.attempt(TypeExpressionRule)
+        val expr = context.attempt(ExpressionRule.defaultValue)
             ?: return ParseRule.Result.Failure.Abort
 
         return +ContextOfNode(start, expr.lastToken, expr)

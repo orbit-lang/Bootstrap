@@ -2,20 +2,17 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.ConstructorTypeEnvironment
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.Substitution
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.ConstructorInvocationNode
 import org.orbit.util.Invocation
 
-object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode, ConstructorTypeEnvironment>, KoinComponent {
+object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode, IMutableTypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: ConstructorInvocationNode, env: ConstructorTypeEnvironment): AnyType {
+    override fun infer(node: ConstructorInvocationNode, env: IMutableTypeEnvironment): AnyType {
         val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
         val nEnv = ConstructorTypeEnvironment(env, args)
         val type = TypeInferenceUtils.infer(node.typeExpressionNode, nEnv).flatten(nEnv)

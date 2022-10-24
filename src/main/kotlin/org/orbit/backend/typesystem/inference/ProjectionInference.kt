@@ -67,13 +67,11 @@ object ProjectionInference : ITypeInference<ProjectionNode, GlobalEnvironment>, 
 
         env.add(projection, projectedType)
 
-        val oEnv = SelfTypeEnvironment(mEnv, projectedType)
-
-        val bodyTypes = TypeInferenceUtils.inferAll(node.body, oEnv)
+        val bodyTypes = TypeInferenceUtils.inferAll(node.body, mEnv)
         val signatures = bodyTypes.filterIsInstance<IType.Signature>()
 
         val signatureResults = projectedTrait.signatures.fold(SignatureVerificationResult.Implemented(emptyList()) as SignatureVerificationResult) { acc, next ->
-            acc + verifySignature(nEnv, next, signatures)
+            acc + verifySignature(mEnv, next, signatures)
         }
 
         if (signatureResults is SignatureVerificationResult.NotImplemented) {

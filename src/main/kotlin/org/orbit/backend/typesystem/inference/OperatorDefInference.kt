@@ -1,20 +1,33 @@
 package org.orbit.backend.typesystem.inference
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
 import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.phase.TypeSystem
+import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
+import org.orbit.core.nodes.INode
 import org.orbit.core.nodes.MethodReferenceNode
 import org.orbit.core.nodes.OperatorDefNode
 import org.orbit.core.nodes.OperatorFixity
+import org.orbit.util.Invocation
 
-object OperatorDefInference : ITypeInference<OperatorDefNode, IMutableTypeEnvironment> {
+object OperatorDefInference : ITypeInference<OperatorDefNode, IMutableTypeEnvironment>, KoinComponent {
+    private val invocation: Invocation by inject()
+
+    private inline fun <reified A: AnyArrow> checkArrow(node: OperatorDefNode, fixity: OperatorFixity, delegate: IType.Signature) : A = when (val a = delegate.toArrow()) {
+        is A -> a
+        else -> throw invocation.make<TypeSystem>("$fixity operator `${node.identifierNode.identifier}` cannot delegate by method reference $delegate because it does not accept the correct number of parameters: expected ${fixity.numberOfParameters}, found ${delegate.parameters.count()}", node)
+    }
+
     override fun infer(node: OperatorDefNode, env: IMutableTypeEnvironment): AnyType {
         val delegate = TypeInferenceUtils.inferAs<MethodReferenceNode, IType.Signature>(node.methodReferenceNode, env)
         val operator = when (node.fixity) {
-            OperatorFixity.Prefix -> IType.PrefixOperator(node.symbol, node.identifierNode.identifier, delegate.toArrow() as IType.Arrow1)
-            OperatorFixity.Infix -> IType.InfixOperator(node.symbol, node.identifierNode.identifier, delegate.toArrow() as IType.Arrow2)
-            OperatorFixity.Postfix -> IType.PostfixOperator(node.symbol, node.identifierNode.identifier, delegate.toArrow() as IType.Arrow1)
+            OperatorFixity.Prefix -> IType.PrefixOperator(node.symbol, node.identifierNode.identifier, checkArrow(node, node.fixity, delegate))
+            OperatorFixity.Infix -> IType.InfixOperator(node.symbol, node.identifierNode.identifier, checkArrow(node, node.fixity, delegate))
+            OperatorFixity.Postfix -> IType.PostfixOperator(node.symbol, node.identifierNode.identifier, checkArrow(node, node.fixity, delegate))
         }
 
         env.add(operator)

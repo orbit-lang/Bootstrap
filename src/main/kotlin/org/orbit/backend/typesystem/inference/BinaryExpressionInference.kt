@@ -22,7 +22,10 @@ object BinaryExpressionInference : ITypeInference<BinaryExpressionNode, ITypeEnv
             .filter { it.symbol == node.operator }
             .filter { TypeUtils.checkEq(env, lType, it.getDomain()[0]) && TypeUtils.checkEq(env, rType, it.getDomain()[1]) }
 
-        if (possibleOps.isEmpty()) throw invocation.make<TypeSystem>("Could not find Infix Operator `${node.operator}` of Type `($lType, $rType) -> ???`", node)
+        if (possibleOps.isEmpty()) {
+            throw invocation.make<TypeSystem>("Could not find Infix Operator `${node.operator}` of Type `($lType, $rType) -> ???`", node)
+        }
+
         if (possibleOps.count() > 1) {
             val pretty = possibleOps.joinToString("\n\t") { "${it.identifier} ${it.symbol} $it" }
 

@@ -14,19 +14,20 @@ object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
         val abstracts = node.typeVariables.map { Specialisation(it.getPath()) }
         // TODO - Abstract Value Parameters
         val ctx = Context(node.getPath(), abstracts)
+        val nEnv = ContextualTypeEnvironment(env, ctx)
+
+        abstracts.forEach { nEnv.add(it.abstract) }
 
         GlobalEnvironment.add(ctx)
 
         val entityDefs = node.body.filterIsInstance<EntityDefNode>()
 
-        TypeInferenceUtils.inferAll(entityDefs, env)
+        TypeInferenceUtils.inferAll(entityDefs, nEnv)
 
         val signatureNodes = node.body.filterIsInstance<MethodDefNode>().map { it.signature }
-        val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, IType.Signature>(signatureNodes, env, parametersOf(false))
+        val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, IType.Signature>(signatureNodes, nEnv, parametersOf(false))
 
-        signatures.forEach { env.add(it) }
-
-        val nEnv = ContextualTypeEnvironment(env, ctx)
+        signatures.forEach { nEnv.add(it) }
 
         TypeInferenceUtils.inferAll(node.body, nEnv)
 

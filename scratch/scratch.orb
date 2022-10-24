@@ -1,5 +1,89 @@
+#module Orb::Core::Numbers {
+#    type Int
+#}
+#
+#module Orb::Core::Booleans {
+#    type Bool {
+#        constructor True
+#        constructor False
+#    }
+#
+#    (self Bool) and (other Bool) (Bool) = select self {
+#        case true = other
+#        case else = false
+#    }
+#
+#    (self Bool) or (other Bool) (Bool) = select self {
+#        case true = true
+#        case else = other
+#    }
+#
+#    (self Bool) not () (Bool) = select self {
+#        case true = false
+#        case else = true
+#    }
+#
+#    infix operator boolAnd `&&` by Bool::and
+#    infix operator boolOr  `||` by Bool::or
+#    prefix operator boolNot `!` by Bool::not
+#}
+#
+#module Orb::Core::Types {
+#    type Unit
+#    trait Any
+#}
+#
+#module M with Orb::Core::* {
+#    context TupleCtx [A, B]
+#        with alias Tuple = (A, B)
+#
+#    context BoxCtx [A] {
+#        alias Box = { value A }
+#
+#        (self Box) unbox () (A) = A()
+#    }
+#
+#    context TripleCtx [A, B, C]
+#        with alias Triple = { a A, b B, c C }
+#
+#    context UnoCtx [A] {
+#        type Uno
+#
+#        (Uno) new () (Uno) = Uno()
+#    }
+#
+#    (Int) main () () within BoxCtx [Int] {
+#        b1 = Box(1)
+#        typeOf b1.unbox()
+#    }
+#}
+
 module M {
-    context Ctx [T] {
-        alias Type = T
+    context Tricky [A, B] {
+        alias TrickyA = { a A }
+        alias TrickyB = { b B }
+
+        (self TrickyA) getA () (A) = A()
+    }
+
+    type Foo
+    type Bar
+
+#    extension TrickyA {
+#
+#    }
+
+    prefix operator newTrickyA `new` by ::TrickyA
+
+    (Foo) main () (Foo) {
+        t1 = TrickyA(Foo())
+        t2 = TrickyB(t1)
+
+        contextOf t1
+
+        typeOf ::TrickyA
+        typeOf t2
+
+        return Foo
     }
 }

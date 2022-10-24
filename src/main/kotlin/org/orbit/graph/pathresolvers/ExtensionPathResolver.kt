@@ -7,6 +7,7 @@ import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ExtensionNode
 import org.orbit.core.nodes.WhereClauseExpressionNode
 import org.orbit.core.nodes.annotateByKey
+import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil

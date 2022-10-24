@@ -9,11 +9,12 @@ object ExtensionInference : ITypeInference<ExtensionNode, IMutableTypeEnvironmen
     override fun infer(node: ExtensionNode, env: IMutableTypeEnvironment): AnyType {
         val nEnv = when (node.context) {
             null -> env
-            else -> ContextualTypeEnvironment(env, TypeInferenceUtils.inferAs<IContextExpressionNode, Context>(node.context, env))
+            else -> ContextualTypeEnvironment(env, TypeInferenceUtils.inferAs(node.context, env))
         }
 
         val targetType = TypeInferenceUtils.infer(node.targetTypeNode, nEnv)
-        val body = TypeInferenceUtils.inferAll(node.bodyNodes, nEnv)
+        val mEnv = SelfTypeEnvironment(nEnv, targetType)
+        val body = TypeInferenceUtils.inferAll(node.bodyNodes, mEnv)
         val signatures = body.filterIsInstance<IType.Signature>()
 
         // TODO - Confirm env.getCurrentContext() resolves to a specialisation when node.context != null

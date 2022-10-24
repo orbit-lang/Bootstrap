@@ -15,7 +15,7 @@ object ContextOfPathResolver : PathResolver<ContextOfNode> {
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: ContextOfNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        input.typeExpressionNode.annotateByKey(input.getGraphID(), Annotations.graphId)
-        return pathResolverUtil.resolve(input.typeExpressionNode, pass, environment, graph)
+        input.expressionNode.annotateByKey(input.getGraphID(), Annotations.graphId)
+        return pathResolverUtil.resolve(input.expressionNode, pass, environment, graph)
     }
 }

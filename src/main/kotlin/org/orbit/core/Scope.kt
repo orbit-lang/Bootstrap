@@ -1,12 +1,17 @@
 package org.orbit.core
 
-import org.orbit.core.*
-import org.orbit.core.components.*
+import org.orbit.core.components.CompilationEvent
+import org.orbit.core.components.CompilationEventBusAware
+import org.orbit.core.components.CompilationEventBusAwareImpl
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.phase.Phase
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.util.*
+import org.orbit.util.Fatal
+import org.orbit.util.Monoid
+import org.orbit.util.partial
+import org.orbit.util.toPath
 import java.io.Serializable
 
 class Scope(
@@ -95,6 +100,12 @@ class Scope(
 	}
 
 	val size: Int get() = bindings.size
+	lateinit var currentContainerPath: Path
+		private set
+
+	fun setContainerPath(path: Path) {
+		currentContainerPath = path
+	}
 
 	fun getImportedScopes() : List<ScopeIdentifier> = imports.toList()
 

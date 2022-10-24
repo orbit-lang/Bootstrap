@@ -5,6 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.components.getTypeOrNull
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
@@ -19,7 +20,7 @@ object TypeIdentifierInference : ITypeInference<TypeIdentifierNode, ITypeEnviron
 
         val path = node.getPath()
 
-        return env.getTypeOrNull(path.toString(OrbitMangler))?.component
+        return env.getTypeOrNull(path)?.component
             ?: throw invocation.make<TypeSystem>("Undefined Type `${path.toString(OrbitMangler)}`", node)
     }
 }

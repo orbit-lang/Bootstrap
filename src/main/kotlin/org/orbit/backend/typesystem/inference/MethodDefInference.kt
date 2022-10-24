@@ -22,7 +22,7 @@ object MethodDefInference : ITypeInference<MethodDefNode, IMutableTypeEnvironmen
         }
 
         val signature = TypeInferenceUtils.inferAs<MethodSignatureNode, IType.Signature>(node.signature, mEnv, parametersOf(false))
-        val oEnv = SelfTypeEnvironment(mEnv, signature)
+        val oEnv = AnnotatedSelfTypeEnvironment(mEnv, signature, signature.returns)
 
         if (node.signature.isInstanceMethod) {
             oEnv.bind(node.signature.receiverIdentifier!!.identifier, signature.receiver)

@@ -26,6 +26,9 @@ class Environment(val ast: INode, val scopes: MutableList<Scope> = mutableListOf
 	    scopes.add(currentScope)
 	}
 
+	fun getCurrentContainerPath() : Path
+		= currentScope.currentContainerPath
+
 	fun import(scopes: List<Scope>) {
 		this.scopes.addAll(scopes)
 	}
