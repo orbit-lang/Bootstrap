@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Main w/ Scratch" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="org.orbit.core.Main" />
+    <module name="Orbit.main" />
+    <option name="PROGRAM_PARAMETERS" value="build ./scratch/scratch.orb -o Scratch -g Swift" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
