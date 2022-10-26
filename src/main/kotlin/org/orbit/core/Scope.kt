@@ -99,14 +99,6 @@ class Scope(
 		operator fun plus(other: BindingSearchResult) : BindingSearchResult = combine(other)
 	}
 
-	val size: Int get() = bindings.size
-	lateinit var currentContainerPath: Path
-		private set
-
-	fun setContainerPath(path: Path) {
-		currentContainerPath = path
-	}
-
 	fun getImportedScopes() : List<ScopeIdentifier> = imports.toList()
 
 	fun inject(other: Scope) {

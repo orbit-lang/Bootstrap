@@ -22,12 +22,18 @@ class Environment(val ast: INode, val scopes: MutableList<Scope> = mutableListOf
 	val allBindings: Set<Binding>
 		get() { return scopes.flatMap { it.bindings }.toSet() }
 
+	private var containerPath: Path = Path.empty
+
 	init {
 	    scopes.add(currentScope)
 	}
 
+	fun setCurrentContainerPath(path: Path) {
+		containerPath = path
+	}
+
 	fun getCurrentContainerPath() : Path
-		= currentScope.currentContainerPath
+		= containerPath
 
 	fun import(scopes: List<Scope>) {
 		this.scopes.addAll(scopes)

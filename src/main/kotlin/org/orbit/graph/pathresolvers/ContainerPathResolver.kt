@@ -20,6 +20,8 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 	private fun resolveFirstPass(input: ContainerNode, environment: Environment) : PathResolver.Result {
 		val path = OrbitMangler.unmangle(input.identifier.value)
 
+		environment.setCurrentContainerPath(path)
+
 		environment.withScope {
 			input.annotateByKey(it.identifier, Annotations.scope, true)
 			input.annotateByKey(path, Annotations.path)
@@ -43,15 +45,14 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 
 	// Next, we resolve the containers "within" paths
 	private fun resolveSecondPass(input: C, environment: Environment, cycles: Int = 0, context: Path? = null) : PathResolver.Result {
-		return environment.withScope(input) {
-			val simplePath = input.getPath()
+		val simplePath = input.getPath()
 
+		environment.setCurrentContainerPath(simplePath)
+
+		return environment.withScope(input) {
 			if (cycles > 5) {
 				// This is almost certainly a circular reference
-				val message =
-					"Circular reference detected between containers '${simplePath.toString(OrbitMangler)}' and '${
-						context?.toString(OrbitMangler)
-					}'"
+				val message = "Circular reference detected between containers '${simplePath.toString(OrbitMangler)}' and '${context?.toString(OrbitMangler)}'"
 
 				throw invocation.make<ContainerPathResolver<*>>(message, input.identifier.firstToken.position)
 			}
@@ -115,9 +116,9 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 	private fun resolveLastPass(input: ContainerNode, environment: Environment, graph: Graph) : PathResolver.Result {
 		val containerPath = input.getPath()
 
-		environment.withScope(input) {
-			it.setContainerPath(containerPath)
+		environment.setCurrentContainerPath(containerPath)
 
+		environment.withScope(input) {
 			// TODO - Would be nice to inject these but the parentPath property makes it tricky
 			val typeResolver = TypeDefPathResolver(containerPath)
 			val traitResolver = TraitDefPathResolver(containerPath)
