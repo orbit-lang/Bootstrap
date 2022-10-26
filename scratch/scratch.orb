@@ -1,89 +1,53 @@
-#module Orb::Core::Numbers {
-#    type Int
-#}
-#
-#module Orb::Core::Booleans {
-#    type Bool {
-#        constructor True
-#        constructor False
-#    }
-#
-#    (self Bool) and (other Bool) (Bool) = select self {
-#        case true = other
-#        case else = false
-#    }
-#
-#    (self Bool) or (other Bool) (Bool) = select self {
-#        case true = true
-#        case else = other
-#    }
-#
-#    (self Bool) not () (Bool) = select self {
-#        case true = false
-#        case else = true
-#    }
-#
-#    infix operator boolAnd `&&` by Bool::and
-#    infix operator boolOr  `||` by Bool::or
-#    prefix operator boolNot `!` by Bool::not
-#}
-#
-#module Orb::Core::Types {
-#    type Unit
-#    trait Any
-#}
-#
-#module M with Orb::Core::* {
-#    context TupleCtx [A, B]
-#        with alias Tuple = (A, B)
-#
-#    context BoxCtx [A] {
-#        alias Box = { value A }
-#
-#        (self Box) unbox () (A) = A()
-#    }
-#
-#    context TripleCtx [A, B, C]
-#        with alias Triple = { a A, b B, c C }
-#
-#    context UnoCtx [A] {
-#        type Uno
-#
-#        (Uno) new () (Uno) = Uno()
-#    }
-#
-#    (Int) main () () within BoxCtx [Int] {
-#        b1 = Box(1)
-#        typeOf b1.unbox()
-#    }
-#}
+module Orb::Core::Numbers {
+    type Int
+}
 
-module M {
-    context Tricky [A, B] {
-        alias TrickyA = { a A }
-        alias TrickyB = { b B }
-
-        (self TrickyA) getA () (A) = A()
+module Orb::Core::Booleans {
+    type Bool {
+        constructor True
+        constructor False
     }
 
-    type Foo
-    type Bar
+    (self Bool) and (other Bool) (Bool) = select self {
+        case true = other
+        case else = false
+    }
 
-#    extension TrickyA {
-#
-#    }
+    (self Bool) or (other Bool) (Bool) = select self {
+        case true = true
+        case else = other
+    }
 
-    prefix operator newTrickyA `new` by ::TrickyA
+    (self Bool) not () (Bool) = select self {
+        case true = false
+        case else = true
+    }
 
-    (Foo) main () (Foo) {
-        t1 = TrickyA(Foo())
-        t2 = TrickyB(t1)
+    infix operator boolAnd `&&` by Bool::and
+    infix operator boolOr  `||` by Bool::or
+    prefix operator boolNot `!` by Bool::not
+}
 
-        contextOf t1
+module Orb::Core::Types {
+    type Unit
+    trait Any
+}
 
-        typeOf ::TrickyA
-        typeOf t2
+module M with Orb::Core::* {
+    trait IntRepresentable {
+        (self Self) intValue () (Int)
+    }
 
-        return Foo
+    context BoxCtx [V] {
+        alias Box = { value V }
+
+        projection V : IntRepresentable
+            with intValue by { 0 }
+    }
+
+    (Unit) main () () within BoxCtx [Int] {
+        b = Box(1)
+
+        typeOf 1.intValue()
     }
 }

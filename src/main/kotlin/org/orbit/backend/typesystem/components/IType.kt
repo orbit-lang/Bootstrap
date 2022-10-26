@@ -856,7 +856,10 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         }
 
         fun isImplementedBy(type: AnyType, env: ITypeEnvironment) : Boolean {
-            val projections = env.getProjections(type)
+            val projections = env.getProjections(type) + when (env) {
+                is ProjectionEnvironment -> listOf(ContextualDeclaration(env.getCurrentContext(), env.projection))
+                else -> emptyList()
+            }
 
             return projections.any { it.component.target.id == id }
         }

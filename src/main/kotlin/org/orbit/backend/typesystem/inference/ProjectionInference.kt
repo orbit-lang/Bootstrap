@@ -4,8 +4,11 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
+import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
+import org.orbit.backend.typesystem.utils.toSignature
+import org.orbit.core.nodes.MethodDelegateNode
 import org.orbit.core.nodes.ProjectionNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.util.Invocation
@@ -31,7 +34,7 @@ private sealed interface SignatureVerificationResult {
     }
 }
 
-object ProjectionInference : ITypeInference<ProjectionNode, GlobalEnvironment>, KoinComponent {
+object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
@@ -54,7 +57,7 @@ object ProjectionInference : ITypeInference<ProjectionNode, GlobalEnvironment>, 
     }
 
     @Suppress("NAME_SHADOWING")
-    override fun infer(node: ProjectionNode, env: GlobalEnvironment): AnyType {
+    override fun infer(node: ProjectionNode, env: IMutableTypeEnvironment): AnyType {
         val nEnv = when (val n = node.context) {
             null -> env
             else -> ContextualTypeEnvironment(env, TypeInferenceUtils.inferAs(n, env))
@@ -67,8 +70,13 @@ object ProjectionInference : ITypeInference<ProjectionNode, GlobalEnvironment>, 
 
         env.add(projection, projectedType)
 
-        val bodyTypes = TypeInferenceUtils.inferAll(node.body, mEnv)
-        val signatures = bodyTypes.filterIsInstance<IType.Signature>()
+        val signatures = node.body.mapNotNull {
+            val node = it as MethodDelegateNode
+            when (val type = TypeInferenceUtils.infer(node, mEnv)) {
+                is AnyArrow -> type.toSignature(projectedType, node.methodName.identifier)
+                else -> null
+            }
+        }
 
         val signatureResults = projectedTrait.signatures.fold(SignatureVerificationResult.Implemented(emptyList()) as SignatureVerificationResult) { acc, next ->
             acc + verifySignature(mEnv, next, signatures)
