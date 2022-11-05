@@ -7,10 +7,10 @@ import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.util.Invocation
 
-object TypeConstraintWhereClausePathResolver : PathResolver<TypeConstraintWhereClauseNode> {
+object TypeConstraintWhereClausePathResolver : IPathResolver<TypeConstraintWhereClauseNode> {
 	override val invocation: Invocation by inject()
 
-	override fun resolve(input: TypeConstraintWhereClauseNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result = when (input.statementNode) {
+	override fun resolve(input: TypeConstraintWhereClauseNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result = when (input.statementNode) {
 		is TraitConformanceTypeConstraintNode -> TypeConstraintPathResolver.resolve(
             input.statementNode,
             pass,

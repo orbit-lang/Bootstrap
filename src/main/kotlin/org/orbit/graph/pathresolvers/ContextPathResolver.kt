@@ -13,14 +13,14 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>, KoinComponent {
+data class ContextPathResolver(val parentPath: Path) : IPathResolver<ContextNode>, KoinComponent {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: ContextNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: ContextNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         val path = parentPath + input.contextIdentifier.value
 
-        if (pass == PathResolver.Pass.Initial) {
+        if (pass == IPathResolver.Pass.Initial) {
             input.annotateByKey(path, Annotations.path)
 
             environment.bind(Binding.Kind.Context, input.contextIdentifier.value, path)
@@ -85,10 +85,10 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
                     is OperatorDefNode -> OperatorDefPathResolver(parentPath)
                     is TypeAliasNode -> TypeAliasPathResolver(parentPath)
 //                    else -> pathResolverUtil.resolve(decl, pass, environment, graph)
-                } as PathResolver<IContextDeclarationNode>
+                } as IPathResolver<IContextDeclarationNode>
 
-                resolver.resolve(decl, PathResolver.Pass.Initial, environment, graph)
-                resolver.resolve(decl, PathResolver.Pass.Last, environment, graph)
+                resolver.resolve(decl, IPathResolver.Pass.Initial, environment, graph)
+                resolver.resolve(decl, IPathResolver.Pass.Last, environment, graph)
             }
         }
 
@@ -97,6 +97,6 @@ data class ContextPathResolver(val parentPath: Path) : PathResolver<ContextNode>
             environment.unbind(Binding.Kind.Type, typeParameter.value.value, nPath)
         }
 
-        return PathResolver.Result.Success(path)
+        return IPathResolver.Result.Success(path)
     }
 }

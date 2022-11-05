@@ -11,17 +11,17 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-object CasePathResolver : PathResolver<CaseNode> {
+object CasePathResolver : IPathResolver<CaseNode> {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: CaseNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: CaseNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         input.pattern.annotate(input.getGraphID(), Annotations.graphId)
         input.body.annotate(input.getGraphID(), Annotations.graphId)
 
-        pathResolverUtil.resolve(input.pattern, PathResolver.Pass.Initial, environment, graph)
-        pathResolverUtil.resolve(input.body, PathResolver.Pass.Initial, environment, graph)
+        pathResolverUtil.resolve(input.pattern, IPathResolver.Pass.Initial, environment, graph)
+        pathResolverUtil.resolve(input.body, IPathResolver.Pass.Initial, environment, graph)
 
-        return PathResolver.Result.Success(Path.empty)
+        return IPathResolver.Result.Success(Path.empty)
     }
 }

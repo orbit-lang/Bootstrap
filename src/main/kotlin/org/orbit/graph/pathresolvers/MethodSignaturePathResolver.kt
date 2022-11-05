@@ -16,10 +16,10 @@ import org.orbit.util.Invocation
 import org.orbit.util.dispose
 import org.orbit.util.partial
 
-class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
+class MethodSignaturePathResolver : IPathResolver<MethodSignatureNode> {
 	override val invocation: Invocation by inject()
 
-	override fun resolve(input: MethodSignatureNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
+	override fun resolve(input: MethodSignatureNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph) : IPathResolver.Result {
 		// We need to resolve any type parameters before we can look at the rest of the signature
 		val graphID = input.getGraphID()
 		val tp = input.typeParameters
@@ -89,6 +89,6 @@ class MethodSignaturePathResolver : PathResolver<MethodSignatureNode> {
 
 		input.typeConstraints.forEach(dispose(partial(TypeConstraintWhereClausePathResolver::resolve, pass, environment, graph)))
 
-		return PathResolver.Result.Success(path)
+		return IPathResolver.Result.Success(path)
 	}
 }

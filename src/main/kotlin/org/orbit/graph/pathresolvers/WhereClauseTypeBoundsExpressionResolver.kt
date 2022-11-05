@@ -14,7 +14,7 @@ object WhereClauseTypeBoundsExpressionResolver : WhereClauseExpressionResolver<W
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: WhereClauseTypeBoundsExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: WhereClauseTypeBoundsExpressionNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         input.sourceTypeExpression.annotateByKey(input.getGraphID(), Annotations.graphId)
         input.targetTypeExpression.annotateByKey(input.getGraphID(), Annotations.graphId)
 

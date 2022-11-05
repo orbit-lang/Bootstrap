@@ -15,7 +15,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
     override fun infer(node: MethodCallNode, env: ITypeEnvironment): AnyType {
         val receiver = TypeInferenceUtils.infer(node.receiverExpression, env)
         val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
-        var possibleArrows = env.getSignatures(node.messageIdentifier.identifier, receiver)
+        var possibleArrows = env.getSignatures(node.messageIdentifier.identifier)
         val expected = (env as? AnnotatedTypeEnvironment)?.typeAnnotation ?: IType.Always
 
         if (possibleArrows.isEmpty()) {
@@ -31,13 +31,15 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
             throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> ???`", node)
         }
 
-        if (possibleArrows.count() > 1) {
-            possibleArrows = possibleArrows.filter { it.component.receiver.id == receiver.id }
-        }
+        possibleArrows = possibleArrows.filter { TypeUtils.checkEq(env, it.component.receiver, receiver) }
 
         if (possibleArrows.count() > 1) {
             // We've failed to narrow down the results, we have to error now
             throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0]}`", node)
+        }
+
+        if (possibleArrows.isEmpty()) {
+            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> ???`", node)
         }
 
         val arrow = possibleArrows[0].component

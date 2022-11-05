@@ -13,57 +13,57 @@ import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.graph.phase.CanonicalNameResolver
 import org.orbit.util.Invocation
 
-object TupleTypePathResolver : PathResolver<TupleTypeNode> {
+object TupleTypePathResolver : IPathResolver<TupleTypeNode> {
 	override val invocation: Invocation by inject()
 
-	override fun resolve(input: TupleTypeNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+	override fun resolve(input: TupleTypeNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		TypeExpressionPathResolver.resolve(input.left, pass, environment, graph)
 		TypeExpressionPathResolver.resolve(input.right, pass, environment, graph)
 
-		return PathResolver.Result.Success(Path.empty)
+		return IPathResolver.Result.Success(Path.empty)
 	}
 }
 
-object StructTypePathResolver : PathResolver<StructTypeNode> {
+object StructTypePathResolver : IPathResolver<StructTypeNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: StructTypeNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+	override fun resolve(input: StructTypeNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		pathResolverUtil.resolveAll(input.members, pass, environment, graph)
 
-		return PathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())
+		return IPathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())
 	}
 }
 
-object TypeExpressionPathResolver : PathResolver<TypeExpressionNode> {
+object TypeExpressionPathResolver : IPathResolver<TypeExpressionNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: TypeExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result = when (input) {
+	override fun resolve(input: TypeExpressionNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result = when (input) {
 		is TypeIdentifierNode -> {
 			val binding = environment.getBinding(input.value, Binding.Kind.Union.entity, graph, input.getGraphIDOrNull())
 				.unwrap(this, input.firstToken.position)
 
 			input.annotateByKey(binding.path, Annotations.path)
 
-            PathResolver.Result.Success(binding.path)
+            IPathResolver.Result.Success(binding.path)
 		}
 
 		is MetaTypeNode -> MetaTypePathResolver.resolve(input, pass, environment, graph)
 		is TypeIndexNode -> throw invocation.make<CanonicalNameResolver>("Self Index not allowed in this context", input)
 		is ExpandNode -> ExpandPathResolver.resolve(input, pass, environment, graph)
 		is MirrorNode -> MirrorPathResolver.resolve(input, pass, environment, graph)
-		is InferNode -> PathResolver.Result.Success(Path("_"))
+		is InferNode -> IPathResolver.Result.Success(Path("_"))
 		is TupleTypeNode -> {
 			resolve(input.left, pass, environment, graph)
 			resolve(input.right, pass, environment, graph)
 
-			PathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())
+			IPathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())
 		}
 		is StructTypeNode -> {
 			pathResolverUtil.resolveAll(input.members, pass, environment, graph)
 
-			PathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())
+			IPathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())
 		}
 
 		else -> TODO("???")

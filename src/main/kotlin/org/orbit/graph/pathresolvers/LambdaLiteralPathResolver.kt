@@ -12,11 +12,11 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-object LambdaLiteralPathResolver : PathResolver<LambdaLiteralNode>, KoinComponent {
+object LambdaLiteralPathResolver : IPathResolver<LambdaLiteralNode>, KoinComponent {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: LambdaLiteralNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: LambdaLiteralNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         input.bindings.forEach { pathResolverUtil.resolve(it, pass, environment, graph) }
         input.body.annotateByKey(input.getGraphID(), Annotations.graphId)
         val bodyPaths = input.body.body.map {
@@ -24,7 +24,7 @@ object LambdaLiteralPathResolver : PathResolver<LambdaLiteralNode>, KoinComponen
             pathResolverUtil.resolve(it, pass, environment, graph)
         }
 
-        return PathResolver.Result.Success(
+        return IPathResolver.Result.Success(
             bodyPaths.lastOrNull()?.asSuccessOrNull()?.path
                 ?: OrbitMangler.unmangle("Orb::Core::Types::Unit")
         )

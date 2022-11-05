@@ -11,11 +11,11 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-object ReferenceCallPathResolver : PathResolver<ReferenceCallNode>, KoinComponent {
+object ReferenceCallPathResolver : IPathResolver<ReferenceCallNode>, KoinComponent {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: ReferenceCallNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: ReferenceCallNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         input.referenceNode.annotateByKey(input.getGraphID(), Annotations.graphId)
         val reference = pathResolverUtil.resolve(input.referenceNode, pass, environment, graph)
 

@@ -3,14 +3,13 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.Path
-import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.INode
 import org.orbit.core.phase.Phase
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.phase.GraphErrors
 
-interface PathResolver<N: INode> : Phase<PathResolver.InputType<N>, PathResolver.Result>, KoinComponent {
+interface IPathResolver<N: INode> : Phase<IPathResolver.InputType<N>, IPathResolver.Result>, KoinComponent {
 	sealed class Pass {
 		object Initial : Pass()
 		data class Subsequent(val index: Int) : Pass()

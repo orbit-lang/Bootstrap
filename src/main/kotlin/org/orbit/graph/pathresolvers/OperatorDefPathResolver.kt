@@ -13,11 +13,11 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-class OperatorDefPathResolver(private val parentPath: Path) : PathResolver<OperatorDefNode>, KoinComponent {
+class OperatorDefPathResolver(private val parentPath: Path) : IPathResolver<OperatorDefNode>, KoinComponent {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: OperatorDefNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: OperatorDefNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         val path = parentPath + Path(input.identifierNode.identifier)
 
         input.annotateByKey(path, Annotations.path)
@@ -32,6 +32,6 @@ class OperatorDefPathResolver(private val parentPath: Path) : PathResolver<Opera
         input.methodReferenceNode.annotateByKey(graphID, Annotations.graphId)
         pathResolverUtil.resolve(input.methodReferenceNode, pass, environment, graph)
 
-        return PathResolver.Result.Success(path)
+        return IPathResolver.Result.Success(path)
     }
 }

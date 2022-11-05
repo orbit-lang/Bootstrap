@@ -9,11 +9,11 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-class PropertyPairPathResolver : PathResolver<PairNode> {
+class PropertyPairPathResolver : IPathResolver<PairNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: PairNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
+	override fun resolve(input: PairNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph) : IPathResolver.Result {
 		val typeNode = input.typeExpressionNode
 		val result = pathResolverUtil.resolve(typeNode, pass, environment, graph)
 			.asSuccess()

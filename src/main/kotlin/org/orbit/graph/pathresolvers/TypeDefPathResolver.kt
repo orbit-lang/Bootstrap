@@ -16,12 +16,12 @@ import org.orbit.util.Invocation
 
 class TypeDefPathResolver(
 	private val parentPath: Path
-) : PathResolver<TypeDefNode> {
+) : IPathResolver<TypeDefNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: TypeDefNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
-		val path = if (pass == PathResolver.Pass.Initial) {
+	override fun resolve(input: TypeDefNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph) : IPathResolver.Result {
+		val path = if (pass == IPathResolver.Pass.Initial) {
 			val path = parentPath + Path(input.typeIdentifierNode.value)
 
 			input.annotateByKey(path, Annotations.path)
@@ -57,7 +57,7 @@ class TypeDefPathResolver(
 			path
 		}
 
-		return PathResolver.Result.Success(path)
+		return IPathResolver.Result.Success(path)
 	}
 }
 

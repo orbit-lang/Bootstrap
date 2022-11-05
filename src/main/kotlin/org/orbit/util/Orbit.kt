@@ -78,6 +78,7 @@ val mainModule = module {
 		util.registerPathResolver(TupleTypePathResolver, TupleTypeNode::class.java)
 		util.registerPathResolver(StructTypePathResolver, StructTypeNode::class.java)
 		util.registerPathResolver(ContextOfPathResolver, ContextOfNode::class.java)
+		util.registerPathResolver(CheckPathResolver, CheckNode::class.java)
 
 		util
 	}
@@ -147,6 +148,7 @@ val mainModule = module {
 	single(UnaryExpressionInference)
 	single(WhereClauseInference)
 	single(WhereClauseTypeBoundsExpressionInference)
+	single(CheckInference)
 }
 
 private inline fun <reified N: INode, reified E: ITypeEnvironment> org.koin.core.module.Module.single(inference: ITypeInference<N, E>) : BeanDefinition<ITypeInference<N, E>>

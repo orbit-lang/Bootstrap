@@ -4,7 +4,6 @@ import org.koin.core.component.inject
 import org.orbit.core.*
 import org.orbit.core.nodes.*
 import org.orbit.core.nodes.Annotations
-import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -12,12 +11,12 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
+class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	// First, we resolve the simple name path
-	private fun resolveFirstPass(input: ContainerNode, environment: Environment) : PathResolver.Result {
+	private fun resolveFirstPass(input: ContainerNode, environment: Environment) : IPathResolver.Result {
 		val path = OrbitMangler.unmangle(input.identifier.value)
 
 		environment.setCurrentContainerPath(path)
@@ -34,7 +33,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			environment.bind(kind, input.identifier.value, path)
 		}
 
-		return PathResolver.Result.Success(path)
+		return IPathResolver.Result.Success(path)
 	}
 
 	private fun completeBinding(input: ContainerNode, environment: Environment, simplePath: Path, fullyQualifiedPath: FullyQualifiedPath) {
@@ -44,7 +43,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 	}
 
 	// Next, we resolve the containers "within" paths
-	private fun resolveSecondPass(input: C, environment: Environment, cycles: Int = 0, context: Path? = null) : PathResolver.Result {
+	private fun resolveSecondPass(input: C, environment: Environment, cycles: Int = 0, context: Path? = null) : IPathResolver.Result {
 		val simplePath = input.getPath()
 
 		environment.setCurrentContainerPath(simplePath)
@@ -65,7 +64,7 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 
 				completeBinding(input, environment, simplePath, fullyQualifiedPath)
 
-				return@withScope PathResolver.Result.Success(fullyQualifiedPath)
+				return@withScope IPathResolver.Result.Success(fullyQualifiedPath)
 			}
 
 			val parent = environment.searchAllScopes {
@@ -87,13 +86,13 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 					}
 
 					completeBinding(input, environment, simplePath, fullyQualifiedPath)
-					PathResolver.Result.Success(fullyQualifiedPath)
+					IPathResolver.Result.Success(fullyQualifiedPath)
 				}
 
 				else -> {
 					val parentResult = resolveSecondPass(parentNode as C, environment, cycles + 1, simplePath)
 
-					if (parentResult !is PathResolver.Result.Success) {
+					if (parentResult !is IPathResolver.Result.Success) {
 						TODO("@ContainerResolver:91")
 					}
 
@@ -101,19 +100,19 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 
 					completeBinding(input, environment, simplePath, fullyQualifiedPath)
 
-					PathResolver.Result.Success(fullyQualifiedPath)
+					IPathResolver.Result.Success(fullyQualifiedPath)
 				}
 			}
 		}
 	}
 
-	private fun <N: INode> resolveAll(resolver: PathResolver<N>, nodes: List<N>, pass: PathResolver.Pass) {
+	private fun <N: INode> resolveAll(resolver: IPathResolver<N>, nodes: List<N>, pass: IPathResolver.Pass) {
 		for (node in nodes) {
-			resolver.execute(PathResolver.InputType(node, pass))
+			resolver.execute(IPathResolver.InputType(node, pass))
 		}
 	}
 
-	private fun resolveLastPass(input: ContainerNode, environment: Environment, graph: Graph) : PathResolver.Result {
+	private fun resolveLastPass(input: ContainerNode, environment: Environment, graph: Graph) : IPathResolver.Result {
 		val containerPath = input.getPath()
 
 		environment.setCurrentContainerPath(containerPath)
@@ -137,46 +136,46 @@ class ContainerPathResolver<C: ContainerNode> : PathResolver<C> {
 			// Run a first pass over all types & traits that resolves just their own paths
 			// (ignoring properties and trait conformance etc)
 			// NOTE - We need to do 2 passes over types to avoid order-of-definition problems
-			resolveAll(traitResolver, traitDefs, PathResolver.Pass.Initial)
-			resolveAll(typeResolver, typeDefs, PathResolver.Pass.Initial)
-			resolveAll(familyResolver, families, PathResolver.Pass.Initial)
-			resolveAll(familyResolver, families, PathResolver.Pass.Last)
-			resolveAll(contextResolver, contexts, PathResolver.Pass.Initial)
+			resolveAll(traitResolver, traitDefs, IPathResolver.Pass.Initial)
+			resolveAll(typeResolver, typeDefs, IPathResolver.Pass.Initial)
+			resolveAll(familyResolver, families, IPathResolver.Pass.Initial)
+			resolveAll(familyResolver, families, IPathResolver.Pass.Last)
+			resolveAll(contextResolver, contexts, IPathResolver.Pass.Initial)
 
 			if (input is ModuleNode) {
 				val typeAliasResolver = TypeAliasPathResolver(containerPath)
 				for (typeAlias in input.typeAliasNodes) {
-					typeAliasResolver.resolve(typeAlias, PathResolver.Pass.Initial, environment, graph)
+					typeAliasResolver.resolve(typeAlias, IPathResolver.Pass.Initial, environment, graph)
 				}
 			}
 
-			resolveAll(contextResolver, contexts, PathResolver.Pass.Last)
-			resolveAll(traitResolver, traitDefs, PathResolver.Pass.Last)
-			resolveAll(typeResolver, typeDefs, PathResolver.Pass.Last)
-			resolveAll(operatorResolver, opDefs, PathResolver.Pass.Last)
+			resolveAll(contextResolver, contexts, IPathResolver.Pass.Last)
+			resolveAll(traitResolver, traitDefs, IPathResolver.Pass.Last)
+			resolveAll(typeResolver, typeDefs, IPathResolver.Pass.Last)
+			resolveAll(operatorResolver, opDefs, IPathResolver.Pass.Last)
 
 			if (input is ModuleNode) {
 				for (typeProjection in input.projections) {
-					ProjectionPathResolver.resolve(typeProjection, PathResolver.Pass.Initial, environment, graph)
+					ProjectionPathResolver.resolve(typeProjection, IPathResolver.Pass.Initial, environment, graph)
 				}
 			}
 
 			for (methodDef in input.methodDefs) {
 				methodDef.annotateByKey(input.getGraphID(), Annotations.graphId)
-				pathResolverUtil.resolve(methodDef, PathResolver.Pass.Initial, environment, graph)
+				pathResolverUtil.resolve(methodDef, IPathResolver.Pass.Initial, environment, graph)
 			}
 
-			resolveAll(extensionResolver, extensions, PathResolver.Pass.Initial)
+			resolveAll(extensionResolver, extensions, IPathResolver.Pass.Initial)
 		}
 
-		return PathResolver.Result.Success(containerPath)
+		return IPathResolver.Result.Success(containerPath)
 	}
 
-	override fun resolve(input: C, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
+	override fun resolve(input: C, pass: IPathResolver.Pass, environment: Environment, graph: Graph) : IPathResolver.Result {
 		return when (pass) {
-			is PathResolver.Pass.Initial -> resolveFirstPass(input, environment)
-			is PathResolver.Pass.Subsequent -> resolveSecondPass(input, environment)
-			is PathResolver.Pass.Last -> resolveLastPass(input, environment, graph)
+			is IPathResolver.Pass.Initial -> resolveFirstPass(input, environment)
+			is IPathResolver.Pass.Subsequent -> resolveSecondPass(input, environment)
+			is IPathResolver.Pass.Last -> resolveLastPass(input, environment, graph)
 		}
 	}
 }

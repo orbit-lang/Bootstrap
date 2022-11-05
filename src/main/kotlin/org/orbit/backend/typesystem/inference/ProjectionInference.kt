@@ -70,6 +70,13 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
 
         env.add(projection, projectedType)
 
+        val flat = projectedType.flatten(nEnv)
+
+        if (flat is IType.Union) {
+            env.add(Projection(flat.left, projection.target), flat.left)
+            env.add(Projection(flat.right, projection.target), flat.right)
+        }
+
         val signatures = node.body.mapNotNull {
             val node = it as MethodDelegateNode
             when (val type = TypeInferenceUtils.infer(node, mEnv)) {

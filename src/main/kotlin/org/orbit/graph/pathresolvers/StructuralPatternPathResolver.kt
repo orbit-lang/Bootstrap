@@ -10,44 +10,44 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-object DiscardBindingPatternPathResolver : PathResolver<DiscardBindingPatternNode> {
+object DiscardBindingPatternPathResolver : IPathResolver<DiscardBindingPatternNode> {
     override val invocation: Invocation by inject()
 
-    override fun resolve(input: DiscardBindingPatternNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        return PathResolver.Result.Success(Path.infer)
+    override fun resolve(input: DiscardBindingPatternNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
+        return IPathResolver.Result.Success(Path.infer)
     }
 }
 
-object TypeBindingPatternPathResolver : PathResolver<TypeBindingPatternNode> {
+object TypeBindingPatternPathResolver : IPathResolver<TypeBindingPatternNode> {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: TypeBindingPatternNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: TypeBindingPatternNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         input.typeIdentifier.annotate(input.getGraphID(), Annotations.graphId)
 
-        return pathResolverUtil.resolve(input.typeIdentifier, PathResolver.Pass.Initial, environment, graph)
+        return pathResolverUtil.resolve(input.typeIdentifier, IPathResolver.Pass.Initial, environment, graph)
     }
 }
 
-object TypedIdentifierBindingPathResolver : PathResolver<TypedIdentifierBindingPatternNode> {
+object TypedIdentifierBindingPathResolver : IPathResolver<TypedIdentifierBindingPatternNode> {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: TypedIdentifierBindingPatternNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: TypedIdentifierBindingPatternNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         input.typePattern.annotate(input.getGraphID(), Annotations.graphId)
 
-        return pathResolverUtil.resolve(input.typePattern, PathResolver.Pass.Initial, environment, graph)
+        return pathResolverUtil.resolve(input.typePattern, IPathResolver.Pass.Initial, environment, graph)
     }
 }
 
-object StructuralPatternPathResolver : PathResolver<StructuralPatternNode> {
+object StructuralPatternPathResolver : IPathResolver<StructuralPatternNode> {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: StructuralPatternNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: StructuralPatternNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         input.bindings.forEach { it.annotate(input.getGraphID(), Annotations.graphId) }
-        pathResolverUtil.resolveAll(input.bindings, PathResolver.Pass.Initial, environment, graph)
+        pathResolverUtil.resolveAll(input.bindings, IPathResolver.Pass.Initial, environment, graph)
 
-        return PathResolver.Result.Success(Path.empty)
+        return IPathResolver.Result.Success(Path.empty)
     }
 }

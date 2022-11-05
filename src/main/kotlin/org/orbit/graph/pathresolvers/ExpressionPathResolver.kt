@@ -11,16 +11,16 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-class ExpressionPathResolver : PathResolver<IExpressionNode> {
+class ExpressionPathResolver : IPathResolver<IExpressionNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: IExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
+	override fun resolve(input: IExpressionNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph) : IPathResolver.Result {
 		return when (input) {
 			is ConstructorInvocationNode -> pathResolverUtil.resolve(input, pass, environment, graph)
 			is MethodCallNode -> TODO("HERE")
 			is TypeIdentifierNode -> pathResolverUtil.resolve(input, pass, environment, graph)
-			else -> PathResolver.Result.Success(Path.empty)
+			else -> IPathResolver.Result.Success(Path.empty)
 		}
 	}
 }

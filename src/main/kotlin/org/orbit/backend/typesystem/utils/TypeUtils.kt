@@ -1,6 +1,7 @@
 package org.orbit.backend.typesystem.utils
 
 import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.GlobalEnvironment
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
 
@@ -35,6 +36,38 @@ object TypeUtils {
                 is IType.Trait -> when (right.isImplementedBy(left, env)) {
                     true -> left
                     else -> IType.Never("Type `$left` does not conform to Trait `$right`")
+                }
+
+                is IType.Struct -> when (left) {
+                    is IType.Struct -> {
+                        val lTags = GlobalEnvironment.getTags(left)
+                        val rTags = GlobalEnvironment.getTags(right)
+
+                        // NOTE - This might be insane!
+                        for (tag in lTags) {
+                            if (rTags.contains(tag)) {
+                                val lMembers = left.members
+                                val rMembers = right.members
+
+                                if (lMembers.count() != rMembers.count())
+                                    return@prepare error
+                                val zMembers = lMembers.zip(rMembers)
+                                for (pair in zMembers) {
+                                    // Ensure both structs are the same "shape" (i.e. have the same named members in the same order)
+                                    if (pair.first.first != pair.second.first)
+                                        return@prepare error
+                                    // Ensure each left member type "fits" for the right member type (either exact same type or right is a TypeVar)
+                                    if (pair.second.second !is IType.TypeVar && !checkEq(env, pair.first.second, pair.second.second))
+                                        return@prepare error
+                                }
+
+                                return@prepare left
+                            }
+                        }
+
+                        error
+                    }
+                    else -> error
                 }
 
                 is IType.Never -> left

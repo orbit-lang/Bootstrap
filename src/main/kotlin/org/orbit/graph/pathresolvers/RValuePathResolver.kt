@@ -10,11 +10,11 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-class RValuePathResolver : PathResolver<RValueNode> {
+class RValuePathResolver : IPathResolver<RValueNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: RValueNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+	override fun resolve(input: RValueNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		input.expressionNode.annotateByKey(input.getGraphID(), Annotations.graphId)
 		return pathResolverUtil.resolve(input.expressionNode, pass, environment, graph)
 	}

@@ -10,11 +10,11 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-object TypeConstraintPathResolver : PathResolver<TraitConformanceTypeConstraintNode> {
+object TypeConstraintPathResolver : IPathResolver<TraitConformanceTypeConstraintNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: TraitConformanceTypeConstraintNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+	override fun resolve(input: TraitConformanceTypeConstraintNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		val constrainedTypePath = environment.getBinding(input.constrainedTypeNode.value, Binding.Kind.Type)
 			.unwrap(this, input.constrainedTypeNode.firstToken.position)
 		// NOTE - We were using the context Binding.Kind.Union(Binding.Kind.Trait, Binding.Kind.TraitConstructor) here,
@@ -27,6 +27,6 @@ object TypeConstraintPathResolver : PathResolver<TraitConformanceTypeConstraintN
 
 		pathResolverUtil.resolve(input.constraintTraitNode, pass, environment, graph)
 
-		return PathResolver.Result.Success(constrainedTypePath.path)
+		return IPathResolver.Result.Success(constrainedTypePath.path)
 	}
 }

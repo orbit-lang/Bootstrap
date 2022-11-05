@@ -7,9 +7,9 @@ import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.util.Invocation
 
-class AnyPathResolver<N: INode> : PathResolver<N> {
+class AnyPathResolver<N: INode> : IPathResolver<N> {
     override val invocation: Invocation by inject()
 
-    override fun resolve(input: N, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result
-        = PathResolver.Result.Success(Path.empty)
+    override fun resolve(input: N, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result
+        = IPathResolver.Result.Success(Path.empty)
 }

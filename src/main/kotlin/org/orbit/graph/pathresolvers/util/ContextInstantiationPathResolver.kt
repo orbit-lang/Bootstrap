@@ -2,7 +2,6 @@ package org.orbit.graph.pathresolvers.util
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.getPath
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ContextCompositionNode
 import org.orbit.core.nodes.ContextInstantiationNode
@@ -11,15 +10,14 @@ import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.getGraphID
-import org.orbit.graph.pathresolvers.PathResolver
+import org.orbit.graph.pathresolvers.IPathResolver
 import org.orbit.util.Invocation
-import org.orbit.util.toPath
 
-object ContextInstantiationPathResolver : PathResolver<ContextInstantiationNode>, KoinComponent {
+object ContextInstantiationPathResolver : IPathResolver<ContextInstantiationNode>, KoinComponent {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: ContextInstantiationNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: ContextInstantiationNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         val nPath = environment.getCurrentContainerPath() + input.contextIdentifierNode.value
 
         input.annotate(nPath, Annotations.path)
@@ -34,11 +32,11 @@ object ContextInstantiationPathResolver : PathResolver<ContextInstantiationNode>
     }
 }
 
-object ContextCompositionPathResolver : PathResolver<ContextCompositionNode>, KoinComponent {
+object ContextCompositionPathResolver : IPathResolver<ContextCompositionNode>, KoinComponent {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: ContextCompositionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: ContextCompositionNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         input.leftContext.annotateByKey(input.getGraphID(), Annotations.graphId)
         input.rightContext.annotateByKey(input.getGraphID(), Annotations.graphId)
 

@@ -12,18 +12,18 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-class TypeAliasPathResolver(private val parentPath: Path) : PathResolver<TypeAliasNode> {
+class TypeAliasPathResolver(private val parentPath: Path) : IPathResolver<TypeAliasNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: TypeAliasNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+	override fun resolve(input: TypeAliasNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		val sourcePath = parentPath + Path(input.sourceTypeIdentifier.value)
 		val graphID = graph.insert(sourcePath.toString(OrbitMangler))
 
 		input.annotateByKey(graphID, Annotations.graphId)
 		input.targetTypeIdentifier.annotateByKey(graphID, Annotations.graphId)
 
-		TypeExpressionPathResolver.execute(PathResolver.InputType(input.targetTypeIdentifier, pass))
+		TypeExpressionPathResolver.execute(IPathResolver.InputType(input.targetTypeIdentifier, pass))
 
 		val targetBinding = pathResolverUtil.resolve(input.targetTypeIdentifier, pass, environment, graph)
 			.asSuccess()
@@ -34,6 +34,6 @@ class TypeAliasPathResolver(private val parentPath: Path) : PathResolver<TypeAli
 
 		environment.bind(Binding.Kind.TypeAlias, input.sourceTypeIdentifier.value, sourcePath)
 
-		return PathResolver.Result.Success(sourcePath)
+		return IPathResolver.Result.Success(sourcePath)
 	}
 }

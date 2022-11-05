@@ -13,11 +13,11 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.util.Invocation
 
-class FamilyPathResolver(private val parentPath: Path) : PathResolver<FamilyNode> {
+class FamilyPathResolver(private val parentPath: Path) : IPathResolver<FamilyNode> {
     override val invocation: Invocation by inject()
 
-    override fun resolve(input: FamilyNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-        val path = if (pass == PathResolver.Pass.Initial) {
+    override fun resolve(input: FamilyNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
+        val path = if (pass == IPathResolver.Pass.Initial) {
             val path = parentPath + Path(input.familyIdentifierNode.value)
 
             input.annotateByKey(path, Annotations.path)
@@ -41,17 +41,17 @@ class FamilyPathResolver(private val parentPath: Path) : PathResolver<FamilyNode
             val typeResolver = TypeDefPathResolver(path)
 
             input.memberNodes.forEach {
-                typeResolver.resolve(it, PathResolver.Pass.Initial, environment, graph)
+                typeResolver.resolve(it, IPathResolver.Pass.Initial, environment, graph)
                 val alias = Path(path.last()) + it.getPath().last()
 
                 graph.alias(alias.toString(OrbitMangler), it.getGraphID())
                 environment.bind(Binding.Kind.Type, alias.toString(OrbitMangler), alias)
             }
-            input.memberNodes.forEach { typeResolver.resolve(it, PathResolver.Pass.Last, environment, graph) }
+            input.memberNodes.forEach { typeResolver.resolve(it, IPathResolver.Pass.Last, environment, graph) }
 
             path
         }
 
-        return PathResolver.Result.Success(path)
+        return IPathResolver.Result.Success(path)
     }
 }

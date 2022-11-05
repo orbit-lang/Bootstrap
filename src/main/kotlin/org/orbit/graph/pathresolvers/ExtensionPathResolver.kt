@@ -7,19 +7,18 @@ import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ExtensionNode
 import org.orbit.core.nodes.WhereClauseExpressionNode
 import org.orbit.core.nodes.annotateByKey
-import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-interface WhereClauseExpressionResolver<N: WhereClauseExpressionNode> : PathResolver<N>
+interface WhereClauseExpressionResolver<N: WhereClauseExpressionNode> : IPathResolver<N>
 
-class ExtensionPathResolver(private val parentPath: Path) : PathResolver<ExtensionNode> {
+class ExtensionPathResolver(private val parentPath: Path) : IPathResolver<ExtensionNode> {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: ExtensionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: ExtensionNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         val targetTypePath = pathResolverUtil.resolve(input.targetTypeNode, pass, environment, graph)
             .asSuccess()
 
@@ -38,6 +37,6 @@ class ExtensionPathResolver(private val parentPath: Path) : PathResolver<Extensi
             pathResolverUtil.resolve(it, pass, environment, graph)
         }
 
-        return PathResolver.Result.Success(targetTypePath.path)
+        return IPathResolver.Result.Success(targetTypePath.path)
     }
 }

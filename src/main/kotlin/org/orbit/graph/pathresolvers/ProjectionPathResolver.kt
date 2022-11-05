@@ -12,12 +12,12 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-object ProjectionPathResolver : PathResolver<ProjectionNode> {
+object ProjectionPathResolver : IPathResolver<ProjectionNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: ProjectionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
-		if (pass == PathResolver.Pass.Initial) {
+	override fun resolve(input: ProjectionNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
+		if (pass == IPathResolver.Pass.Initial) {
 			val typeResult = TypeExpressionPathResolver.resolve(input.typeIdentifier, pass, environment, graph)
 				.asSuccess()
 
@@ -35,17 +35,17 @@ object ProjectionPathResolver : PathResolver<ProjectionNode> {
 
 			if (input.context != null) {
 				input.context.annotateByKey(graphID, Annotations.graphId)
-				pathResolverUtil.resolve(input.context, PathResolver.Pass.Initial, environment, graph)
+				pathResolverUtil.resolve(input.context, IPathResolver.Pass.Initial, environment, graph)
 			}
 
 			for (decl in input.body) {
 				decl.annotate(graphID, Annotations.graphId)
-				pathResolverUtil.resolve(decl, PathResolver.Pass.Initial, environment, graph)
+				pathResolverUtil.resolve(decl, IPathResolver.Pass.Initial, environment, graph)
 			}
 
 			return typeResult
 		}
 
-		return PathResolver.Result.Success(input.getPath())
+		return IPathResolver.Result.Success(input.getPath())
 	}
 }

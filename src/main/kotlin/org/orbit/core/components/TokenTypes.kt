@@ -21,6 +21,7 @@ object TokenTypes : TokenTypeProvider {
 	
     // Keywords
     object Api : TokenType("API", "\\bapi\\b", true, false, Family.Keyword)
+    object Check : TokenType("Check", "\\bcheck\\b", true, false, Family.Keyword)
     object Type : TokenType("Type", "\\btype\\b", true, false, Family.Keyword + Family.Kind)
     object Trait : TokenType("Trait", "\\btrait\\b", true, false, Family.Keyword + Family.Kind)
     object Family : TokenType("Family", "\\bfamily\\b", true, false, Family.Keyword + Family.Kind)
@@ -84,7 +85,7 @@ object TokenTypes : TokenTypeProvider {
             TypeIdentifier,
             Colon, Comma, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
-            Expand, Mirror, TypeOf, ContextOf, Type, Trait, Within, With, Return, Family,
+            Expand, Mirror, TypeOf, Check, ContextOf, Type, Trait, Within, With, Return, Family,
             OperatorSymbol, Identifier, Dot
         )
     }

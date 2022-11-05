@@ -11,14 +11,14 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-object PanicPathResolver : PathResolver<PanicNode> {
+object PanicPathResolver : IPathResolver<PanicNode> {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    override fun resolve(input: PanicNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+    override fun resolve(input: PanicNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         input.expr.annotate(input.getGraphID(), Annotations.graphId)
-        pathResolverUtil.resolve(input.expr, PathResolver.Pass.Initial, environment, graph)
+        pathResolverUtil.resolve(input.expr, IPathResolver.Pass.Initial, environment, graph)
 
-        return PathResolver.Result.Success(OrbitMangler.unmangle("!"))
+        return IPathResolver.Result.Success(OrbitMangler.unmangle("!"))
     }
 }

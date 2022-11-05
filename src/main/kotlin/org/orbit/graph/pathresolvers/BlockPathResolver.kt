@@ -9,15 +9,15 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-class BlockPathResolver : PathResolver<BlockNode> {
+class BlockPathResolver : IPathResolver<BlockNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: BlockNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
+	override fun resolve(input: BlockNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph) : IPathResolver.Result {
 		return environment.withScope {
 
 			// TODO - Non-linear routes through a block, e.g. conditionals, controls etc
-			var result: PathResolver.Result = PathResolver.Result.Success(OrbitMangler.unmangle("Orb::Core::Types::Unit"))
+			var result: IPathResolver.Result = IPathResolver.Result.Success(OrbitMangler.unmangle("Orb::Core::Types::Unit"))
 
 			for (node in input.body) {
 				node.annotateByKey(input.getGraphID(), Annotations.graphId)

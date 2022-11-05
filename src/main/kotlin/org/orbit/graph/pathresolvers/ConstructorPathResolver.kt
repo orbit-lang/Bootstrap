@@ -12,11 +12,11 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-class ConstructorPathResolver : PathResolver<ConstructorInvocationNode> {
+class ConstructorPathResolver : IPathResolver<ConstructorInvocationNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 
-	override fun resolve(input: ConstructorInvocationNode, pass: PathResolver.Pass, environment: Environment, graph: Graph) : PathResolver.Result {
+	override fun resolve(input: ConstructorInvocationNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph) : IPathResolver.Result {
 		input.typeExpressionNode.annotateByKey(input.getGraphID(), Annotations.graphId)
 		TypeExpressionPathResolver.resolve(input.typeExpressionNode, pass, environment, graph)
 
@@ -32,12 +32,12 @@ class ConstructorPathResolver : PathResolver<ConstructorInvocationNode> {
 					pathResolverUtil.resolve(it, pass, environment, graph)
 				}
 
-                PathResolver.Result.Success(binding.result.path)
+                IPathResolver.Result.Success(binding.result.path)
 			}
 
 			else -> {
 				binding.unwrap(this, input.firstToken.position)
-				PathResolver.Result.Failure(input)
+				IPathResolver.Result.Failure(input)
 			}
 		}
 	}

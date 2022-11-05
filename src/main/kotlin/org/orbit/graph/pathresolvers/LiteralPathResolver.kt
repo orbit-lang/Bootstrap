@@ -9,12 +9,12 @@ import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.util.Invocation
 
-abstract class LiteralPathResolver<N: ILiteralNode<*>>(private val path: Path) : PathResolver<N> {
+abstract class LiteralPathResolver<N: ILiteralNode<*>>(private val path: Path) : IPathResolver<N> {
 	override val invocation: Invocation by inject()
 
-	override fun resolve(input: N, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+	override fun resolve(input: N, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		input.annotateByKey(path, Annotations.path)
 
-		return PathResolver.Result.Success(path)
+		return IPathResolver.Result.Success(path)
 	}
 }

@@ -9,10 +9,10 @@ import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.getGraphIDOrNull
 import org.orbit.util.Invocation
 
-object MetaTypePathResolver : PathResolver<MetaTypeNode> {
+object MetaTypePathResolver : IPathResolver<MetaTypeNode> {
 	override val invocation: Invocation by inject()
 
-	override fun resolve(input: MetaTypeNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+	override fun resolve(input: MetaTypeNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		val typeConstructorResult = TypeExpressionPathResolver.resolve(
             input.typeConstructorIdentifier,
             pass, environment, graph
@@ -30,6 +30,6 @@ object MetaTypePathResolver : PathResolver<MetaTypeNode> {
 		input.annotateByKey(typeConstructorResult.path, Annotations.path)
 		input.typeConstructorIdentifier.annotateByKey(typeConstructorResult.path, Annotations.path)
 
-		return PathResolver.Result.Success(typeConstructorResult.path)
+		return IPathResolver.Result.Success(typeConstructorResult.path)
 	}
 }

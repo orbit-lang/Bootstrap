@@ -12,12 +12,11 @@ import org.orbit.core.phase.Phase
 import org.orbit.frontend.phase.Parser
 import org.orbit.graph.components.*
 import org.orbit.graph.extensions.getScopeIdentifier
-import org.orbit.graph.pathresolvers.PathResolver
+import org.orbit.graph.pathresolvers.IPathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.main.Build
 import org.orbit.main.BuildConfig
 import org.orbit.util.*
-import java.util.*
 import java.util.Stack
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -169,7 +168,7 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 
 			nextContainer.annotateByKey(true, Annotations.resolved)
 
-			pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Initial, input.environment, input.graph)
+			pathResolverUtil.resolve(nextContainer, IPathResolver.Pass.Initial, input.environment, input.graph)
 
 			val importedScopes = nextContainer.with
 				.flatMap {
@@ -196,7 +195,7 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 
 			thisScope.importAll(importedScopes)
 
-			pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Subsequent(2), input.environment, input.graph)
+			pathResolverUtil.resolve(nextContainer, IPathResolver.Pass.Subsequent(2), input.environment, input.graph)
 
 			val path = nextContainer.getPathOrNull()
 				?: TODO("HERE")
@@ -204,7 +203,7 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 
 			nextContainer.annotateByKey(id, Annotations.graphId)
 
-			pathResolverUtil.resolve(nextContainer, PathResolver.Pass.Last, input.environment, input.graph)
+			pathResolverUtil.resolve(nextContainer, IPathResolver.Pass.Last, input.environment, input.graph)
 		}
 
 		return NameResolverResult(input.environment, input.graph)

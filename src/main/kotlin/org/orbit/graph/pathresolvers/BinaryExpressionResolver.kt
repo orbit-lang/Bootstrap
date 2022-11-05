@@ -11,18 +11,18 @@ import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
-class BinaryExpressionResolver : PathResolver<BinaryExpressionNode> {
+class BinaryExpressionResolver : IPathResolver<BinaryExpressionNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()
 	private val nodeAnnotationMap: NodeAnnotationMap by inject()
 
-	override fun resolve(input: BinaryExpressionNode, pass: PathResolver.Pass, environment: Environment, graph: Graph): PathResolver.Result {
+	override fun resolve(input: BinaryExpressionNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		nodeAnnotationMap.annotate(input.left, input.getGraphID(), Annotations.graphId)
 		nodeAnnotationMap.annotate(input.right, input.getGraphID(), Annotations.graphId)
 
         pathResolverUtil.resolve(input.left, pass, environment, graph)
         pathResolverUtil.resolve(input.right, pass, environment, graph)
 
-		return PathResolver.Result.Success(Path.empty)
+		return IPathResolver.Result.Success(Path.empty)
 	}
 }
