@@ -36,10 +36,17 @@ module Orb::Core::Types {
 module M with Orb::Core::* {
     alias Point = { x Int, y Int }
 
-    (Unit) main () () {
-        p1 = Point(0, 0)
+    (self Int) pow (exponent Int) (Int) = self
+    (self Int) squared () (Int) = self.pow(2)
 
-        typeOf p1.x
-        typeOf p1.y
+    infix operator powerOf `power of` by Int::pow
+    postfix operator squared `squared` by Int::squared
+
+    (Unit) main () () {
+        zero = 0 `power of` 1
+        four = 2 `squared`
+
+        typeOf zero
+        typeOf four
     }
 }

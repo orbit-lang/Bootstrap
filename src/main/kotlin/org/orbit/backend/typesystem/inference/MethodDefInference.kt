@@ -17,7 +17,7 @@ object MethodDefInference : ITypeInference<MethodDefNode, IMutableTypeEnvironmen
     override fun infer(node: MethodDefNode, env: IMutableTypeEnvironment): AnyType {
         val nEnv = LocalEnvironment(env)
         val mEnv = when (val n = node.context) {
-            null -> env
+            null -> nEnv
             else -> ContextualTypeEnvironment(env, TypeInferenceUtils.inferAs(n, nEnv))
         }
 
@@ -35,6 +35,8 @@ object MethodDefInference : ITypeInference<MethodDefNode, IMutableTypeEnvironmen
         }
 
         val returns = TypeInferenceUtils.infer(node.body, oEnv)
+
+
 
         return when (TypeUtils.checkEq(oEnv, returns, signature.returns)) {
             true -> signature
