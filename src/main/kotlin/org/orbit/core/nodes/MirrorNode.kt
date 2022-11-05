@@ -9,6 +9,10 @@ data class MirrorNode(
 ) : TypeExpressionNode, IMethodBodyStatementNode {
     override val value: String = ""
 
+    override fun getTypeName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getChildren(): List<INode>
         = listOf(expressionNode)
 }

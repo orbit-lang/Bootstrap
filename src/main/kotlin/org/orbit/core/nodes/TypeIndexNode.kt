@@ -11,4 +11,8 @@ data class TypeIndexNode(
 
     override fun getChildren(): List<INode>
         = listOf(index)
+
+    override fun getTypeName(): String {
+        TODO("Not yet implemented")
+    }
 }

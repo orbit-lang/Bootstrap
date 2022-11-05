@@ -10,6 +10,10 @@ class MetaTypeNode(
 ) : TypeExpressionNode {
     override val value: String = typeConstructorIdentifier.value
 
+    override fun getTypeName(): String {
+        TODO("Not yet implemented")
+    }
+
     override fun getChildren(): List<INode> {
         return listOf(typeConstructorIdentifier) + typeParameters
     }

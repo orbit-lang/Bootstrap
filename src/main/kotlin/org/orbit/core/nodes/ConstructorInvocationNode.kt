@@ -8,8 +8,10 @@ data class ConstructorInvocationNode(
     override val lastToken: Token,
     val typeExpressionNode: TypeExpressionNode,
     val parameterNodes: List<IExpressionNode>
-) : IExpressionNode, Serializable, ValueRepresentableNode {
+) : IExpressionNode, Serializable, ValueRepresentableNode, IConstantExpressionNode {
     override fun getChildren(): List<INode> {
         return listOf(typeExpressionNode) + parameterNodes
     }
+
+    override fun getTypeName(): String = typeExpressionNode.getTypeName()
 }

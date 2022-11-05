@@ -13,21 +13,18 @@ import org.orbit.util.Invocation
 object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    private fun inferPropertyAccess(node: MethodCallNode, receiver: AnyType, env: ITypeEnvironment) : AnyType {
+    private inline fun <reified T: IType.IAccessibleType<String>> inferPropertyAccess(node: MethodCallNode, receiver: AnyType, env: ITypeEnvironment) : AnyType {
         val propertyName = node.messageIdentifier.identifier
 
-        if (receiver !is IType.Struct) throw invocation.make<TypeSystem>("Cannot access property `$propertyName` of non-Structural Type $receiver", node)
+        if (receiver !is T) throw invocation.make<TypeSystem>("Cannot access property `$propertyName` of non-Structural Type $receiver", node)
 
-        val member = receiver.members.firstOrNull { it.first == propertyName }
-            ?: throw invocation.make<TypeSystem>("Unknown member `$propertyName` for Structural Type $receiver", node)
-
-        return member.second
+        return receiver.access(propertyName)
     }
 
     override fun infer(node: MethodCallNode, env: ITypeEnvironment): AnyType {
         val receiver = TypeInferenceUtils.infer(node.receiverExpression, env)
 
-        if (node.isPropertyAccess) return inferPropertyAccess(node, receiver, env)
+        if (node.isPropertyAccess) return inferPropertyAccess<IType.IAccessibleType<String>>(node, receiver, env)
 
         val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
         var possibleArrows = env.getSignatures(node.messageIdentifier.identifier)
@@ -50,7 +47,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
 
         if (possibleArrows.count() > 1) {
             // We've failed to narrow down the results, we have to error now
-            throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0]}`", node)
+            throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0].component}`", node)
         }
 
         if (possibleArrows.isEmpty()) {

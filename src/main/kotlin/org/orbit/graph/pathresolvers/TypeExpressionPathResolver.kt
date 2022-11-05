@@ -5,6 +5,7 @@ import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.core.Path
 import org.orbit.core.nodes.*
 import org.orbit.core.nodes.Annotations
+import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph

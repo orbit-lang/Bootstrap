@@ -42,11 +42,30 @@ module M with Orb::Core::* {
     infix operator powerOf `power of` by Int::pow
     postfix operator squared `squared` by Int::squared
 
-    (Unit) main () () {
-        zero = 0 `power of` 1
-        four = 2 `squared`
+#    (Int) one (i expand 0, j expand 1) (expand 1) = j
 
-        typeOf zero
-        typeOf four
+#    infix operator plus `+` by Int::one
+#
+#    trait IntConstant {
+#        (self Self) constValue () (Int)
+#    }
+
+#    projection expand 0 : IntConstant
+#        with constValue by { expand 0 }
+#
+#    projection expand 1 : IntConstant
+#        with constValue by { expand 1 }
+
+#    context AddCtx [n Int, m Int] {
+#        (Int) add (i expand n)
+#    }
+
+    alias Foo = { value Int }
+
+    (Unit) main () () {
+        z = expand 0
+        s = expand Foo(expand 1)
+
+        typeOf s.value
     }
 }

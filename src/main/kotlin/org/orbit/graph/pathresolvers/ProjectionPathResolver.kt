@@ -23,18 +23,19 @@ object ProjectionPathResolver : IPathResolver<ProjectionNode> {
 
 			val graphID = graph.find(typeResult.path.toString(OrbitMangler))
 
-			input.traitIdentifier.annotateByKey(graphID, Annotations.graphId)
+			input.typeIdentifier.annotate(graphID, Annotations.graphId)
+			input.traitIdentifier.annotate(graphID, Annotations.graphId)
 
 			val traitResult = TypeExpressionPathResolver.resolve(input.traitIdentifier, pass, environment, graph)
 				.asSuccess()
 
-			input.typeIdentifier.annotateByKey(typeResult.path, Annotations.path)
-			input.traitIdentifier.annotateByKey(traitResult.path, Annotations.path)
+			input.typeIdentifier.annotate(typeResult.path, Annotations.path)
+			input.traitIdentifier.annotate(traitResult.path, Annotations.path)
 
-			input.annotateByKey(typeResult.path, Annotations.path)
+			input.annotate(typeResult.path, Annotations.path)
 
 			if (input.context != null) {
-				input.context.annotateByKey(graphID, Annotations.graphId)
+				input.context.annotate(graphID, Annotations.graphId)
 				pathResolverUtil.resolve(input.context, IPathResolver.Pass.Initial, environment, graph)
 			}
 

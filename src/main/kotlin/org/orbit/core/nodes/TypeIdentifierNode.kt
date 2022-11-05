@@ -11,12 +11,17 @@ data class InferNode(
 	override val lastToken: Token
 ) : TypeExpressionNode {
 	override val value: String = "_"
+
+	override fun getTypeName(): String {
+		TODO("Not yet implemented")
+	}
 }
 
 data class StructTypeNode(override val firstToken: Token, override val lastToken: Token, val members: List<PairNode>) : TypeExpressionNode {
 	override val value: String = members.joinToString(", ")
 
 	override fun getChildren(): List<INode> = members
+	override fun getTypeName(): String = "{$value}"
 }
 
 data class TupleTypeNode(override val firstToken: Token, override val lastToken: Token, val left: TypeExpressionNode, val right: TypeExpressionNode) : TypeExpressionNode {
@@ -24,6 +29,9 @@ data class TupleTypeNode(override val firstToken: Token, override val lastToken:
 
 	override fun getChildren(): List<INode>
 		= listOf(left, right)
+	override fun getTypeName(): String {
+		TODO("Not yet implemented")
+	}
 }
 
 data class TypeIdentifierNode(
@@ -47,6 +55,8 @@ data class TypeIdentifierNode(
 	}
 
 	override val name: TypeIdentifierNode = this
+
+	override fun getTypeName(): String = name.value
 
 	val isWildcard: Boolean
 		get() = value.endsWith("*")
@@ -72,4 +82,8 @@ data class CollectionTypeLiteralNode(
 	override val lastToken: Token,
 	override val value: String,
 	val typeExpressionNode: TypeExpressionNode
-) : TypeExpressionNode
+) : TypeExpressionNode {
+	override fun getTypeName(): String {
+		TODO("Not yet implemented")
+	}
+}

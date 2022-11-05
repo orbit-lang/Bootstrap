@@ -1,9 +1,6 @@
 package org.orbit.backend.typesystem.utils
 
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.GlobalEnvironment
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.components.*
 
 enum class TypeCheckPosition {
     Any, AlwaysLeft, AlwaysRight;
@@ -74,6 +71,7 @@ object TypeUtils {
 
                 else -> when (left) {
                     is IType.Never -> right
+                    is IValue<*, *> -> check(env, left.type, right)
                     else -> error
                 }
             }

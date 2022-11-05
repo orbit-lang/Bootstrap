@@ -149,6 +149,7 @@ val mainModule = module {
 	single(WhereClauseInference)
 	single(WhereClauseTypeBoundsExpressionInference)
 	single(CheckInference)
+	single(ExpandInference)
 }
 
 private inline fun <reified N: INode, reified E: ITypeEnvironment> org.koin.core.module.Module.single(inference: ITypeInference<N, E>) : BeanDefinition<ITypeInference<N, E>>

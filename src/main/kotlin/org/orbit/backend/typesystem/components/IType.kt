@@ -1,5 +1,6 @@
 package org.orbit.backend.typesystem.components
 
+import org.orbit.backend.typesystem.intrinsics.OrbCoreBooleans
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.backend.typesystem.utils.AnyArrow
@@ -310,7 +311,13 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             = prettyPrint()
     }
 
-    sealed interface IConstructableType<Self: IConstructableType<Self>> : ISpecialisedType
+    sealed interface IConstructableType<Self: IConstructableType<Self>> : ISpecialisedType {
+        fun getConstructor(given: List<AnyType>) : IConstructor<Self>? {
+            val constructors = getConstructors()
+
+            return constructors.firstOrNull { it.getDomain() == given } as? IConstructor<Self>
+        }
+    }
 
     sealed interface ICaseIterable<Self: ICaseIterable<Self>> : AnyType {
         fun getCases(result: AnyType) : List<Case>
@@ -425,8 +432,17 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Struct(val members: List<Pair<String, AnyType>>) : IProductType<String, Struct>, IAlgebraicType<Struct> {
+    sealed interface IAccessibleType<I> : IType {
+        fun access(at: I) : AnyType
+    }
+
+    data class Struct(val members: List<Pair<String, AnyType>>) : IProductType<String, Struct>, IAlgebraicType<Struct>, IAccessibleType<String> {
         override val id: String = "{${members.joinToString("; ") { it.second.id }}}"
+
+        override fun access(at: String): AnyType = when (val member = members.firstOrNull { it.first == at }) {
+            null -> Never("Unknown Member `${at}` for Type $this")
+            else -> member.second
+        }
 
         override fun getUnsolvedTypeVariables(): List<TypeVar>
             = members.flatMap { it.second.getUnsolvedTypeVariables() }
@@ -982,6 +998,64 @@ sealed interface IIntrinsicType : IType {
     }
 }
 
+sealed interface IValue<T: AnyType, V> : IType {
+    val type: T
+    val value: V
+
+    override val id: String get() = "$value : $type"
+
+    override fun substitute(substitution: Substitution): AnyType = type
+    override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
+
+    override fun prettyPrint(depth: Int): String {
+        val indent = "\t".repeat(depth)
+
+        return "$indent$value"
+    }
+}
+
+data class IntValue(override val value: Int) : IValue<IType.Type, Int> {
+    override val type: IType.Type = OrbCoreNumbers.intType
+
+    override fun prettyPrint(depth: Int): String {
+        val indent = "\t".repeat(depth)
+
+        return "$indent$value"
+    }
+
+    override fun toString(): String = prettyPrint()
+}
+
+object TrueValue : IValue<IType.Type, Boolean> {
+    override val type: IType.Type = OrbCoreBooleans.trueType
+    override val value: Boolean = true
+
+    override fun toString(): String = prettyPrint()
+}
+
+object FalseValue : IValue<IType.Type, Boolean> {
+    override val type: IType.Type = OrbCoreBooleans.falseType
+    override val value: Boolean = false
+
+    override fun toString(): String = prettyPrint()
+}
+
+data class InstanceValue(override val type: IType.Struct, override val value: Map<String, IValue<*, *>>) : IValue<IType.Struct, Map<String, IValue<*, *>>>, IType.IAccessibleType<String> {
+    override fun access(at: String): AnyType = when (val member = value[at]) {
+        null -> IType.Never("Unknown Member `$at` for compile-time instance of Structural Type $type")
+        else -> member
+    }
+
+    override fun prettyPrint(depth: Int): String {
+        val indent = "\t".repeat(depth)
+        val pretty = value.map { "${it.key}: ${it.value}" }.joinToString(", ")
+
+        return "$indent{$pretty}"
+    }
+
+    override fun toString(): String = prettyPrint()
+}
+
 typealias AnyType = IType
 typealias AnyOperator = IType.IOperatorArrow<*, *>
 typealias AnyMetaType = IType.IMetaType<*>
@@ -990,7 +1064,7 @@ typealias AnyInt = IIntrinsicType.IIntegralType<*>
 fun List<AnyType>.arrowOf(codomain: AnyType) : AnyArrow = when (count()) {
     0 -> IType.Arrow0(codomain)
     1 -> IType.Arrow1(this[0], codomain)
-    2 -> IType.Arrow2(this[1], this[2], codomain)
-    3 -> IType.Arrow3(this[1], this[2], this[3], codomain)
+    2 -> IType.Arrow2(this[0], this[1], codomain)
+    3 -> IType.Arrow3(this[0], this[1], this[2], codomain)
     else -> TODO("4+-ary Arrows")
 }
