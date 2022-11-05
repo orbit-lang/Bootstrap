@@ -24,12 +24,14 @@ data class Context private constructor(val name: String, val bindings: Set<Speci
 
     override fun getCardinality(): ITypeCardinality = ITypeCardinality.Zero
 
+    fun getConstraints(typeVariable: IType.TypeVar) : List<ITypeConstraint>
+        = bindings.firstOrNull { it.abstract.name == typeVariable.name }?.abstract?.constraints ?: emptyList()
+
     fun <T: AnyType> specialise(type: T) : T {
         val subs = bindings.map { Substitution(it.abstract, it.concrete) }
 
         return subs.fold(type) { acc, next -> acc.substitute(next) as T }
     }
-
 
     override fun substitute(substitution: Substitution): AnyType {
         TODO("Not yet implemented")

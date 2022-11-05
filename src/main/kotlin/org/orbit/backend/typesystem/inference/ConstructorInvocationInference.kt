@@ -15,14 +15,34 @@ object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode
     override fun infer(node: ConstructorInvocationNode, env: IMutableTypeEnvironment): AnyType {
         val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
         val nEnv = ConstructorTypeEnvironment(env, args)
-        val type = TypeInferenceUtils.infer(node.typeExpressionNode, nEnv).flatten(nEnv)
-        var constructedType = type as? IType.IConstructableType<*>
+        val type = TypeInferenceUtils.infer(node.typeExpressionNode, nEnv)
+        var constructedType = type.flatten(nEnv) as? IType.IConstructableType<*>
             ?: throw invocation.make<TypeSystem>("Cannot construct value of uninhabited Type `$type`", node.typeExpressionNode)
 
         val typeVariables = constructedType.getUnsolvedTypeVariables()
         val subs = typeVariables.zip(args).map(::Substitution)
 
+        val ctx = env.getTypeOrNull(type.getCanonicalName())?.context
+        val constraints = when (ctx) {
+            null -> emptyMap()
+            else -> typeVariables.fold(emptyMap<AnyType, List<ITypeConstraint>>()) { acc, next ->
+                val nType = subs.fold(next as AnyType) { acc, next -> acc.substitute(next) }
+                val cons = ctx.getConstraints(next)
+                val nCons = cons.map { subs.fold(it) { a, n -> a.substitute(n) as ITypeConstraint } }
+                acc + (nType to nCons)
+            }
+        }
+
         constructedType = subs.fold(constructedType) { acc, next -> acc.substitute(next) as IType.IConstructableType<*> }
+
+        for (pair in constraints) {
+            val type = pair.key
+            for (constraint in pair.value) {
+                if (!constraint.isSolvedBy(type, nEnv)) {
+                    throw invocation.make<TypeSystem>("Type $type does not satisfy Constraint $constraint", node)
+                }
+            }
+        }
 
         val params = constructedType.getConstructors()[0].getDomain()
 

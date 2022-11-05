@@ -4,10 +4,7 @@ import org.koin.core.parameter.parametersOf
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.getPath
-import org.orbit.core.nodes.ContextNode
-import org.orbit.core.nodes.EntityDefNode
-import org.orbit.core.nodes.MethodDefNode
-import org.orbit.core.nodes.MethodSignatureNode
+import org.orbit.core.nodes.*
 
 object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
     override fun infer(node: ContextNode, env: IMutableTypeEnvironment): AnyType {
@@ -18,19 +15,38 @@ object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
 
         abstracts.forEach { nEnv.add(it.abstract) }
 
-        GlobalEnvironment.add(ctx)
+        val constraints = TypeInferenceUtils.inferAllAs<WhereClauseNode, ITypeConstraint>(node.clauses, nEnv)
+        val groupedConstraints = mutableMapOf<AnyType, List<ITypeConstraint>>()
+        for (constraint in constraints) {
+            val pConstraints = groupedConstraints[constraint.type] ?: emptyList()
+
+            if (pConstraints.contains(constraint)) continue
+
+            groupedConstraints[constraint.type] = pConstraints + constraints.filter { it.type === constraint.type }
+        }
+
+        val nAbstracts = groupedConstraints.mapNotNull {
+            val abstract = it.key as? IType.TypeVar ?: return@mapNotNull null
+
+            Specialisation(IType.TypeVar(abstract.name, it.value))
+        }
+
+        val nCtx = Context(node.getPath(), nAbstracts)
+        val mEnv = ContextualTypeEnvironment(env, nCtx)
+
+        GlobalEnvironment.add(nCtx)
 
         val entityDefs = node.body.filterIsInstance<EntityDefNode>()
 
-        TypeInferenceUtils.inferAll(entityDefs, nEnv)
+        TypeInferenceUtils.inferAll(entityDefs, mEnv)
 
         val signatureNodes = node.body.filterIsInstance<MethodDefNode>().map { it.signature }
-        val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, IType.Signature>(signatureNodes, nEnv, parametersOf(false))
+        val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, IType.Signature>(signatureNodes, mEnv, parametersOf(false))
 
-        signatures.forEach { nEnv.add(it) }
+        signatures.forEach { mEnv.add(it) }
 
-        TypeInferenceUtils.inferAll(node.body, nEnv)
+        TypeInferenceUtils.inferAll(node.body, mEnv)
 
-        return ctx
+        return nCtx
     }
 }

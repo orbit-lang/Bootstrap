@@ -6,6 +6,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.OperatorFixity
+import org.orbit.core.phase.flatMapNotNull
 import org.orbit.util.Invocation
 import org.orbit.util.getKoinInstance
 import kotlin.math.exp
@@ -200,6 +201,30 @@ object GlobalEnvironment : IMutableTypeEnvironment by TypeEnvironmentStorage(Con
     override fun getCurrentContext(): Context = Context.root
 
     private val specialisations = mutableMapOf<String, List<Context>>()
+    private val tags = mutableMapOf<String, List<String>>()
+
+    fun tag(type: AnyType, tag: String) {
+        val pTags = tags[type.getCanonicalName()] ?: emptyList()
+
+        if (pTags.contains(tag)) return
+
+        tags[type.getCanonicalName()] = pTags + tag
+    }
+
+    fun getTags(type: AnyType) : List<String>
+        = tags[type.getCanonicalName()] ?: emptyList()
+
+    fun getProjectedTags(type: AnyType) : List<ContextualDeclaration<Projection>> {
+        val tags = getTags(type)
+
+        if (tags.isEmpty()) return emptyList()
+
+        return tags.flatMap {
+            val rType = getTypeOrNull(it) ?: return@flatMap emptyList<ContextualDeclaration<Projection>>()
+
+            getProjections(rType.component)
+        }
+    }
 
     fun registerSpecialisation(context: Context) {
         if (!context.isComplete()) return

@@ -1,9 +1,11 @@
 package org.orbit.backend.typesystem.inference
 
 import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.GlobalEnvironment
 import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
+import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.TypeAliasNode
 
@@ -13,6 +15,8 @@ object TypeAliasInference : ITypeInference<TypeAliasNode, IMutableTypeEnvironmen
         val path = node.getPath()
 
         env.add(IType.Alias(path, type))
+
+        GlobalEnvironment.tag(type, path.toString(OrbitMangler))
 
         return type
     }

@@ -53,6 +53,7 @@ object TypeUtils {
     }
 
     fun checkSignatures(env: ITypeEnvironment, left: IType.Signature, right: IType.Signature) : Boolean {
+
         if (left.name != right.name) return false
         if (!checkEq(env, left.receiver, right.receiver)) return false
         if (left.parameters.count() != right.parameters.count()) return false

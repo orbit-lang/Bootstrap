@@ -43,6 +43,8 @@ private object SingleParameterLambdaLiteralRule : ValueRule<LambdaLiteralNode> {
         context.mark()
         val start = context.peek()
 
+        // TODO - We need to be able to explicitly state the Receiver of a Lambda
+
         val bindings = when (start.type) {
             TokenTypes.Identifier -> when (start.text) {
                 "_" -> emptyList()

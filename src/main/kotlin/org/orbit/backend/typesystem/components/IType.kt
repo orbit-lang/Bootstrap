@@ -436,7 +436,17 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun getElement(at: String): AnyType = members.first { it.first == at }.second
         override fun getConstructors(): List<IConstructor<Struct>> = listOf(StructConstructor(this, members.map { it.second }))
-        override fun substitute(substitution: Substitution): Struct = Struct(members.map { Pair(it.first, it.second.substitute(substitution)) })
+
+        override fun substitute(substitution: Substitution): Struct {
+            val nStruct = Struct(members.map { Pair(it.first, it.second.substitute(substitution)) })
+
+            val tags = GlobalEnvironment.getTags(this)
+
+            tags.forEach { GlobalEnvironment.tag(nStruct, it) }
+
+            return nStruct
+        }
+
         override fun getCardinality(): ITypeCardinality = when (members.isEmpty()) {
             true -> ITypeCardinality.Mono
             else -> members.map { it.second.getCardinality() }.reduce(ITypeCardinality::plus)
@@ -807,18 +817,31 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class TypeVar(val name: String) : AnyType, IConstructableType<TypeVar> {
+    data class TypeVar(val name: String, val constraints: List<ITypeConstraint> = emptyList()) : AnyType, IConstructableType<TypeVar>, ITypeConstraint {
         override val id: String = "?$name"
+        override val type: AnyType = this
+
+        override fun isSolvedBy(input: AnyType, env: ITypeEnvironment): Boolean
+            = constraints.all { it.isSolvedBy(input, env) }
 
         override fun getUnsolvedTypeVariables(): List<TypeVar> = listOf(this)
-
         override fun isSpecialised(): Boolean = false
         override fun getConstructors(): List<IConstructor<TypeVar>> = listOf(SingletonConstructor(this) as IConstructor<TypeVar>)
         override fun getCanonicalName(): String = name
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Infinite
         override fun substitute(substitution: Substitution): AnyType = when (substitution.old) {
             is TypeVar -> when (substitution.old.name == name) {
-                true -> substitution.new
+                true -> when (constraints.isEmpty()) {
+                    true -> substitution.new
+                    else -> {
+                        val constraint = constraints.reduce(ITypeConstraint::plus)
+
+                        when (constraint.isSolvedBy(substitution.new, GlobalEnvironment)) {
+                            true -> substitution.new
+                            else -> Never("")
+                        }
+                    }
+                }
                 else -> this
             }
 
@@ -855,7 +878,15 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> false
         }
 
+        private fun isImplementedBy(struct: Struct, env: ITypeEnvironment) : Boolean {
+            val projections = GlobalEnvironment.getProjectedTags(struct)
+
+            return projections.any { it.component.target.id == id }
+        }
+
         fun isImplementedBy(type: AnyType, env: ITypeEnvironment) : Boolean {
+            if (type is Struct) return isImplementedBy(type, env)
+
             val projections = env.getProjections(type) + when (env) {
                 is ProjectionEnvironment -> listOf(ContextualDeclaration(env.getCurrentContext(), env.projection))
                 else -> emptyList()

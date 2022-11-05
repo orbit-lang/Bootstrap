@@ -38,12 +38,42 @@ module M with Orb::Core::* {
         (self Self) intValue () (Int)
     }
 
-    context BoxCtx [V] where V : IntRepresentable {
-        alias Box = { value V }
+    trait AnyRepresentable {
+        (self Self) anyValue () (Any)
     }
+
+    context BoxCtx [V] where V : IntRepresentable where V : AnyRepresentable {
+        alias Box = { value V }
+
+        projection Box : IntRepresentable
+            with intValue by { 0 }
+
+        projection Box : AnyRepresentable
+            with anyValue by { 0 }
+
+        projection Box : Any
+    }
+
+    context TupleContext [A, B, C] {
+        alias Tuple = { b B, c C }
+        alias AThing = { a A }
+    }
+
+    projection Int : IntRepresentable
+        with intValue by { 0 }
+
+    projection Int : Any
+    projection Int : AnyRepresentable
+        with anyValue by { 1 }
 
     (Unit) main () () {
         b1 = Box(1)
         b2 = Box(b1)
+
+        a1 = AThing(1)
+        a2 = AThing(a1)
+
+        typeOf a1
+        typeOf a2
     }
 }
