@@ -7,13 +7,28 @@ import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.MethodCallNode
+import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.util.Invocation
 
 object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
+    private fun inferPropertyAccess(node: MethodCallNode, receiver: AnyType, env: ITypeEnvironment) : AnyType {
+        val propertyName = node.messageIdentifier.identifier
+
+        if (receiver !is IType.Struct) throw invocation.make<TypeSystem>("Cannot access property `$propertyName` of non-Structural Type $receiver", node)
+
+        val member = receiver.members.firstOrNull { it.first == propertyName }
+            ?: throw invocation.make<TypeSystem>("Unknown member `$propertyName` for Structural Type $receiver", node)
+
+        return member.second
+    }
+
     override fun infer(node: MethodCallNode, env: ITypeEnvironment): AnyType {
         val receiver = TypeInferenceUtils.infer(node.receiverExpression, env)
+
+        if (node.isPropertyAccess) return inferPropertyAccess(node, receiver, env)
+
         val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
         var possibleArrows = env.getSignatures(node.messageIdentifier.identifier)
         val expected = (env as? AnnotatedTypeEnvironment)?.typeAnnotation ?: IType.Always
@@ -54,7 +69,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
         val zip = args.zip(arrow.parameters)
         for ((idx, pair) in zip.withIndex()) {
             if (!TypeUtils.checkEq(env, pair.first, pair.second)) {
-                throw invocation.make<TypeSystem>("Method `${node.messageIdentifier.identifier}` expects argument of Type `$pair.second` at index $idx, found `$pair`", node.parameterNodes[idx])
+                throw invocation.make<TypeSystem>("Method `${node.messageIdentifier.identifier}` expects argument of Type `${pair.second}` at index $idx, found `$pair`", node.parameterNodes[idx])
             }
         }
 

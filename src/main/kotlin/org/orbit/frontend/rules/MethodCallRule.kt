@@ -52,13 +52,6 @@ object MethodCallRule : CallRule<MethodCallNode> {
         var next = context.peek()
 
         if (next.type != TokenTypes.Dot) {
-            // TODO - I don't like this at all (abusing ParseRule to circumvent type checking on the returned Node type)
-            // However, rewinding here causes an infinite loop due to an ambiguity in the grammar.
-//            context.rewind(context.end())
-//            val node = context.attemptAny(listOf(TypeExpressionRule, LiteralRule()))
-//                ?: return ParseRule.Result.Failure.Abort
-//
-//            return +node
             return +lhs
         }
 
@@ -71,8 +64,7 @@ object MethodCallRule : CallRule<MethodCallNode> {
         next = context.peek()
 
         if (next.type != TokenTypes.LParen) {
-            val end = context.consume()
-            return +MethodCallNode(start, end, lhs, message, emptyList(), true)
+            return +MethodCallNode(start, next, lhs, message, emptyList(), true)
         }
 
         val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)

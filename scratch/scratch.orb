@@ -34,32 +34,12 @@ module Orb::Core::Types {
 }
 
 module M with Orb::Core::* {
-    trait IntRepresentable {
-        (self Self) intValue () (Int)
-    }
-
-    context BoxCtx [V] where V : IntRepresentable {
-        alias Box = { value V }
-
-        projection Box : IntRepresentable
-            with intValue by { 0 }
-    }
-
-    context TupleContext [A, B, C] {
-        alias Tuple = { b B, c C }
-        alias AThing = { a A }
-    }
-
-    projection Int : IntRepresentable
-        with intValue by { 0 }
-
-    projection Bool : IntRepresentable
-        with intValue by { 0 }
-
-    (self Bool) boolValue () (Bool) = self
+    alias Point = { x Int, y Int }
 
     (Unit) main () () {
-        b3 = Box(true).boolValue()
-        typeOf b3
+        p1 = Point(0, 0)
+
+        typeOf p1.x
+        typeOf p1.y
     }
 }
