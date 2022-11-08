@@ -110,7 +110,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun equals(other: Any?): Boolean
             = type == other
 
-        override fun flatten(env: ITypeEnvironment): AnyType = this
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType = this
 
         override fun getTypeCheckPosition(): TypeCheckPosition
             = type.getTypeCheckPosition()
@@ -143,8 +143,8 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             = Alias(name, type.substitute(substitution))
 
         override fun getCanonicalName(): String = name
-        override fun flatten(env: ITypeEnvironment): AnyType
-            = type.flatten(env)
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
+            = type.flatten(from, env)
 
         override fun equals(other: Any?): Boolean
             = type == other
@@ -193,6 +193,11 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override val id: String = when (attributes.isEmpty()) {
             true -> name
             else -> name + attributes.joinToString("")
+        }
+
+        fun toStruct() : Struct = when (getCardinality()) {
+            ITypeCardinality.Mono -> Struct(emptyList())
+            else -> TODO("")
         }
 
         override fun getConstructors(): List<IConstructor<Type>>
@@ -259,17 +264,17 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Member(val name: String, val type: AnyType, val owner: Type) : AnyType {
-        override val id: String = "${owner.id}.${name}"
+    data class Property(val name: String, val type: AnyType) : AnyType, Trait.Member {
+        override val id: String = "$name: $type"
 
         override fun getCardinality(): ITypeCardinality
             = type.getCardinality()
 
-        override fun substitute(substitution: Substitution): Member =
-            Member(name, type.substitute(substitution), owner)
+        override fun substitute(substitution: Substitution): Property =
+            Property(name, type.substitute(substitution))
 
         override fun equals(other: Any?): Boolean = when (other) {
-            is Member -> name == other.name && type == other.type
+            is Property -> name == other.name && type == other.type
             else -> false
         }
 
@@ -277,7 +282,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             val printer = getKoinInstance<Printer>()
             val prettyName = printer.apply(name, PrintableKey.Italics)
 
-            return "$owner.$prettyName : $type"
+            return "$prettyName: $type"
         }
 
         override fun toString(): String = prettyPrint()
@@ -423,8 +428,8 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun substitute(substitution: Substitution): Tuple
             = Tuple(left.substitute(substitution), right.substitute(substitution))
 
-        override fun flatten(env: ITypeEnvironment): AnyType
-            = Tuple(left.flatten(env), right.flatten(env))
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
+            = Tuple(left.flatten(from, env), right.flatten(from, env))
 
         override fun prettyPrint(depth: Int): String
             = "($left, $right)"
@@ -439,6 +444,9 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     data class Struct(val members: List<Pair<String, AnyType>>) : IProductType<String, Struct>, IAlgebraicType<Struct>, IAccessibleType<String> {
         override val id: String = "{${members.joinToString("; ") { it.second.id }}}"
 
+        fun getProperties() : List<Property>
+            = members.map { Property(it.first, it.second) }
+
         override fun access(at: String): AnyType = when (val member = members.firstOrNull { it.first == at }) {
             null -> Never("Unknown Member `${at}` for Type $this")
             else -> member.second
@@ -446,6 +454,19 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun getUnsolvedTypeVariables(): List<TypeVar>
             = members.flatMap { it.second.getUnsolvedTypeVariables() }
+
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType {
+            if (from is Alias) {
+                val projections = env.getProjections(from)
+                for (projection in projections) {
+                    val nProjection = Projection(from, projection.component.target)
+
+                    GlobalEnvironment.add(nProjection, from)
+                }
+            }
+
+            return this
+        }
 
         override fun isSpecialised(): Boolean
             = members.any { it.second is ISpecialisedType && (it.second as ISpecialisedType).isSpecialised() }
@@ -537,8 +558,10 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             }
         }
 
-        override fun getCardinality(): ITypeCardinality
-            = ITypeCardinality.Finite(2)
+        override fun getCardinality(): ITypeCardinality = when (left) {
+            is Union -> left.left.getCardinality() + left.right.getCardinality() + right.getCardinality()
+            else -> left.getCardinality() + right.getCardinality()
+        }
 
         override fun getCases(result: AnyType): List<Case> {
             val lCases = when (left) {
@@ -561,7 +584,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         }
 
         override fun getConstructors(): List<IConstructor<Union>> {
-            val lConstructors = when (left) {
+            val lConstructors = when (left.flatten(this, GlobalEnvironment)) {
                 is IConstructableType<*> -> left.getConstructors()
                 else -> TODO("HERE!!!")
             }
@@ -573,8 +596,8 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
             return lConstructors.zip(rConstructors).map {
                 // NOTE - Kotlin won't accept casting `it.first/second` directly to SingletonConstructor for some reason, so we need to erase the type
-                val lConstructor = it.first as IConstructor<*>
-                val rConstructor = it.second as IConstructor<*>
+                val lConstructor = it.first
+                val rConstructor = it.second
 
                 val lDomain = when (lConstructor) {
                     is SingletonConstructor -> lConstructor.getCodomain()
@@ -599,11 +622,11 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> false
         }
 
-        override fun flatten(env: ITypeEnvironment): AnyType
-            = Union(left.flatten(env), right.flatten(env))
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
+            = Union(left.flatten(from, env), right.flatten(from, env))
 
         override fun prettyPrint(depth: Int): String
-            = "($left | $right)"
+            = "${"\t".repeat(depth)}($left | $right)"
 
         override fun toString(): String = prettyPrint()
     }
@@ -696,8 +719,8 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun curry(): Arrow0 = this
         override fun never(args: List<AnyType>): Never = Never("Unreachable")
 
-        override fun flatten(env: ITypeEnvironment): AnyType
-            = Arrow0(gives.flatten(env))
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
+            = Arrow0(gives.flatten(from, env))
 
         override fun equals(other: Any?): Boolean = when (other) {
             is Arrow0 -> gives == other.gives
@@ -721,12 +744,12 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun never(args: List<AnyType>): Never =
             Never("$id expects argument of Type $takes, found $args[0]")
 
-        override fun flatten(env: ITypeEnvironment): AnyType {
-            val domain = takes.flatten(env)
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType {
+            val domain = takes.flatten(from, env)
 
             if (domain is Never) return domain
 
-            val codomain = gives.flatten(env)
+            val codomain = gives.flatten(from, env)
 
             if (domain is Never) return codomain
 
@@ -783,7 +806,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Signature(val receiver: AnyType, val name: String, val parameters: List<AnyType>, val returns: AnyType, val isInstanceSignature: Boolean) : IArrow<Signature> {
+    data class Signature(val receiver: AnyType, val name: String, val parameters: List<AnyType>, val returns: AnyType, val isInstanceSignature: Boolean) : IArrow<Signature>, Trait.Member {
         override val id: String get() {
             val pParams = parameters.joinToString(", ") { it.id }
 
@@ -882,9 +905,19 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Trait(override val id: String, val members: List<Member>, val signatures: List<Signature>) : Entity<Trait> {
+    data class PatternBinding(val name: String, val type: AnyType) : IType {
+        override val id: String = "$name => $type"
+
+        override fun getCardinality(): ITypeCardinality = ITypeCardinality.Zero
+        override fun substitute(substitution: Substitution): AnyType
+            = PatternBinding(name, type.substitute(substitution))
+    }
+
+    data class Trait(override val id: String, val properties: List<Property>, val signatures: List<Signature>) : Entity<Trait> {
+        sealed interface Member
+
         override fun substitute(substitution: Substitution): Trait
-            = Trait(id, members.map { it.substitute(substitution) }, signatures.map { it.substitute(substitution) })
+            = Trait(id, properties.map { it.substitute(substitution) }, signatures.map { it.substitute(substitution) })
 
         override fun getCardinality(): ITypeCardinality
             = ITypeCardinality.Zero
@@ -901,6 +934,8 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         }
 
         fun isImplementedBy(type: AnyType, env: ITypeEnvironment) : Boolean {
+            val type = type.flatten(type, env)
+            if (type is Trait) return type == this
             if (type is Struct) return isImplementedBy(type, env)
 
             val projections = env.getProjections(type) + when (env) {
@@ -912,7 +947,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         }
 
         operator fun plus(other: Trait) : Trait
-            = Trait("$id*${other.id}", members + other.members, signatures + other.signatures)
+            = Trait("$id*${other.id}", properties + other.properties, signatures + other.signatures)
 
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)
@@ -930,7 +965,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     val index: Int get() = TypeIndexer.next()
 
     fun getCanonicalName() : String = id
-    fun flatten(env: ITypeEnvironment) : AnyType = this
+    fun flatten(from: AnyType, env: ITypeEnvironment) : AnyType = this
     fun getTypeCheckPosition() : TypeCheckPosition = TypeCheckPosition.Any
     fun getCardinality() : ITypeCardinality
     fun getConstructors() : List<IConstructor<*>> = emptyList()
@@ -1040,11 +1075,14 @@ object FalseValue : IValue<IType.Type, Boolean> {
     override fun toString(): String = prettyPrint()
 }
 
-data class InstanceValue(override val type: IType.Struct, override val value: Map<String, IValue<*, *>>) : IValue<IType.Struct, Map<String, IValue<*, *>>>, IType.IAccessibleType<String> {
+data class InstanceValue(override val type: IType.IConstructableType<*>, override val value: Map<String, IValue<*, *>>) : IValue<IType.IConstructableType<*>, Map<String, IValue<*, *>>>, IType.IAccessibleType<String> {
     override fun access(at: String): AnyType = when (val member = value[at]) {
         null -> IType.Never("Unknown Member `$at` for compile-time instance of Structural Type $type")
         else -> member
     }
+
+    override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
+        = type.flatten(from, env)
 
     override fun prettyPrint(depth: Int): String {
         val indent = "\t".repeat(depth)

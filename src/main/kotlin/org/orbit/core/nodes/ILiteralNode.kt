@@ -34,7 +34,10 @@ data class BoolLiteralNode(
     override val lastToken: Token,
     override val value: Boolean
 ) : ILiteralNode<Boolean> {
-    override fun getTypeName(): String = OrbCoreBooleans.boolType.getCanonicalName()
+    override fun getTypeName(): String = when (value) {
+        true -> "True"
+        else -> "False"
+    }
 }
 
 data class SymbolLiteralNode(

@@ -10,6 +10,18 @@ import org.orbit.util.Invocation
 
 interface ValueRule<E: IExpressionNode> : ParseRule<E>
 
+object GroupedExpressionRule : ValueRule<IExpressionNode> {
+	override fun parse(context: Parser): ParseRule.Result {
+		context.mark()
+		context.expect(TokenTypes.LParen)
+		val expr = context.attempt(ExpressionRule.defaultValue)
+			?: return ParseRule.Result.Failure.Rewind(context.end())
+		context.expect(TokenTypes.RParen)
+
+		return +expr
+	}
+}
+
 class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IExpressionNode>, KoinComponent {
 	private val invocation: Invocation by inject()
 
@@ -33,14 +45,14 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 		)
 
 		val selectConditionRule = ExpressionRule(
-			ConstructorInvocationRule, MethodCallRule, LiteralRule()
+			ExpandRule, ConstructorInvocationRule, MethodCallRule, LiteralRule()
 		)
 	}
 
 	override fun parse(context: Parser) : ParseRule.Result {
  		val start = context.peek()
 
-		val lhs = when (start.type) {
+		var lhs = when (start.type) {
 			TokenTypes.LParen -> {
 				// TODO - Not a big fan of shoehorning in special cases like this
 				when (val tuple = context.attempt(TupleLiteralRule)) {
@@ -101,14 +113,23 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 				return +MethodCallNode(start, delimResult.lastToken, lhs!!, message, delimResult.nodes, false)
 			}
 
-			return +MethodCallNode(start, message.lastToken, lhs!!, message, emptyList(), true)
-		} else if (next.type == TokenTypes.OperatorSymbol) {
+			lhs = MethodCallNode(start, message.lastToken, lhs!!, message, emptyList(), true)
+
+			if (!context.hasMore) {
+				return +lhs
+			}
+
+			next = context.peek()
+		}
+
+		if (next.type == TokenTypes.OperatorSymbol) {
 			val op = context.consume()
 			context.mark()
 
 			context.setThrowProtection(true)
 			val rhs = try {
-				context.attempt(defaultValue)
+				context.attemptAny(listOf(GroupedExpressionRule, defaultValue))
+					as IExpressionNode
 			} catch (_: Exception) {
 				null
 			}

@@ -16,7 +16,7 @@ object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode
         val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
         val nEnv = ConstructorTypeEnvironment(env, args)
         val type = TypeInferenceUtils.infer(node.typeExpressionNode, nEnv)
-        var constructedType = type.flatten(nEnv) as? IType.IConstructableType<*>
+        var constructedType = type.flatten(type, nEnv) as? IType.IConstructableType<*>
             ?: throw invocation.make<TypeSystem>("Cannot construct value of uninhabited Type `$type`", node.typeExpressionNode)
 
         val typeVariables = constructedType.getUnsolvedTypeVariables()

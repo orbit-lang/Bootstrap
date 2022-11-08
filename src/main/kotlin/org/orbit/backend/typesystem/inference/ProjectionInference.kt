@@ -9,21 +9,23 @@ import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.backend.typesystem.utils.toSignature
 import org.orbit.core.nodes.MethodDelegateNode
+import org.orbit.core.nodes.ProjectedPropertyAssignmentNode
 import org.orbit.core.nodes.ProjectionNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
+import kotlin.math.exp
 
-private sealed interface SignatureVerificationResult {
-    data class Implemented(val signatures: List<IType.Signature>) : SignatureVerificationResult
-    data class NotImplemented(val reasons: List<String>) : SignatureVerificationResult {
+private sealed interface TraitMemberVerificationResult<M: IType.Trait.Member> {
+    data class Implemented<M: IType.Trait.Member>(val members: List<M>) : TraitMemberVerificationResult<M>
+    data class NotImplemented<M: IType.Trait.Member>(val reasons: List<String>) : TraitMemberVerificationResult<M> {
         constructor(reason: String) : this(listOf(reason))
     }
 
-    operator fun plus(other: SignatureVerificationResult) : SignatureVerificationResult = when (this) {
+    operator fun plus(other: TraitMemberVerificationResult<M>) : TraitMemberVerificationResult<M> = when (this) {
         is Implemented -> when (other) {
-            is Implemented -> Implemented(signatures + other.signatures)
+            is Implemented -> Implemented(members + other.members)
             is NotImplemented -> other
         }
 
@@ -38,22 +40,40 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    private fun verifySignature(env: IMutableTypeEnvironment, expected: IType.Signature, provided: List<IType.Signature>) : SignatureVerificationResult {
+    private fun verifyProperty(env: ITypeEnvironment, expected: IType.Property, provided: List<IType.Property>) : TraitMemberVerificationResult<IType.Property> {
+        val implementations = provided.filter { TypeUtils.checkProperties(env, it, expected) }
+
+        if (implementations.isEmpty()) {
+            val tag = printer.apply("Missing required Property:", PrintableKey.Error)
+            return TraitMemberVerificationResult.NotImplemented("$tag `$expected`")
+        }
+
+        if (implementations.count() > 1) {
+            val tag = printer.apply("Multiple implementations found for Property:", PrintableKey.Error)
+            val prettyImpls = implementations.joinToString("\n\t")
+
+            return TraitMemberVerificationResult.NotImplemented("$tag `$expected\n\t$prettyImpls`")
+        }
+
+        return TraitMemberVerificationResult.Implemented(implementations)
+    }
+
+    private fun verifySignature(env: IMutableTypeEnvironment, expected: IType.Signature, provided: List<IType.Signature>) : TraitMemberVerificationResult<IType.Signature> {
         val implementations = provided.filter { TypeUtils.checkSignatures(env, it, expected) }
 
         if (implementations.isEmpty()) {
             val tag = printer.apply("Missing required Method:", PrintableKey.Error)
-            return SignatureVerificationResult.NotImplemented("$tag `$expected`")
+            return TraitMemberVerificationResult.NotImplemented("$tag `$expected`")
         }
 
         if (implementations.count() > 1) {
             val tag = printer.apply("Multiple implementations found for Method:", PrintableKey.Error)
             val prettyImpls = implementations.joinToString("\n\t")
 
-            return SignatureVerificationResult.NotImplemented("$tag `$expected`\n\t$prettyImpls")
+            return TraitMemberVerificationResult.NotImplemented("$tag `$expected`\n\t$prettyImpls")
         }
 
-        return SignatureVerificationResult.Implemented(implementations)
+        return TraitMemberVerificationResult.Implemented(implementations)
     }
 
     @Suppress("NAME_SHADOWING")
@@ -70,26 +90,50 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
 
         env.add(projection, projectedType)
 
-        val flat = projectedType.flatten(nEnv)
+        val flat = projectedType.flatten(projectedType, mEnv)
 
         if (flat is IType.Union) {
             env.add(Projection(flat.left, projection.target), flat.left)
             env.add(Projection(flat.right, projection.target), flat.right)
+        } else if (flat is IType.Struct) {
+            env.add(Projection(flat, projection.target), flat)
         }
 
-        val signatures = node.body.mapNotNull {
-            val node = it as MethodDelegateNode
+        val signatureNodes = node.body.filterIsInstance<MethodDelegateNode>()
+        val propertyNodes = node.body.filterIsInstance<ProjectedPropertyAssignmentNode>()
+
+        val properties = propertyNodes.map {
+            TypeInferenceUtils.inferAs<ProjectedPropertyAssignmentNode, IType.Property>(it, mEnv)
+        } + when (flat) {
+            is IType.Struct -> flat.getProperties()
+            else -> emptyList()
+        }
+
+        val propertyResults = projectedTrait.properties.fold(TraitMemberVerificationResult.Implemented<IType.Property>(emptyList()) as TraitMemberVerificationResult<IType.Property>) { acc, next ->
+            acc + verifyProperty(mEnv, next, properties)
+        }
+
+        if (propertyResults is TraitMemberVerificationResult.NotImplemented) {
+            val projection = Projection(projectedType, projectedTrait)
+            val header = "Projection `$projection` is incomplete for the following reasons:"
+            val errors = propertyResults.reasons.joinToString("\n\t")
+
+            throw invocation.make<TypeSystem>("$header\n\t$errors", node)
+        }
+
+        val signatures = signatureNodes.mapNotNull {
+            val node = it
             when (val type = TypeInferenceUtils.infer(node, mEnv)) {
                 is AnyArrow -> type.toSignature(projectedType, node.methodName.identifier)
                 else -> null
             }
         }
 
-        val signatureResults = projectedTrait.signatures.fold(SignatureVerificationResult.Implemented(emptyList()) as SignatureVerificationResult) { acc, next ->
+        val signatureResults = projectedTrait.signatures.fold(TraitMemberVerificationResult.Implemented<IType.Signature>(emptyList()) as TraitMemberVerificationResult<IType.Signature>) { acc, next ->
             acc + verifySignature(mEnv, next, signatures)
         }
 
-        if (signatureResults is SignatureVerificationResult.NotImplemented) {
+        if (signatureResults is TraitMemberVerificationResult.NotImplemented) {
             val projection = Projection(projectedType, projectedTrait)
             val header = "Projection `$projection` is incomplete for the following reasons:"
             val errors = signatureResults.reasons.joinToString("\n\t")
@@ -97,7 +141,7 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
             throw invocation.make<TypeSystem>("$header\n\t$errors", node)
         }
 
-        for (signature in (signatureResults as SignatureVerificationResult.Implemented).signatures) {
+        for (signature in (signatureResults as TraitMemberVerificationResult.Implemented).members) {
             env.add(signature)
         }
 

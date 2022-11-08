@@ -34,38 +34,31 @@ module Orb::Core::Types {
 }
 
 module M with Orb::Core::* {
-    alias Point = { x Int, y Int }
+    alias Version = { major Int, minor Int, patch Int }
 
-    (self Int) pow (exponent Int) (Int) = self
-    (self Int) squared () (Int) = self.pow(2)
+    type VersionComponent {
+        constructor Major
+        constructor Minor
+        constructor Patch
+    }
 
-    infix operator powerOf `power of` by Int::pow
-    postfix operator squared `squared` by Int::squared
-
-#    (Int) one (i expand 0, j expand 1) (expand 1) = j
-
-#    infix operator plus `+` by Int::one
-#
-#    trait IntConstant {
-#        (self Self) constValue () (Int)
-#    }
-
-#    projection expand 0 : IntConstant
-#        with constValue by { expand 0 }
-#
-#    projection expand 1 : IntConstant
-#        with constValue by { expand 1 }
-
-#    context AddCtx [n Int, m Int] {
-#        (Int) add (i expand n)
-#    }
-
-    alias Foo = { value Int }
+    (self Version) next (component VersionComponent) (Version) = select component {
+        case Major = Version(self.major + 1, 0, 0)
+        case Minor = Version(self.major, self.minor + 1, 0)
+        case Patch = Version(self.major, self.minor, self.patch + 1)
+    }
 
     (Unit) main () () {
-        z = expand 0
-        s = expand Foo(expand 1)
+        v0_0_0 = Version(0, 0, 0)
+        v0_0_1 = v0_0_0.next(Patch)
 
-        typeOf s.value
+        typeOf v0_0_0
+        typeOf v0_0_1
+
+        v0 = ${Version(${0}, ${0}, ${0})}
+        v1 = ${v0.next(${Major})}
+
+        typeOf v0
+        typeOf v1
     }
 }

@@ -88,17 +88,17 @@ private object AnyBindingPatternRule : IPatternRule<ITerminalBindingPatternNode>
     `case Foo(bar Bar)`
     `case Foo(bar Bar(baz Baz))`
  */
-internal object StructuralPatternRule : IPatternRule<StructuralPatternNode> {
+internal object StructuralPatternRule : IPatternRule<ITerminalBindingPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
         context.mark()
         val type = context.attempt(TypeIdentifierRule.Naked)
             ?: return ParseRule.Result.Failure.Rewind(context.end())
 
-        if (!context.hasMore) return +StructuralPatternNode(type.firstToken, type.lastToken, listOf(TypeBindingPatternNode(type.firstToken, type.lastToken, type)))
+        if (!context.hasMore) return +TypeBindingPatternNode(type.firstToken, type.lastToken, type)
 
         val next = context.peek()
 
-        if (next.type in listOf(TokenTypes.Assignment, TokenTypes.By)) return +StructuralPatternNode(type.firstToken, type.lastToken, listOf(TypeBindingPatternNode(type.firstToken, type.lastToken, type)))
+        if (next.type in listOf(TokenTypes.Assignment, TokenTypes.By)) return +TypeBindingPatternNode(type.firstToken, type.lastToken, type)
 
         if (next.type != TokenTypes.LParen)
             return ParseRule.Result.Failure.Rewind(context.end())
@@ -107,7 +107,7 @@ internal object StructuralPatternRule : IPatternRule<StructuralPatternNode> {
         val delimResult = context.attempt(delim)
             ?: return ParseRule.Result.Failure.Rewind(context.end())
 
-        return +StructuralPatternNode(type.firstToken, delimResult.lastToken, delimResult.nodes)
+        return +StructuralPatternNode(type.firstToken, delimResult.lastToken, type, delimResult.nodes)
     }
 }
 

@@ -7,11 +7,14 @@ import org.orbit.core.nodes.toWithNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
-class WithRule<N: IWithStatementNode>(private val statementRule: ParseRule<N>) : ParseRule<WithNode<N>> {
+class WithRule(private val statementRules: List<ParseRule<out IWithStatementNode>>) : ParseRule<WithNode<IWithStatementNode>> {
+    constructor(vararg statementRules: ParseRule<out IWithStatementNode>) : this(statementRules.toList())
+
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.With)
-        val node = context.attempt(statementRule)
-            ?: return ParseRule.Result.Failure.Throw("Expected With statement after `with...`", start)
+        val node = context.attemptAny(statementRules)
+            as? IWithStatementNode
+            ?: return ParseRule.Result.Failure.Abort
 
         return +node.toWithNode(start, node.lastToken)
     }

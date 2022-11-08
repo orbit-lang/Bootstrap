@@ -10,6 +10,7 @@ import org.orbit.core.phase.flatMapNotNull
 import org.orbit.util.Invocation
 import org.orbit.util.getKoinInstance
 import kotlin.math.exp
+import kotlin.math.sin
 
 interface IContextualComponent
 
@@ -119,6 +120,8 @@ data class CaseTypeEnvironment(private val parent: IMutableTypeEnvironment, priv
     override fun getSelfType(): AnyType = self
 }
 
+data class StructuralPatternEnvironment(private val parent: ITypeEnvironment, val structuralType: IType.Struct) : ITypeEnvironment by parent
+
 data class ConstructorTypeEnvironment(private val parent: IMutableTypeEnvironment, val constructorArgs: List<AnyType>) : IMutableTypeEnvironment by parent {
     override fun getSpecialisationEvidence(context: Context): Set<Specialisation> {
         val evidence = context.bindings.zip(constructorArgs)
@@ -202,6 +205,14 @@ object GlobalEnvironment : IMutableTypeEnvironment by TypeEnvironmentStorage(Con
 
     private val specialisations = mutableMapOf<String, List<Context>>()
     private val tags = mutableMapOf<String, List<String>>()
+    private val singletonPool = mutableMapOf<String, IValue<*, *>>()
+
+    fun register(singleton: IValue<*, *>) {
+        singletonPool[singleton.type.id] = singleton
+    }
+
+    fun getSingletonValue(type: AnyType) : IValue<*, *>?
+        = singletonPool[type.id]
 
     fun tag(type: AnyType, tag: String) {
         val pTags = tags[type.getCanonicalName()] ?: emptyList()
@@ -343,8 +354,10 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
         }
     }
 
-    override fun getProjections(type: AnyType): List<ContextualDeclaration<Projection>>
-        = projections[type.id] ?: emptyList()
+    override fun getProjections(type: AnyType): List<ContextualDeclaration<Projection>> = when (type) {
+        is IType.Always -> projections.flatMap { it.value }
+        else -> projections[type.id] ?: emptyList()
+    }
 
     override fun getContextOrNull(name: String) : Context? {
         val matches = contexts.filter { it.name == name }

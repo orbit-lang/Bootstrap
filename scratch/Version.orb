@@ -1,0 +1,80 @@
+module Orb::Core::Numbers {
+    type Int
+}
+
+module Orb::Core::Booleans {
+    type Bool {
+        constructor True
+        constructor False
+    }
+
+    (self Bool) and (other Bool) (Bool) = select self {
+        case true = other
+        case else = false
+    }
+
+    (self Bool) or (other Bool) (Bool) = select self {
+        case true = true
+        case else = other
+    }
+
+    (self Bool) not () (Bool) = select self {
+        case true = false
+        case else = true
+    }
+
+    infix operator boolAnd `&&` by Bool::and
+    infix operator boolOr  `||` by Bool::or
+    prefix operator boolNot `!` by Bool::not
+}
+
+module Orb::Core::Types {
+    type Unit
+    trait Any
+}
+
+module M with Orb::Core::* {
+    trait VersionComponent {
+        (self Self) getNumber () (Int)
+    }
+
+    context VersionCtx [V] where V : VersionComponent {
+        (self V) next () (V) = V(self.getNumber())
+    }
+
+    alias Major = { number Int }
+    alias Minor = { number Int }
+    alias Patch = { number Int }
+
+    projection Major : VersionComponent
+        with getNumber by { 0 }
+
+    projection Minor : VersionComponent
+        with getNumber by { 0 }
+
+    projection Patch : VersionComponent
+        with getNumber by { 0 }
+
+    alias Version = { major Major, minor Minor, patch Patch }
+
+    (Version) new (major Int, minor Int, patch Int) (Version)
+        = Version(Major(major), Minor(minor), Patch(patch))
+
+    (self Version) next (versionType VersionComponent) (Version) = select versionType {
+        case Major = Version(Major(number + 1), Minor(0), Patch(0))
+        case Minor = Version(self.major, Minor(self.minor.number + 1), Patch(0))
+        case Patch = Version(self.major, self.minor, Patch(self.patch.number + 1))
+        case else = self
+    }
+
+    (Unit) main () () {
+        vmj0 = ${Major(${0})}
+        vmn0 = ${Minor(${0})}
+        vpt0 = ${Patch(${0})}
+        v0 = ${Version(vmj0, vmn0, vpt0)}
+        v1 = ${v0.next(${Major})}
+
+        typeOf v0
+        typeOf v1
+    }
+}

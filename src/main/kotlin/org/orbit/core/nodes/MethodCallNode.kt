@@ -23,7 +23,9 @@ data class MethodCallNode(
     val messageIdentifier: IdentifierNode,
     override val parameterNodes: List<IExpressionNode>,
     val isPropertyAccess: Boolean = false
-) : InvokableNode, ValueRepresentableNode, IPatternNode, IMethodBodyStatementNode {
+) : InvokableNode, ValueRepresentableNode, IPatternNode, IMethodBodyStatementNode, IConstantExpressionNode {
     override fun getChildren(): List<INode>
         = listOf(receiverExpression, messageIdentifier) + parameterNodes
+
+    override fun getTypeName(): String = ""
 }

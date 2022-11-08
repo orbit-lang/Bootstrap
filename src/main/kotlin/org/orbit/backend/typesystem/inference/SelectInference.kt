@@ -28,7 +28,7 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
             }
         }
 
-        val constructableType = conditionType.flatten(nEnv) as? IType.ICaseIterable<*>
+        val constructableType = conditionType.flatten(conditionType, nEnv) as? IType.ICaseIterable<*>
             ?: throw invocation.compilerError<TypeSystem>("Cannot perform Case analysis on non-constructable Type `$conditionType`", node.condition)
 
         // If this is not an Infinite Type, ensure all possible cases are covered

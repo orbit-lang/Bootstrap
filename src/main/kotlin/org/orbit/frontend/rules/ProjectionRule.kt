@@ -3,9 +3,7 @@ package org.orbit.frontend.rules
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.components.TokenTypes
-import org.orbit.core.nodes.BlockNode
-import org.orbit.core.nodes.IProjectionDeclarationNode
-import org.orbit.core.nodes.ProjectionNode
+import org.orbit.core.nodes.*
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
@@ -62,11 +60,12 @@ object ProjectionRule : ParseRule<ProjectionNode>, KoinComponent {
         next = context.peek()
 
         if (next.type == TokenTypes.With) {
-            val withRule = WithRule(MethodDelegateRule)
-            val withNode = context.attempt(withRule)
+            val resultNode = context.attempt(WithRule(MethodDelegateRule, ProjectedPropertyAssignmentRule))
+
+            val withNode = resultNode as? WithNode<*>
                 ?: return ParseRule.Result.Failure.Throw("Only the following declarations are allowed in Projection With statements:\n\tProperty Assignment, Property Delegate, Method Delegate", next)
 
-            return +ProjectionNode(start, traitIdentifierRule.lastToken, typeIdentifier, traitIdentifierRule, emptyList(), selfBinding, listOf(withNode.statement), contextNode)
+            return +ProjectionNode(start, traitIdentifierRule.lastToken, typeIdentifier, traitIdentifierRule, emptyList(), selfBinding, listOf(withNode.statement as IProjectionDeclarationNode), contextNode)
         }
 
         next = context.peek()
@@ -74,7 +73,6 @@ object ProjectionRule : ParseRule<ProjectionNode>, KoinComponent {
         // TODO - Body (properties & methods)
         val body = context.attempt(AnyProjectionDeclarationRule.toBlockRule())
             ?: BlockNode(next, next, emptyList())
-            //?: return ParseRule.Result.Failure.Throw("Expected Projection body after `projection ${typeIdentifier.value}` : ${traitIdentifierRule.value}", next)
 
         return +ProjectionNode(start, traitIdentifierRule.lastToken, typeIdentifier, traitIdentifierRule, emptyList(), selfBinding, body.body as List<IProjectionDeclarationNode>, contextNode)
     }

@@ -11,7 +11,7 @@ object ContextOfInference : ITypeInference<ContextOfNode, ITypeEnvironment> {
     override fun infer(node: ContextOfNode, env: ITypeEnvironment): AnyType {
         val type = TypeInferenceUtils.infer(node.expressionNode, env)
         val decl = env.getTypeOrNull(type.getCanonicalName())
-            ?: env.getAllTypes().firstOrNull { it.component.flatten(env).getCanonicalName() == type.getCanonicalName() }
+            ?: env.getAllTypes().firstOrNull { it.component.flatten(it.component, env).getCanonicalName() == type.getCanonicalName() }
             ?: return IType.Always
 
         println(decl.context)

@@ -45,8 +45,11 @@ object StructuralPatternPathResolver : IPathResolver<StructuralPatternNode> {
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: StructuralPatternNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
+        input.typeExpressionNode.annotate(input.getGraphID(), Annotations.graphId)
         input.bindings.forEach { it.annotate(input.getGraphID(), Annotations.graphId) }
-        pathResolverUtil.resolveAll(input.bindings, IPathResolver.Pass.Initial, environment, graph)
+
+        pathResolverUtil.resolve(input.typeExpressionNode, pass, environment, graph)
+        pathResolverUtil.resolveAll(input.bindings, pass, environment, graph)
 
         return IPathResolver.Result.Success(Path.empty)
     }

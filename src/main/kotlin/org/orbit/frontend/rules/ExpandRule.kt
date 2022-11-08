@@ -10,11 +10,14 @@ import org.orbit.frontend.phase.Parser
 
 object ExpandRule : ValueRule<ExpandNode>, KoinComponent {
     override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect(TokenTypes.Expand)
+        val start = context.expect(TokenTypes.LExpand)
+
         val expr = context.attempt(ExpressionRule.defaultValue)
             ?: return ParseRule.Result.Failure.Abort
 
-        return +ExpandNode(start, expr.lastToken, when (expr) {
+        val end = context.expect(TokenTypes.RBrace)
+
+        return +ExpandNode(start, end, when (expr) {
             is RValueNode -> (expr.expressionNode as? IConstantExpressionNode) ?: return ParseRule.Result.Failure.Abort
             else -> (expr as? IConstantExpressionNode) ?: return ParseRule.Result.Failure.Abort
         })

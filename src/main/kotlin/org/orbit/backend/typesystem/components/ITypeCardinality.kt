@@ -12,6 +12,7 @@ sealed interface ITypeCardinality {
 
     object Mono : ITypeCardinality {
         override fun plus(other: ITypeCardinality): ITypeCardinality = when (other) {
+            is Mono -> Finite(2)
             is Finite -> Finite(other.count + 1)
             is Infinite -> Infinite
             else -> this

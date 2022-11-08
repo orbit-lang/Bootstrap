@@ -24,7 +24,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
     override fun infer(node: MethodCallNode, env: ITypeEnvironment): AnyType {
         val receiver = TypeInferenceUtils.infer(node.receiverExpression, env)
 
-        if (node.isPropertyAccess) return inferPropertyAccess<IType.IAccessibleType<String>>(node, receiver, env)
+        if (node.isPropertyAccess) return inferPropertyAccess<IType.IAccessibleType<String>>(node, receiver.flatten(receiver, env), env)
 
         val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
         var possibleArrows = env.getSignatures(node.messageIdentifier.identifier)
@@ -46,8 +46,17 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
         possibleArrows = possibleArrows.filter { TypeUtils.checkEq(env, it.component.receiver, receiver) }
 
         if (possibleArrows.count() > 1) {
-            // We've failed to narrow down the results, we have to error now
-            throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0].component}`", node)
+            // See if we can find the most "specific" match (we could get here if a method was overloaded for a Trait AND an implementation of that Trait
+            possibleArrows = possibleArrows.filter { it.component.receiver.getCanonicalName() == receiver.getCanonicalName() }
+
+            if (possibleArrows.count() > 1) {
+                possibleArrows = possibleArrows.filter { it.component.parameters == args }
+
+                if (possibleArrows.count() > 1) {
+                    // We've failed to narrow down the results, we have to error now
+                    throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0].component}`", node)
+                }
+            }
         }
 
         if (possibleArrows.isEmpty()) {

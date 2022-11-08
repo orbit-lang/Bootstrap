@@ -17,9 +17,9 @@ object TraitDefInference : ITypeInference<TraitDefNode, IMutableTypeEnvironment>
         val path = node.getPath()
         val protoTrait = IType.Trait(path.toString(OrbitMangler), emptyList(), emptyList())
         val nEnv = SelfTypeEnvironment(env, protoTrait)
-        val members = TypeInferenceUtils.inferAllAs<ParameterNode, IType.Member>(node.properties, nEnv)
+        val properties = TypeInferenceUtils.inferAllAs<ParameterNode, IType.Property>(node.properties, nEnv)
         val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, IType.Signature>(node.signatures, nEnv, parametersOf(true))
-        val trait = IType.Trait(path.toString(OrbitMangler), members, signatures)
+        val trait = IType.Trait(path.toString(OrbitMangler), properties, signatures)
 
         env.add(trait)
 

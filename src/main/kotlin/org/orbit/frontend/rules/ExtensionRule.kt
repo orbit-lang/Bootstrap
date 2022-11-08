@@ -44,7 +44,7 @@ object ExtensionRule : ParseRule<ExtensionNode>, KoinComponent {
             val withNode = context.attempt(withRule)
                 ?: return ParseRule.Result.Failure.Throw("Only the following declarations are allowed in Extension With statements:\n\tProjection", next)
 
-            return +ExtensionNode(start, withNode.lastToken, targetType, listOf(withNode.statement), contextNode)
+            return +ExtensionNode(start, withNode.lastToken, targetType, listOf(withNode.statement as IExtensionDeclarationNode), contextNode)
         }
 
         val body = context.attempt(AnyExtensionDeclarationRule.toBlockRule())

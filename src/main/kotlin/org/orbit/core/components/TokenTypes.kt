@@ -13,6 +13,7 @@ object TokenTypes : TokenTypeProvider {
     object RBrace : TokenType("RBrace", "\\}", true, false, Family.Enclosing)
     object LAngle : TokenType("LAngle", "\\<", true, false, Family.Enclosing)
     object RAngle : TokenType("RAngle", "\\>", true, false, Family.Enclosing)
+    object LExpand : TokenType("LExpand", "\\$\\{", true, false, Family.Enclosing)
     object Assignment : TokenType("Assignment", "\\=", true, false, Family.Op)
     object Dollar : TokenType("Dollar", "\\$[0-9]+", true, false, Family.Op)
     object OperatorSymbol : TokenType("OperatorSymbol", "((?:`[^`]+`)|(?:\\.{2,})|(?:[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|]+))", true, false, Family.Op)
@@ -84,7 +85,7 @@ object TokenTypes : TokenTypeProvider {
             Bool, Panic,
             TypeIdentifier,
             Colon, Comma, Assignment, Annotation, Whitespace,
-            LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle,
+            LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle, LExpand,
             Expand, Mirror, TypeOf, Check, ContextOf, Type, Trait, Within, With, Return, Family,
             OperatorSymbol, Identifier, Dot
         )

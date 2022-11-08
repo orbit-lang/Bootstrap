@@ -8,8 +8,8 @@ enum class TypeCheckPosition {
 
 object TypeUtils {
     private fun <R> prepare(env: ITypeEnvironment, left: AnyType, right: AnyType, block: (AnyType, AnyType) -> R) : R {
-        val lRaw = left.flatten(env)
-        val rRaw = right.flatten(env)
+        val lRaw = left.flatten(left, env)
+        val rRaw = right.flatten(right, env)
 
         if (rRaw.getTypeCheckPosition() == TypeCheckPosition.AlwaysLeft) return block(rRaw, lRaw)
 
@@ -83,8 +83,13 @@ object TypeUtils {
         else -> true
     }
 
-    fun checkSignatures(env: ITypeEnvironment, left: IType.Signature, right: IType.Signature) : Boolean {
+    fun checkProperties(env: ITypeEnvironment, left: IType.Property, right: IType.Property) : Boolean {
+        if (left.name != right.name) return false
 
+        return checkEq(env, left.type, right.type)
+    }
+
+    fun checkSignatures(env: ITypeEnvironment, left: IType.Signature, right: IType.Signature) : Boolean {
         if (left.name != right.name) return false
         if (!checkEq(env, left.receiver, right.receiver)) return false
         if (left.parameters.count() != right.parameters.count()) return false

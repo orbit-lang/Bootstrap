@@ -18,8 +18,23 @@ object TypeDefInference: ITypeInference<TypeDefNode, IMutableTypeEnvironment> {
         val constructors = TypeInferenceUtils.inferAllAs<AlgebraicConstructorNode, IType.Type>(constructorNodes, nEnv)
         val mType = when (constructors.count()) {
             0 -> nType
-            1 -> constructors[0]
-            2 -> IType.Alias(path, IType.Union(constructors[0], constructors[1]))
+            1 -> {
+                env.add(constructors[0])
+                constructors[0]
+            }
+            2 -> {
+                env.add(constructors[0])
+                env.add(constructors[1])
+
+                IType.Alias(path, IType.Union(constructors[0], constructors[1]))
+            }
+            3 -> {
+                env.add(constructors[0])
+                env.add(constructors[1])
+                env.add(constructors[2])
+
+                IType.Alias(path, IType.Union(IType.Union(constructors[0], constructors[1]), constructors[2]))
+            }
             else -> TODO("Union > 2")
         }
 
