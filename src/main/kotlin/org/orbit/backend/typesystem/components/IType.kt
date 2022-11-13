@@ -3,12 +3,14 @@ package org.orbit.backend.typesystem.components
 import org.orbit.backend.typesystem.intrinsics.OrbCoreBooleans
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
+import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeCheckPosition
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.IIntrinsicOperator
 import org.orbit.core.nodes.OperatorFixity
+import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
@@ -51,7 +53,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class Never(val message: String, override val id: String = "!") : IMetaType<Never>, IArrow<Never> {
-        fun panic(): Nothing = throw RuntimeException(message)
+        fun panic(): Nothing = throw getKoinInstance<Invocation>().make<TypeSystem>(message)
 
         override fun getDomain(): List<AnyType> = emptyList()
         override fun getCodomain(): AnyType = this
@@ -118,6 +120,28 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
     sealed interface ISpecialisedType : AnyType {
         fun isSpecialised() : Boolean
+    }
+
+    data class Lazy(val type: AnyType) : IType {
+        override val id: String = "⎡$type⎦"
+
+        override fun getCardinality(): ITypeCardinality
+            = type.getCardinality()
+
+        override fun substitute(substitution: Substitution): AnyType
+            = Lazy(type.substitute(substitution))
+
+        override fun prettyPrint(depth: Int): String
+            = "${"\t".repeat(depth)}⎡$type⎦"
+
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType = type.flatten(from, env)
+        //= when (val t = type.flatten(from, env)) {
+//            is Never -> t.panic()
+//            else -> t
+//        }
+
+        override fun toString(): String
+            = prettyPrint()
     }
 
     data class Alias(val name: String, val type: AnyType) : ISpecialisedType {

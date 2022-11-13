@@ -79,6 +79,6 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
             }
         }
 
-        return arrow.returns
+        return arrow.returns.flatten(arrow.returns, env)
     }
 }

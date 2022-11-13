@@ -4,7 +4,6 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.ProjectedSignatureEnvironment
-import org.orbit.backend.typesystem.components.ProjectionEnvironment
 import org.orbit.backend.typesystem.components.Substitution
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeUtils

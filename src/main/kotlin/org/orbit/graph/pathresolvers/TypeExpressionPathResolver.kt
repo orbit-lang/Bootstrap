@@ -9,6 +9,7 @@ import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.extensions.getGraphIDOrNull
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.graph.phase.CanonicalNameResolver
@@ -62,6 +63,7 @@ object TypeExpressionPathResolver : IPathResolver<TypeExpressionNode> {
 			IPathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())
 		}
 		is StructTypeNode -> {
+			input.members.forEach { it.annotate(input.getGraphID(), Annotations.graphId) }
 			pathResolverUtil.resolveAll(input.members, pass, environment, graph)
 
 			IPathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())

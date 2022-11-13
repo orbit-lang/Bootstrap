@@ -55,6 +55,8 @@ sealed interface ITypeEnvironment {
     fun getSpecialisationEvidence(context: Context) : Set<Specialisation> = emptySet()
 }
 
+interface IPanicEnvironment : ITypeEnvironment
+
 fun ITypeEnvironment.getTypeOrNull(name: String) : ContextualDeclaration<AnyType>?
     = getTypeOrNull(name, this)
 
@@ -98,6 +100,7 @@ interface IMutableTypeEnvironment: ITypeEnvironment {
     fun add(projection: Projection, type: AnyType)
     fun add(context: Context)
     fun bind(name: String, type: AnyType)
+    fun localCopy() : IMutableTypeEnvironment
 }
 
 sealed interface ISelfTypeEnvironment : IMutableTypeEnvironment {
@@ -139,7 +142,10 @@ data class ProjectionEnvironment(private val parent: IMutableTypeEnvironment, va
         add(IType.Alias("Self", projection.source))
     }
 }
-data class ProjectedSignatureEnvironment(val parent: ProjectionEnvironment, val projectedSignature: IType.Signature) : IMutableTypeEnvironment by parent
+data class ProjectedSignatureEnvironment(val parent: ProjectionEnvironment, val projectedSignature: IType.Signature) : IMutableTypeEnvironment by parent {
+    override fun localCopy(): IMutableTypeEnvironment
+        = ProjectedSignatureEnvironment(ProjectionEnvironment(LocalEnvironment(parent), parent.projection), projectedSignature)
+}
 data class ContextualTypeEnvironment(private val parent: IMutableTypeEnvironment, private val context: Context) : IMutableTypeEnvironment by parent {
     override fun getCurrentContext(): Context = context
 
@@ -156,6 +162,8 @@ fun IMutableTypeEnvironment.fork(path: Path) : LocalEnvironment
 
 class LocalEnvironment(private val parent: IMutableTypeEnvironment, override val name: String = parent.name) : IMutableTypeEnvironment {
     private val storage = TypeEnvironmentStorage(parent.getCurrentContext())
+
+    override fun localCopy(): IMutableTypeEnvironment = this
 
     override fun add(type: AnyType) {
         storage.add(type)
@@ -257,6 +265,17 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
     private val projections = mutableMapOf<String, List<ContextualDeclaration<Projection>>>()
     private val contexts = mutableListOf<Context>()
     private val bindings = mutableListOf<IRef>()
+
+    override fun localCopy(): IMutableTypeEnvironment {
+        val nStorage = TypeEnvironmentStorage(context)
+
+        nStorage.types.addAll(types)
+        nStorage.projections.putAll(projections)
+        nStorage.contexts.addAll(contexts)
+        nStorage.bindings.addAll(bindings)
+
+        return nStorage
+    }
 
     override fun add(type: AnyType) {
         types.add(ContextualDeclaration(getCurrentContext(), type))

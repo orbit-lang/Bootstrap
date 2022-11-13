@@ -60,12 +60,19 @@ object ProjectionRule : ParseRule<ProjectionNode>, KoinComponent {
         next = context.peek()
 
         if (next.type == TokenTypes.With) {
-            val resultNode = context.attempt(WithRule(MethodDelegateRule, ProjectedPropertyAssignmentRule))
+            val withNodes = mutableListOf<WithNode<*>>()
+            while (next.type == TokenTypes.With) {
+                val resultNode = context.attempt(WithRule(MethodDelegateRule, ProjectedPropertyAssignmentRule))
 
-            val withNode = resultNode as? WithNode<*>
-                ?: return ParseRule.Result.Failure.Throw("Only the following declarations are allowed in Projection With statements:\n\tProperty Assignment, Property Delegate, Method Delegate", next)
+                val withNode = resultNode as? WithNode<*>
+                    ?: return ParseRule.Result.Failure.Throw("Only the following declarations are allowed in Projection With statements:\n\tProperty Assignment, Property Delegate, Method Delegate", next)
 
-            return +ProjectionNode(start, traitIdentifierRule.lastToken, typeIdentifier, traitIdentifierRule, emptyList(), selfBinding, listOf(withNode.statement as IProjectionDeclarationNode), contextNode)
+                withNodes.add(withNode)
+
+                next = context.peek()
+            }
+
+            return +ProjectionNode(start, traitIdentifierRule.lastToken, typeIdentifier, traitIdentifierRule, emptyList(), selfBinding, withNodes.map { it.statement as IProjectionDeclarationNode }, contextNode)
         }
 
         next = context.peek()

@@ -48,17 +48,44 @@ module M with Orb::Core::* {
         case Patch = Version(self.major, self.minor, self.patch + 1)
     }
 
+    alias Foo = { x Int }
+
+    trait Nat
+
+    alias Zero = { n ${0} }
+
+    projection Zero : Nat
+
+    context NextCtx [N] where N : Nat {
+        alias Next = { n N }
+
+        projection Next : Nat
+    }
+
+    context OptionCtx [T] {
+        trait Option {
+            (self Self) unwrap () (T)
+        }
+
+        type None
+        alias Some = { value T }
+
+        projection None : Option
+            with unwrap by { panic T }
+
+        projection Some : Option
+            with unwrap by { T }
+    }
+
     (Unit) main () () {
-        v0_0_0 = Version(0, 0, 0)
-        v0_0_1 = v0_0_0.next(Patch)
+        typeOf Zero
+        typeOf Next(Zero)
+        typeOf Next(Next(Zero))
 
-        typeOf v0_0_0
-        typeOf v0_0_1
+        typeOf None
+        typeOf Some(1)
+        typeOf None.unwrap()
 
-        v0 = ${Version(${0}, ${0}, ${0})}
-        v1 = ${v0.next(${Major})}
-
-        typeOf v0
-        typeOf v1
+        x = None.unwrap()
     }
 }

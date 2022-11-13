@@ -70,6 +70,7 @@ object TypeUtils {
                 is IType.Never -> left
 
                 else -> when (left) {
+                    is IType.Lazy -> check(env, left.type, right)
                     is IType.Never -> right
                     is IValue<*, *> -> check(env, left.type, right)
                     else -> error
