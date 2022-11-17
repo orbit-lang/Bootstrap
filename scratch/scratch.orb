@@ -40,7 +40,9 @@ module Orb::Core::Errors {
 module M with Orb::Core::* {
     projection Int : Error
 
-    (Unit) main () () {
+    (self Error) throw () () = panic self
 
+    (Unit) main () () {
+        return 0.throw()
     }
 }
