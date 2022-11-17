@@ -15,7 +15,7 @@ object ReturnRule : ParseRule<ReturnStatementNode> {
 		if (next.type == TokenTypes.RBrace) {
 			// This is an empty return, `return`,
 			// syntactic sugar for `return Unit`
-			return +ReturnStatementNode(start, start, TypeIdentifierNode.unit(start))
+			return +ReturnStatementNode(start, start, UnitNode(start, start))
 		}
 
 		val expr = context.attempt(ExpressionRule.defaultValue)

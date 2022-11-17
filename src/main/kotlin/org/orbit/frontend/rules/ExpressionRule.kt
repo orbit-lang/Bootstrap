@@ -27,6 +27,7 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 
 	companion object {
 		val defaultValue = ExpressionRule(
+			AssignmentRule,
 			PanicRule,
 			SelectRule,
 			MirrorRule,

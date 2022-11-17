@@ -33,59 +33,14 @@ module Orb::Core::Types {
     trait Any
 }
 
+module Orb::Core::Errors {
+    trait Error
+}
+
 module M with Orb::Core::* {
-    alias Version = { major Int, minor Int, patch Int }
-
-    type VersionComponent {
-        constructor Major
-        constructor Minor
-        constructor Patch
-    }
-
-    (self Version) next (component VersionComponent) (Version) = select component {
-        case Major = Version(self.major + 1, 0, 0)
-        case Minor = Version(self.major, self.minor + 1, 0)
-        case Patch = Version(self.major, self.minor, self.patch + 1)
-    }
-
-    alias Foo = { x Int }
-
-    trait Nat
-
-    alias Zero = { n ${0} }
-
-    projection Zero : Nat
-
-    context NextCtx [N] where N : Nat {
-        alias Next = { n N }
-
-        projection Next : Nat
-    }
-
-    context OptionCtx [T] {
-        trait Option {
-            (self Self) unwrap () (T)
-        }
-
-        type None
-        alias Some = { value T }
-
-        projection None : Option
-            with unwrap by { panic T }
-
-        projection Some : Option
-            with unwrap by { T }
-    }
+    projection Int : Error
 
     (Unit) main () () {
-        typeOf Zero
-        typeOf Next(Zero)
-        typeOf Next(Next(Zero))
 
-        typeOf None
-        typeOf Some(1)
-        typeOf None.unwrap()
-
-        x = None.unwrap()
     }
 }

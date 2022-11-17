@@ -91,7 +91,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun prettyPrint(depth: Int): String {
             val printer = getKoinInstance<Printer>()
 
-            return printer.apply(OrbCoreTypes.unitType.name, PrintableKey.Bold)
+            return printer.apply(OrbCoreTypes.unitType.getCanonicalName(), PrintableKey.Bold)
         }
 
         override fun toString(): String = prettyPrint()

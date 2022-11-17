@@ -1,5 +1,8 @@
 package org.orbit.core.nodes
 
+import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
+import org.orbit.core.OrbitMangler
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.components.TokenTypes
@@ -34,6 +37,13 @@ data class TupleTypeNode(override val firstToken: Token, override val lastToken:
 	}
 }
 
+data class UnitNode(override val firstToken: Token, override val lastToken: Token) : TypeExpressionNode {
+	override val value: String = "Unit"
+
+	override fun getChildren(): List<INode> = emptyList()
+	override fun getTypeName(): String = "Unit"
+}
+
 data class TypeIdentifierNode(
     override val firstToken: Token,
     override val lastToken: Token,
@@ -43,9 +53,6 @@ data class TypeIdentifierNode(
 	companion object {
 		private val nullToken = Token(TokenTypes.TypeIdentifier, "AnyType", SourcePosition.unknown)
 		private val anyTypeIdentifierNode = TypeIdentifierNode(nullToken, nullToken, "AnyType")
-
-		fun unit(token: Token) : TypeIdentifierNode
-			= TypeIdentifierNode(token, token, "Orb::Types::Intrinsics::Unit")
 
 		fun hole(token: Token) : TypeIdentifierNode
 			= TypeIdentifierNode(token, token, "_")

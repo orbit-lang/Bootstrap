@@ -80,6 +80,7 @@ val mainModule = module {
 		util.registerPathResolver(ContextOfPathResolver, ContextOfNode::class.java)
 		util.registerPathResolver(CheckPathResolver, CheckNode::class.java)
 		util.registerPathResolver(ProjectedPropertyAssignmentPathResolver, ProjectedPropertyAssignmentNode::class.java)
+		util.registerPathResolver(UnitPathResolver, UnitNode::class.java)
 
 		util
 	}
@@ -153,6 +154,7 @@ val mainModule = module {
 	single(ExpandInference)
 	single(IdentifierBindingPatternInference)
 	single(ProjectedPropertyAssignmentInference)
+	single(UnitInference)
 }
 
 private inline fun <reified N: INode, reified E: ITypeEnvironment> org.koin.core.module.Module.single(inference: ITypeInference<N, E>) : BeanDefinition<ITypeInference<N, E>>

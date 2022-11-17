@@ -36,8 +36,6 @@ object MethodDefInference : ITypeInference<MethodDefNode, IMutableTypeEnvironmen
 
         val returns = TypeInferenceUtils.infer(node.body, oEnv)
 
-
-
         return when (TypeUtils.checkEq(oEnv, returns, signature.returns)) {
             true -> signature
             else -> throw invocation.make<TypeSystem>("Method `${node.signature.identifierNode.identifier}` declared return Type of `${signature.returns}`, found `$returns`", node)
