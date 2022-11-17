@@ -18,6 +18,17 @@ class Parser(
 	data class InputType(val tokens: List<Token>) : Any()
 	data class Result(val ast: INode)
 
+	class TokenCollector {
+		private val collectedTokens = mutableListOf<Token>()
+
+		fun collect(token: Token) {
+			collectedTokens.add(token)
+		}
+
+		fun getCollectedTokens()
+			= collectedTokens
+	}
+
 	object LexerAdapter : PhaseAdapter<Lexer.Result, InputType> {
 		override fun bridge(output: Lexer.Result): InputType = InputType(output.tokens)
 	}
@@ -52,6 +63,8 @@ class Parser(
 	private var markedTokens: MutableList<Token>? = null
 	private var protection: Boolean = false
 
+	private val collectors = mutableListOf<TokenCollector>()
+
 	init {
 	    registerAdapter(LexerAdapter)
 		registerAdapter(FrontendAdapter)
@@ -65,6 +78,14 @@ class Parser(
 
 	fun setThrowProtection(onOff: Boolean) {
 		protection = onOff
+	}
+
+	fun startCollecting() : TokenCollector {
+		val collector = TokenCollector()
+
+		collectors.add(collector)
+
+		return collector
 	}
 
 	fun <R> protected(exp: () -> Exception): R? = when (protection) {
@@ -134,6 +155,8 @@ class Parser(
 		
 		return tokens.removeAt(0).apply {
 			mark(this)
+
+			collectors.forEach { it.collect(this) }
 
 			if (isRecording) {
 				recordedTokens.add(this)

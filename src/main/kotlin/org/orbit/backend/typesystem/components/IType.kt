@@ -312,6 +312,23 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
+    data class Array(val element: AnyType) : IType {
+        override val id: String = "[${element.id}]"
+
+        override fun getCardinality(): ITypeCardinality = ITypeCardinality.Infinite
+        override fun substitute(substitution: Substitution): AnyType
+            = Array(element.substitute(substitution))
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+
+            return "$indent[$element]"
+        }
+
+        override fun toString(): String
+            = prettyPrint()
+    }
+
     sealed interface IConstructor<T : AnyType> : IArrow<IConstructor<T>> {
         val constructedType: T
     }

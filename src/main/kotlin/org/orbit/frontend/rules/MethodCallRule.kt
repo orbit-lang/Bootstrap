@@ -52,6 +52,10 @@ object MethodCallRule : CallRule<MethodCallNode> {
         var next = context.peek()
 
         if (next.type != TokenTypes.Dot) {
+            if (lhs is TypeExpressionNode) {
+                return ParseRule.Result.Failure.Rewind(context.end())
+            }
+
             return +lhs
         }
 

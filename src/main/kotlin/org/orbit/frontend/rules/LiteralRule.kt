@@ -5,12 +5,12 @@ import org.orbit.core.nodes.RValueNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
-class LiteralRule(private vararg val accepts: ValueRule<*> = Default) : ValueRule<RValueNode> {
+class LiteralRule(private vararg val accepts: ValueRule<*> = default) : ValueRule<RValueNode> {
 	private companion object {
-		val Default = arrayOf<ValueRule<*>>(
+		val default = arrayOf<ValueRule<*>>(
 			TupleLiteralRule,
 			InvokableReferenceRule,
-			TypeIdentifierRule.Naked,
+//			TypeIdentifierRule.Naked,
 			IdentifierRule,
 			IntLiteralRule,
 			BoolLiteralRule,

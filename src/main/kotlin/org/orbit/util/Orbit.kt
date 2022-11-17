@@ -13,6 +13,7 @@ import org.orbit.backend.typesystem.inference.*
 import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.nodes.*
 import org.orbit.core.phase.CompilerGenerator
+import org.orbit.frontend.rules.CollectionTypeInference
 import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.ContextCompositionPathResolver
 import org.orbit.graph.pathresolvers.util.ContextInstantiationPathResolver
@@ -81,6 +82,8 @@ val mainModule = module {
 		util.registerPathResolver(CheckPathResolver, CheckNode::class.java)
 		util.registerPathResolver(ProjectedPropertyAssignmentPathResolver, ProjectedPropertyAssignmentNode::class.java)
 		util.registerPathResolver(UnitPathResolver, UnitNode::class.java)
+		util.registerPathResolver(CollectionLiteralPathResolver, CollectionLiteralNode::class.java)
+		util.registerPathResolver(CollectionTypePathResolver, CollectionTypeNode::class.java)
 
 		util
 	}
@@ -155,6 +158,8 @@ val mainModule = module {
 	single(IdentifierBindingPatternInference)
 	single(ProjectedPropertyAssignmentInference)
 	single(UnitInference)
+	single(CollectionLiteralInference)
+	single(CollectionTypeInference)
 }
 
 private inline fun <reified N: INode, reified E: ITypeEnvironment> org.koin.core.module.Module.single(inference: ITypeInference<N, E>) : BeanDefinition<ITypeInference<N, E>>

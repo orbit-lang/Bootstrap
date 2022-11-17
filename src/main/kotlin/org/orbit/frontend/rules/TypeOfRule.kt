@@ -9,9 +9,10 @@ import org.orbit.frontend.phase.Parser
 object TypeOfRule : ParseRule<TypeOfNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.TypeOf)
+        val next = context.peek()
         val expr = context.attemptAny(listOf(GroupedExpressionRule, ExpressionRule.defaultValue))
             as? IExpressionNode
-            ?: return ParseRule.Result.Failure.Abort
+            ?: return ParseRule.Result.Failure.Throw("`typeOf` operator only works on values", next)
 
         return +TypeOfNode(start, expr.lastToken, expr)
     }

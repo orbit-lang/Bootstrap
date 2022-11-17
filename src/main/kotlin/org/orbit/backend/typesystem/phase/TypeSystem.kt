@@ -7,10 +7,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.orbit.backend.typesystem.components.AnyMetaType
 import org.orbit.backend.typesystem.components.GlobalEnvironment
-import org.orbit.backend.typesystem.intrinsics.OrbCoreErrors
-import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
-import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
-import org.orbit.backend.typesystem.intrinsics.import
+import org.orbit.backend.typesystem.intrinsics.*
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.core.phase.Phase
@@ -24,6 +21,7 @@ object TypeSystem : Phase<ProgramNode, AnyMetaType>, KoinComponent {
             .import(OrbCoreNumbers)
             .import(OrbCoreTypes)
             .import(OrbCoreErrors)
+//            .import(OrbCoreCollections)
 
         loadKoinModules(module {
             single(named("globalContext")) { env }

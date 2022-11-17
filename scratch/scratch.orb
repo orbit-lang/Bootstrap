@@ -38,11 +38,17 @@ module Orb::Core::Errors {
 }
 
 module M with Orb::Core::* {
-    projection Int : Error
-
-    (self Error) throw () () = panic self
+    context CollectionCtx [Element] {
+        trait Collection(elements [Element])
+    }
 
     (Unit) main () () {
-        return 0.throw()
+        xs = [1, 2, 3]
+        ys = [4, 5, 6]
+
+        typeOf xs
+        check xs, ys
+
+        return
     }
 }

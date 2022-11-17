@@ -47,3 +47,4 @@ object OrbCoreErrors : IOrbModule {
     override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
     override fun getPublicOperators(): List<IType.IOperatorArrow<*, *>> = emptyList()
 }
+

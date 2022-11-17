@@ -8,8 +8,9 @@ import org.orbit.frontend.phase.Parser
 object ConstructorInvocationRule : ValueRule<ConstructorInvocationNode> {
     override fun parse(context: Parser) : ParseRule.Result {
         context.mark()
+        val collector = context.startCollecting()
         val typeIdentifier = context.attempt(TypeExpressionRule)
-            ?: return ParseRule.Result.Failure.Rewind()
+            ?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
         val recorded = context.end()
         val next = context.peek()
 

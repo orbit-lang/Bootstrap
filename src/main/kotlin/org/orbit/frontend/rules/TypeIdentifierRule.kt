@@ -34,11 +34,27 @@ object TupleTypeRule : ValueRule<TupleTypeNode> {
 	}
 }
 
+object CollectionTypeRule : ValueRule<CollectionTypeNode> {
+	override fun parse(context: Parser): ParseRule.Result {
+		context.mark()
+		val collector = context.startCollecting()
+		val start = context.expect(TokenTypes.LBracket)
+		val elementType = context.attempt(TypeExpressionRule)
+			?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
+
+		val end = context.expect(TokenTypes.RBracket)
+
+		return +CollectionTypeNode(start, end, elementType)
+	}
+}
+
 object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
-		val node = context.attemptAny(listOf(MirrorRule, ExpandRule, TypeIndexRule, MetaTypeRule, StructTypeRule, TupleTypeRule, TypeIdentifierRule.Naked))
+		context.mark()
+		val collector = context.startCollecting()
+		val node = context.attemptAny(listOf(ExpandRule, CollectionTypeRule, StructTypeRule, TupleTypeRule, TypeIdentifierRule.Naked))
 			as? TypeExpressionNode
-			?: return ParseRule.Result.Failure.Rewind()
+			?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
 
 		return +node
 	}

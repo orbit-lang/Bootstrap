@@ -9,3 +9,10 @@ data class CollectionLiteralNode(
 ) : IExpressionNode {
     override fun getChildren(): List<INode> = elements
 }
+
+data class CollectionTypeNode(override val firstToken: Token, override val lastToken: Token, val elementType: TypeExpressionNode) : TypeExpressionNode {
+    override val value: String = "[]"
+
+    override fun getChildren(): List<INode> = listOf(elementType)
+    override fun getTypeName(): String = "[]"
+}
