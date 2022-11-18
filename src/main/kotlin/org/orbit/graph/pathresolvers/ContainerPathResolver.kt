@@ -4,6 +4,7 @@ import org.koin.core.component.inject
 import org.orbit.core.*
 import org.orbit.core.nodes.*
 import org.orbit.core.nodes.Annotations
+import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -156,6 +157,7 @@ class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 
 			if (input is ModuleNode) {
 				for (typeProjection in input.projections) {
+					typeProjection.annotate(input.getGraphID(), Annotations.graphId)
 					ProjectionPathResolver.resolve(typeProjection, IPathResolver.Pass.Initial, environment, graph)
 				}
 			}

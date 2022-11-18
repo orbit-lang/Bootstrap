@@ -15,7 +15,7 @@ object CollectionTypePathResolver : IPathResolver<CollectionTypeNode> {
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: CollectionTypeNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
-        input.elementType.annotate(input.getGraphID(), Annotations.graphId)
+        //input.elementType.annotate(input.getGraphID(), Annotations.graphId)
 
         return pathResolverUtil.resolve(input.elementType, pass, environment, graph)
     }

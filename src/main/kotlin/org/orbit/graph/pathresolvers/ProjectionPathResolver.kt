@@ -9,6 +9,7 @@ import org.orbit.core.nodes.annotateByKey
 import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
+import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
@@ -18,6 +19,7 @@ object ProjectionPathResolver : IPathResolver<ProjectionNode> {
 
 	override fun resolve(input: ProjectionNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		if (pass == IPathResolver.Pass.Initial) {
+//			input.typeIdentifier.annotate(input.getGraphID(), Annotations.graphId)
 			val typeResult = TypeExpressionPathResolver.resolve(input.typeIdentifier, pass, environment, graph)
 				.asSuccess()
 

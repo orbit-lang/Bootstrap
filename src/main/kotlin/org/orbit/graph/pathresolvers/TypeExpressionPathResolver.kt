@@ -69,6 +69,11 @@ object TypeExpressionPathResolver : IPathResolver<TypeExpressionNode> {
 			IPathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())
 		}
 
-		else -> TODO("???")
+		is CollectionTypeNode -> {
+			//input.elementType.annotate(input.getGraphID(), Annotations.graphId)
+			pathResolverUtil.resolve(input, pass, environment, graph)
+		}
+
+		else -> TODO("Cannot resolve Path for unsupported Type Expression: $input")
 	}
 }

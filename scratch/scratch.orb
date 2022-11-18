@@ -37,17 +37,28 @@ module Orb::Core::Errors {
     trait Error
 }
 
-module M with Orb::Core::* {
+module Orb::Core::Collections {
     context CollectionCtx [Element] {
         trait Collection(elements [Element])
     }
+}
+
+module Orb::Core::Collections::Sets {
+    context SetCtx [Elements] where Elements : Collection {
+        alias Set = { elements Elements }
+    }
+
+    context FooCtx [T] {
+        trait Foo(t T)
+    }
+}
+
+module M with Orb::Core::* {
+     projection [Int] : Collection within CollectionCtx [Int]
+        with elements = [0]
 
     (Unit) main () () {
-        xs = [1, 2, 3]
-        ys = [4, 5, 6]
-
-        typeOf xs
-        check xs, ys
+        s = Set([0])
 
         return
     }

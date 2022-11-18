@@ -312,12 +312,20 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Array(val element: AnyType) : IType {
+    data class Array(val element: AnyType) : IType, ISpecialisedType {
         override val id: String = "[${element.id}]"
 
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Infinite
         override fun substitute(substitution: Substitution): AnyType
             = Array(element.substitute(substitution))
+
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = element.getUnsolvedTypeVariables()
+
+        override fun isSpecialised(): Boolean = when (element) {
+            is ISpecialisedType -> element.isSpecialised()
+            else -> false
+        }
 
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)

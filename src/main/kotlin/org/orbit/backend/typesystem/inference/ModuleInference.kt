@@ -8,6 +8,7 @@ import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.ModuleNode
 import org.orbit.core.nodes.TraitDefNode
 import org.orbit.core.nodes.TypeDefNode
+import java.lang.Exception
 
 object ModuleInference : ITypeInference<ModuleNode, GlobalEnvironment> {
     override fun infer(node: ModuleNode, env: GlobalEnvironment): AnyType {

@@ -18,7 +18,10 @@ object ContextInstantiationPathResolver : IPathResolver<ContextInstantiationNode
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: ContextInstantiationNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
-        val nPath = environment.getCurrentContainerPath() + input.contextIdentifierNode.value
+//        val nPath = environment.getCurrentContainerPath() + input.contextIdentifierNode.value
+        val nPath = environment.getBinding(input.contextIdentifierNode.value)
+            .unwrap(this, input.contextIdentifierNode.firstToken.position)
+            .path
 
         input.annotate(nPath, Annotations.path)
         input.contextIdentifierNode.annotateByKey(input.getGraphID(), Annotations.graphId)
