@@ -131,8 +131,9 @@ class Scope(
 	}
 
 	fun get2(name: String, context: Binding.Kind? = null, graph: Graph? = null, parentVertexID: GraphEntity.Vertex.ID? = null) : BindingSearchResult {
-		if (name == "Self") return BindingSearchResult.Success(Binding.Self)
+		if (name == "Self") return BindingSearchResult.Success(Binding.self)
 		if (name == "_") return BindingSearchResult.Success(Binding.infer)
+		if (name == "[]") return BindingSearchResult.Success(Binding.array)
 
 		val path = OrbitMangler.unmangle(name)
 
@@ -207,7 +208,7 @@ class Scope(
 
 	fun get(simpleName: String, context: Binding.Kind?) : BindingSearchResult {
 		if (simpleName == "Self") {
-			return BindingSearchResult.Success(Binding.Self)
+			return BindingSearchResult.Success(Binding.self)
 		}
 
 		val imported = imports.map { environment.getScope(it) }

@@ -39,26 +39,25 @@ module Orb::Core::Errors {
 
 module Orb::Core::Collections {
     context CollectionCtx [Element] {
-        trait Collection(elements [Element])
+        trait Collection {
+            (self Self) size () (Int)
+        }
     }
 }
 
 module Orb::Core::Collections::Sets {
-    context SetCtx [Elements] where Elements : Collection {
-        alias Set = { elements Elements }
-    }
+    context SetCtx [Element] {
+        alias Set = [Element]
 
-    context FooCtx [T] {
-        trait Foo(t T)
+        (self Set) size () (Int) = 0
     }
 }
 
 module M with Orb::Core::* {
-     projection [Int] : Collection within CollectionCtx [Int]
-        with elements = [0]
-
     (Unit) main () () {
-        s = Set([0])
+        s = Set(1, 2)
+
+        typeOf s.size()
 
         return
     }

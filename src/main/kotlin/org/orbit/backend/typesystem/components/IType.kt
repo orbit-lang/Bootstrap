@@ -14,6 +14,7 @@ import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
+import java.util.Arrays
 
 fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) : M? {
     for (modifier in all()) {
@@ -312,12 +313,92 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Array(val element: AnyType) : IType, ISpecialisedType {
-        override val id: String = "[${element.id}]"
+    sealed interface IArrayConstructor : IConstructor<Array> {
+        data class Empty(override val constructedType: Array) : IArrayConstructor {
+            override val id: String = "[]"
+
+            override fun getDomain(): List<AnyType> = emptyList()
+            override fun getCodomain(): AnyType = Array(constructedType.element, Array.Size.Fixed(0))
+            override fun curry(): IArrow<*> = this
+
+            override fun never(args: List<AnyType>): Never {
+                TODO("Not yet implemented")
+            }
+
+            override fun substitute(substitution: Substitution): AnyType
+                = Empty(constructedType.substitute(substitution) as Array)
+        }
+
+        data class Populated(override val constructedType: Array, private val dynamicSize: Int? = null) : IArrayConstructor {
+            override val id: String = "[]"
+
+            override fun getDomain(): List<AnyType> {
+                val size = dynamicSize ?: when (constructedType.size) {
+                    is Array.Size.Fixed -> constructedType.size.size
+                    else -> TODO("WEIRD ARRAY ERROR")
+                }
+
+                return (0 until size).map { constructedType.element }
+            }
+
+            override fun getCodomain(): AnyType = constructedType
+            override fun curry(): IArrow<*> = this
+
+            override fun never(args: List<AnyType>): Never {
+                TODO("Not yet implemented")
+            }
+
+            override fun substitute(substitution: Substitution): AnyType
+                = Populated(constructedType.substitute(substitution) as Array)
+        }
+    }
+
+    data class Array(val element: AnyType, val size: Size) : IType, ISpecialisedType, IConstructableType<Array> {
+        sealed interface Size {
+            data class Fixed(val size: Int) : Size {
+                override fun equals(other: kotlin.Any?): Boolean = when (other) {
+                    is Fixed -> other.size == size
+                    is Any -> true
+                    else -> false
+                }
+
+                override fun hashCode(): Int = size
+
+                override fun toString(): String = "$size"
+            }
+
+            object Any : Size {
+                override fun equals(other: kotlin.Any?): Boolean = when (other) {
+                    is Size -> true
+                    else -> false
+                }
+
+                override fun toString(): String = "*"
+            }
+        }
+
+        override val id: String = "[${element.id};$size]"
+
+        override fun getConstructors(): List<IConstructor<*>> = when (size) {
+            is Size.Fixed -> when (size.size) {
+                0 -> listOf(IArrayConstructor.Empty(this))
+                else -> listOf(IArrayConstructor.Empty(this), IArrayConstructor.Populated(this))
+            }
+
+            is Size.Any -> listOf(IArrayConstructor.Empty(this))
+        }
+
+        override fun getConstructor(given: List<AnyType>): IConstructor<Array>? = when (given.count()) {
+            0 -> getConstructors()[0] as IConstructor<Array>
+            else -> when (size) {
+                is Size.Fixed -> getConstructors()[1] as IConstructor<Array>
+                is Size.Any -> IArrayConstructor.Populated(this, given.count())
+            }
+        }
 
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Infinite
         override fun substitute(substitution: Substitution): AnyType
-            = Array(element.substitute(substitution))
+            = Array(element.substitute(substitution), size)
 
         override fun getUnsolvedTypeVariables(): List<TypeVar>
             = element.getUnsolvedTypeVariables()
@@ -330,7 +411,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)
 
-            return "$indent[$element]"
+            return "$indent[$element;$size]"
         }
 
         override fun toString(): String
@@ -1102,9 +1183,11 @@ data class IntValue(override val value: Int) : IValue<IType.Type, Int> {
     override val type: IType.Type = OrbCoreNumbers.intType
 
     override fun prettyPrint(depth: Int): String {
+        val printer = getKoinInstance<Printer>()
         val indent = "\t".repeat(depth)
+        val pretty = printer.apply("$value", PrintableKey.Bold)
 
-        return "$indent$value"
+        return "$indent$pretty"
     }
 
     override fun toString(): String = prettyPrint()
@@ -1120,6 +1203,20 @@ object TrueValue : IValue<IType.Type, Boolean> {
 object FalseValue : IValue<IType.Type, Boolean> {
     override val type: IType.Type = OrbCoreBooleans.falseType
     override val value: Boolean = false
+
+    override fun toString(): String = prettyPrint()
+}
+
+data class ArrayValue(override val type: IType.Array, override val value: List<AnyType>) : IValue<IType.Array, List<AnyType>> {
+    override fun prettyPrint(depth: Int): String {
+        val printer = getKoinInstance<Printer>()
+        val indent = "\t".repeat(depth)
+        val pretty = value.joinToString(", ")
+        val open = printer.apply("[", PrintableKey.Bold)
+        val close = printer.apply("]", PrintableKey.Bold)
+
+        return "$indent$open$pretty$close"
+    }
 
     override fun toString(): String = prettyPrint()
 }

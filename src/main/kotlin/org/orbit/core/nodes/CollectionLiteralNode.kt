@@ -6,8 +6,9 @@ data class CollectionLiteralNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val elements: List<IExpressionNode>
-) : IExpressionNode {
+) : IExpressionNode, IConstantExpressionNode {
     override fun getChildren(): List<INode> = elements
+    override fun getTypeName(): String = "[]"
 }
 
 data class CollectionTypeNode(override val firstToken: Token, override val lastToken: Token, val elementType: TypeExpressionNode) : TypeExpressionNode {

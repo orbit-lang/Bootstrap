@@ -28,6 +28,6 @@ object CollectionLiteralInference : ITypeInference<CollectionLiteralNode, ITypeE
             }
         }
 
-        return IType.Array(element)
+        return IType.Array(element, IType.Array.Size.Fixed(elements.count()))
     }
 }

@@ -158,6 +158,7 @@ class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 			if (input is ModuleNode) {
 				for (typeProjection in input.projections) {
 					typeProjection.annotate(input.getGraphID(), Annotations.graphId)
+					typeProjection.typeIdentifier.annotate(input.getGraphID(), Annotations.graphId)
 					ProjectionPathResolver.resolve(typeProjection, IPathResolver.Pass.Initial, environment, graph)
 				}
 			}

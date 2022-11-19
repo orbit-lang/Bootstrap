@@ -30,7 +30,6 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 			AssignmentRule,
 			PanicRule,
 			SelectRule,
-//			MirrorRule,
 			ExpandRule,
 			ConstructorInvocationRule,
 			MethodCallRule,

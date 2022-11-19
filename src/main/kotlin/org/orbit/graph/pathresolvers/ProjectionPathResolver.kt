@@ -19,11 +19,11 @@ object ProjectionPathResolver : IPathResolver<ProjectionNode> {
 
 	override fun resolve(input: ProjectionNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		if (pass == IPathResolver.Pass.Initial) {
-//			input.typeIdentifier.annotate(input.getGraphID(), Annotations.graphId)
+			input.typeIdentifier.annotate(input.getGraphID(), Annotations.graphId)
 			val typeResult = TypeExpressionPathResolver.resolve(input.typeIdentifier, pass, environment, graph)
 				.asSuccess()
 
-			val graphID = graph.find(typeResult.path.toString(OrbitMangler))
+			val graphID = input.getGraphID() //graph.find(typeResult.path.toString(OrbitMangler))
 
 			input.typeIdentifier.annotate(graphID, Annotations.graphId)
 			input.traitIdentifier.annotate(graphID, Annotations.graphId)

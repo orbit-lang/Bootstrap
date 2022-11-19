@@ -53,9 +53,10 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 	}
 
 	companion object {
-		val Self = Binding(Kind.Self, "Self", Path.self)
+		val self = Binding(Kind.Self, "Self", Path.self)
 		val empty = Binding(Kind.Empty, "", Path.empty)
 		val infer = Binding(Kind.Type, "_", Path.infer)
+		val array = Binding(Kind.Type, "[]", Path.array)
 	}
 
 	fun matches(name: String) : Boolean = when (kind) {

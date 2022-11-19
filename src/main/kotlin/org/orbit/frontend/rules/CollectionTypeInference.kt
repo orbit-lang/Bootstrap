@@ -11,6 +11,6 @@ object CollectionTypeInference : ITypeInference<CollectionTypeNode, ITypeEnviron
     override fun infer(node: CollectionTypeNode, env: ITypeEnvironment): AnyType {
         val elementType = TypeInferenceUtils.infer(node.elementType, env)
 
-        return IType.Array(elementType)
+        return IType.Array(elementType, IType.Array.Size.Any)
     }
 }

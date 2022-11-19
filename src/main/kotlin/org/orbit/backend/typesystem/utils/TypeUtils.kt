@@ -22,6 +22,15 @@ object TypeUtils {
         when (left == right) {
             true -> right
             else -> when (right) {
+                is IType.Array -> when (left) {
+                    is IType.Array -> when (left.size == right.size) {
+                        true -> check(env, left.element, right.element)
+                        else -> error
+                    }
+
+                    else -> error
+                }
+
                 is IType.Signature -> when (left) {
                     is IType.Signature -> when (checkSignatures(env, left, right)) {
                         true -> left

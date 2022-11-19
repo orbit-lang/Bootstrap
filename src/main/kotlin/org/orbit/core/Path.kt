@@ -9,6 +9,7 @@ open class Path(open val relativeNames: List<String>) : AnyPrintable, Collection
 		val empty = Path()
 		val self = Path("Self")
 		val infer = Path("_")
+		val array = Path("[]")
 	}
 
 	constructor(path: String) : this(listOf(path))

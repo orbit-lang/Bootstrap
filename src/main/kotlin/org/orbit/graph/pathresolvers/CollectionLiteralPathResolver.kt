@@ -21,6 +21,6 @@ object CollectionLiteralPathResolver : IPathResolver<CollectionLiteralNode> {
             pathResolverUtil.resolve(it, pass, environment, graph)
         }
 
-        return IPathResolver.Result.Success(Path.empty)
+        return IPathResolver.Result.Success(Path.array)
     }
 }

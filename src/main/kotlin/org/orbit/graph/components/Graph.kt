@@ -43,7 +43,9 @@ class Graph : Serializable {
         if (id == GraphEntity.Vertex.ID.Self) return GraphEntity.Vertex("Self", id)
 
         return when (val vertex = vertices.find { it.id == id }) {
-            null -> throw Exception("Dependency not found: '$id'")
+            null -> {
+                throw Exception("Dependency not found: '$id'")
+            }
             is GraphEntity.Alias ->
                 if (preferShortest) vertex
                 else vertices.find { it.id == id && it.name != vertex.name }!!
@@ -59,7 +61,7 @@ class Graph : Serializable {
     }
 
     fun find(binding: Binding) : GraphEntity.Vertex.ID = when (binding) {
-        Binding.Self -> GraphEntity.Vertex.ID.Self
+        Binding.self -> GraphEntity.Vertex.ID.Self
         else -> find(binding.path.toString(OrbitMangler))
     }
 
