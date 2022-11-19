@@ -79,6 +79,10 @@ object TypeUtils {
                 is IType.Never -> left
 
                 else -> when (left) {
+                    is IType.TypeVar -> when (left.constraints.all { it.isSolvedBy(right, env) }) {
+                        true -> left
+                        else -> error
+                    }
                     is IType.Trait -> check(env, right, left)
                     is IType.Lazy -> check(env, left.type, right)
                     is IType.Never -> right
