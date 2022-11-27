@@ -126,6 +126,7 @@ private object UntypedParametersLambdaLiteralRule : ValueRule<LambdaLiteralNode>
                     CheckRule,
                     MirrorRule,
                     TypeOfRule,
+                    RefOfRule,
                     ContextOfRule,
                     DeferRule,
                     PrintRule,

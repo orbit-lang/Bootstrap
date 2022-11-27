@@ -51,6 +51,7 @@ sealed interface ITypeEnvironment {
     fun getTypeOrNull(name: String, env: ITypeEnvironment) : ContextualDeclaration<AnyType>?
     fun getProjections(type: AnyType) : List<ContextualDeclaration<Projection>>
     fun getContextOrNull(name: String) : Context?
+    fun getAllBindings(name: String) : List<IRef>?
     fun getBinding(name: String, index: Int) : IRef?
     fun getCurrentContext() : Context
     fun getKnownContexts() : List<Context>
@@ -211,6 +212,9 @@ class LocalEnvironment(private val parent: IMutableTypeEnvironment, override val
     override fun getContextOrNull(name: String): Context?
         = storage.getContextOrNull(name)
 
+    override fun getAllBindings(name: String): List<IRef>?
+        = storage.getAllBindings(name) ?: parent.getAllBindings(name)
+
     override fun getBinding(name: String, index: Int): IRef?
         = storage.getBinding(name, index) ?: parent.getBinding(name, index)
 
@@ -315,6 +319,15 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
     }
 
     override fun bind(name: String, type: AnyType, index: Int) {
+        val existing = bindings.filter { it.name == name }
+
+        if (existing.isNotEmpty()) {
+            val invocation = getKoinInstance<Invocation>()
+            val pretty = existing.joinToString("\n\t")
+
+            throw invocation.make<TypeSystem>("Attempting to overwrite ref `$name : $type`. Previous definitions:\n\t$pretty")
+        }
+
         bindings.add(Ref(name, type, index))
     }
 
@@ -402,6 +415,15 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
         return when (matches.count()) {
             1 -> matches[0]
             else -> null
+        }
+    }
+
+    override fun getAllBindings(name: String): List<IRef>? {
+        val all = bindings.filter { it.name == name }
+
+        return when (all.isEmpty()) {
+            true -> null
+            else -> all
         }
     }
 

@@ -11,6 +11,11 @@ module Orb::Core::Booleans {
         constructor True
         constructor False
     }
+
+    (self Bool) not () (Bool) = select self {
+        case true = false
+        case else = true
+    }
 }
 
 module M with Orb::* {
@@ -28,16 +33,16 @@ module M with Orb::* {
 
     infix operator boolAdd `+` by Bool::add
 
-    (Bool) main () () {
+    (Bool) main () (Int) {
         x = 1
-#        id = { x -> x }
-#        id2 = { x, y, z -> x * y * z }
-#        id3 = { -> x }
-        id4 = { x, y -> x:1 + y }
+        id = { x -> x }
+        id2 = { x, y, z -> x * y * z }
+        id3 = { -> x }
+        id4 = { (x, y Int) -> x.not() }
 
-#        typeOf id(1)
-#        typeOf id2(1, 2, 3)
-#        typeOf id3()
-        typeOf id4(true, false)
+        typeOf id(1)
+        typeOf id2(1, 2, 3)
+        typeOf id3()
+        typeOf id4(true, 2)
     }
 }

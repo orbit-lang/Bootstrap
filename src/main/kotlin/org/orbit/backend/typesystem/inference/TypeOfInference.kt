@@ -9,7 +9,7 @@ import org.orbit.core.nodes.TypeOfNode
 
 object TypeOfInference : ITypeInference<TypeOfNode, ITypeEnvironment> {
     override fun infer(node: TypeOfNode, env: ITypeEnvironment): AnyType {
-        val typeAnnotation = (env as? AnnotatedTypeEnvironment)?.typeAnnotation ?: IType.Unit
+        val typeAnnotation = (env as? AnnotatedTypeEnvironment)?.typeAnnotation ?: IType.Always
         val type = TypeInferenceUtils.infer(node.expressionNode, env)
 
         println(type)
