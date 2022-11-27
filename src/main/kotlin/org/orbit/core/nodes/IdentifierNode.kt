@@ -7,7 +7,8 @@ import org.orbit.core.components.TokenTypes
 data class IdentifierNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val identifier: String
+    val identifier: String,
+    val index: Int = 0
 ) : IConstantExpressionNode, ValueRepresentableNode, IPatternNode, ILiteralNode<String> {
     companion object {
         val init = IdentifierNode(

@@ -11,7 +11,7 @@ object LambdaLiteralInference : ITypeInference<LambdaLiteralNode, IMutableTypeEn
         val parameters = node.bindings.map {
             val type = TypeInferenceUtils.infer(it.typeNode, nEnv)
 
-            nEnv.bind(it.identifierNode.identifier, type)
+            nEnv.bind(it.identifierNode.identifier, type, it.identifierNode.index)
 
             type
         }

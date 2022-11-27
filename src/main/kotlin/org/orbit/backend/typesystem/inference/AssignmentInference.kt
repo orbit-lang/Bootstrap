@@ -14,7 +14,7 @@ object AssignmentInference : ITypeInference<AssignmentStatementNode, ISelfTypeEn
         val type = TypeInferenceUtils.infer(node.value, nEnv)
         val flat = type.flatten(type, env)
 
-        env.bind(node.identifier.identifier, flat)
+        env.bind(node.identifier.identifier, flat, node.identifier.index)
 
         // Assignments are Type "neutral": they allow any enclosing Type Annotation to flow through
         return IType.Always

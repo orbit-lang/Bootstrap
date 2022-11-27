@@ -3,6 +3,7 @@ package org.orbit.core
 import com.github.ajalt.clikt.core.subcommands
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import org.koin.core.component.inject
 import org.koin.core.definition.BeanDefinition
 import org.koin.core.definition.Definition
 import org.koin.core.module.Module
@@ -67,12 +68,16 @@ inline fun <reified T> KoinComponent.injectResult(
 
 class Main {
     companion object : KoinComponent {
+		private val invocation: Invocation by inject()
+
         @ExperimentalTime
 		@JvmStatic fun main(args: Array<String>) {
 			val orbit = Orbit()
 				.subcommands(Build, Symbols, Parse, Graph, Check)
 
 			orbit.main(args)
+
+			println(invocation.dumpWarnings())
         }
     }
 }

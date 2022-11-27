@@ -32,20 +32,20 @@ object InvocationInference : ITypeInference<InvocationNode, IMutableTypeEnvironm
             }
         }
 
-        val body = GlobalEnvironment.lambdaBody(arrow)
+        val lambda = GlobalEnvironment.lambdaBody(arrow)
             ?: return arrow.getCodomain()
 
         val nEnv = env.fork()
 
-        body.bindings.map { it.identifierNode.identifier }.zip(args).forEach {
-            nEnv.bind(it.first, it.second)
+        lambda.bindings.map { it.identifierNode }.zip(args).forEach {
+            nEnv.bind(it.first.identifier, it.second, it.first.index)
         }
 
         // If we can determine the original lambda, we can re-check its
         // body given the information we now have about the call-site
         // NOTE - If we don't do this, it is possible to circumvent the Type Checker in a lambda literal, e.g:
         // `sqr = { x -> x * x }` // There may not be an infix operator in scope for `x -> x`
-        TypeInferenceUtils.infer(body, nEnv)
+        TypeInferenceUtils.infer(lambda.body, nEnv)
 
         return arrow.getCodomain()
     }

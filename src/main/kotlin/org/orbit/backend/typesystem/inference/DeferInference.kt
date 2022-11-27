@@ -17,7 +17,7 @@ object DeferInference : ITypeInference<DeferNode, ISelfTypeEnvironment> {
                     else -> t
                 }
 
-                SelfTypeEnvironment(env, self).apply { bind(ret.identifier, self) }
+                SelfTypeEnvironment(env, self).apply { bind(ret.identifier, self, ret.index) }
             }
         }
 

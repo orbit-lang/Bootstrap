@@ -5,6 +5,7 @@ import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.LambdaLiteralNode
 import org.orbit.core.nodes.OperatorFixity
@@ -50,7 +51,7 @@ sealed interface ITypeEnvironment {
     fun getTypeOrNull(name: String, env: ITypeEnvironment) : ContextualDeclaration<AnyType>?
     fun getProjections(type: AnyType) : List<ContextualDeclaration<Projection>>
     fun getContextOrNull(name: String) : Context?
-    fun getBinding(name: String) : IRef?
+    fun getBinding(name: String, index: Int) : IRef?
     fun getCurrentContext() : Context
     fun getKnownContexts() : List<Context>
 
@@ -101,7 +102,7 @@ interface IMutableTypeEnvironment: ITypeEnvironment {
     fun add(type: AnyType, explicitContext: Context)
     fun add(projection: Projection, type: AnyType)
     fun add(context: Context)
-    fun bind(name: String, type: AnyType)
+    fun bind(name: String, type: AnyType, index: Int)
     fun localCopy() : IMutableTypeEnvironment
 }
 
@@ -189,8 +190,8 @@ class LocalEnvironment(private val parent: IMutableTypeEnvironment, override val
 
     override fun add(context: Context) = GlobalEnvironment.add(context)
 
-    override fun bind(name: String, type: AnyType) {
-        storage.bind(name, type)
+    override fun bind(name: String, type: AnyType, index: Int) {
+        storage.bind(name, type, index)
     }
 
     override fun getAllTypes(): List<ContextualDeclaration<AnyType>>
@@ -210,8 +211,8 @@ class LocalEnvironment(private val parent: IMutableTypeEnvironment, override val
     override fun getContextOrNull(name: String): Context?
         = storage.getContextOrNull(name)
 
-    override fun getBinding(name: String): IRef?
-        = storage.getBinding(name) ?: parent.getBinding(name)
+    override fun getBinding(name: String, index: Int): IRef?
+        = storage.getBinding(name, index) ?: parent.getBinding(name, index)
 
     override fun getKnownContexts(): List<Context>
         = storage.getKnownContexts() + parent.getKnownContexts()
@@ -313,9 +314,8 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
         contexts.add(context)
     }
 
-    override fun bind(name: String, type: AnyType) {
-        // TODO - Error on conflict
-        bindings.add(Ref(name, type))
+    override fun bind(name: String, type: AnyType, index: Int) {
+        bindings.add(Ref(name, type, index))
     }
 
     override fun getAllTypes(): List<ContextualDeclaration<AnyType>>
@@ -405,8 +405,17 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
         }
     }
 
-    override fun getBinding(name: String): IRef?
-        = bindings.firstOrNull { it.name == name }
+    override fun getBinding(name: String, index: Int): IRef? {
+        val results = bindings.filter { it.name == name }
+
+        if (results.isEmpty()) return null
+
+        val invocation = getKoinInstance<Invocation>()
+
+        return results.reversed()
+            .elementAtOrNull(index)
+            ?: throw invocation.make<TypeSystem>("Binding `$name` is not sufficiently shadowed in this context to perform index expression `$name:$index`")
+    }
 
     override fun getCurrentContext(): Context = context
     override fun getKnownContexts(): List<Context> = contexts

@@ -102,7 +102,7 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
     private fun inferExpression(node: IConstantExpressionNode, env: ITypeEnvironment) : AnyType = when (node) {
         is IntLiteralNode -> inferIntLiteral(node)
         is BoolLiteralNode -> inferBoolLiteral(node)
-        is IdentifierNode -> env.getBinding(node.identifier)?.type ?: IType.Never("`${node.identifier}` is not defined in the current context")
+        is IdentifierNode -> env.getBinding(node.identifier, node.index)?.type ?: IType.Never("`${node.identifier}` is not defined in the current context")
         is ConstructorInvocationNode -> inferConstructorInvocation(node, env)
         is TypeIdentifierNode -> inferTypeIdentifier(node, env)
         is MethodCallNode -> inferMethodCall(node, env)

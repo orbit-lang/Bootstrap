@@ -12,6 +12,6 @@ object IdentifierInference : ITypeInference<IdentifierNode, ITypeEnvironment>, K
     private val invocation: Invocation by inject()
 
     override fun infer(node: IdentifierNode, env: ITypeEnvironment): AnyType
-        = env.getBinding(node.identifier)?.type
+        = env.getBinding(node.identifier, node.index)?.type
             ?: throw invocation.make<TypeSystem>("`${node.identifier}` is not defined in the current context", node)
 }

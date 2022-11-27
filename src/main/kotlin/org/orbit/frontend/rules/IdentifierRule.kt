@@ -13,6 +13,11 @@ object IdentifierRule : ValueRule<IdentifierNode> {
 
 		start = context.expect(TokenTypes.Identifier)
 
-		return +IdentifierNode(start, start, start.text)
+		val index = if (context.hasMore && context.peek().type == TokenTypes.Colon) {
+			context.expect(TokenTypes.Colon)
+			context.expect(TokenTypes.Int).text.toInt()
+		} else 0
+
+		return +IdentifierNode(start, start, start.text, index)
 	}
 }

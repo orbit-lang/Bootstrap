@@ -25,13 +25,13 @@ object MethodDefInference : ITypeInference<MethodDefNode, IMutableTypeEnvironmen
         val oEnv = AnnotatedSelfTypeEnvironment(mEnv, signature, signature.returns)
 
         if (node.signature.isInstanceMethod) {
-            oEnv.bind(node.signature.receiverIdentifier!!.identifier, signature.receiver)
+            oEnv.bind(node.signature.receiverIdentifier!!.identifier, signature.receiver, node.signature.receiverIdentifier!!.index)
         }
 
         node.signature.getAllParameterPairs().forEach {
             val type = TypeInferenceUtils.infer(it.typeExpressionNode, oEnv)
 
-            oEnv.bind(it.identifierNode.identifier, type)
+            oEnv.bind(it.identifierNode.identifier, type, it.identifierNode.index)
         }
 
         val returns = TypeInferenceUtils.infer(node.body, oEnv)

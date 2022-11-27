@@ -8,6 +8,7 @@ interface IRef : Substitutable<IRef> {
     val name: String
     val type: AnyType
     val uniqueId: String
+    val bindingIndex: Int
 
     fun getHistory() : List<RefEntry>
     fun consume() : Ref
@@ -21,7 +22,7 @@ interface IRef : Substitutable<IRef> {
 
 inline fun <reified E : RefEntry> IRef.getHistoryInstances(): List<E> = getHistory().filterIsInstance<E>()
 
-class Ref(override val name: String, override val type: AnyType) : IRef {
+class Ref(override val name: String, override val type: AnyType, override val bindingIndex: Int) : IRef {
     private val history = mutableListOf<RefEntry>()
     override val uniqueId: String = "$name:${type.id}"
 
@@ -37,7 +38,7 @@ class Ref(override val name: String, override val type: AnyType) : IRef {
     }
 
     override fun substitute(substitution: Substitution): IRef
-        = Ref(name, type.substitute(substitution))
+        = Ref(name, type.substitute(substitution), bindingIndex)
 
     override fun prettyPrint(depth: Int): String {
         val indent = "\t".repeat(depth)
@@ -53,6 +54,7 @@ class Ref(override val name: String, override val type: AnyType) : IRef {
 data class Alias(override val name: String, val ref: IRef) : IRef {
     override val type: AnyType = ref.type
     override val uniqueId: String = "$name:${ref.type.id}"
+    override val bindingIndex: Int = ref.bindingIndex
 
     override fun substitute(substitution: Substitution): IRef
         = Alias(name, ref.substitute(substitution))

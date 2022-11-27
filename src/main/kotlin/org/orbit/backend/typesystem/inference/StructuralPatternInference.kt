@@ -32,7 +32,7 @@ object StructuralPatternInference : ITypeInference<StructuralPatternNode, IMutab
         val nEnv = StructuralPatternEnvironment(env, struct)
         val bindingTypes = TypeInferenceUtils.inferAllAs<IBindingPatternNode, IType.PatternBinding>(node.bindings, nEnv)
 
-        bindingTypes.forEach { env.bind(it.name, it.type) }
+        bindingTypes.forEach { env.bind(it.name, it.type, it.index) }
 
         return struct
     }

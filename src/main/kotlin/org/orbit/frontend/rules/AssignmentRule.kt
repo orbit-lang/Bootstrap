@@ -9,12 +9,13 @@ import org.orbit.frontend.phase.Parser
 object AssignmentRule : ValueRule<AssignmentStatementNode>, WhereClauseExpressionRule<AssignmentStatementNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.peek()
+        val collector = context.startCollecting()
         val identifier = context.attempt(IdentifierRule, true)!!
 
         var next = context.peek()
 
         if (next.type != TokenTypes.Assignment) {
-            return ParseRule.Result.Failure.Rewind(listOf(start))
+            return ParseRule.Result.Failure.Rewind(collector)
         }
 
         context.expect(TokenTypes.Assignment)
