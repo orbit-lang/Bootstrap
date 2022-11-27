@@ -1,0 +1,49 @@
+module Orb::More::Strings with Orb::Core::{Strings,Option} {
+    trait StringRepresentable {
+        (self Self) stringValue () (String)
+    }
+
+    trait StringConvertible within OptionCtx [Self] {
+       (Self) new (value String) (Option)
+    }
+}
+
+module Gherkin::Frontend::Tokens with Orb::Core::* with Orb::More::Auto {
+    type TokenType {
+        type Keyword of Feature, Scenario, Given, When, Then, And
+        type Tag
+        type Other
+    }
+
+    projection TokenType::Keyword : Enum by Enum::auto
+    projection TokenType::Keyword : StringRepresentable by typeOf(self)
+    projection TokenType::Keyword : StringConvertible with new by {
+        allCases = Self.allCases.map { $0.stringValue }
+
+        return for case in allCases where case.stringValue == $0
+            do Some(case)
+            else None
+    }
+
+    alias SourcePosition = { line Int, character Int }
+    alias Token = { position SourcePosition, text String, type TokenType }
+
+    projection TokenType : Eq by Eq::auto
+    projection SourcePosition : Eq by Eq::auto
+    projection Token : Eq by Eq::auto
+}
+
+module Gherkin::Frontend::Lex with Gherkin::* with Orb::Core::* {
+    (Self) tokenise (source String, position SourcePosition) (Token) = select TokenType::Keyword.new(source) {
+        case Some(token) = Token(position, source, token)
+        case else = Token(position, source, TokenType::Other)
+    }
+
+    (Self) lex (source String) (tokens [Token]) {
+        x, y = (0, 0) # Where x == line, y == character offset
+        for nxt in source by select nxt {
+            case " "  = y += 1
+            case "\n" { x, y = (x + 1, 0) }
+        }
+    }
+}

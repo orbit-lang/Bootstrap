@@ -1,3 +1,7 @@
+module Orb::Core::Types {
+    type Unit
+}
+
 module Orb::Core::Numbers {
     type Int
 }
@@ -7,57 +11,46 @@ module Orb::Core::Booleans {
         constructor True
         constructor False
     }
+}
 
-    (self Bool) and (other Bool) (Bool) = select self {
-        case true = other
-        case else = false
+module M with Orb::* {
+    type Days {
+        constructor Monday
+        constructor Tuesday
+        constructor Wednesday
+        constructor Thursday
+        constructor Friday
+        constructor Saturday
+        constructor Sunday
     }
 
-    (self Bool) or (other Bool) (Bool) = select self {
-        case true = true
-        case else = other
+    type Nat {
+        constructor Zero
+        constructor Next(n Nat)
+    }
+
+    (self Days) isWeekend () (Bool) = select self {
+        case Saturday = true
+        case Sunday = true
+        case else = false
     }
 
     (self Bool) not () (Bool) = select self {
         case true = false
-        case else = true
+        case false = true
     }
 
-    infix operator boolAnd `&&` by Bool::and
-    infix operator boolOr  `||` by Bool::or
-    prefix operator boolNot `!` by Bool::not
-}
-
-module Orb::Core::Types {
-    type Unit
-    trait Any
-}
-
-module Orb::Core::Errors {
-    trait Error
-}
-
-module Orb::Core::Collections {
-    context CollectionCtx [Element] {
-        trait Collection {
-            (self Self) size () (Int)
-        }
+    (self Int) even () (Bool) = select self % 2 {
+        case 0 = true
+        case else = false
     }
-}
 
-module Orb::Core::Collections::Sets {
-    context SetCtx [Element] {
-        alias Set = [Element]
+    (Bool) main () () {
+        t = true
+        f = false
+        typeOf t
 
-        (self Set) size () (Int) = 0
-    }
-}
-
-module M with Orb::Core::* {
-    (Unit) main () () {
-        s = Set(1, 2)
-
-        typeOf s.size()
+        check t, f
 
         return
     }

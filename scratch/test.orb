@@ -33,42 +33,28 @@ module Orb::Core::Types {
     trait Any
 }
 
+module Orb::Core::Errors {
+    trait Error
+}
+
+module Orb::Core::Collections {
+    context CollectionCtx [Element] {
+        trait Collection {
+            (self Self) size () (Int)
+        }
+    }
+}
+
+module Orb::Core::Collections::Sets {
+    context SetCtx [Element] {
+        alias Set = [Element]
+    }
+}
+
 module M with Orb::Core::* {
-    context TupleCtx [A, B]
-        with alias Tuple = (A, B)
+    (Unit) main () () {
+#        bs = [true, false]
 
-    context BoxCtx [A] {
-        alias Box = { value A }
-
-        (self Box) unbox () (A) = A()
-    }
-
-    context TripleCtx [A, B, C]
-        with alias Triple = { a A, b B, c C }
-
-    context UnoCtx [A] {
-        type Uno
-
-        (Uno) new () (Uno) = Uno()
-    }
-
-    (Int) main () () {
-        i = Tuple(1, false)
-        j = Tuple(true, 0)
-
-        b1 = Box(1)
-        b2 = Box(b1)
-
-        typeOf b1.unbox()
-
-        t1 = Triple(1, 2, 3)
-        t2 = Triple(t1, 2, false)
-
-        typeOf t1
-        typeOf t2
-
-        u = Uno.new()
-
-        typeOf u
+        return
     }
 }

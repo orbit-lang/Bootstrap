@@ -17,6 +17,7 @@ object CaseInference : ITypeInference<CaseNode, CaseTypeEnvironment>, KoinCompon
 
     override fun infer(node: CaseNode, env: CaseTypeEnvironment): AnyType {
         val patternType = TypeInferenceUtils.infer(node.pattern, env)
+
         val bodyType = TypeInferenceUtils.infer(node.body, env)
         val selfType = env.getSelfType() as? IType.Signature
             ?: throw invocation.make<TypeSystem>("Could not infer `Self` Type in this context", node)

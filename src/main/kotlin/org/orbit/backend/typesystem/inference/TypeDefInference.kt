@@ -2,6 +2,7 @@ package org.orbit.backend.typesystem.inference
 
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
+import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.AlgebraicConstructorNode
 import org.orbit.core.nodes.TypeDefNode
@@ -9,36 +10,33 @@ import org.orbit.core.nodes.TypeDefNode
 object TypeDefInference: ITypeInference<TypeDefNode, IMutableTypeEnvironment> {
     override fun infer(node: TypeDefNode, env: IMutableTypeEnvironment): AnyType {
         val path = node.getPath()
-        val nType = IType.Type(path)
-        val nEnv = env.fork()
 
-        nEnv.add(nType)
+        val mType = when (node.body.count()) {
+            0 -> IType.Type(path)
+            else -> {
+                val lazyUnion = IType.Lazy(path.toString(OrbitMangler)) {
+                    val type = env.getTypeOrNull(path)?.component
+                        ?: TODO("NOT A UNION")
 
-        val constructorNodes = node.body.filterIsInstance<AlgebraicConstructorNode>()
-        val constructors = TypeInferenceUtils.inferAllAs<AlgebraicConstructorNode, IType.Type>(constructorNodes, nEnv)
-        val mType = when (constructors.count()) {
-            0 -> nType
-            1 -> {
-                env.add(constructors[0])
-                constructors[0]
+                    when (type) {
+                        is IType.Union -> type
+                        is IType.Alias -> type.type as IType.Union
+                        else -> TODO("NOT A UNION 2")
+                    }
+                }
+                val nEnv = SelfTypeEnvironment(env.fork(), lazyUnion)
+
+                nEnv.add(IType.Alias(path, lazyUnion))
+
+                val constructorNodes = node.body.filterIsInstance<AlgebraicConstructorNode>()
+                val constructors = TypeInferenceUtils.inferAllAs<AlgebraicConstructorNode, IType.UnionConstructor>(constructorNodes, nEnv)
+                val union = IType.Union(constructors)
+
+                IType.Alias(path, union)
             }
-            2 -> {
-                env.add(constructors[0])
-                env.add(constructors[1])
-
-                IType.Alias(path, IType.Union(constructors[0], constructors[1]))
-            }
-            3 -> {
-                env.add(constructors[0])
-                env.add(constructors[1])
-                env.add(constructors[2])
-
-                IType.Alias(path, IType.Union(IType.Union(constructors[0], constructors[1]), constructors[2]))
-            }
-            else -> TODO("Union > 2")
         }
 
-        env.add(mType)
+        GlobalEnvironment.add(mType)
 
         return mType
     }

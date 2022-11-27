@@ -3,9 +3,9 @@ package org.orbit.backend.typesystem.components
 sealed interface ITypeCardinality {
     object Zero : ITypeCardinality {
         override fun plus(other: ITypeCardinality): ITypeCardinality = when (other) {
-            is Finite -> Finite(other.count + 1)
+            is Finite -> Finite(other.count)
             is Infinite -> Infinite
-            is Mono -> Finite(2)
+            is Mono -> Finite(1)
             is Zero -> this
         }
     }

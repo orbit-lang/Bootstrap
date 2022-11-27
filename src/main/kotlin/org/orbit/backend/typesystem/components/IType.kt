@@ -123,23 +123,23 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         fun isSpecialised() : Boolean
     }
 
-    data class Lazy(val type: AnyType) : IType {
-        override val id: String = "⎡$type⎦"
+    data class Lazy<T: AnyType>(val name: String, val type: () -> T) : IType {
+        override val id: String = "⎡$name⎦"
 
         override fun getCardinality(): ITypeCardinality
-            = type.getCardinality()
+            = type().getCardinality()
 
         override fun substitute(substitution: Substitution): AnyType
-            = Lazy(type.substitute(substitution))
+            = Lazy(name) { type().substitute(substitution) }
 
-        override fun prettyPrint(depth: Int): String
-            = "${"\t".repeat(depth)}⎡$type⎦"
+        override fun prettyPrint(depth: Int): String {
+            val printer = getKoinInstance<Printer>()
+            val pretty = printer.apply(name, PrintableKey.Bold)
 
-        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType = type.flatten(from, env)
-        //= when (val t = type.flatten(from, env)) {
-//            is Never -> t.panic()
-//            else -> t
-//        }
+            return "${"\t".repeat(depth)}⎡$pretty⎦"
+        }
+
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType = type().flatten(from, env)
 
         override fun toString(): String
             = prettyPrint()
@@ -180,11 +180,9 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)
             val printer = getKoinInstance<Printer>()
-            val path = OrbitMangler.unmangle(name)
-            val simpleName = path.last()
-            val prettyName = printer.apply(simpleName, PrintableKey.Bold)
+            val pretty = printer.apply(name, PrintableKey.Bold)
 
-            return "$indent($prettyName = ${type.prettyPrint(depth)})"
+            return "$indent$pretty"
         }
 
         override fun toString(): String = prettyPrint()
@@ -204,6 +202,26 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun substitute(substitution: Substitution): AnyType
             = SingletonConstructor(type.substitute(substitution))
+    }
+
+    data class Forward(val name: String) : IType {
+        override val id: String = "!!$name"
+
+        override fun getCardinality(): ITypeCardinality = ITypeCardinality.Zero
+        override fun substitute(substitution: Substitution): AnyType = this
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
+            = env.getTypeOrNull(name)
+                ?.component
+                ?.flatten(from, env)
+                ?: throw Exception("HERE: $name")
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+            val printer = getKoinInstance<Printer>()
+            val pretty = printer.apply(name, PrintableKey.Bold)
+
+            return "$indent!!$pretty"
+        }
     }
 
     data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList(), private val explicitCardinality: ITypeCardinality = ITypeCardinality.Mono) : Entity<Type>, IConstructableType<Type> {
@@ -273,6 +291,9 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun never(args: List<AnyType>): Never {
             TODO("Not yet implemented")
         }
+
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
+            = Case(condition.flatten(from, env), result.flatten(from, env))
 
         override fun curry(): IArrow<*> = this
         override fun substitute(substitution: Substitution): Case
@@ -418,7 +439,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             = prettyPrint()
     }
 
-    sealed interface IConstructor<T : AnyType> : IArrow<IConstructor<T>> {
+    interface IConstructor<T : AnyType> : IArrow<IConstructor<T>> {
         val constructedType: T
     }
 
@@ -658,105 +679,121 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class UnionConstructor(override val constructedType: Union, val arg: AnyType) : IConstructor<Union> {
-        override val id: String = "(${arg.id}) -> ${constructedType.id}"
+    data class UnionConstructor(val name: String, override val constructedType: Lazy<Union>, val arg: AnyType) : IConstructor<Lazy<Union>>, ICaseIterable<Union> {
+        data class ConcreteUnionConstructor(val lazyConstructor: UnionConstructor) : IConstructor<Union> {
+            override val id: String = "(${lazyConstructor.arg}) -> $constructedType"
+            val name: String = lazyConstructor.name
+
+            override fun getCanonicalName(): String = name
+
+            override val constructedType: Union get() = lazyConstructor.constructedType.type()
+            override fun getDomain(): List<AnyType> = listOf(lazyConstructor.arg)
+            override fun getCodomain(): AnyType = constructedType
+
+            override fun curry(): IArrow<*> {
+                TODO("Not yet implemented")
+            }
+
+            override fun never(args: List<AnyType>): Never {
+                TODO("Not yet implemented")
+            }
+
+            override fun substitute(substitution: Substitution): AnyType
+                = ConcreteUnionConstructor(lazyConstructor.constructedType.type().substitute(substitution) as UnionConstructor)
+
+            override fun prettyPrint(depth: Int): String {
+                val printer = getKoinInstance<Printer>()
+
+                return printer.apply(name, PrintableKey.Bold)
+            }
+
+            override fun toString(): String = prettyPrint()
+        }
+
+        override val id: String = "$name :: (${arg.id}) -> $constructedType"
+
+        override fun getCanonicalName(): String = name
 
         override fun getDomain(): List<AnyType> = listOf(arg)
-        override fun getCodomain(): AnyType = constructedType.getElement(arg)
+        override fun getCodomain(): AnyType = constructedType
         override fun getCardinality(): ITypeCardinality
-            = constructedType.getCardinality()
+            = arg.getCardinality()
+
+        override fun getCases(result: AnyType): List<Case> = when (arg) {
+            is ICaseIterable<*> -> arg.getCases(result)
+            else -> listOf(Case(arg, result))
+        }
+
+        override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
+            = ConcreteUnionConstructor(this)
 
         override fun curry(): IArrow<*> = this
 
-        override fun substitute(substitution: Substitution): IConstructor<Union> =
-            UnionConstructor(constructedType.substitute(substitution), arg.substitute(substitution))
+        override fun substitute(substitution: Substitution): IConstructor<Lazy<Union>> =
+            UnionConstructor(name, constructedType.substitute(substitution) as Lazy<Union>, arg.substitute(substitution))
 
         override fun never(args: List<AnyType>): Never =
             Never("Union Type $constructedType cannot be constructed with argument $arg")
 
+        override fun equals(other: Any?): Boolean = when (other) {
+            is UnionConstructor -> other.name == name || other.constructedType == constructedType
+            is ConcreteUnionConstructor -> other.lazyConstructor === this
+            else -> false
+        }
+
         override fun toString(): String = prettyPrint()
     }
 
-    data class Union(val left: AnyType, val right: AnyType) : ISumType<Union>, IAlgebraicType<Union>, ICaseIterable<Union> {
-        override val id: String = "(${left.id} | ${right.id})"
+    data class Union(val unionConstructors: List<UnionConstructor>) : ISumType<Union>, IAlgebraicType<Union>, ICaseIterable<Union> {
+        constructor() : this(emptyList())
 
-        override fun isSpecialised(): Boolean = when (left) {
-            is ISpecialisedType -> left.isSpecialised()
-            else -> when (right) {
-                is ISpecialisedType -> right.isSpecialised()
-                else -> false
-            }
+        override val id: String get() {
+            val pretty = unionConstructors.joinToString(" | ")
+
+            return "($pretty)"
         }
 
-        override fun getCardinality(): ITypeCardinality = when (left) {
-            is Union -> left.left.getCardinality() + left.right.getCardinality() + right.getCardinality()
-            else -> left.getCardinality() + right.getCardinality()
+        override fun isSpecialised(): Boolean = false
+
+        override fun getCardinality(): ITypeCardinality
+            = unionConstructors.fold(ITypeCardinality.Zero as ITypeCardinality) { acc, next -> acc + next.getCardinality() }
+
+        override fun getCases(result: AnyType): List<Case>
+            = unionConstructors.fold(emptyList()) { acc, next -> acc + Case(next.arg, this) }
+
+        override fun getElement(at: AnyType): AnyType {
+            for (constructor in unionConstructors) {
+                if (at == constructor) return constructor
+            }
+
+            return Never("Sum Type $this will never contain a value of Type $at")
         }
 
-        override fun getCases(result: AnyType): List<Case> {
-            val lCases = when (left) {
-                is ICaseIterable<*> -> left.getCases(result)
-                else -> listOf(Case(left, result))
-            }
-
-            val rCases = when (right) {
-                is ICaseIterable<*> -> right.getCases(result)
-                else -> listOf(Case(right, result))
-            }
-
-            return lCases + rCases
-        }
-
-        override fun getElement(at: AnyType): AnyType = when (at) {
-            left -> left
-            right -> right
-            else -> Never("Sum Type $this will never contain a value of Type $at")
-        }
-
-        override fun getConstructors(): List<IConstructor<Union>> {
-            val lConstructors = when (left.flatten(this, GlobalEnvironment)) {
-                is IConstructableType<*> -> left.getConstructors()
-                else -> TODO("HERE!!!")
-            }
-
-            val rConstructors = when (right) {
-                is IConstructableType<*> -> right.getConstructors()
-                else -> TODO("HERE!!!")
-            }
-
-            return lConstructors.zip(rConstructors).map {
-                // NOTE - Kotlin won't accept casting `it.first/second` directly to SingletonConstructor for some reason, so we need to erase the type
-                val lConstructor = it.first
-                val rConstructor = it.second
-
-                val lDomain = when (lConstructor) {
-                    is SingletonConstructor -> lConstructor.getCodomain()
-                    else -> lConstructor.getDomain()[0]
-                }
-
-                val rDomain = when (rConstructor) {
-                    is SingletonConstructor -> rConstructor.getCodomain()
-                    else -> rConstructor.getDomain()[0]
-                }
-
-                UnionConstructor(Union(lDomain, rDomain), this)
-            }
-        }
+        override fun getConstructors(): List<IConstructor<Union>>
+            = unionConstructors.map { UnionConstructor.ConcreteUnionConstructor(it) }
 
         override fun substitute(substitution: Substitution): Union =
-            Union(left.substitute(substitution), right.substitute(substitution))
+            Union(unionConstructors.substitute(substitution) as List<UnionConstructor>)
 
         override fun equals(other: Any?): Boolean = when (other) {
-            is Union -> left == other.left && right == other.right
-            is AnyType -> left == other || right == other
+            is Union -> other.unionConstructors == unionConstructors
+            is AnyType -> other in unionConstructors
             else -> false
         }
 
         override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
-            = Union(left.flatten(from, env), right.flatten(from, env))
+            = Union(unionConstructors.map { when (val uc = it.flatten(from, env)) {
+                is UnionConstructor -> uc
+                is UnionConstructor.ConcreteUnionConstructor -> uc.lazyConstructor
+                else -> TODO("Not a Union Constructor")
+            } })
 
-        override fun prettyPrint(depth: Int): String
-            = "${"\t".repeat(depth)}($left | $right)"
+        override fun prettyPrint(depth: Int): String {
+            val printer = getKoinInstance<Printer>()
+            val pretty = unionConstructors.joinToString(" | ") { printer.apply(it.name, PrintableKey.Bold) }
+
+            return "${"\t".repeat(depth)}($pretty)"
+        }
 
         override fun toString(): String = prettyPrint()
     }
@@ -1194,14 +1231,14 @@ data class IntValue(override val value: Int) : IValue<IType.Type, Int> {
 }
 
 object TrueValue : IValue<IType.Type, Boolean> {
-    override val type: IType.Type = OrbCoreBooleans.trueType
+    override val type: IType.Type = OrbCoreBooleans.trueType.flatten(IType.Always, GlobalEnvironment) as IType.Type
     override val value: Boolean = true
 
     override fun toString(): String = prettyPrint()
 }
 
 object FalseValue : IValue<IType.Type, Boolean> {
-    override val type: IType.Type = OrbCoreBooleans.falseType
+    override val type: IType.Type = OrbCoreBooleans.falseType.flatten(IType.Always, GlobalEnvironment) as IType.Type
     override val value: Boolean = false
 
     override fun toString(): String = prettyPrint()

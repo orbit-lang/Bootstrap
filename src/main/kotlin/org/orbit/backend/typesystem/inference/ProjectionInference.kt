@@ -93,8 +93,9 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
         val flat = projectedType.flatten(projectedType, mEnv)
 
         if (flat is IType.Union) {
-            env.add(Projection(flat.left, projection.target), flat.left)
-            env.add(Projection(flat.right, projection.target), flat.right)
+            for (constructor in flat.unionConstructors) {
+                env.add(Projection(constructor, projection.target), constructor)
+            }
         } else if (flat is IType.Struct) {
             env.add(Projection(flat, projection.target), flat)
         }

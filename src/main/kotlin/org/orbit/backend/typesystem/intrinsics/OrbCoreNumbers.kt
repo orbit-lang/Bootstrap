@@ -20,17 +20,6 @@ object OrbCoreNumbers : IOrbModule {
         = listOf(infixAddIntInt, infixSubIntInt, infixMulIntInt, infixModIntInt, pow)
 }
 
-object OrbCoreBooleans : IOrbModule {
-    val trueType = IType.Type("Orb::Core::Booleans::Bool::True")
-    val falseType = IType.Type("Orb::Core::Booleans::Bool::False")
-
-    val boolType = IType.Union(trueType, falseType)
-
-    override fun getPublicTypes(): List<AnyType> = listOf(trueType, falseType)
-    override fun getPublicTypeAliases(): List<IType.Alias> = listOf(IType.Alias("Orb::Core::Booleans::Bool", boolType))
-    override fun getPublicOperators(): List<IType.IOperatorArrow<*, *>> = emptyList()
-}
-
 object OrbCoreTypes : IOrbModule {
     val unitType = IType.Unit //IType.Type("Orb::Core::Types::Unit")
     val tupleType = IType.Type("Orb::Core::Types::Tuple")

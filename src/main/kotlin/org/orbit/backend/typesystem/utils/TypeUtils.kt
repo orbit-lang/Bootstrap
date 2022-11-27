@@ -22,6 +22,23 @@ object TypeUtils {
         when (left == right) {
             true -> right
             else -> when (right) {
+                is IType.Case -> when (left) {
+                    is IType.Case -> {
+                        val lCondition = left.condition.flatten(left.condition, env)
+                        val rCondition = right.condition.flatten(right.condition, env)
+
+                        val lResult = left.result.flatten(left.result, env)
+                        val rResult = right.result.flatten(right.result, env)
+
+                        if (checkEq(env, lCondition, rCondition) && checkEq(env, lResult, rResult)) {
+                            right
+                        } else {
+                            error
+                        }
+                    }
+                    else -> error
+                }
+
                 is IType.Array -> when (left) {
                     is IType.Array -> when (left.size == right.size) {
                         true -> check(env, left.element, right.element)
@@ -79,12 +96,19 @@ object TypeUtils {
                 is IType.Never -> left
 
                 else -> when (left) {
+                    is IType.Union -> when (right) {
+                        is IType.UnionConstructor.ConcreteUnionConstructor -> when ((left.getConstructors()).contains(right)) {
+                            true -> left
+                            else -> error
+                        }
+                        else -> error
+                    }
                     is IType.TypeVar -> when (left.constraints.all { it.isSolvedBy(right, env) }) {
                         true -> left
                         else -> error
                     }
                     is IType.Trait -> check(env, right, left)
-                    is IType.Lazy -> check(env, left.type, right)
+                    is IType.Lazy<*> -> check(env, left.type(), right)
                     is IType.Never -> right
                     is IValue<*, *> -> check(env, left.type, right)
                     else -> error

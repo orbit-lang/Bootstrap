@@ -13,4 +13,6 @@ enum class CaseMode(override val symbol: String): IIntrinsicOperator {
 
 data class CaseNode(override val firstToken: Token, override val lastToken: Token, val pattern: IPatternNode, val mode: CaseMode, val body: IExpressionNode) : INode {
     override fun getChildren(): List<INode> = listOf(pattern, body)
+
+    val isElseCase: Boolean = pattern is ElseNode
 }
