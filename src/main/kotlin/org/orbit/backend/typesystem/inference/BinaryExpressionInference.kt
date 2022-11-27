@@ -27,7 +27,7 @@ object BinaryExpressionInference : ITypeInference<BinaryExpressionNode, ITypeEnv
         }
 
         if (possibleOps.count() > 1) {
-            val pretty = possibleOps.joinToString("\n\t") { "${it.identifier} ${it.symbol} $it" }
+            val pretty = possibleOps.joinToString("\n\t")
 
             throw invocation.make<TypeSystem>("Multiple Infix Operators found matching `${node.operator}` of Type `($lType, $rType) -> ???`:\n\t$pretty", node)
         }
