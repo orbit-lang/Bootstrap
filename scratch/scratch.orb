@@ -46,12 +46,7 @@ module M with Orb::* {
     }
 
     (Bool) main () () {
+        defer(v) { typeOf v }
         t = true
-        f = false
-        typeOf t
-
-        check t, f
-
-        return
     }
 }

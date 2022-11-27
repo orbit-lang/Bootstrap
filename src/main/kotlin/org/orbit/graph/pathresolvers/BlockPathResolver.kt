@@ -3,6 +3,7 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.*
+import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.getGraphID
@@ -20,7 +21,7 @@ class BlockPathResolver : IPathResolver<BlockNode> {
 			var result: IPathResolver.Result = IPathResolver.Result.Success(OrbitMangler.unmangle("Orb::Core::Types::Unit"))
 
 			for (node in input.body) {
-				node.annotateByKey(input.getGraphID(), Annotations.graphId)
+				node.annotate(input.getGraphID(), Annotations.graphId)
 
 				when (node) {
 					is PrintNode ->
@@ -33,8 +34,10 @@ class BlockPathResolver : IPathResolver<BlockNode> {
 
 					is AssignmentStatementNode -> pathResolverUtil.resolve(node, pass, environment, graph)
 
-					is DeferNode -> result =
-						pathResolverUtil.resolve(node.blockNode, pass, environment, graph)
+					is DeferNode -> {
+						node.blockNode.annotate(input.getGraphID(), Annotations.graphId)
+						result = pathResolverUtil.resolve(node.blockNode, pass, environment, graph)
+					}
 
 					is MethodCallNode -> result = pathResolverUtil.resolve(node, pass, environment, graph)
 

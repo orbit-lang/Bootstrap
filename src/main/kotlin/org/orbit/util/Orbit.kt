@@ -160,6 +160,7 @@ val mainModule = module {
 	single(UnitInference)
 	single(CollectionLiteralInference)
 	single(CollectionTypeInference)
+	single(DeferInference)
 }
 
 private inline fun <reified N: INode, reified E: ITypeEnvironment> org.koin.core.module.Module.single(inference: ITypeInference<N, E>) : BeanDefinition<ITypeInference<N, E>>
