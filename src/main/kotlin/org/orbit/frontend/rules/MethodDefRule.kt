@@ -33,13 +33,6 @@ object MethodDefRule : ParseRule<MethodDefNode>, KoinComponent {
 			context.consume()
 			// Single expression method body
 
-			if (context.peek().type == TokenTypes.Invoke) {
-				// TODO - This is a dirty hack to get around a grammar ambiguity
-				//  when parsing a single expression method body that consists of e.g.
-				//  `invoke { x }`, followed by another method definition
-				throw invocation.make<Parser>("Where a single-expression method body consists of `invoke { ... }`, the expression must be grouped: `(invoke { ... })` to avoid ambiguity.\n${printer.apply("NOTE: this restriction might be relaxed in future versions.", PrintableKey.Italics)}", context.peek())
-			}
-
 			val expression = context.attempt(ExpressionRule.singleExpressionBodyRule)
 				?: TODO("Method Body Single Expression")
 

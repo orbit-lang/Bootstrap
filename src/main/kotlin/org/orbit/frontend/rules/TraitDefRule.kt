@@ -40,7 +40,7 @@ object TraitDefRule : EntityDefParseRule<TraitDefNode> {
 			context.consume()
 
 			while (true) {
-				val propertyPair = context.attempt(ParameterRule)
+				val propertyPair = context.attempt(ParameterRule())
 					?: TODO("@TraitDefRule:41")
 
 				propertyPairs.add(propertyPair)

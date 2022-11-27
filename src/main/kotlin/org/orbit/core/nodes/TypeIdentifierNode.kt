@@ -52,7 +52,7 @@ data class TypeIdentifierNode(
 ) : TypeExpressionNode, LValueTypeParameter {
 	companion object {
 		private val nullToken = Token(TokenTypes.TypeIdentifier, "AnyType", SourcePosition.unknown)
-		private val anyTypeIdentifierNode = TypeIdentifierNode(nullToken, nullToken, "AnyType")
+		private val anyTypeIdentifierNode = TypeIdentifierNode(nullToken, nullToken, "*")
 
 		fun hole(token: Token) : TypeIdentifierNode
 			= TypeIdentifierNode(token, token, "_")

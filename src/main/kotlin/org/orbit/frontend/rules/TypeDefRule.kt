@@ -79,7 +79,7 @@ object TypeDefRule : EntityDefParseRule<TypeDefNode> {
 			context.consume()
 
 			while (true) {
-				val propertyPair = context.attempt(ParameterRule)
+				val propertyPair = context.attempt(ParameterRule())
 					?: throw context.invocation.make(Errors.MissingPair(start.position))
 
 				propertyPairs.add(propertyPair)

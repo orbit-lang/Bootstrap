@@ -6,25 +6,25 @@ import org.orbit.core.components.TokenTypes
 //import org.orbit.frontend.extensions.parseTrailing
 import org.orbit.frontend.extensions.unaryPlus
 
-interface CallRule<N: InvokableNode> : ValueRule<N>
+interface CallRule<N: IInvokableNode> : ValueRule<N>
 
-object ReferenceCallRule : CallRule<ReferenceCallNode> {
+object InvocationRule : CallRule<InvocationNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        context.expect(TokenTypes.Invoke)
-        val referenceExpression = context.attempt(ExpressionRule.defaultValue)
-            ?: return ParseRule.Result.Failure.Rewind()
+        val collector = context.startCollecting()
+        val lhs = context.attempt(ExpressionRule.invocationRule)
+            ?: return ParseRule.Result.Failure.Abort
+
+        if (!context.hasMore) return ParseRule.Result.Failure.Abort
 
         val next = context.peek()
 
-        if (next.type != TokenTypes.LParen) {
-            return +ReferenceCallNode(referenceExpression.firstToken, referenceExpression.lastToken, emptyList(), referenceExpression)
-        }
+        if (next.type != TokenTypes.LParen) return ParseRule.Result.Failure.Rewind()
 
-        val delimitedRule = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)
-        val delimitedNode = context.attempt(delimitedRule)
-            ?: TODO("@MethodCallRule:22")
+        val delimRule = DelimitedRule(innerRule = ExpressionRule.defaultValue)
+        val delim = context.attempt(delimRule)
+            ?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
 
-        return +ReferenceCallNode(referenceExpression.firstToken, delimitedNode.lastToken, delimitedNode.nodes, referenceExpression)
+        return +InvocationNode(lhs.firstToken, delim.lastToken, lhs, delim.nodes)
     }
 }
 
@@ -41,19 +41,19 @@ object MethodCallRule : CallRule<MethodCallNode> {
     }
 
     override fun parse(context: Parser): ParseRule.Result {
-        context.mark()
+        val collector = context.startCollecting()
         val start = context.peek()
         var lhs = context.attemptAny(listOf(TypeExpressionRule, LiteralRule()))
             as? IExpressionNode
-            ?: return ParseRule.Result.Failure.Rewind(context.end())
+            ?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
 
-        if (!context.hasMore) return ParseRule.Result.Failure.Rewind(context.end())
+        if (!context.hasMore) return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
 
         var next = context.peek()
 
         if (next.type != TokenTypes.Dot) {
             if (lhs is TypeExpressionNode) {
-                return ParseRule.Result.Failure.Rewind(context.end())
+                return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
             }
 
             return +lhs

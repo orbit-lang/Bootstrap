@@ -9,12 +9,14 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 	interface Kind {
 		interface Container : Kind
 		interface Entity : Kind
+
 		object Api : Container
 		object Module : Container
 		object Type : Entity
 		object TypeAlias : Entity
 		object Trait : Entity
 		object Self : Entity
+		object Any : Entity
 		object Ephemeral : Entity
 		object Method : Kind
 		object Empty : Kind
@@ -57,6 +59,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 		val empty = Binding(Kind.Empty, "", Path.empty)
 		val infer = Binding(Kind.Type, "_", Path.infer)
 		val array = Binding(Kind.Type, "[]", Path.array)
+		val any = Binding(Kind.Any, "*", Path.any)
 	}
 
 	fun matches(name: String) : Boolean = when (kind) {

@@ -35,7 +35,7 @@ class ExpressionUnit(override val node: IExpressionNode, override val depth: Int
         is LambdaLiteralNode ->
             codeGenFactory.getLambdaLiteralUnit(node, depth).generate(mangler)
 
-        is InvokableNode ->
+        is IInvokableNode ->
             codeGenFactory.getCallUnit(node, depth).generate(mangler)
 
         else -> TODO("@ExpressionUnit:32")

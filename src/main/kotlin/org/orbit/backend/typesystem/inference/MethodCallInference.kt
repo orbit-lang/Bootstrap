@@ -7,7 +7,6 @@ import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.MethodCallNode
-import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.util.Invocation
 
 object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, KoinComponent {
@@ -26,7 +25,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
 
         if (node.isPropertyAccess) return inferPropertyAccess<IType.IAccessibleType<String>>(node, receiver.flatten(receiver, env), env)
 
-        val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
+        val args = TypeInferenceUtils.inferAll(node.arguments, env)
         var possibleArrows = env.getSignatures(node.messageIdentifier.identifier)
         val expected = (env as? AnnotatedTypeEnvironment)?.typeAnnotation ?: IType.Always
 
@@ -75,7 +74,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
         val zip = args.zip(arrow.parameters)
         for ((idx, pair) in zip.withIndex()) {
             if (!TypeUtils.checkEq(env, pair.first, pair.second)) {
-                throw invocation.make<TypeSystem>("Method `${node.messageIdentifier.identifier}` expects argument of Type `${pair.second}` at index $idx, found `$pair`", node.parameterNodes[idx])
+                throw invocation.make<TypeSystem>("Method `${node.messageIdentifier.identifier}` expects argument of Type `${pair.second}` at index $idx, found `$pair`", node.arguments[idx])
             }
         }
 

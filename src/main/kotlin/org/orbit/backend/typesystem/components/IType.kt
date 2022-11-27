@@ -906,7 +906,8 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun substitute(substitution: Substitution): Arrow1 =
             Arrow1(takes.substitute(substitution), gives.substitute(substitution))
 
-        override fun curry(): Arrow0 = Arrow0(Arrow1(takes, gives))
+        override fun curry(): Arrow0
+            = Arrow0(Arrow1(takes, gives))
 
         override fun never(args: List<AnyType>): Never =
             Never("$id expects argument of Type $takes, found $args[0]")

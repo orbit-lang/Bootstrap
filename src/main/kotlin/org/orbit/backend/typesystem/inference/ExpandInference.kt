@@ -65,7 +65,7 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
             throw invocation.make<TypeSystem>("Cannot call method `${node.messageIdentifier.identifier}` at compile-time because receiver $receiver is not a compile-time value", node)
         }
 
-        val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
+        val args = TypeInferenceUtils.inferAll(node.arguments, env)
         for (arg in args.withIndex()) {
             if (arg.value !is IValue<*, *>) {
                 throw invocation.make<TypeSystem>("Cannot call method `${node.messageIdentifier.identifier}` at compile-time because argument at index ${arg.index} `$receiver` is not a compile-time value", node)

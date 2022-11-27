@@ -17,6 +17,8 @@ object TypeUtils {
     }
 
     fun check(env: ITypeEnvironment, left: AnyType, right: AnyType) : AnyType = prepare(env, left, right) { left, right ->
+        if (right is IType.Always) return@prepare left
+
         val error = IType.Never("Types are not equal: `${left}` & `${right}`")
 
         when (left == right) {

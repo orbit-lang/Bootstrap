@@ -24,29 +24,20 @@ module M with Orb::* {
         constructor Sunday
     }
 
-    type Nat {
-        constructor Zero
-        constructor Next(n Nat)
-    }
+    (self Bool) add (other Bool) (Bool) = self
 
-    (self Days) isWeekend () (Bool) = select self {
-        case Saturday = true
-        case Sunday = true
-        case else = false
-    }
-
-    (self Bool) not () (Bool) = select self {
-        case true = false
-        case false = true
-    }
-
-    (self Int) even () (Bool) = select self % 2 {
-        case 0 = true
-        case else = false
-    }
+    infix operator boolAdd `+` by Bool::add
 
     (Bool) main () () {
-        defer(v) { typeOf v }
-        t = true
+        x = 1
+        id = { x -> x }
+        id2 = { x, y, z -> x * y * z }
+        id3 = { -> x }
+        id4 = { (x Bool, y Bool) -> $0 + $1 }
+
+        typeOf id(1)
+        typeOf id2(1, 2, 3)
+        typeOf id3()
+        typeOf id4(true, false)
     }
 }

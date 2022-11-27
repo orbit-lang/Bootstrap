@@ -18,7 +18,7 @@ class MethodCallPathResolver : IPathResolver<MethodCallNode> {
 		input.receiverExpression.annotateByKey(input.getGraphID(), Annotations.graphId)
 		val receiver = pathResolverUtil.resolve(input.receiverExpression, pass, environment, graph)
 
-		input.parameterNodes.forEach {
+		input.arguments.forEach {
 			it.annotateByKey(input.getGraphID(), Annotations.graphId)
 			pathResolverUtil.resolve(it, pass, environment, graph)
 		}

@@ -1,10 +1,12 @@
 package org.orbit.backend.typesystem.components
 
 import org.orbit.backend.typesystem.phase.TypeSystem
+import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.Token
+import org.orbit.core.nodes.LambdaLiteralNode
 import org.orbit.core.nodes.OperatorFixity
 import org.orbit.core.phase.flatMapNotNull
 import org.orbit.util.Invocation
@@ -115,8 +117,13 @@ data class SelfTypeEnvironment(private val parent: IMutableTypeEnvironment, priv
     override fun getSelfType(): AnyType = self
 }
 
-data class AnnotatedSelfTypeEnvironment(private val parent: IMutableTypeEnvironment, private val self: AnyType, val typeAnnotation: AnyType) : IMutableTypeEnvironment by parent, ISelfTypeEnvironment {
+sealed interface IAnnotatedTypeEnvironment : ITypeEnvironment {
+    fun getAnnotation() : AnyType
+}
+
+data class AnnotatedSelfTypeEnvironment(private val parent: IMutableTypeEnvironment, private val self: AnyType, val typeAnnotation: AnyType) : IMutableTypeEnvironment by parent, ISelfTypeEnvironment, IAnnotatedTypeEnvironment {
     override fun getSelfType(): AnyType = self
+    override fun getAnnotation(): AnyType = typeAnnotation
 }
 
 data class CaseTypeEnvironment(private val parent: IMutableTypeEnvironment, private val self: AnyType, val match: AnyType) : ISelfTypeEnvironment, IMutableTypeEnvironment by parent {
@@ -136,7 +143,10 @@ data class ConstructorTypeEnvironment(private val parent: IMutableTypeEnvironmen
     }
 }
 
-data class AnnotatedTypeEnvironment(private val parent: IMutableTypeEnvironment, val typeAnnotation: AnyType = IType.Always): IMutableTypeEnvironment by parent
+data class AnnotatedTypeEnvironment(private val parent: IMutableTypeEnvironment, val typeAnnotation: AnyType = IType.Always): IMutableTypeEnvironment by parent, IAnnotatedTypeEnvironment {
+    override fun getAnnotation(): AnyType = typeAnnotation
+}
+
 data class ProjectionEnvironment(private val parent: IMutableTypeEnvironment, val projection: Projection) : IMutableTypeEnvironment by parent {
     init {
         add(IType.Alias("Self", projection.source))
@@ -214,6 +224,7 @@ object GlobalEnvironment : IMutableTypeEnvironment by TypeEnvironmentStorage(Con
     private val specialisations = mutableMapOf<String, List<Context>>()
     private val tags = mutableMapOf<String, List<String>>()
     private val singletonPool = mutableMapOf<String, IValue<*, *>>()
+    private val lambdaBodies = mutableMapOf<AnyArrow, LambdaLiteralNode>()
 
     fun register(singleton: IValue<*, *>) {
         singletonPool[singleton.type.id] = singleton
@@ -221,6 +232,13 @@ object GlobalEnvironment : IMutableTypeEnvironment by TypeEnvironmentStorage(Con
 
     fun getSingletonValue(type: AnyType) : IValue<*, *>?
         = singletonPool[type.id]
+
+    fun store(lambdaBody: LambdaLiteralNode, arrow: AnyArrow) {
+        lambdaBodies[arrow] = lambdaBody
+    }
+
+    fun lambdaBody(arrow: AnyArrow) : LambdaLiteralNode?
+        = lambdaBodies[arrow]
 
     fun tag(type: AnyType, tag: String) {
         val pTags = tags[type.getCanonicalName()] ?: emptyList()

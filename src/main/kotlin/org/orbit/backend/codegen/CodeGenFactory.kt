@@ -30,7 +30,7 @@ interface CodeGenFactory<H: AbstractHeader> {
     fun getIdentifierUnit(node: IdentifierNode, depth: Int) : AbstractIdentifierUnit = IdentifierUnit(node, depth)
     fun getRValueUnit(node: RValueNode, depth: Int) : AbstractRValueUnit = RValueUnit(node, depth)
     fun getConstructorUnit(node: ConstructorInvocationNode, depth: Int) : AbstractConstructorUnit
-    fun getCallUnit(node: InvokableNode, depth: Int) : AbstractCallUnit<*>
+    fun getCallUnit(node: IInvokableNode, depth: Int) : AbstractCallUnit<*>
     fun getTypeExpressionUnit(node: TypeExpressionNode, depth: Int) : AbstractTypeExpressionUnit = TypeExpressionUnit(node, depth)
 
     fun getTypeDefUnit(node: TypeDefNode, depth: Int) : AbstractTypeDefUnit

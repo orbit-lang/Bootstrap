@@ -12,7 +12,9 @@ interface ParseRule<N: INode> {
 		data class Success<N: INode>(val node: N) : Result
 		sealed class Failure : Result {
 			object Abort : Result
-			data class Rewind(val tokens: List<Token> = emptyList()) : Result
+			data class Rewind(val tokens: List<Token> = emptyList()) : Result {
+				constructor(collector: Parser.TokenCollector) : this(collector.getCollectedTokens())
+			}
 			data class Throw(val message: String, val position: SourcePosition) : Result {
 				constructor(message: String, token: Token) : this(message, token.position)
 			}

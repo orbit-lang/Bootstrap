@@ -21,10 +21,11 @@ object OrbCoreNumbers : IOrbModule {
 }
 
 object OrbCoreTypes : IOrbModule {
-    val unitType = IType.Unit //IType.Type("Orb::Core::Types::Unit")
+    val unitType = IType.Unit
     val tupleType = IType.Type("Orb::Core::Types::Tuple")
+    val anyType = IType.Always
 
-    override fun getPublicTypes(): List<AnyType> = listOf(unitType, tupleType)
+    override fun getPublicTypes(): List<AnyType> = listOf(unitType, tupleType, anyType)
     override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
     override fun getPublicOperators(): List<IType.IOperatorArrow<*, *>> = emptyList()
 }

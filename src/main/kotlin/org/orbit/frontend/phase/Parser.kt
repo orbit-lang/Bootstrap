@@ -237,6 +237,9 @@ class Parser(
 		throw invocation.make(Errors.UnexpectedToken(next))
 	}
 
+	fun rewind(collector: TokenCollector)
+		= rewind(collector.getCollectedTokens())
+
 	fun rewind(consumed: List<Token>) {
 		tokens.addAll(0, consumed)
 	}
@@ -246,6 +249,10 @@ class Parser(
 
 		try {
 			val result = rule.execute(this)
+
+//			println("________________________________________________________")
+//			println("TOKENS: ${tokens.map { it.type.identifier }}")
+//			println("ATTEMPTED: ${rule::class.java.simpleName} -- RESULT: $result")
 
 			return when (result) {
 				is ParseRule.Result.Success<*> -> result.node as? N

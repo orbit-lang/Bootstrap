@@ -1,9 +1,7 @@
 package org.orbit.backend.typesystem.inference
 
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
-import org.orbit.backend.typesystem.components.LocalEnvironment
-import org.orbit.backend.typesystem.components.arrowOf
+import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.LambdaLiteralNode
 
@@ -18,8 +16,12 @@ object LambdaLiteralInference : ITypeInference<LambdaLiteralNode, IMutableTypeEn
             type
         }
 
-        val body = TypeInferenceUtils.infer(node.body, nEnv)
+        val partial = parameters.arrowOf(IType.Always)
+        val mEnv = SelfTypeEnvironment(nEnv, partial)
+        val body = TypeInferenceUtils.infer(node.body, mEnv)
 
-        return parameters.arrowOf(body)
+        return parameters.arrowOf(body).apply {
+            GlobalEnvironment.store(node, this)
+        }
     }
 }

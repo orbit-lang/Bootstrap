@@ -84,6 +84,7 @@ val mainModule = module {
 		util.registerPathResolver(UnitPathResolver, UnitNode::class.java)
 		util.registerPathResolver(CollectionLiteralPathResolver, CollectionLiteralNode::class.java)
 		util.registerPathResolver(CollectionTypePathResolver, CollectionTypeNode::class.java)
+		util.registerPathResolver(InvocationPathResolver, InvocationNode::class.java)
 
 		util
 	}
@@ -161,6 +162,7 @@ val mainModule = module {
 	single(CollectionLiteralInference)
 	single(CollectionTypeInference)
 	single(DeferInference)
+	single(InvocationInference)
 }
 
 private inline fun <reified N: INode, reified E: ITypeEnvironment> org.koin.core.module.Module.single(inference: ITypeInference<N, E>) : BeanDefinition<ITypeInference<N, E>>
