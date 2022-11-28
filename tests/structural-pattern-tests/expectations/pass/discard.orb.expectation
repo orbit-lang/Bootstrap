@@ -2,3 +2,4 @@
 StructuralPatternNode
  DiscardBindingPatternNode
  DiscardBindingPatternNode
+ TypeIdentifierNode

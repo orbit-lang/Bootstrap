@@ -23,6 +23,6 @@ internal class PanicTests: FileBasedTest("panic-tests", "orb") {
 
     @Test
     fun `Isolate single test`() {
-        assert(Scenario.Pass, "call.orb", true)
+        assert(Scenario.Pass, "id.orb", true)
     }
 }

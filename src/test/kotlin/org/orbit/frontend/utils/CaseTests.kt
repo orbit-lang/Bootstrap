@@ -23,6 +23,6 @@ internal class CaseTests : FileBasedTest("case-tests", "orb") {
 
     @Test
     fun `Isolate single test`() {
-        assert(Scenario.Pass, "bool.orb", true)
+        assert(Scenario.Pass, "structural.orb", true)
     }
 }

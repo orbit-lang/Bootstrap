@@ -21,12 +21,12 @@ SelectNode
     IdentifierNode
     TypeBindingPatternNode
      TypeIdentifierNode
+   TypeIdentifierNode
   RValueNode
    IdentifierNode
  CaseNode
-  StructuralPatternNode
-   TypeBindingPatternNode
-    TypeIdentifierNode
+  TypeBindingPatternNode
+   TypeIdentifierNode
   MethodReferenceNode
    TypeIdentifierNode
    IdentifierNode

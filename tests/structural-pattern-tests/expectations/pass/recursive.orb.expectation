@@ -7,3 +7,5 @@ StructuralPatternNode
     IdentifierNode
     TypeBindingPatternNode
      TypeIdentifierNode
+   TypeIdentifierNode
+ TypeIdentifierNode

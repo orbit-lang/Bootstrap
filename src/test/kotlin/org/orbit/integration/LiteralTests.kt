@@ -61,18 +61,6 @@ internal class LiteralTests : IntegrationTest {
     }
 
     @Test
-    fun testTypeIdentifierTrue() {
-        // Proposition: Frontend parses a well-formed Type identifier
-        val result = generateFrontendResult(TokenTypeProviderImpl, LiteralRule(), "Type")
-
-        assertIs<RValueNode>(result.ast)
-
-        val typeIdentifierNode = (result.ast as RValueNode).expressionNode as TypeIdentifierNode
-
-        assertEquals("Type", typeIdentifierNode.value)
-    }
-
-    @Test
     fun testIdentifierTrue() {
         // Proposition: Frontend parses a well-formed identifier, e.g. "name"
         val result = generateFrontendResult(TokenTypeProviderImpl, LiteralRule(), "name")

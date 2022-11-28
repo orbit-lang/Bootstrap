@@ -11,6 +11,9 @@ CaseNode
        IdentifierNode
        TypeBindingPatternNode
         TypeIdentifierNode
+      TypeIdentifierNode
+    TypeIdentifierNode
+  TypeIdentifierNode
  MethodReferenceNode
   TypeIdentifierNode
   IdentifierNode

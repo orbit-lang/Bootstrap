@@ -18,6 +18,6 @@ internal class StructuralPatternTests: FileBasedTest("structural-pattern-tests",
 
     @Test
     fun `Isolate single test`() {
-        assert(Scenario.Pass, "recursive.orb", true)
+        assert(Scenario.Pass, "discard.orb", true)
     }
 }

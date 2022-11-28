@@ -23,6 +23,6 @@ internal class ContextTests : FileBasedTest("context-tests", "orb") {
 
     @Test
     fun `Isolate single test`() {
-        assert(Scenario.Pass, "with_single_trait_def_body.orb", true)
+        assert(Scenario.Fail, "with_empty_type_variables.orb", true)
     }
 }

@@ -13,6 +13,8 @@ object AssignmentRule : ValueRule<AssignmentStatementNode>, WhereClauseExpressio
         val identifier = context.attempt(IdentifierRule)
             ?: return ParseRule.Result.Failure.Rewind(collector)
 
+        if (!context.hasMore) return ParseRule.Result.Failure.Rewind(collector)
+
         var next = context.peek()
 
         if (next.type != TokenTypes.Assignment) {

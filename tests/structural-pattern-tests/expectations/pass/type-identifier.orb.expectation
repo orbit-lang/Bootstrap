@@ -2,3 +2,4 @@
 StructuralPatternNode
  IdentifierBindingPatternNode
   IdentifierNode
+ TypeIdentifierNode

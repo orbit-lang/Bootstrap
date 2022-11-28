@@ -45,31 +45,4 @@ internal class ContextTest {
         assertNotEquals(res, sut)
         assertEquals(res.name, sut.name)
     }
-
-    @Test
-    fun `Solving multiple type variables`() {
-        val a = IType.TypeVar("A")
-        val b = IType.TypeVar("B")
-        val c = IType.TypeVar("C")
-        val t = IType.Type("T")
-        val u = IType.TypeVar("U")
-        val v = IType.TypeVar("V")
-        val sut = Context.build("C", listOf(a, b, c))
-        val res = sut.specialise(a to t, b to u, c to v)
-
-        assertNotEquals(res, sut)
-        assertEquals(res.name, sut.name)
-        assertEquals(3, res.bindings.count())
-
-        val nA = res.bindings.elementAt(0)
-        val nB = res.bindings.elementAt(1)
-        val nC = res.bindings.elementAt(2)
-
-        assertTrue(nA.concrete === t)
-        assertTrue(nB.concrete === u)
-        assertTrue(nC.concrete === v)
-
-        assertTrue(res.getUnsolved().isEmpty())
-        assertTrue(res.isComplete())
-    }
 }
