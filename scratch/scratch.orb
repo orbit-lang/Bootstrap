@@ -19,6 +19,10 @@ module Orb::Core::Booleans {
 }
 
 module M with Orb::* {
+    context FunctionCtx [A, B] {
+        alias Function = (A) -> B
+    }
+
     context FunctionCompositionContext [A, B, C] {
         (f (A) -> B) compose (g (B) -> C) ((A) -> C) = { a -> g(f(a)) }
 
@@ -26,9 +30,9 @@ module M with Orb::* {
     }
 
     (Bool) main () () {
-        fn1 = { (x Int) -> x }
-        fn2 = { (y Int) -> y }
-        fn3 = fn1 • fn2 within FunctionCompositionContext [Int, Int, Int]
+        fn1 = { x -> x }
+        fn2 = { y -> y }
+        fn3 = { x -> x } • { x -> x } within FunctionCompositionContext [Bool, Bool, Int]
 
         typeOf fn3
     }

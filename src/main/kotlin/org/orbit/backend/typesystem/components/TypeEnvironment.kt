@@ -218,6 +218,7 @@ object GlobalEnvironment : IMutableTypeEnvironment by TypeEnvironmentStorage(Con
     private val tags = mutableMapOf<String, List<String>>()
     private val singletonPool = mutableMapOf<String, IValue<*, *>>()
     private val lambdaBodies = mutableMapOf<AnyArrow, LambdaLiteralNode>()
+    private val unionNameMap = mutableMapOf<String, String>()
 
     fun register(singleton: IValue<*, *>) {
         singletonPool[singleton.type.id] = singleton
@@ -268,6 +269,19 @@ object GlobalEnvironment : IMutableTypeEnvironment by TypeEnvironmentStorage(Con
 
     fun getSpecialisations(context: Context) : List<Context>
         = specialisations[context.name] ?: emptyList()
+
+    fun getUnionName(union: IType.Union) : String? = when (val name = unionNameMap[union.id]) {
+        null -> {
+            val matches =
+                getAllTypes().filter { it.component is IType.Alias && it.component.type is IType.Union && it.component.type.id == union.id }
+
+            when (matches.count()) {
+                1 -> matches[0].component.getCanonicalName().apply { unionNameMap[union.id] = this }
+                else -> null
+            }
+        }
+        else -> name
+    }
 }
 
 private class TypeEnvironmentStorage(private val context: Context) : IMutableTypeEnvironment {

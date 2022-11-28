@@ -790,11 +790,19 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
                 else -> TODO("Not a Union Constructor")
             } })
 
-        override fun prettyPrint(depth: Int): String {
-            val printer = getKoinInstance<Printer>()
-            val pretty = unionConstructors.joinToString(" | ") { printer.apply(it.name, PrintableKey.Bold) }
+        override fun prettyPrint(depth: Int): String = when (val name = GlobalEnvironment.getUnionName(this)) {
+            null -> {
+                val printer = getKoinInstance<Printer>()
+                val pretty = unionConstructors.joinToString(" | ") { printer.apply(it.name, PrintableKey.Bold) }
 
-            return "${"\t".repeat(depth)}($pretty)"
+                "${"\t".repeat(depth)}($pretty)"
+            }
+            else -> {
+                val printer = getKoinInstance<Printer>()
+                val pretty = printer.apply(name, PrintableKey.Bold)
+
+                "${"\t".repeat(depth)}$pretty"
+            }
         }
 
         override fun toString(): String = prettyPrint()
