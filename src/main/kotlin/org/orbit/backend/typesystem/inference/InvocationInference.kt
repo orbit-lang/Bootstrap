@@ -15,7 +15,11 @@ object InvocationInference : ITypeInference<InvocationNode, IMutableTypeEnvironm
     private val invocation: Invocation by inject()
 
     override fun infer(node: InvocationNode, env: IMutableTypeEnvironment): AnyType {
-        val arrow = TypeInferenceUtils.inferAs<IExpressionNode, AnyArrow>(node.invokable, env)
+        val type = TypeInferenceUtils.inferAs<IExpressionNode, AnyArrow>(node.invokable, env)
+        val arrow = when (env.getCurrentContext().isComplete()) {
+            true -> env.getCurrentContext().applySpecialisations(type) as AnyArrow
+            else -> type
+        }
         val args = TypeInferenceUtils.inferAll(node.arguments, env).map { it.flatten(it, env) }
         val expectedArgsCount = arrow.getDomain().count()
 

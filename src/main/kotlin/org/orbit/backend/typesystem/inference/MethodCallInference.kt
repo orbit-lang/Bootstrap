@@ -21,7 +21,11 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
     }
 
     override fun infer(node: MethodCallNode, env: ITypeEnvironment): AnyType {
-        val receiver = TypeInferenceUtils.infer(node.receiverExpression, env)
+        val type = TypeInferenceUtils.infer(node.receiverExpression, env)
+        val receiver = when(env.getCurrentContext().isComplete()) {
+            true -> env.getCurrentContext().applySpecialisations(type)
+            else -> type
+        }
 
         if (node.isPropertyAccess) return inferPropertyAccess<IType.IAccessibleType<String>>(node, receiver.flatten(receiver, env), env)
 
@@ -78,6 +82,8 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
             }
         }
 
-        return arrow.returns.flatten(arrow.returns, env)
+        val result = arrow.returns.flatten(arrow.returns, env)
+
+        return env.getCurrentContext().applySpecialisations(result)
     }
 }

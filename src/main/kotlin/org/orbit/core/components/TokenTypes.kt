@@ -16,7 +16,7 @@ object TokenTypes : TokenTypeProvider {
     object LExpand : TokenType("LExpand", "\\$\\{", true, false, Family.Enclosing)
     object Assignment : TokenType("Assignment", "\\=", true, false, Family.Op)
     object Dollar : TokenType("Dollar", "\\$[0-9]+", true, false, Family.Op)
-    object OperatorSymbol : TokenType("OperatorSymbol", "((?:`[^`]+`)|(?:\\.{2,})|(?:[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|]+))", true, false, Family.Op)
+    object OperatorSymbol : TokenType("OperatorSymbol", "((?:`[^`]+`)|(?:\\.{2,})|(?:[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|\\•]+))", true, false, Family.Op)
     object Annotation : TokenType("Annotation", "@", true, false, Family.Op)
     object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false, Family.White)
 	

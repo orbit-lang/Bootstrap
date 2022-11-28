@@ -24,6 +24,8 @@ data class Specialisation(val abstract: IType.TypeVar, val concrete: AnyType) {
 
     private val uniqueId: String get() = "${abstract.name}__${concrete.id}"
 
+    fun toSubstitution() : Substitution = Substitution(abstract, concrete)
+
     override fun equals(other: Any?): Boolean = when (other) {
         is Specialisation -> other.uniqueId == uniqueId
         else -> false
@@ -70,25 +72,11 @@ fun ITypeEnvironment.getSignatures() : List<ContextualDeclaration<IType.Signatur
 fun ITypeEnvironment.getSignatures(name: String) : List<ContextualDeclaration<IType.Signature>> {
     val signatures = mutableListOf<ContextualDeclaration<IType.Signature>>()
     for (signature in getSignatures()) {
-        if (signature.component.name == name) signatures.add(signature)
-    }
-
-    return signatures
-}
-
-fun ITypeEnvironment.getSignatures(name: String, receiver: AnyType) : List<ContextualDeclaration<IType.Signature>> {
-    val signatures = mutableListOf<ContextualDeclaration<IType.Signature>>()
-
-    for (signature in getSignatures(name)) {
-        var specialisations = GlobalEnvironment.getSpecialisations(signature.context)
-            .map { Pair(it, it.specialise(signature.component)) }
-
-        if (specialisations.isEmpty()) {
-            specialisations = listOf(Pair(signature.context, signature.component))
-        }
-
-        for (specialisation in specialisations) {
-            if (TypeUtils.checkEq(this, receiver, specialisation.second.receiver)) signatures.add(ContextualDeclaration(specialisation.first, specialisation.second))
+        if (signature.component.name == name) {
+            signatures.add(when (getCurrentContext().isComplete()) {
+                true -> getCurrentContext().applySpecialisations(signature)
+                else -> signature
+            })
         }
     }
 
@@ -455,4 +443,7 @@ fun ITypeEnvironment.getOperators(fixity: OperatorFixity) : List<AnyOperator> = 
 
 inline fun <reified O: IType.IOperatorArrow<*, *>> ITypeEnvironment.getOperators() : List<O>
     = (getAllTypes().filter { it.component is O } as List<ContextualDeclaration<O>>)
-        .map { it.component }
+        .map { when (getCurrentContext().isComplete()) {
+            true -> getCurrentContext().applySpecialisations(it.component) as O
+            else -> it.component
+        } }

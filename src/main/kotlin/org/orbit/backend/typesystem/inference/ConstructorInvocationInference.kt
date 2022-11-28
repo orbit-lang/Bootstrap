@@ -48,7 +48,6 @@ object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode
             ?: throw invocation.make<TypeSystem>("Type $constructedType does not declare a Constructor that accepts argument Types (${args.joinToString(", ")})", node)
 
         val params = constructor.getDomain()
-//        val params = constructedType.getConstructors()[0].getDomain()
 
         if (args.count() != params.count()) throw invocation.make<TypeSystem>("Constructor for Type `$type` expects ${params.count()} arguments, found ${args.count()}", node)
 

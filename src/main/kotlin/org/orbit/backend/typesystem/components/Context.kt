@@ -44,6 +44,12 @@ data class Context private constructor(val name: String, val bindings: Set<Speci
         }
     }.toSet())
 
+    fun applySpecialisations(type: AnyType) : AnyType
+        = bindings.map(Specialisation::toSubstitution).fold(type) { acc, next -> acc.substitute(next) }
+
+    fun <T: AnyType> applySpecialisations(contextualDeclaration: ContextualDeclaration<T>) : ContextualDeclaration<T>
+        = ContextualDeclaration(this, applySpecialisations(contextualDeclaration.component) as T)
+
     fun solving(specialisation: Specialisation) : Context
         = solving(specialisation.abstract, specialisation.concrete)
 

@@ -19,11 +19,17 @@ module Orb::Core::Booleans {
 }
 
 module M with Orb::* {
-    (self (Int, Int) -> Int) invoke (x Int, y Int) (Int) = self(x, y)
+    context FunctionCompositionContext [A, B, C] {
+        (f (A) -> B) compose (g (B) -> C) ((A) -> C) = { a -> g(f(a)) }
+
+        infix operator functionCompose `+` by ::compose
+    }
 
     (Bool) main () () {
-        id = { x -> x }
-        typeOf id
-        return
+        fn1 = { (x Int) -> x }
+        fn2 = { (y Int) -> y }
+        fn3 = fn1 + fn2 within FunctionCompositionContext [Int, Int, Bool]
+
+        typeOf fn3
     }
 }
