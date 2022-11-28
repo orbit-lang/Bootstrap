@@ -48,6 +48,12 @@ object MethodReferenceInference : ITypeInference<MethodReferenceNode, ITypeEnvir
             return possibleSignatures[0].component
         }
 
-        throw invocation.make<TypeSystem>(error, node)
+        if (possibleSignatures.isEmpty()) {
+            throw invocation.make<TypeSystem>(error, node)
+        }
+
+        val pretty = possibleSignatures.joinToString("\n\t") { it.component.toString() }
+
+        throw invocation.make<TypeSystem>("Multiple methods can be referenced by identifier `${node.identifierNode.identifier}`. Please specify the intended receiver Type to disambiguate between these options:\n\t$pretty", node)
     }
 }

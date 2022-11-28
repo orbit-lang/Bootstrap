@@ -258,7 +258,7 @@ class Parser(
 				is ParseRule.Result.Success<*> -> result.node as? N
 
 				is ParseRule.Result.Failure.Rewind -> {
-					tokens = (result.tokens + backup).toMutableList()
+					tokens = (result.tokens + backup).distinct().toMutableList()
 					null
 				}
 

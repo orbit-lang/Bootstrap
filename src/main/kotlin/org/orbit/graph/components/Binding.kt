@@ -18,6 +18,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 		object Self : Entity
 		object Any : Entity
 		object Ephemeral : Entity
+		object Lambda : Entity
 		object Method : Kind
 		object Empty : Kind
 		object Context : Kind
@@ -60,6 +61,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 		val infer = Binding(Kind.Type, "_", Path.infer)
 		val array = Binding(Kind.Type, "[]", Path.array)
 		val any = Binding(Kind.Any, "*", Path.any)
+		val lambda = Binding(Kind.Lambda, "->", Path.lambda)
 	}
 
 	fun matches(name: String) : Boolean = when (kind) {

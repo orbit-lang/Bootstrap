@@ -12,10 +12,10 @@ interface ValueRule<E: IExpressionNode> : ParseRule<E>
 
 object GroupedExpressionRule : ValueRule<IExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
-		context.mark()
+		val collector = context.startCollecting()
 		context.expect(TokenTypes.LParen)
 		val expr = context.attempt(ExpressionRule.defaultValue)
-			?: return ParseRule.Result.Failure.Rewind(context.end())
+			?: return ParseRule.Result.Failure.Rewind(collector)
 		context.expect(TokenTypes.RParen)
 
 		return +expr
@@ -46,7 +46,7 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 		)
 
 		val singleExpressionBodyRule = ExpressionRule(
-			AssignmentRule, PanicRule, SelectRule, MirrorRule, ExpandRule, LambdaLiteralRule, ConstructorInvocationRule, MethodCallRule, LiteralRule())
+			AssignmentRule, PanicRule, SelectRule, MirrorRule, ExpandRule, LambdaLiteralRule, ConstructorInvocationRule, InvocationRule, MethodCallRule, LiteralRule())
 
 		val selectConditionRule = ExpressionRule(
 			ExpandRule, ConstructorInvocationRule, MethodCallRule, LiteralRule()

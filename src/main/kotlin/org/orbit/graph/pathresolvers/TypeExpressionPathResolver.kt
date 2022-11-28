@@ -70,7 +70,12 @@ object TypeExpressionPathResolver : IPathResolver<TypeExpressionNode> {
 		}
 
 		is CollectionTypeNode -> {
-			//input.elementType.annotate(input.getGraphID(), Annotations.graphId)
+			pathResolverUtil.resolve(input, pass, environment, graph)
+		}
+
+		is LambdaTypeNode -> {
+			input.domain.forEach { it.annotate(input.getGraphID(), Annotations.graphId) }
+			input.codomain.annotate(input.getGraphID(), Annotations.graphId)
 			pathResolverUtil.resolve(input, pass, environment, graph)
 		}
 

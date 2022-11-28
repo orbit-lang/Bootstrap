@@ -11,6 +11,7 @@ open class Path(open val relativeNames: List<String>) : AnyPrintable, Collection
 		val infer = Path("_")
 		val array = Path("[]")
 		val any = Path("*")
+		val lambda = Path("->")
 	}
 
 	constructor(path: String) : this(listOf(path))

@@ -42,7 +42,6 @@ object TokenTypes : TokenTypeProvider {
     object Where : TokenType("Where", "\\bwhere\\b", true, false, Family.Keyword)
     object Let : TokenType("Let", "\\blet\\b", true, false, Family.Keyword)
     object In : TokenType("In", "\\bin\\b", true, false, Family.Keyword)
-    object Invoke : TokenType("Invoke", "\\binvoke\\b", true, false, Family.Keyword)
     object Of : TokenType("Of", "\\bof\\b", true, false, Family.Keyword)
     object TypeOf : TokenType("TypeOf", "\\btypeOf\\b", true, false, Family.Keyword)
     object ContextOf : TokenType("ContextOf", "\\bcontextOf\\b", true, false, Family.Keyword)
@@ -82,7 +81,7 @@ object TokenTypes : TokenTypeProvider {
             Synthesise,
             Call,
             Dollar,
-            Fixity, Let, Invoke, In, Of, By, To, Else, Case, Select, As,
+            Fixity, Let, In, Of, By, To, Else, Case, Select, As,
             Bool, Panic,
             TypeIdentifier,
             Colon, Comma, Assignment, Annotation, Whitespace,

@@ -6,6 +6,7 @@ import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.backend.typesystem.components.getTypeOrNull
+import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
@@ -19,6 +20,8 @@ object TypeIdentifierInference : ITypeInference<TypeIdentifierNode, ITypeEnviron
         if (node.isDiscard) return IType.Always
 
         val path = node.getPath()
+
+        if (path == IType.Unit.path) return IType.Unit
 
         return env.getTypeOrNull(path)?.component
             ?: throw invocation.make<TypeSystem>("Undefined Type `${path.toString(OrbitMangler)}`", node)

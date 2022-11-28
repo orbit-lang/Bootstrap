@@ -12,17 +12,17 @@ object InvocationRule : CallRule<InvocationNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val collector = context.startCollecting()
         val lhs = context.attempt(ExpressionRule.invocationRule)
-            ?: return ParseRule.Result.Failure.Abort
+            ?: return ParseRule.Result.Failure.Rewind(collector)
 
-        if (!context.hasMore) return ParseRule.Result.Failure.Abort
+        if (!context.hasMore) return ParseRule.Result.Failure.Rewind(collector)
 
         val next = context.peek()
 
-        if (next.type != TokenTypes.LParen) return ParseRule.Result.Failure.Rewind()
+        if (next.type != TokenTypes.LParen) return ParseRule.Result.Failure.Rewind(collector)
 
         val delimRule = DelimitedRule(innerRule = ExpressionRule.defaultValue)
         val delim = context.attempt(delimRule)
-            ?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
+            ?: return ParseRule.Result.Failure.Rewind(collector)
 
         return +InvocationNode(lhs.firstToken, delim.lastToken, lhs, delim.nodes)
     }

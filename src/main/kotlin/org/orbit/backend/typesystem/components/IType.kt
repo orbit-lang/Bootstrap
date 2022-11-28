@@ -82,6 +82,8 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     object Unit : Entity<Unit> {
         override val id: String = "Unit"
 
+        val path: Path = OrbitMangler.unmangle("Orb::Core::Types::Unit")
+
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
         override fun substitute(substitution: Substitution): Unit = this
         override fun equals(other: Any?): Boolean = when (other) {
