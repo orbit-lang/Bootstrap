@@ -16,6 +16,10 @@ object InvocationPathResolver : IPathResolver<InvocationNode> {
 
     override fun resolve(input: InvocationNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         input.invokable.annotate(input.getGraphID(), Annotations.graphId)
+        input.arguments.forEach {
+            it.annotate(input.getGraphID(), Annotations.graphId)
+            pathResolverUtil.resolve(it, pass, environment, graph)
+        }
 
         return pathResolverUtil.resolve(input.invokable, pass, environment, graph)
     }

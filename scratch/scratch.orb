@@ -19,24 +19,16 @@ module Orb::Core::Booleans {
 }
 
 module M with Orb::* {
-    context FunctionCtx [A, B] {
-        alias Function = (A) -> B
+    context BoxCtx [V] {
+        alias Box = { value V }
+
+        (self Box) unwrap () (V) = self.value
     }
-
-    context FunctionCompositionContext [A, B, C] {
-        (f (A) -> B) compose (g (B) -> C) ((A) -> C) = { a -> g(f(a)) }
-
-        infix operator functionCompose `•` by ::compose
-    }
-
-    (self Int) next () (Int) = self + 1
 
     (Bool) main () () {
-        fn1 = { x -> x }
-        fn2 = { y -> y }
-        fn3 = { x -> x } • { x -> x } within FunctionCompositionContext [Bool, Bool, Int]
-        fn4 = ::next • { x -> x } within FunctionCompositionContext [Int, Int, Int]
+        f = ::unwrap
+#        b = Box(1)
 
-        typeOf fn3
+        typeOf f(Box(1))
     }
 }
