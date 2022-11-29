@@ -29,10 +29,13 @@ module M with Orb::* {
         infix operator functionCompose `•` by ::compose
     }
 
+    (self Int) next () (Int) = self + 1
+
     (Bool) main () () {
         fn1 = { x -> x }
         fn2 = { y -> y }
         fn3 = { x -> x } • { x -> x } within FunctionCompositionContext [Bool, Bool, Int]
+        fn4 = ::next • { x -> x } within FunctionCompositionContext [Int, Int, Int]
 
         typeOf fn3
     }

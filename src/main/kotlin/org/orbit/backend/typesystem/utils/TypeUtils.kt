@@ -113,6 +113,10 @@ object TypeUtils {
                     is IType.Lazy<*> -> check(env, left.type(), right)
                     is IType.Never -> right
                     is IValue<*, *> -> check(env, left.type, right)
+                    is IType.Signature -> when (right) {
+                        is AnyArrow -> check(env, left.toArrow(), right)
+                        else -> error
+                    }
                     else -> error
                 }
             }
