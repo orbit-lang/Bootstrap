@@ -220,6 +220,16 @@ object GlobalEnvironment : IMutableTypeEnvironment by TypeEnvironmentStorage(Con
     private val lambdaBodies = mutableMapOf<AnyArrow, LambdaLiteralNode>()
     private val unionNameMap = mutableMapOf<String, String>()
 
+    fun getBaseContext(specialisedContext: Context) : Context? {
+        for (kv in specialisations) {
+            if (kv.value.contains(specialisedContext)) {
+                return getKnownContexts().first { it.name == kv.key }
+            }
+        }
+
+        return null
+    }
+
     fun register(singleton: IValue<*, *>) {
         singletonPool[singleton.type.id] = singleton
     }

@@ -991,6 +991,10 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             return "$receiver.$name($pParams)($returns)"
         }
 
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = (receiver.getUnsolvedTypeVariables() + returns.getUnsolvedTypeVariables() + parameters.flatMap { it.getUnsolvedTypeVariables() })
+                .distinct()
+
         override fun getDomain(): List<AnyType> = toArrow().getDomain()
         override fun getCodomain(): AnyType = toArrow().getCodomain()
 
