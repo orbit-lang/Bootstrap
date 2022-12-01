@@ -11,7 +11,7 @@ import org.orbit.core.nodes.TypeAliasNode
 
 object TypeAliasInference : ITypeInference<TypeAliasNode, IMutableTypeEnvironment> {
     override fun infer(node: TypeAliasNode, env: IMutableTypeEnvironment): AnyType {
-        val type = TypeInferenceUtils.infer(node.targetTypeIdentifier, env)
+        val type = TypeInferenceUtils.infer(node.targetType, env)
         val path = node.getPath()
 
         env.add(IType.Alias(path, type))

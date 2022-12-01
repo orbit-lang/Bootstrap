@@ -50,7 +50,7 @@ open class Path(open val relativeNames: List<String>) : AnyPrintable, Collection
 		return Path(relativeNames.subList(0, relativeNames.indexOf(other.relativeNames.last())))
 	}
 
-	fun containsSubPath(other: Path, mangler: Mangler = OrbitMangler) : Boolean {
+	fun containsSubPath(other: Path, mangler: INameMangler = OrbitMangler) : Boolean {
 		return toString(mangler).startsWith(other.toString(mangler))
 	}
 
@@ -84,7 +84,7 @@ open class Path(open val relativeNames: List<String>) : AnyPrintable, Collection
 
 	fun promote() : FullyQualifiedPath = FullyQualifiedPath(this)
 
-	fun toString(mangler: Mangler) : String {
+	fun toString(mangler: INameMangler) : String {
 		return mangler.mangle(this)
 	}
 

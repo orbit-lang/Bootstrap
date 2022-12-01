@@ -27,8 +27,8 @@ module M with Orb::* {
 
     (Bool) main () () {
         f = ::unwrap
-#        b = Box(1)
-
-        typeOf f(Box(1))
+        b = Box(1)
+        i = f(b)
+        typeOf i
     }
 }

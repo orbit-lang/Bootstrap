@@ -6,11 +6,11 @@ data class TypeAliasNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val sourceTypeIdentifier: TypeIdentifierNode,
-    val targetTypeIdentifier: TypeExpressionNode
+    val targetType: TypeExpressionNode
 ) : IContextDeclarationNode, EntityDefNode {
     override val properties: List<ParameterNode> = emptyList()
     override val typeIdentifierNode: TypeIdentifierNode = sourceTypeIdentifier
 
     override fun getChildren(): List<INode>
-        = listOf(sourceTypeIdentifier, targetTypeIdentifier)
+        = listOf(sourceTypeIdentifier, targetType)
 }

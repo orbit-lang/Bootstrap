@@ -8,6 +8,11 @@ import org.koin.core.parameter.DefinitionParameters
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
+import org.orbit.backend.codegen.ICodeGenerator
+import org.orbit.backend.codegen.swift.*
+import org.orbit.backend.codegen.utils.CodeGenUtil
+import org.orbit.backend.codegen.utils.ICodeGenTarget
+import org.orbit.backend.codegen.utils.IntrinsicCodeGenTarget
 import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.backend.typesystem.inference.*
 import org.orbit.core.components.CompilationEventBus
@@ -167,7 +172,24 @@ val mainModule = module {
 	single(InvocationInference)
 	single(RefOfInference)
 	single(LambdaTypeInference)
+
+	// Code Gen
+	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }
+
+	// Swift
+	swiftSingle(ProgramGenerator)
+	swiftSingle(ModuleGenerator)
+	swiftSingle(TypeGenerator)
+	swiftSingle(AlgebraicConstructorGenerator)
+	swiftSingle(ContextGenerator)
+	swiftSingle(TypeAliasGenerator)
 }
+
+private inline fun <reified N: INode> org.koin.core.module.Module.single(target: ICodeGenTarget, generator: ICodeGenerator<N>) : BeanDefinition<ICodeGenerator<N>>
+	= single(named("codeGen${target.getTargetName()}${N::class.java.simpleName}")) { generator }
+
+private inline fun <reified N: INode> org.koin.core.module.Module.swiftSingle(generator: ICodeGenerator<N>) : BeanDefinition<ICodeGenerator<N>>
+	= single(IntrinsicCodeGenTarget.Swift, generator)
 
 private inline fun <reified N: INode, reified E: ITypeEnvironment> org.koin.core.module.Module.single(inference: ITypeInference<N, E>) : BeanDefinition<ITypeInference<N, E>>
 	= single(named("infer${N::class.java.simpleName}")) { inference }

@@ -21,16 +21,16 @@ class TypeAliasPathResolver(private val parentPath: Path) : IPathResolver<TypeAl
 		val graphID = graph.insert(sourcePath.toString(OrbitMangler))
 
 		input.annotateByKey(graphID, Annotations.graphId)
-		input.targetTypeIdentifier.annotateByKey(graphID, Annotations.graphId)
+		input.targetType.annotateByKey(graphID, Annotations.graphId)
 
-		TypeExpressionPathResolver.execute(IPathResolver.InputType(input.targetTypeIdentifier, pass))
+		TypeExpressionPathResolver.execute(IPathResolver.InputType(input.targetType, pass))
 
-		val targetBinding = pathResolverUtil.resolve(input.targetTypeIdentifier, pass, environment, graph)
+		val targetBinding = pathResolverUtil.resolve(input.targetType, pass, environment, graph)
 			.asSuccess()
 
 		input.annotateByKey(sourcePath, Annotations.path)
 		input.sourceTypeIdentifier.annotateByKey(sourcePath, Annotations.path)
-		input.targetTypeIdentifier.annotateByKey(targetBinding.path, Annotations.path)
+		input.targetType.annotateByKey(targetBinding.path, Annotations.path)
 
 		environment.bind(Binding.Kind.TypeAlias, input.sourceTypeIdentifier.value, sourcePath)
 

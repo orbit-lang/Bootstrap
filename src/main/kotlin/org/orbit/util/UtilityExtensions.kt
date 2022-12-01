@@ -1,6 +1,6 @@
 package org.orbit.util
 
-import org.orbit.core.Mangler
+import org.orbit.core.INameMangler
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 
@@ -78,7 +78,7 @@ fun String.pluralise(count: Int) : String = when (count) {
     else -> this + "s"
 }
 
-fun String.toPath(mangler: Mangler = OrbitMangler) : Path = mangler.unmangle(this)
+fun String.toPath(mangler: INameMangler = OrbitMangler) : Path = mangler.unmangle(this)
 
 fun <T> Collection<T>.startsWith(element: T) : Boolean {
     return firstOrNull() == element

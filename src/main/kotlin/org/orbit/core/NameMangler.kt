@@ -29,12 +29,12 @@ fun INode.getPath() : Path {
 	return getAnnotation(Annotations.path)!!.value
 }
 
-interface Mangler {
+interface INameMangler {
 	fun mangle(path: Path) : String
 	fun unmangle(name: String) : Path
 }
 
-object OrbitMangler : Mangler {
+object OrbitMangler : INameMangler {
 	override fun mangle(path: Path) : String {
 		return path.relativeNames.joinToString("::")
 	}
@@ -44,7 +44,7 @@ object OrbitMangler : Mangler {
 	}
 }
 
-operator fun Mangler.plus(other: Mangler) : (String) -> String {
+operator fun INameMangler.plus(other: INameMangler) : (String) -> String {
 	return {
 		other.mangle(unmangle(it))
 	}
