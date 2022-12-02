@@ -19,14 +19,15 @@ object StructTypeRule : ValueRule<StructTypeNode> {
 
 object TupleTypeRule : ValueRule<TupleTypeNode> {
 	override fun parse(context: Parser): ParseRule.Result {
+		val collector = context.startCollecting()
 		val start = context.expect(TokenTypes.LParen)
 		val left = context.attempt(TypeExpressionRule)
-			?: return ParseRule.Result.Failure.Abort
+			?: return ParseRule.Result.Failure.Rewind(collector)
 
 		context.expect(TokenTypes.Comma)
 
 		val right = context.attempt(TypeExpressionRule)
-			?: return ParseRule.Result.Failure.Abort
+			?: return ParseRule.Result.Failure.Rewind(collector)
 
 		val end = context.expect(TokenTypes.RParen)
 
@@ -52,7 +53,7 @@ object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
 		context.mark()
 		val collector = context.startCollecting()
-		val node = context.attemptAny(listOf(ExpandRule, CollectionTypeRule, StructTypeRule, LambdaTypeRule, TupleTypeRule, TypeIdentifierRule.Naked))
+		val node = context.attemptAny(listOf(ExpandRule, CollectionTypeRule, TypeLambdaRule, StructTypeRule, LambdaTypeRule, TupleTypeRule, TypeIdentifierRule.Naked))
 			as? TypeExpressionNode
 			?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
 

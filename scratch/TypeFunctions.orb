@@ -1,2 +1,4 @@
-type (Context) Contains [S] _ (Self[S])
-    within Eq [S, Symbol] + Value [S]
+module TypeFunctions {
+    alias MapEntry = (K, V) => (K, V)
+    alias Map = (K, V) => [MapEntry(K, V)]
+}

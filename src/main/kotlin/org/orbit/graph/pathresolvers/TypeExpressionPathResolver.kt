@@ -31,6 +31,7 @@ object StructTypePathResolver : IPathResolver<StructTypeNode> {
 	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: StructTypeNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
+		input.members.forEach { it.annotate(input.getGraphID(), Annotations.graphId) }
 		pathResolverUtil.resolveAll(input.members, pass, environment, graph)
 
 		return IPathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())
@@ -62,6 +63,7 @@ object TypeExpressionPathResolver : IPathResolver<TypeExpressionNode> {
 
 			IPathResolver.Result.Success(OrbCoreTypes.tupleType.getPath())
 		}
+
 		is StructTypeNode -> {
 			input.members.forEach { it.annotate(input.getGraphID(), Annotations.graphId) }
 			pathResolverUtil.resolveAll(input.members, pass, environment, graph)
@@ -74,6 +76,12 @@ object TypeExpressionPathResolver : IPathResolver<TypeExpressionNode> {
 		}
 
 		is LambdaTypeNode -> {
+			input.domain.forEach { it.annotate(input.getGraphID(), Annotations.graphId) }
+			input.codomain.annotate(input.getGraphID(), Annotations.graphId)
+			pathResolverUtil.resolve(input, pass, environment, graph)
+		}
+
+		is TypeLambdaNode -> {
 			input.domain.forEach { it.annotate(input.getGraphID(), Annotations.graphId) }
 			input.codomain.annotate(input.getGraphID(), Annotations.graphId)
 			pathResolverUtil.resolve(input, pass, environment, graph)

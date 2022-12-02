@@ -23,9 +23,9 @@ class TypeAliasPathResolver(private val parentPath: Path) : IPathResolver<TypeAl
 		input.annotateByKey(graphID, Annotations.graphId)
 		input.targetType.annotateByKey(graphID, Annotations.graphId)
 
-		TypeExpressionPathResolver.execute(IPathResolver.InputType(input.targetType, pass))
+		TypeExpressionPathResolver.execute(IPathResolver.InputType(input.targetType, IPathResolver.Pass.Initial))
 
-		val targetBinding = pathResolverUtil.resolve(input.targetType, pass, environment, graph)
+		val targetBinding = pathResolverUtil.resolve(input.targetType, IPathResolver.Pass.Last, environment, graph)
 			.asSuccess()
 
 		input.annotateByKey(sourcePath, Annotations.path)

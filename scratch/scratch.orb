@@ -2,56 +2,13 @@ module Orb::Core::Types {
     type Unit
 }
 
-module Orb::Core::Numbers with Orb::Core::* {
-    type Int
+module TypeFunctions with Orb::* {
+    alias ID = (T) => T
+    alias Mirror = (T) => ID(T)
+#    alias MapEntry = (K, V) => { key K, value V }
+#    alias Map = (K, V) => [MapEntry(K, V)]
 
-    trait IntRepresentable {
-        (self Self) intRepresentation () (Int)
-    }
+    (Map) main () () {
 
-    projection Int : IntRepresentable
-        with intRepresentation by { self -> 2 * 2 }
-}
-
-module Test with Orb::* {
-    alias StatusCode = { code Int }
-    alias Byte = { n Int }
-
-    projection StatusCode : IntRepresentable
-        with intRepresentation by { (self StatusCode) -> self.code }
-
-    projection Byte : IntRepresentable
-        with intRepresentation by { (self Byte) -> self.n }
-
-    (self Int) statusCodeValue () (StatusCode) = StatusCode(self)
-    (self Int) byteValue () (Byte) = Byte(self)
-
-    (StatusCode) display (sc StatusCode) (IntRepresentable) = sc
-    (Byte) display (b Byte) (IntRepresentable) = b
-
-    (Unit) add (a IntRepresentable, b IntRepresentable) (IntRepresentable)
-        = a.intRepresentation() + b.intRepresentation()
-
-    (self IntRepresentable) dynamicUnwrap () (IntRepresentable) = select self {
-        case Int = self
-        case else = self
-    }
-
-    (Int) main () () {
-        s = StatusCode(1)
-        b = Byte(2)
-        i = 3
-
-        x = Unit.add(s, b)
-        y = Unit.add(b, i)
-        z = Unit.add(s, i)
-
-        typeOf s
-        typeOf b
-        typeOf i
-
-        typeOf x
-        typeOf y
-        typeOf z
     }
 }
