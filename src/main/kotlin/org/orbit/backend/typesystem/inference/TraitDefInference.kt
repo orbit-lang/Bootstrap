@@ -22,6 +22,7 @@ object TraitDefInference : ITypeInference<TraitDefNode, IMutableTypeEnvironment>
         val trait = IType.Trait(path.toString(OrbitMangler), properties, signatures)
 
         env.add(trait)
+        signatures.forEach { env.add(it) }
 
         return trait
     }

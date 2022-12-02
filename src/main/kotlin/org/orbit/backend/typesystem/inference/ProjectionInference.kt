@@ -76,6 +76,16 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
         return TraitMemberVerificationResult.Implemented(implementations)
     }
 
+    private fun check(results: TraitMemberVerificationResult<out IType.Trait.Member>, node: ProjectionNode, projectedType: AnyType, projectedTrait: IType.Trait) {
+        if (results is TraitMemberVerificationResult.NotImplemented) {
+            val projection = Projection(projectedType, projectedTrait)
+            val header = "Projection `$projection` is incomplete for the following reasons:"
+            val errors = results.reasons.joinToString("\n\t")
+
+            throw invocation.make<TypeSystem>("$header\n\t$errors", node)
+        }
+    }
+
     @Suppress("NAME_SHADOWING")
     override fun infer(node: ProjectionNode, env: IMutableTypeEnvironment): AnyType {
         val nEnv = when (val n = node.context) {
@@ -114,13 +124,7 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
             acc + verifyProperty(mEnv, next, properties)
         }
 
-        if (propertyResults is TraitMemberVerificationResult.NotImplemented) {
-            val projection = Projection(projectedType, projectedTrait)
-            val header = "Projection `$projection` is incomplete for the following reasons:"
-            val errors = propertyResults.reasons.joinToString("\n\t")
-
-            throw invocation.make<TypeSystem>("$header\n\t$errors", node)
-        }
+        check(propertyResults, node, projectedType, projectedTrait)
 
         val signatures = signatureNodes.mapNotNull {
             val node = it
@@ -134,13 +138,7 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
             acc + verifySignature(mEnv, next, signatures)
         }
 
-        if (signatureResults is TraitMemberVerificationResult.NotImplemented) {
-            val projection = Projection(projectedType, projectedTrait)
-            val header = "Projection `$projection` is incomplete for the following reasons:"
-            val errors = signatureResults.reasons.joinToString("\n\t")
-
-            throw invocation.make<TypeSystem>("$header\n\t$errors", node)
-        }
+        check(signatureResults, node, projectedType, projectedTrait)
 
         for (signature in (signatureResults as TraitMemberVerificationResult.Implemented).members) {
             env.add(signature)

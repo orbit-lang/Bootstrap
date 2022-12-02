@@ -6,6 +6,7 @@ import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeCheckPosition
+import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.IIntrinsicOperator
@@ -473,7 +474,11 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         fun getConstructor(given: List<AnyType>) : IConstructor<Self>? {
             val constructors = getConstructors()
 
-            return constructors.firstOrNull { it.getDomain() == given } as? IConstructor<Self>
+            return constructors.firstOrNull {
+                if (it.getDomain().count() != given.count()) return@firstOrNull false
+
+                it.getDomain().zip(given).all { p -> TypeUtils.checkEq(GlobalEnvironment, p.first, p.second) }
+            } as? IConstructor<Self>
         }
     }
 
@@ -1102,7 +1107,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
             = Trait(id, properties.map { it.substitute(substitution) }, signatures.map { it.substitute(substitution) })
 
         override fun getCardinality(): ITypeCardinality
-            = ITypeCardinality.Zero
+            = ITypeCardinality.Infinite
 
         override fun equals(other: Any?): Boolean = when (other) {
             is Trait -> other.id == id

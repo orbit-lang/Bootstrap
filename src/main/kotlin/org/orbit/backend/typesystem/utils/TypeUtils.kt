@@ -16,6 +16,18 @@ object TypeUtils {
         return block(lRaw, rRaw)
     }
 
+    private fun checkArrowsEq(env: ITypeEnvironment, left: AnyArrow, right: AnyArrow) : Boolean {
+        val lDomain = left.getDomain()
+        val rDomain = left.getDomain()
+
+        if (lDomain.count() != rDomain.count()) return false
+
+        val dEq = lDomain.zip(rDomain).all { checkEq(env, it.first, it.second) }
+        val cEq = checkEq(env, left.getCodomain(), right.getCodomain())
+
+        return dEq && cEq
+    }
+
     fun check(env: ITypeEnvironment, left: AnyType, right: AnyType) : AnyType = prepare(env, left, right) { left, right ->
         if (right is IType.Always) return@prepare left
 
@@ -37,6 +49,14 @@ object TypeUtils {
                         } else {
                             error
                         }
+                    }
+                    else -> error
+                }
+
+                is AnyArrow -> when (left) {
+                    is AnyArrow -> when (checkArrowsEq(env, left, right)) {
+                        true -> right
+                        else -> error
                     }
                     else -> error
                 }
@@ -137,12 +157,18 @@ object TypeUtils {
     fun checkSignatures(env: ITypeEnvironment, left: IType.Signature, right: IType.Signature) : Boolean {
         if (left.name != right.name) return false
         if (!checkEq(env, left.receiver, right.receiver)) return false
-        if (left.parameters.count() != right.parameters.count()) return false
-        for (pair in left.parameters.zip(right.parameters)) {
-            if (!checkEq(env, pair.first, pair.second)) return false
-        }
 
-        return checkEq(env, left.returns, right.returns)
+        val lArrow = left.toArrow()
+        val rArrow = right.toArrow()
+
+        return checkEq(env, lArrow, rArrow)
+
+//        if (left.parameters.count() != right.parameters.count()) return false
+//        for (pair in left.parameters.zip(right.parameters)) {
+//            if (!checkEq(env, pair.first, pair.second)) return false
+//        }
+//
+//        return checkEq(env, left.returns, right.returns)
     }
 }
 

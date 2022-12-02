@@ -2,33 +2,56 @@ module Orb::Core::Types {
     type Unit
 }
 
-module Orb::Core::Numbers {
+module Orb::Core::Numbers with Orb::Core::* {
     type Int
+
+    trait IntRepresentable {
+        (self Self) intRepresentation () (Int)
+    }
+
+    projection Int : IntRepresentable
+        with intRepresentation by { self -> 2 * 2 }
 }
 
-module Orb::Core::Booleans {
-    type Bool {
-        constructor True
-        constructor False
+module Test with Orb::* {
+    alias StatusCode = { code Int }
+    alias Byte = { n Int }
+
+    projection StatusCode : IntRepresentable
+        with intRepresentation by { (self StatusCode) -> self.code }
+
+    projection Byte : IntRepresentable
+        with intRepresentation by { (self Byte) -> self.n }
+
+    (self Int) statusCodeValue () (StatusCode) = StatusCode(self)
+    (self Int) byteValue () (Byte) = Byte(self)
+
+    (StatusCode) display (sc StatusCode) (IntRepresentable) = sc
+    (Byte) display (b Byte) (IntRepresentable) = b
+
+    (Unit) add (a IntRepresentable, b IntRepresentable) (IntRepresentable)
+        = a.intRepresentation() + b.intRepresentation()
+
+    (self IntRepresentable) dynamicUnwrap () (IntRepresentable) = select self {
+        case Int = self
+        case else = self
     }
 
-    (self Bool) not () (Bool) = select self {
-        case true = false
-        case else = true
-    }
-}
+    (Int) main () () {
+        s = StatusCode(1)
+        b = Byte(2)
+        i = 3
 
-module M with Orb::* {
-    context BoxCtx [V] {
-        alias Box = { value V }
+        x = Unit.add(s, b)
+        y = Unit.add(b, i)
+        z = Unit.add(s, i)
 
-        (self Box) unwrap () (V) = self.value
-    }
-
-    (Bool) main () () {
-        f = ::unwrap
-        b = Box(1)
-        i = f(b)
+        typeOf s
+        typeOf b
         typeOf i
+
+        typeOf x
+        typeOf y
+        typeOf z
     }
 }

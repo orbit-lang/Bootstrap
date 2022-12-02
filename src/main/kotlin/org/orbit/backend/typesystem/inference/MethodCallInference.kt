@@ -50,7 +50,9 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
 
         if (possibleArrows.count() > 1) {
             // See if we can find the most "specific" match (we could get here if a method was overloaded for a Trait AND an implementation of that Trait
-            possibleArrows = possibleArrows.filter { it.component.receiver.getCanonicalName() == receiver.getCanonicalName() }
+            possibleArrows = possibleArrows.filter {
+                it.component.receiver.getCanonicalName() == receiver.getCanonicalName() || it.component.receiver.flatten(IType.Always, env) == receiver
+            }
 
             if (possibleArrows.count() > 1) {
                 possibleArrows = possibleArrows.filter { it.component.parameters == args }
