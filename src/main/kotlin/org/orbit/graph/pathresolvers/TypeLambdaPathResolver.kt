@@ -26,7 +26,11 @@ object TypeLambdaPathResolver : IPathResolver<TypeLambdaNode> {
 
             input.codomain.annotate(input.getGraphID(), Annotations.graphId)
 
-            pathResolverUtil.resolve(input.codomain, pass, environment, graph).also { result -> input.annotate(result.asSuccess().path, Annotations.path) }
+            pathResolverUtil.resolve(input.codomain, pass, environment, graph).also { result -> input.annotate(result.asSuccess().path, Annotations.path) }.also {
+                input.domain.forEach { tp ->
+                    environment.unbind(Binding.Kind.Type, tp.getTypeName(), Path(tp.getTypeName()))
+                }
+            }
         }
     }
 }

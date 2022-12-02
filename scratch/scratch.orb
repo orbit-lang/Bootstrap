@@ -4,11 +4,11 @@ module Orb::Core::Types {
 
 module TypeFunctions with Orb::* {
     alias ID = (T) => T
-    alias Mirror = (T) => ID(T)
-#    alias MapEntry = (K, V) => { key K, value V }
-#    alias Map = (K, V) => [MapEntry(K, V)]
+    alias MapEntry = (K, V) => { key K, value V }
+    alias Map = (K, V) => [MapEntry(K, V)]
 
-    (Map) main () () {
-
+    (Unit) main () () {
+        m = Map(Unit, Unit)()
+        typeOf m
     }
 }

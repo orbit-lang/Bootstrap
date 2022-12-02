@@ -53,7 +53,7 @@ object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
 		context.mark()
 		val collector = context.startCollecting()
-		val node = context.attemptAny(listOf(ExpandRule, CollectionTypeRule, TypeLambdaRule, StructTypeRule, LambdaTypeRule, TupleTypeRule, TypeIdentifierRule.Naked))
+		val node = context.attemptAny(listOf(ExpandRule, CollectionTypeRule, TypeLambdaRule, TypeLambdaInvocationRule, StructTypeRule, LambdaTypeRule, TupleTypeRule, TypeIdentifierRule.Naked))
 			as? TypeExpressionNode
 			?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
 

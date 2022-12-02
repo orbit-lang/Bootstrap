@@ -93,6 +93,7 @@ val mainModule = module {
 		util.registerPathResolver(RefOfPathResolver, RefOfNode::class.java)
 		util.registerPathResolver(LambdaTypePathResolver, LambdaTypeNode::class.java)
 		util.registerPathResolver(TypeLambdaPathResolver, TypeLambdaNode::class.java)
+		util.registerPathResolver(TypeLambdaInvocationPathResolver, TypeLambdaInvocationNode::class.java)
 
 		util
 	}
@@ -174,6 +175,7 @@ val mainModule = module {
 	single(RefOfInference)
 	single(LambdaTypeInference)
 	single(TypeLambdaInference)
+	single(TypeLambdaInvocationInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

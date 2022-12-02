@@ -87,6 +87,13 @@ object TypeExpressionPathResolver : IPathResolver<TypeExpressionNode> {
 			pathResolverUtil.resolve(input, pass, environment, graph)
 		}
 
+		is TypeLambdaInvocationNode -> {
+			input.typeIdentifierNode.annotate(input.getGraphID(), Annotations.graphId)
+			input.arguments.forEach { it.annotate(input.getGraphID(), Annotations.graphId) }
+
+			pathResolverUtil.resolve(input, pass, environment, graph)
+		}
+
 		else -> TODO("Cannot resolve Path for unsupported Type Expression: $input")
 	}
 }
