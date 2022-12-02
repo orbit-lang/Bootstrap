@@ -22,6 +22,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 		object Method : Kind
 		object Empty : Kind
 		object Context : Kind
+		object Value : Kind
 
 		fun getName() : String {
 			return javaClass.simpleName
