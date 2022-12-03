@@ -21,11 +21,11 @@ data class OperatorDefNode(
     val fixity: OperatorFixity,
     val identifierNode: IdentifierNode,
     val symbol: String,
-    val methodReferenceNode: MethodReferenceNode
+    val invokableDelegate: IInvokableDelegateNode
 ) : TopLevelDeclarationNode, IContextDeclarationNode {
     override val context: IContextExpressionNode
         get() = throw NotImplementedError()
 
     override fun getChildren(): List<INode>
-        = listOf(identifierNode, methodReferenceNode)
+        = listOf(identifierNode, invokableDelegate)
 }

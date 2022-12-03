@@ -1,64 +1,11 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.components.SourcePosition
-import org.orbit.frontend.components.ParseError
 import org.orbit.core.components.TokenTypes
-import org.orbit.core.nodes.*
-import org.orbit.frontend.phase.Parser
+import org.orbit.core.nodes.TypeIdentifierNode
+import org.orbit.frontend.components.ParseError
 import org.orbit.frontend.extensions.unaryPlus
-
-object StructTypeRule : ValueRule<StructTypeNode> {
-	override fun parse(context: Parser): ParseRule.Result {
-		val collector = context.startCollecting()
-		val delim = DelimitedRule(TokenTypes.LBrace, TokenTypes.RBrace, PairRule)
-		val delimResult = context.attempt(delim)
-			?: return ParseRule.Result.Failure.Rewind(collector)
-
-		return +StructTypeNode(delimResult.firstToken, delimResult.lastToken, delimResult.nodes)
-	}
-}
-
-object TupleTypeRule : ValueRule<TupleTypeNode> {
-	override fun parse(context: Parser): ParseRule.Result {
-		val collector = context.startCollecting()
-		val start = context.expect(TokenTypes.LParen)
-		val left = context.attempt(TypeExpressionRule)
-			?: return ParseRule.Result.Failure.Rewind(collector)
-
-		context.expect(TokenTypes.Comma)
-
-		val right = context.attempt(TypeExpressionRule)
-			?: return ParseRule.Result.Failure.Rewind(collector)
-
-		val end = context.expect(TokenTypes.RParen)
-
-		return +TupleTypeNode(start, end, left, right)
-	}
-}
-
-object CollectionTypeRule : ValueRule<CollectionTypeNode> {
-	override fun parse(context: Parser): ParseRule.Result {
-		val collector = context.startCollecting()
-		val start = context.expect(TokenTypes.LBracket)
-		val elementType = context.attempt(TypeExpressionRule)
-			?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
-
-		val end = context.expect(TokenTypes.RBracket)
-
-		return +CollectionTypeNode(start, end, elementType)
-	}
-}
-
-object TypeExpressionRule : ValueRule<TypeExpressionNode> {
-	override fun parse(context: Parser): ParseRule.Result {
-		val collector = context.startCollecting()
-		val node = context.attemptAny(listOf(ExpandRule, CollectionTypeRule, TypeLambdaRule, TypeLambdaInvocationRule, StructTypeRule, LambdaTypeRule, TupleTypeRule, TypeIdentifierRule.Naked))
-			as? TypeExpressionNode
-			?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
-
-		return +node
-	}
-}
+import org.orbit.frontend.phase.Parser
 
 enum class TypeIdentifierRule(private val ctxt: Context = Context.RValue) : ValueRule<TypeIdentifierNode> {
 	LValue(Context.LValue), RValue(Context.RValue), Naked(Context.Naked);

@@ -8,7 +8,7 @@ data class MethodReferenceNode(
     val isConstructor: Boolean,
     val typeExpressionNode: TypeExpressionNode,
     val identifierNode: IdentifierNode
-) : IExpressionNode, IDelegateNode {
+) : IExpressionNode, IDelegateNode, IInvokableDelegateNode {
     override fun getChildren(): List<INode>
         = listOf(typeExpressionNode, identifierNode)
 }

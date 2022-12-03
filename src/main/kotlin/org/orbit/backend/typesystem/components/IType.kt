@@ -51,7 +51,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun plus(other: IMetaType<*>): IMetaType<*> = other
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
         override fun equals(other: Any?): Boolean = true
-        override fun toString(): String = "✓"
+        override fun toString(): String = "*"
     }
 
     data class Never(val message: String, override val id: String = "!") : IMetaType<Never>, IArrow<Never> {

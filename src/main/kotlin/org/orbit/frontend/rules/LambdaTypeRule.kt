@@ -11,10 +11,12 @@ object LambdaTypeRule : ParseRule<LambdaTypeNode> {
         val delim = context.attempt(delimRule)
             ?: return ParseRule.Result.Failure.Rewind(collector)
         val domain = delim.nodes
+        val next = context.peek()
+
+        if (next.text != "->") return ParseRule.Result.Failure.Rewind(collector)
 
         context.expect { it.text == "->" }
 
-        val next = context.peek()
         val codomain = context.attempt(TypeExpressionRule)
             ?: return ParseRule.Result.Failure.Throw("Expected Type after `->`", next)
 

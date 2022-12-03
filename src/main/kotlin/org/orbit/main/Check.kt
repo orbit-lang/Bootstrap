@@ -7,6 +7,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.utils.BackendUtils
 import org.orbit.frontend.FileSourceProvider
 import org.orbit.util.Invocation
@@ -36,7 +37,9 @@ object Check : CliktCommand(), KoinComponent {
 
                 val result = BackendUtils.check(FileSourceProvider(source))
 
-                println(result)
+                if (result !is IType.Always) {
+                    println(result)
+                }
             } catch (ex: Exception) {
                 println(ex.message)
             }

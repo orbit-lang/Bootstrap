@@ -22,13 +22,13 @@ object UnaryExpressionInference : ITypeInference<UnaryExpressionNode, ITypeEnvir
             .filter { TypeUtils.checkEq(env, operand, it.getDomain()[0]) }
 
         if (possibleOps.isEmpty()) {
-            throw invocation.make<TypeSystem>("Could not find ${node.fixity} Operator `${node.operator}` of Type `($operand) -> ???`", node)
+            throw invocation.make<TypeSystem>("Could not find ${node.fixity} Operator `${node.operator}` of Type `($operand) -> *`", node)
         }
 
         if (possibleOps.count() > 1) {
             val pretty = possibleOps.joinToString("\n\t") { "${it.identifier} ${it.symbol} $it" }
 
-            throw invocation.make<TypeSystem>("Multiple ${node.fixity} Operators found matching `${node.operator}` of Type `($operand) -> ???`:\n\t$pretty", node)
+            throw invocation.make<TypeSystem>("Multiple ${node.fixity} Operators found matching `${node.operator}` of Type `($operand) -> *`:\n\t$pretty", node)
         }
 
         return possibleOps[0].getCodomain()

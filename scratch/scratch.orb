@@ -4,20 +4,18 @@ module Orb::Core::Types {
 
 module Orb::Core::Numbers {
     type Int
+    type Real
 }
 
 module TypeFunctions with Orb::* {
-    alias ID = (T) => T
-    alias MapEntry = (K, V) => { key K, value V }
-    alias Map = (K, V) => [MapEntry(K, V)]
-    alias Function = (A, B) => (A) -> B
-    alias ValueID = (A, B) => Function(A, B)
-    alias List = (Element) => [Element]
+#    alias ID = (T) => T
+    alias Pair = (A, B) => { first A, second B }
+    alias First = (A, B) => A
+    alias Second = (A, B) => B
+    alias Pair2 = (A, B) => .Pair(A, B)
 
     fun (Unit) main () () {
-        a = [1, 2, 3]
-        b = List(Int)()
-
-        check a, b
+        r = Real()
+        p = .Pair(Int, Real)(1, r)
     }
 }

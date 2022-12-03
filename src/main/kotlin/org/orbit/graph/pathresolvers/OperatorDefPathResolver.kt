@@ -29,8 +29,8 @@ class OperatorDefPathResolver(private val parentPath: Path) : IPathResolver<Oper
 
         graph.link(parentGraphID, graphID)
 
-        input.methodReferenceNode.annotateByKey(graphID, Annotations.graphId)
-        pathResolverUtil.resolve(input.methodReferenceNode, pass, environment, graph)
+        input.invokableDelegate.annotateByKey(graphID, Annotations.graphId)
+        pathResolverUtil.resolve(input.invokableDelegate, pass, environment, graph)
 
         return IPathResolver.Result.Success(path)
     }

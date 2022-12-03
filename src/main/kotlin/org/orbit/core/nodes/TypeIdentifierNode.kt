@@ -1,13 +1,17 @@
 package org.orbit.core.nodes
 
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
-import org.orbit.core.OrbitMangler
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.components.TokenTypes
 
 sealed interface TypeExpressionNode : ILiteralNode<String>
+
+data class StarNode(override val firstToken: Token, override val lastToken: Token) : TypeExpressionNode {
+	override val value: String = "*"
+	override fun getTypeName(): String = "*"
+
+	override fun getChildren(): List<INode> = emptyList()
+}
 
 data class InferNode(
 	override val firstToken: Token,

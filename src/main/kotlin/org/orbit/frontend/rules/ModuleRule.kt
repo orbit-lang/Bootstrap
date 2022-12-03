@@ -91,7 +91,10 @@ object ModuleRule : ParseRule<ModuleNode> {
         while (next.type != TokenTypes.RBrace) {
             when (next.type) {
                 TokenTypes.Fixity -> {
-                    val op = context.attempt(OperatorDefRule)
+                    var op = context.attempt(OperatorDefRule)
+
+
+                    op = op
                         ?: TODO("ModuleRule:OperatorDef")
 
                     operatorDefNodes.add(op)

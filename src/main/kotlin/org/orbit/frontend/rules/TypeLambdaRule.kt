@@ -16,7 +16,9 @@ object TypeLambdaRule : ParseRule<TypeLambdaNode> {
 
         val next = context.peek()
 
-        if (next.type != TokenTypes.Assignment) return ParseRule.Result.Failure.Rewind(collector)
+        if (next.type != TokenTypes.Assignment) {
+            return ParseRule.Result.Failure.Rewind(collector)
+        }
 
         context.expect(TokenTypes.Assignment)
         context.expect(TokenTypes.RAngle)

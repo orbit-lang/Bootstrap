@@ -48,7 +48,7 @@ object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
 
         signatures.forEach { mEnv.add(it) }
 
-        TypeInferenceUtils.inferAll(node.body, mEnv)
+//        TypeInferenceUtils.inferAll(node.body, mEnv)
 
         return nCtx
     }

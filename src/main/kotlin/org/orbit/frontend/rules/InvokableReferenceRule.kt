@@ -1,6 +1,7 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.IInvokableDelegateNode
 import org.orbit.core.nodes.IdentifierNode
 import org.orbit.core.nodes.MethodReferenceNode
 import org.orbit.core.nodes.TypeIdentifierNode
@@ -64,9 +65,9 @@ object ConstructorReferenceRule : ValueRule<MethodReferenceNode> {
     }
 }
 
-object InvokableReferenceRule : ValueRule<MethodReferenceNode> {
+object InvokableReferenceRule : ValueRule<IInvokableDelegateNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val methodRef = context.attemptAny(listOf(ConstructorReferenceRule, MethodReferenceRule, FreeMethodReferenceRule))
+        val methodRef = context.attemptAny(listOf(LambdaLiteralRule, ConstructorReferenceRule, MethodReferenceRule, FreeMethodReferenceRule))
             ?: return ParseRule.Result.Failure.Abort
 
         return +methodRef

@@ -34,7 +34,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
         val expected = (env as? AnnotatedTypeEnvironment)?.typeAnnotation ?: IType.Always
 
         if (possibleArrows.isEmpty()) {
-            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> ???`", node)
+            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> *`", node)
         }
 
         if (possibleArrows.count() > 1) {
@@ -43,7 +43,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
         }
 
         if (possibleArrows.isEmpty()) {
-            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> ???`", node)
+            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> *`", node)
         }
 
         possibleArrows = possibleArrows.filter { TypeUtils.checkEq(env, it.component.receiver, receiver) }
@@ -65,7 +65,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
         }
 
         if (possibleArrows.isEmpty()) {
-            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> ???`", node)
+            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> *`", node)
         }
 
         val arrow = possibleArrows[0].component

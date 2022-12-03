@@ -23,7 +23,7 @@ object MethodReferenceInference : ITypeInference<MethodReferenceNode, ITypeEnvir
         }
 
         var possibleSignatures = env.getSignatures(node.identifierNode.identifier)
-        val error = "No methods found matching `${node.identifierNode.identifier} : (${receiver}, ???) -> ???`"
+        val error = "No methods found matching `${node.identifierNode.identifier} : (${receiver}, *) -> *`"
 
         if (possibleSignatures.isEmpty()) {
             throw invocation.make<TypeSystem>(error, node.identifierNode)

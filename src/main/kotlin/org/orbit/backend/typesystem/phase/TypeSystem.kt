@@ -27,10 +27,6 @@ object TypeSystem : Phase<ProgramNode, AnyMetaType>, KoinComponent {
             single(named("globalContext")) { env }
         })
 
-        val result = TypeInferenceUtils.inferAs<ProgramNode, AnyMetaType>(input, env)
-
-//        println(env)
-
-        return result
+        return TypeInferenceUtils.inferAs<ProgramNode, AnyMetaType>(input, env)
     }
 }

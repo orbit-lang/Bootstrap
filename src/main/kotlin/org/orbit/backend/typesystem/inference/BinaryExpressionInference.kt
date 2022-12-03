@@ -23,13 +23,13 @@ object BinaryExpressionInference : ITypeInference<BinaryExpressionNode, ITypeEnv
             .filter { TypeUtils.checkEq(env, lType, it.getDomain()[0]) && TypeUtils.checkEq(env, rType, it.getDomain()[1]) }
 
         if (possibleOps.isEmpty()) {
-            throw invocation.make<TypeSystem>("Could not find Infix Operator `${node.operator}` of Type `($lType, $rType) -> ???`", node)
+            throw invocation.make<TypeSystem>("Could not find Infix Operator `${node.operator}` of Type `($lType, $rType) -> *`", node)
         }
 
         if (possibleOps.count() > 1) {
             val pretty = possibleOps.joinToString("\n\t")
 
-            throw invocation.make<TypeSystem>("Multiple Infix Operators found matching `${node.operator}` of Type `($lType, $rType) -> ???`:\n\t$pretty", node)
+            throw invocation.make<TypeSystem>("Multiple Infix Operators found matching `${node.operator}` of Type `($lType, $rType) -> *`:\n\t$pretty", node)
         }
 
         return possibleOps[0].getCodomain()
