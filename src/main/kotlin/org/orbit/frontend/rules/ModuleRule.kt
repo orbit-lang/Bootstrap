@@ -104,7 +104,7 @@ object ModuleRule : ParseRule<ModuleNode> {
                     contextNodes.add(contextNode)
                 }
 
-                TokenTypes.LParen -> {
+                TokenTypes.Fun -> {
                     val methodDefNode = context.attempt(MethodDefRule, true)
                         ?: throw Exception("Expected method signature following '(' at container level")
 

@@ -9,9 +9,10 @@ import org.orbit.frontend.extensions.unaryPlus
 
 object StructTypeRule : ValueRule<StructTypeNode> {
 	override fun parse(context: Parser): ParseRule.Result {
+		val collector = context.startCollecting()
 		val delim = DelimitedRule(TokenTypes.LBrace, TokenTypes.RBrace, PairRule)
 		val delimResult = context.attempt(delim)
-			?: return ParseRule.Result.Failure.Abort
+			?: return ParseRule.Result.Failure.Rewind(collector)
 
 		return +StructTypeNode(delimResult.firstToken, delimResult.lastToken, delimResult.nodes)
 	}
@@ -37,7 +38,6 @@ object TupleTypeRule : ValueRule<TupleTypeNode> {
 
 object CollectionTypeRule : ValueRule<CollectionTypeNode> {
 	override fun parse(context: Parser): ParseRule.Result {
-		context.mark()
 		val collector = context.startCollecting()
 		val start = context.expect(TokenTypes.LBracket)
 		val elementType = context.attempt(TypeExpressionRule)
@@ -51,7 +51,6 @@ object CollectionTypeRule : ValueRule<CollectionTypeNode> {
 
 object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
-		context.mark()
 		val collector = context.startCollecting()
 		val node = context.attemptAny(listOf(ExpandRule, CollectionTypeRule, TypeLambdaRule, TypeLambdaInvocationRule, StructTypeRule, LambdaTypeRule, TupleTypeRule, TypeIdentifierRule.Naked))
 			as? TypeExpressionNode

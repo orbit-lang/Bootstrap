@@ -32,6 +32,7 @@ object TokenTypes : TokenTypeProvider {
     object Module : TokenType("Module", "\\bmodule\\b", true, false, Family.Keyword)
     object Define : TokenType("Define", "\\bdefine\\b", true, false, Family.Keyword)
     object Defer : TokenType("Defer", "\\bdefer\\b", true, false, Family.Keyword)
+    object Fun : TokenType("Fun", "\\bfun\\b", true, false, Family.Keyword)
     object Print : TokenType("Print", "\\bprint\\b", true, false, Family.Keyword)
     object Required : TokenType("Required", "\\brequired\\b", true, false, Family.Keyword)
     object Constructor : TokenType("Constructor", "\\bconstructor\\b", true, false, Family.Keyword)
@@ -76,7 +77,7 @@ object TokenTypes : TokenTypeProvider {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Int, Real, Context, Api, Module, Define, Defer, Observe, Where, Print,
+            Int, Real, Context, Api, Module, Define, Defer, Fun, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias, Operator,
             Synthesise,
             Call,

@@ -12,6 +12,12 @@ object TypeLambdaRule : ParseRule<TypeLambdaNode> {
         val delim = context.attempt(delimRule)
             ?: return ParseRule.Result.Failure.Rewind(collector)
 
+        if (!context.hasAtLeast(2)) return ParseRule.Result.Failure.Abort
+
+        val next = context.peek()
+
+        if (next.type != TokenTypes.Assignment) return ParseRule.Result.Failure.Rewind(collector)
+
         context.expect(TokenTypes.Assignment)
         context.expect(TokenTypes.RAngle)
 
