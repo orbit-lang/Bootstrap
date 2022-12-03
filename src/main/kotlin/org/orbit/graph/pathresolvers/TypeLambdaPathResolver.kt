@@ -18,7 +18,10 @@ object TypeLambdaPathResolver : IPathResolver<TypeLambdaNode> {
     private val pathResolverUtil: PathResolverUtil by inject()
 
     override fun resolve(input: TypeLambdaNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result = when (pass) {
-        IPathResolver.Pass.Last -> IPathResolver.Result.Success(input.getPath())
+        IPathResolver.Pass.Last -> {
+            IPathResolver.Result.Success(input.getPath())
+        }
+
         else -> environment.withScope {
             input.domain.forEach { tp ->
                 environment.bind(Binding.Kind.Type, tp.getTypeName(), Path(tp.getTypeName()))
@@ -27,6 +30,8 @@ object TypeLambdaPathResolver : IPathResolver<TypeLambdaNode> {
             input.codomain.annotate(input.getGraphID(), Annotations.graphId)
 
             pathResolverUtil.resolve(input.codomain, pass, environment, graph).also { result -> input.annotate(result.asSuccess().path, Annotations.path) }.also {
+                input.annotate(it.asSuccess().path, Annotations.path)
+
                 input.domain.forEach { tp ->
                     environment.unbind(Binding.Kind.Type, tp.getTypeName(), Path(tp.getTypeName()))
                 }

@@ -19,7 +19,7 @@ object WhereClauseTypeBoundsExpressionResolver : WhereClauseExpressionResolver<W
         input.targetTypeExpression.annotateByKey(input.getGraphID(), Annotations.graphId)
 
         val sourceTypePath = pathResolverUtil.resolve(input.sourceTypeExpression, pass, environment, graph)
-        val targetTypePath = pathResolverUtil.resolve(input.targetTypeExpression, pass, environment, graph)
+        val targetTypePath = pathResolverUtil.resolve(input.targetTypeExpression, IPathResolver.Pass.Initial, environment, graph)
 
         input.sourceTypeExpression.annotateByKey(sourceTypePath.asSuccess().path, Annotations.path)
         input.targetTypeExpression.annotateByKey(targetTypePath.asSuccess().path, Annotations.path)

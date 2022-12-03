@@ -1,5 +1,7 @@
 package org.orbit.backend.typesystem.components
 
+import org.orbit.backend.typesystem.utils.AnyArrow
+
 sealed interface ITypeConstraint : IType {
     val type: AnyType
 
@@ -23,7 +25,7 @@ operator fun ITypeConstraint.plus(other: ITypeConstraint) : CompoundConstraint =
 }
 
 data class ConformanceConstraint(override val type: AnyType, val trait: IType.Trait) : ITypeConstraint {
-    override val id: String = "${type.id} : ${trait.id}"
+    override val id: String = "$type : $trait"
 
     override fun isSolvedBy(input: AnyType, env: ITypeEnvironment): Boolean
         = trait.isImplementedBy(input, env)
@@ -38,7 +40,27 @@ data class ConformanceConstraint(override val type: AnyType, val trait: IType.Tr
     }
 
     override fun toString(): String
-        = prettyPrint(0)
+        = prettyPrint()
+}
+
+data class KindEqualityConstraint(override val type: AnyType, val kind: AnyArrow) : ITypeConstraint {
+    override val id: String = "$type ^ $kind"
+
+    override fun isSolvedBy(input: AnyType, env: ITypeEnvironment): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun substitute(substitution: Substitution): AnyType
+        = KindEqualityConstraint(type.substitute(substitution), kind.substitute(substitution) as AnyArrow)
+
+    override fun prettyPrint(depth: Int): String {
+        val indent = "\t".repeat(depth)
+
+        return "$indent`$type ^ $kind`"
+    }
+
+    override fun toString(): String
+        = prettyPrint()
 }
 
 data class CompoundConstraint(override val type: AnyType, val constraints: List<ITypeConstraint>) : ITypeConstraint {

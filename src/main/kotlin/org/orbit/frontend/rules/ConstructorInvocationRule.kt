@@ -7,14 +7,12 @@ import org.orbit.frontend.phase.Parser
 
 object ConstructorInvocationRule : ValueRule<ConstructorInvocationNode> {
     override fun parse(context: Parser) : ParseRule.Result {
-        context.mark()
         val collector = context.startCollecting()
         val typeIdentifier = context.attempt(TypeExpressionRule)
-            ?: return ParseRule.Result.Failure.Rewind(collector.getCollectedTokens())
-        val recorded = context.end()
+            ?: return ParseRule.Result.Failure.Rewind(collector)
         val next = context.peek()
 
-        if (next.type != TokenTypes.LParen) return ParseRule.Result.Failure.Rewind(recorded)
+        if (next.type != TokenTypes.LParen) return ParseRule.Result.Failure.Rewind(collector)
 
         val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)
         val delimResult = context.attempt(delim)
