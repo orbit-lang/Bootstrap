@@ -2,15 +2,22 @@ module Orb::Core::Types {
     type Unit
 }
 
+module Orb::Core::Numbers {
+    type Int
+}
+
 module TypeFunctions with Orb::* {
     alias ID = (T) => T
-    alias Function = (A) => A
     alias MapEntry = (K, V) => { key K, value V }
     alias Map = (K, V) => [MapEntry(K, V)]
     alias Function = (A, B) => (A) -> B
+    alias ValueID = (A, B) => Function(A, B)
+    alias List = (Element) => [Element]
 
     fun (Unit) main () () {
-        m = Map(Unit, Unit)()
-        typeOf Map(Map(Unit, Unit), Unit)()
+        a = [1, 2, 3]
+        b = List(Int)()
+
+        check a, b
     }
 }

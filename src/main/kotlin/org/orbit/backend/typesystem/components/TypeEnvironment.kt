@@ -61,6 +61,9 @@ sealed interface ITypeEnvironment {
     fun getSpecialisationEvidence(context: Context) : Set<Specialisation> = emptySet()
 }
 
+fun ITypeEnvironment.aliasGuard(name: String) : IType.Alias?
+    = getAllTypes().firstOrNull { it.component is IType.Alias && it.component.name == name }?.component as? IType.Alias
+
 interface IPanicEnvironment : ITypeEnvironment
 
 fun ITypeEnvironment.getTypeOrNull(name: String) : ContextualDeclaration<AnyType>?
