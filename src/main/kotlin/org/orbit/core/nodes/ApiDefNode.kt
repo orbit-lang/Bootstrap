@@ -16,6 +16,7 @@ interface ContainerNode : TopLevelDeclarationNode {
 	val methodDefs: List<MethodDefNode>
 	val contexts: List<ContextNode>
 	val operatorDefs: List<OperatorDefNode>
+	val attributeDefs: List<AttributeDefNode>
 }
 
 data class ApiDefNode(
@@ -29,7 +30,8 @@ data class ApiDefNode(
 	override val with: List<TypeIdentifierNode>,
 	val standardEntityDefs: List<EntityDefNode>,
 	override val context: IContextExpressionNode? = null,
-	override val operatorDefs: List<OperatorDefNode> = emptyList()
+	override val operatorDefs: List<OperatorDefNode> = emptyList(),
+	override val attributeDefs: List<AttributeDefNode> = emptyList()
 ) : ContainerNode {
 	override val contexts: List<ContextNode> = emptyList()
 

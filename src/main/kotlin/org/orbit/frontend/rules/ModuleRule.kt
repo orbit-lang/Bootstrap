@@ -19,7 +19,7 @@ object ModuleRule : ParseRule<ModuleNode> {
             ?: throw context.invocation.make(Errors.MissingName(start.position))
 
         if (!context.hasMore) {
-            return +ModuleNode(start, typeIdentifierNode.lastToken, emptyList(), typeIdentifierNode, null, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), operatorDefs = emptyList())
+            return +ModuleNode(start, typeIdentifierNode.lastToken, emptyList(), typeIdentifierNode, null, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), operatorDefs = emptyList(), attributeDefs = emptyList())
         }
 
         var next = context.peek()
@@ -69,11 +69,11 @@ object ModuleRule : ParseRule<ModuleNode> {
         }
 
         if (!context.hasMore) {
-            return +ModuleNode(start, withNodes.lastOrNull()?.lastToken ?: next, implements, typeIdentifierNode, withinNode, withNodes, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), operatorDefs = emptyList())
+            return +ModuleNode(start, withNodes.lastOrNull()?.lastToken ?: next, implements, typeIdentifierNode, withinNode, withNodes, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), operatorDefs = emptyList(), attributeDefs = emptyList())
         }
 
         if (context.peek().type != TokenTypes.LBrace) {
-            return +ModuleNode(start, withNodes.lastOrNull()?.lastToken ?: next, implements, typeIdentifierNode, withinNode, withNodes, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), operatorDefs = emptyList())
+            return +ModuleNode(start, withNodes.lastOrNull()?.lastToken ?: next, implements, typeIdentifierNode, withinNode, withNodes, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), operatorDefs = emptyList(), attributeDefs = emptyList())
         }
 
         context.expect(TokenTypes.LBrace)
@@ -85,16 +85,21 @@ object ModuleRule : ParseRule<ModuleNode> {
         val extensionNodes = mutableListOf<ExtensionNode>()
         val contextNodes = mutableListOf<ContextNode>()
         val operatorDefNodes = mutableListOf<OperatorDefNode>()
+        val attributeDefNodes = mutableListOf<AttributeDefNode>()
 
         next = context.peek()
 
         while (next.type != TokenTypes.RBrace) {
             when (next.type) {
+                TokenTypes.Attribute -> {
+                    val attribute = context.attempt(AttributeDefRule)
+                        ?: TODO("ModuleRule:AttributeDefRule")
+
+                    attributeDefNodes.add(attribute)
+                }
+
                 TokenTypes.Fixity -> {
-                    var op = context.attempt(OperatorDefRule)
-
-
-                    op = op
+                    val op = context.attempt(OperatorDefRule)
                         ?: TODO("ModuleRule:OperatorDef")
 
                     operatorDefNodes.add(op)
@@ -152,6 +157,6 @@ object ModuleRule : ParseRule<ModuleNode> {
 
         val end = context.expect(TokenTypes.RBrace)
 
-        return +ModuleNode(start, end, implements, typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes, typeAliasNodes, typeProjectionNodes, extensionNodes, contextNodes, operatorDefs = operatorDefNodes)
+        return +ModuleNode(start, end, implements, typeIdentifierNode, withinNode, withNodes, entityDefNodes, methodDefNodes, typeAliasNodes, typeProjectionNodes, extensionNodes, contextNodes, operatorDefs = operatorDefNodes, attributeDefs = attributeDefNodes)
     }
 }

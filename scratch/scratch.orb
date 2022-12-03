@@ -8,14 +8,31 @@ module Orb::Core::Numbers {
 }
 
 module TypeFunctions with Orb::* {
-#    alias ID = (T) => T
-    alias Pair = (A, B) => { first A, second B }
-    alias First = (A, B) => A
-    alias Second = (A, B) => B
-    alias Pair2 = (A, B) => .Pair(A, B)
+    alias ID = (T) => T
+#    alias Exactly = (variadic T, N Int) => select .T() where N = Int
+#    alias Tuple = (variadic T) => T where .Exactly(T, 1)
+
+    attribute KindEqual = (T, K) => T ^ K
+    attribute Invokable = (A) => .KindEqual(A, (*) -> *)
+    attribute Equal = (A, B) => A = B
+
+    alias Same = (A, B) => A where .Equal(A, B)
+
+#    alias Arrow = (A, B) => (A) -> B
+#    alias Apply = (F) => (A) => .F(A) where arrow(F)
+#
+#    trait Foo(bar Int)
+
+#    context FunctorCtx [F, A, B] where F ^ (*) -> * {
+#        trait Functor {
+#            fun (self .F(A)) map (f .Arrow(A, B)) (.F(B))
+#        }
+#    }
+
+#    projection Int : Foo
+#        with bar = 1
 
     fun (Unit) main () () {
-        r = Real()
-        p = .Pair(Int, Real)(1, r)
+#        f = Functor()
     }
 }

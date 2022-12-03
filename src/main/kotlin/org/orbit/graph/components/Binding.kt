@@ -23,6 +23,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 		object Empty : Kind
 		object Context : Kind
 		object Value : Kind
+		object Attribute : Kind
 
 		fun getName() : String {
 			return javaClass.simpleName
@@ -38,7 +39,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 
 		data class Union(val left: Kind, val right: Kind) : Kind {
 			companion object {
-				val entity = Union(Union(Union(Type, Trait), TypeAlias), Context)
+				val entity = Union(Union(Union(Union(Type, Trait), TypeAlias), Context), Attribute)
 				val entityOrMethod = Union(entity, Method)
 			}
 

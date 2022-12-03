@@ -16,6 +16,7 @@ object ModuleInference : ITypeInference<ModuleNode, GlobalEnvironment> {
         TypeInferenceUtils.inferAll(node.entityDefs.filterIsInstance<TraitDefNode>(), env)
         TypeInferenceUtils.inferAll(node.typeAliasNodes, env)
         TypeInferenceUtils.inferAll(node.projections, env)
+        TypeInferenceUtils.inferAll(node.attributeDefs, env)
         TypeInferenceUtils.inferAll(node.contexts, env)
         TypeInferenceUtils.inferAll(node.methodDefs.map { it.signature }, env, parametersOf(true))
         TypeInferenceUtils.inferAll(node.operatorDefs, env)

@@ -337,6 +337,29 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
+    data class Attribute(val name: String, val typeVariables: List<TypeVar>, val constraint: (ITypeEnvironment) -> IMetaType<*>) : IType {
+        override val id: String = "$name : (${typeVariables.joinToString(", ")}) => ?"
+
+        fun check(env: IMutableTypeEnvironment, args: List<AnyType>) : IMetaType<*> {
+            if (args.count() != typeVariables.count()) {
+                return Never("Attribute `$name` expects ${typeVariables.count()} arguments, found ${args.count()}")
+            }
+
+            val nEnv = env.fork()
+            typeVariables.zip(args).forEach {
+                nEnv.add(Alias(it.first.name, it.second))
+            }
+
+            return constraint(nEnv)
+        }
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Zero
+
+        override fun substitute(substitution: Substitution): AnyType
+            = Attribute(name, typeVariables.substitute(substitution) as List<TypeVar>, constraint)
+    }
+
     sealed interface IArrayConstructor : IConstructor<Array> {
         data class Empty(override val constructedType: Array) : IArrayConstructor {
             override val id: String = "[]"
