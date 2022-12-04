@@ -34,5 +34,8 @@ module TypeFunctions with Orb::* {
 
     fun (Unit) main () () {
 #        f = Functor()
+        s = .Same(Int, Int)()
+        u = .Same(Int, Unit)()
+        typeOf s
     }
 }

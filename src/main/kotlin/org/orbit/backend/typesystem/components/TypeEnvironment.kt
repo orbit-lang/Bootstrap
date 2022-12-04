@@ -73,7 +73,7 @@ fun ITypeEnvironment.getSignatures() : List<ContextualDeclaration<IType.Signatur
     = getAllTypes().filter { it.component is IType.Signature } as List<ContextualDeclaration<IType.Signature>>
 
 fun ITypeEnvironment.getSignatures(name: String) : List<ContextualDeclaration<IType.Signature>> {
-    val signatures = mutableListOf<ContextualDeclaration<IType.Signature>>()
+    val signatures = mutableListOf<ContextualDeclaration <IType.Signature>>()
     for (signature in getSignatures()) {
         if (signature.component.name == name) {
             signatures.add(when (getCurrentContext().isComplete()) {

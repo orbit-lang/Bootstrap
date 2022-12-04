@@ -98,6 +98,7 @@ val mainModule = module {
 		util.registerPathResolver(AttributeArrowPathResolver, AttributeArrowNode::class.java)
 		util.registerPathResolver(AttributeOperatorExpressionPathResolver, AttributeOperatorExpressionNode::class.java)
 		util.registerPathResolver(AttributeInvocationPathResolver, AttributeInvocationNode::class.java)
+		util.registerPathResolver(TypeLambdaConstraintPathResolver, TypeLambdaConstraintNode::class.java)
 
 		util
 	}
@@ -182,6 +183,9 @@ val mainModule = module {
 	single(TypeLambdaInvocationInference)
 	single(StarInference)
 	single(AttributeDefInference)
+	single(TypeLambdaConstraintInference)
+	single(AttributeInvocationInference)
+	single(AttributeOperatorExpressionInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

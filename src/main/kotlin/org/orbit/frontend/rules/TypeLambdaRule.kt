@@ -1,9 +1,21 @@
 package org.orbit.frontend.rules
 
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.TypeLambdaConstraintNode
 import org.orbit.core.nodes.TypeLambdaNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
+
+object TypeLambdaConstraintRule : ParseRule<TypeLambdaConstraintNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val start = context.expect(TokenTypes.Where)
+        val next = context.peek()
+        val invocation = context.attempt(AttributeInvocationRule)
+            ?: return ParseRule.Result.Failure.Throw("Expected Attribute invocation expression after `where`\n\te.g. `where .Equal(A, B)`", next)
+
+        return +TypeLambdaConstraintNode(start, invocation.lastToken, invocation)
+    }
+}
 
 object TypeLambdaRule : ParseRule<TypeLambdaNode> {
     override fun parse(context: Parser): ParseRule.Result {
@@ -14,7 +26,7 @@ object TypeLambdaRule : ParseRule<TypeLambdaNode> {
 
         if (!context.hasAtLeast(2)) return ParseRule.Result.Failure.Abort
 
-        val next = context.peek()
+        var next = context.peek()
 
         if (next.type != TokenTypes.Assignment) {
             return ParseRule.Result.Failure.Rewind(collector)
@@ -27,6 +39,20 @@ object TypeLambdaRule : ParseRule<TypeLambdaNode> {
         val codomain = context.attempt(TypeExpressionRule)
             ?: return ParseRule.Result.Failure.Throw("Expected Type Expression on right-hand side of Type Lambda", collector.getCollectedTokens().last())
 
-        return +TypeLambdaNode(delim.firstToken, codomain.lastToken, domain, codomain)
+        if (!context.hasMore) return +TypeLambdaNode(delim.firstToken, codomain.lastToken, domain, codomain, emptyList())
+
+        next = context.peek()
+
+        val constraints = mutableListOf<TypeLambdaConstraintNode>()
+        while (next.type == TokenTypes.Where) {
+            val constraint = context.attempt(TypeLambdaConstraintRule)
+                ?: return ParseRule.Result.Failure.Abort
+
+            constraints.add(constraint)
+
+            next = context.peek()
+        }
+
+        return +TypeLambdaNode(delim.firstToken, codomain.lastToken, domain, codomain, constraints)
     }
 }

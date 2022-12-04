@@ -15,6 +15,7 @@ import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
+import org.w3c.dom.Attr
 import java.util.Arrays
 
 fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) : M? {
@@ -338,20 +339,31 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class Attribute(val name: String, val typeVariables: List<TypeVar>, val constraint: (ITypeEnvironment) -> IMetaType<*>) : IType {
-        override val id: String = "$name : (${typeVariables.joinToString(", ")}) => ?"
+        data class Application(val attribute: Attribute, val args: List<AnyType>) : IType {
+            override val id: String = attribute.id
 
-        fun check(env: IMutableTypeEnvironment, args: List<AnyType>) : IMetaType<*> {
-            if (args.count() != typeVariables.count()) {
-                return Never("Attribute `$name` expects ${typeVariables.count()} arguments, found ${args.count()}")
+            fun invoke(env: IMutableTypeEnvironment) : IMetaType<*> {
+                if (args.count() != attribute.typeVariables.count()) {
+                    return Never("Attribute `${attribute.name}` expects ${attribute.typeVariables.count()} arguments, found ${args.count()}")
+                }
+
+                val nEnv = env.fork()
+                attribute.typeVariables.zip(args).forEach {
+                    nEnv.add(Alias(it.first.name, it.second))
+                }
+
+                return attribute.constraint(nEnv)
             }
 
-            val nEnv = env.fork()
-            typeVariables.zip(args).forEach {
-                nEnv.add(Alias(it.first.name, it.second))
-            }
+            override fun getCardinality(): ITypeCardinality
+                = attribute.getCardinality()
 
-            return constraint(nEnv)
+            // NOTE - We purposefully avoid substituting `attribute` here otherwise our abstract TypeVars are erased
+            override fun substitute(substitution: Substitution): AnyType
+                = Application(attribute, args.substitute(substitution))
         }
+
+        override val id: String = "$name : (${typeVariables.joinToString(", ")}) => ?"
 
         override fun getCardinality(): ITypeCardinality
             = ITypeCardinality.Zero
@@ -912,6 +924,28 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
 
             return "${"\t".repeat(depth)}($domainString) -> ${getCodomain()}"
         }
+    }
+
+    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<Attribute.Application>) : IArrow<ConstrainedArrow> {
+        override val id: String = "$arrow + ${constraints.joinToString(", ")}"
+
+        override fun getDomain(): List<AnyType>
+            = arrow.getDomain()
+
+        override fun getCodomain(): AnyType
+            = arrow.getCodomain()
+
+        override fun getCardinality(): ITypeCardinality
+            = arrow.getCardinality()
+
+        override fun curry(): IArrow<*>
+            = arrow.curry()
+
+        override fun never(args: List<AnyType>): Never
+            = arrow.never(args)
+
+        override fun substitute(substitution: Substitution): AnyType
+            = ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute.Application>)
     }
 
     data class Arrow0(val gives: AnyType) : IArrow<Arrow0> {
