@@ -3,6 +3,7 @@ package org.orbit.backend.typesystem.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.backend.typesystem.phase.TypeSystem
@@ -17,18 +18,18 @@ object AttributeOperatorExpressionInference : ITypeInference<AttributeOperatorEx
         val lType = TypeInferenceUtils.infer(node.leftExpression, env)
         val rType = TypeInferenceUtils.infer(node.rightExpression, env)
 
-        // TODO - Other intrinsic ops
-        return when (val result = TypeUtils.check(env, lType, rType)) {
-            is IType.Never -> result
-            else -> IType.Always
+        val attr = IType.Attribute("", emptyList()) {
+            node.op.apply(lType, rType, env)
         }
+
+        return IType.Attribute.Application(attr, emptyList())
     }
 }
 
-object AttributeInvocationInference : ITypeInference<AttributeInvocationNode, ITypeEnvironment>, KoinComponent {
+object AttributeInvocationInference : ITypeInference<AttributeInvocationNode, IMutableTypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: AttributeInvocationNode, env: ITypeEnvironment): AnyType {
+    override fun infer(node: AttributeInvocationNode, env: IMutableTypeEnvironment): AnyType {
         val args = TypeInferenceUtils.inferAll(node.arguments, env)
         val attribute = env.getAllTypes().firstOrNull { it.component is IType.Attribute && it.component.name == node.identifier.getTypeName() }
             ?.component as? IType.Attribute

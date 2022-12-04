@@ -16,7 +16,20 @@ object AttributeOperatorExpressionRule : ParseRule<AttributeOperatorExpressionNo
         val rExpr = context.attempt(TypeExpressionRule)
             ?: return ParseRule.Result.Failure.Throw("Expected Type Expression on right-hand side of Attribute Operator Expression", collector.getCollectedTokens().last())
 
-        return +AttributeOperatorExpressionNode(lExpr.firstToken, rExpr.lastToken, boundsType, lExpr, rExpr)
+        var next = context.peek()
+        var lhs: IAttributeExpressionNode = AttributeOperatorExpressionNode(lExpr.firstToken, rExpr.lastToken, boundsType, lExpr, rExpr)
+        while (next.type == TokenTypes.OperatorSymbol) {
+            val opToken = context.expect(TokenTypes.OperatorSymbol)
+            val attrOp = AttributeOperator.valueOf(opToken)
+            val rhs = context.attempt(AnyAttributeExpressionRule)
+                ?: return ParseRule.Result.Failure.Abort
+
+            lhs = CompoundAttributeExpressionNode(lhs.firstToken, rhs.lastToken, attrOp, lhs, rhs)
+
+            next = context.peek()
+        }
+
+        return +lhs
     }
 }
 
@@ -26,7 +39,20 @@ object AttributeInvocationRule : ParseRule<AttributeInvocationNode> {
         val expr = context.attempt(TypeLambdaInvocationRule)
             ?: return ParseRule.Result.Failure.Rewind(collector)
 
-        return +AttributeInvocationNode(expr.firstToken, expr.lastToken, expr.typeIdentifierNode, expr.arguments)
+        var next = context.peek()
+        var lhs: IAttributeExpressionNode = AttributeInvocationNode(expr.firstToken, expr.lastToken, expr.typeIdentifierNode, expr.arguments)
+        while (next.type == TokenTypes.OperatorSymbol) {
+            val opToken = context.expect(TokenTypes.OperatorSymbol)
+            val attrOp = AttributeOperator.valueOf(opToken)
+            val rhs = context.attempt(AnyAttributeExpressionRule)
+                ?: return ParseRule.Result.Failure.Abort
+
+            lhs = CompoundAttributeExpressionNode(lhs.firstToken, rhs.lastToken, attrOp, lhs, rhs)
+
+            next = context.peek()
+        }
+
+        return +lhs
     }
 }
 

@@ -10,6 +10,8 @@ import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.IIntrinsicOperator
+import org.orbit.core.nodes.AttributeOperator
+import org.orbit.core.nodes.INode
 import org.orbit.core.nodes.OperatorFixity
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
@@ -56,7 +58,10 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class Never(val message: String, override val id: String = "!") : IMetaType<Never>, IArrow<Never> {
-        fun panic(): Nothing = throw getKoinInstance<Invocation>().make<TypeSystem>(message)
+        fun panic(node: INode? = null): Nothing = when (node) {
+            null -> throw getKoinInstance<Invocation>().make<TypeSystem>(message)
+            else -> throw getKoinInstance<Invocation>().make<TypeSystem>(message, node)
+        }
 
         override fun getDomain(): List<AnyType> = emptyList()
         override fun getCodomain(): AnyType = this
@@ -338,11 +343,31 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Attribute(val name: String, val typeVariables: List<TypeVar>, val constraint: (ITypeEnvironment) -> IMetaType<*>) : IType {
-        data class Application(val attribute: Attribute, val args: List<AnyType>) : IType {
+    data class Attribute(val name: String, val typeVariables: List<TypeVar>, val constraint: (IMutableTypeEnvironment) -> IMetaType<*>) : IType {
+        sealed interface IAttributeApplication : IType {
+            fun invoke(env: IMutableTypeEnvironment) : IMetaType<*>
+
+            fun combine(op: AttributeOperator, other: IAttributeApplication) : IAttributeApplication
+                = CompoundApplication(op, this, other)
+        }
+
+        data class CompoundApplication(val op: AttributeOperator, val left: IAttributeApplication, val right: IAttributeApplication) : IAttributeApplication {
+            override val id: String = "${left.id} $op ${right.id}"
+
+            override fun invoke(env: IMutableTypeEnvironment): IMetaType<*>
+                = op.apply(left, right, env)
+
+            override fun getCardinality(): ITypeCardinality
+                = left.getCardinality() + right.getCardinality()
+
+            override fun substitute(substitution: Substitution): AnyType
+                = CompoundApplication(op, left.substitute(substitution) as IAttributeApplication, right.substitute(substitution) as IAttributeApplication)
+        }
+
+        data class Application(val attribute: Attribute, val args: List<AnyType>) : IAttributeApplication {
             override val id: String = attribute.id
 
-            fun invoke(env: IMutableTypeEnvironment) : IMetaType<*> {
+            override fun invoke(env: IMutableTypeEnvironment) : IMetaType<*> {
                 if (args.count() != attribute.typeVariables.count()) {
                     return Never("Attribute `${attribute.name}` expects ${attribute.typeVariables.count()} arguments, found ${args.count()}")
                 }
@@ -364,6 +389,9 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         }
 
         override val id: String = "$name : (${typeVariables.joinToString(", ")}) => ?"
+
+        operator fun plus(other: Attribute) : Attribute
+            = Attribute("$name • ${other.name}", (typeVariables + other.typeVariables).distinct()) { constraint(it) + other.constraint(it) }
 
         override fun getCardinality(): ITypeCardinality
             = ITypeCardinality.Zero
@@ -926,7 +954,7 @@ sealed interface IType : IContextualComponent, Substitutable<AnyType> {
         }
     }
 
-    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<Attribute.Application>) : IArrow<ConstrainedArrow> {
+    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<Attribute.IAttributeApplication>) : IArrow<ConstrainedArrow> {
         override val id: String = "$arrow + ${constraints.joinToString(", ")}"
 
         override fun getDomain(): List<AnyType>

@@ -13,10 +13,12 @@ module TypeFunctions with Orb::* {
 #    alias Tuple = (variadic T) => T where .Exactly(T, 1)
 
     attribute KindEqual = (T, K) => T ^ K
-    attribute Invokable = (A) => .KindEqual(A, (*) -> *)
+#    attribute Invokable = (A) => .KindEqual(A, (*) => *)
     attribute Equal = (A, B) => A = B
+    attribute Same = (A, B) => .Equal(A, B) | .Equal(B, A)
 
-    alias Same = (A, B) => A where .Equal(A, B)
+    alias Check = (A, B) => * where .Same(A, B)
+#    alias CanInvoke = (F) => * where .Invokable(F)
 
 #    alias Arrow = (A, B) => (A) -> B
 #    alias Apply = (F) => (A) => .F(A) where arrow(F)
@@ -33,9 +35,7 @@ module TypeFunctions with Orb::* {
 #        with bar = 1
 
     fun (Unit) main () () {
-#        f = Functor()
-        s = .Same(Int, Int)()
-        u = .Same(Int, Unit)()
-        typeOf s
+        c = .Check(Int, Int)()
+#        c = .CanInvoke(Int)()
     }
 }
