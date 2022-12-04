@@ -13,7 +13,11 @@ import org.orbit.backend.codegen.swift.*
 import org.orbit.backend.codegen.utils.CodeGenUtil
 import org.orbit.backend.codegen.utils.ICodeGenTarget
 import org.orbit.backend.codegen.utils.IntrinsicCodeGenTarget
+import org.orbit.backend.typesystem.components.AnyType
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.components.kinds.IKindInspector
+import org.orbit.backend.typesystem.components.kinds.IntrinsicKindInspector
 import org.orbit.backend.typesystem.inference.*
 import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.nodes.*
@@ -199,7 +203,22 @@ val mainModule = module {
 	swiftSingle(AlgebraicConstructorGenerator)
 	swiftSingle(ContextGenerator)
 	swiftSingle(TypeAliasGenerator)
+
+	// Kind Inspectors
+	single(IntrinsicKindInspector.TypeKindInspector)
+	single(IntrinsicKindInspector.TraitKindInspector)
+	single(IntrinsicKindInspector.IFunctionKindInspector.F0)
+	single(IntrinsicKindInspector.IFunctionKindInspector.F1)
+	single(IntrinsicKindInspector.IFunctionKindInspector.F2)
+	single(IntrinsicKindInspector.IFunctionKindInspector.F3)
+	single(IntrinsicKindInspector.HigherKindInspector)
+	single(IntrinsicKindInspector.AliasKindInspector)
+	single(IntrinsicKindInspector.TypeVariableKindInspector)
+	single(IntrinsicKindInspector.AlwaysKindInspector)
 }
+
+private inline fun <reified T: AnyType> org.koin.core.module.Module.single(inspector: IKindInspector<T>) : BeanDefinition<IKindInspector<T>>
+	= single(named("kind${T::class.java.simpleName}")) { inspector }
 
 private inline fun <reified N: INode> org.koin.core.module.Module.single(target: ICodeGenTarget, generator: ICodeGenerator<N>) : BeanDefinition<ICodeGenerator<N>>
 	= single(named("codeGen${target.getTargetName()}${N::class.java.simpleName}")) { generator }

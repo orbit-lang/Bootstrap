@@ -37,7 +37,7 @@ private object TypeIndexer {
     }
 }
 
-sealed interface IType : IContextualComponent, Substitutable<AnyType> {
+interface IType : IContextualComponent, Substitutable<AnyType> {
     sealed interface Entity<E : Entity<E>> : IType
     sealed interface IMetaType<M: IMetaType<M>> : Entity<M> {
         fun toBoolean() : Boolean = when (this) {

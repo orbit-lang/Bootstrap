@@ -5,6 +5,8 @@ import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.components.kinds.IKind
+import org.orbit.backend.typesystem.components.kinds.KindUtil
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.components.Token
 import org.orbit.core.components.TokenTypes
@@ -44,7 +46,7 @@ sealed interface TypeBoundsOperator {
                 else -> IType.Never("Conformance Constraint failed: Type $left does not conform to Trait $right")
             }
 
-            else -> IType.Never("Conformance Constraint expected Trait on right-hand side, found $right")
+            else -> IType.Never("Conformance Constraint expects Trait on right-hand side, found $right")
         }
     }
 
@@ -52,7 +54,13 @@ sealed interface TypeBoundsOperator {
         override val op: String = "^"
 
         override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> {
-            TODO("Unsupported TypeBoundsOperator apply: KindEq")
+            val lKind = KindUtil.getKind(left, left::class.java.simpleName)
+            val rKind = KindUtil.getKind(right, right::class.java.simpleName)
+
+            return when (lKind == rKind) {
+                true -> IType.Always
+                else -> IType.Never("Kinds are not equal: $lKind & $rKind")
+            }
         }
     }
 
