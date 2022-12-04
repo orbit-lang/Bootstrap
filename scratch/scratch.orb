@@ -7,25 +7,31 @@ module Orb::Core::Numbers {
     type Real
 }
 
+module Orb::More::Attributes::Intrinsics {
+    attribute KindEquals = (A, B) => A ^ B
+    attribute TypeEquals = (A, B) => A = B
+    attribute Implements = (A, B) => A : B
+
+    attribute AnyTypeArrow = (F) => .KindEquals(F, (*) => *)
+    attribute AnyArrow = (F) => .TypeEquals(F, (*) -> *)
+}
+
+module Orb::More::Kinds::Intrinsics with Orb::More::Attributes::* {
+    attribute Inhabitable = (T) => .KindEquals(T, {})
+    attribute TypeConstructor = (T) => .KindEquals(T, (U) => U where .Inhabitable(U))
+
+    alias KType0 = {}
+    alias KType1 = (T) => KType0 where .Inhabitable(T)
+    alias KType2 = (T) => (U) => KType0 where .TypeConstructor(T)
+#    alias KType2 = ()
+}
+
 module TypeFunctions with Orb::* {
     alias ID = (T) => T
 #    alias Exactly = (variadic T, N Int) => select .T() where N = Int
 #    alias Tuple = (variadic T) => T where .Exactly(T, 1)
 
-#    kind Type0 = () => *
-#    kind Type1 = (*) => *
-#    kind Type2 = (*) => (*) => *
-
-    attribute KindEqual = (T, K) => T ^ K
-    attribute Invokable = (A) => .KindEqual(A, (*) => *)
-    attribute Equal = (A, B) => A = B
-    attribute Same = (A, B) => .Equal(A, B) | .Equal(B, A)
-
-    alias Check = (A, B) => * where .Same(A, B)
-    alias CanInvoke = (F) => * where .Invokable(F)
-
-#    alias Arrow = (A, B) => (A) -> B
-#    alias Apply = (F) => (A) => .F(A) where arrow(F)
+#    alias Apply = (F) => (A) => .F(A) where .AnyTypeArrow(F)
 #
 #    trait Foo(bar Int)
 
@@ -38,8 +44,15 @@ module TypeFunctions with Orb::* {
 #    projection Int : Foo
 #        with bar = 1
 
+    alias IsArrow = (F) => * where .AnyArrow(F)
+    alias IsTArrow = (F) => * where .AnyTypeArrow(F)
+#    alias IsArrowTest = .IsArrow((A) => A)
+#    alias IsTypeArrow = .IsTArrow((*) -> *)
+
+    alias IsTypeConstructor = (T) => * where .TypeConstructor(T)
+    alias IsTypeConstructorTest = .IsTypeConstructor((T) => (U) => U)
+
     fun (Unit) main () () {
-#        c = .CanInvoke(Int)()
-        c = .CanInvoke((Int) -> Int)()
+
     }
 }

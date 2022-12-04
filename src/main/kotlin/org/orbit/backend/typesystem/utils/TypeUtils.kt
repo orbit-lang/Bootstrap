@@ -17,6 +17,9 @@ object TypeUtils {
     }
 
     private fun checkArrowsEq(env: ITypeEnvironment, left: AnyArrow, right: AnyArrow) : Boolean {
+        if (left is IType.ConstrainedArrow && right !is IType.ConstrainedArrow) return false
+        if (right is IType.ConstrainedArrow && left !is IType.ConstrainedArrow) return false
+
         val lDomain = left.getDomain()
         val rDomain = left.getDomain()
 

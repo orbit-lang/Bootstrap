@@ -2,15 +2,12 @@ package org.orbit.backend.typesystem.components.kinds
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.named
 import org.koin.mp.KoinPlatformTools
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeCardinality
 import org.orbit.backend.typesystem.components.Substitution
-import org.orbit.backend.typesystem.inference.ITypeInference
-import org.orbit.backend.typesystem.inference.run
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.core.components.Token
@@ -19,7 +16,6 @@ import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
-import java.util.Arrays
 
 interface IKind : IType {
     override fun getCardinality(): ITypeCardinality
@@ -31,8 +27,8 @@ interface IKind : IType {
 }
 
 sealed interface IntrinsicKinds : IKind {
-    object Meta : IntrinsicKinds {
-        override val id: String = "Meta"
+    object AnyKind : IntrinsicKinds {
+        override val id: String = "AnyKind"
 
         override fun isInhabitable(): Boolean = false
         override fun equals(other: Any?): Boolean = true
@@ -69,7 +65,7 @@ sealed interface IntrinsicKinds : IKind {
 
         override fun equals(other: Any?): Boolean = when (other) {
             is Level0 -> other.name == name
-            is Meta -> true
+            is AnyKind -> true
             else -> false
         }
 
@@ -125,12 +121,20 @@ sealed interface IntrinsicKindInspector<T: AnyType> : IKindInspector<T> {
         override fun inspect(type: IType.TypeVar): IKind = IntrinsicKinds.Level0.type
     }
 
+    object TupleKindInspector : IntrinsicKindInspector<IType.Tuple> {
+        override fun inspect(type: IType.Tuple): IKind = IntrinsicKinds.Level0.type
+    }
+
+    object StructKindInspector : IntrinsicKindInspector<IType.Struct> {
+        override fun inspect(type: IType.Struct): IKind = IntrinsicKinds.Level0.type
+    }
+
     object AliasKindInspector : IntrinsicKindInspector<IType.Alias> {
         override fun inspect(type: IType.Alias): IKind = KindUtil.getKind(type.type, type.type::class.java.simpleName)
     }
 
     object AlwaysKindInspector : IKindInspector<IType.Always> {
-        override fun inspect(type: IType.Always): IKind = IntrinsicKinds.Meta
+        override fun inspect(type: IType.Always): IKind = IntrinsicKinds.AnyKind
     }
 
     object HigherKindInspector : IntrinsicKindInspector<IType.ConstrainedArrow> {

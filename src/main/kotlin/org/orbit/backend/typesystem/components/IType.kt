@@ -974,6 +974,24 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun substitute(substitution: Substitution): AnyType
             = ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute.Application>)
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+            val prettyDomain = arrow.getDomain().joinToString(", ")
+            val prettyArrow = "($prettyDomain) => ${arrow.getCodomain()}"
+
+            return when (constraints.isEmpty()) {
+                true -> "$indent$prettyArrow"
+                else -> {
+                    val pretty = constraints.joinToString(" & ")
+
+                    "$indent$prettyArrow where $pretty"
+                }
+            }
+        }
+
+        override fun toString(): String
+            = prettyPrint()
     }
 
     data class Arrow0(val gives: AnyType) : IArrow<Arrow0> {

@@ -31,9 +31,11 @@ sealed interface TypeBoundsOperator {
     object Eq : TypeBoundsOperator {
         override val op: String = "="
 
-        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> = when (val result = TypeUtils.check(env, left, right)) {
-            is IType.Never -> result
-            else -> IType.Always
+        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> {
+            return when (val result = TypeUtils.check(env, left, right)) {
+                is IType.Never -> result
+                else -> IType.Always
+            }
         }
     }
 
@@ -56,6 +58,8 @@ sealed interface TypeBoundsOperator {
         override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> {
             val lKind = KindUtil.getKind(left, left::class.java.simpleName)
             val rKind = KindUtil.getKind(right, right::class.java.simpleName)
+
+//            println("COMPARING KINDS: $lKind -- $rKind")
 
             return when (lKind == rKind) {
                 true -> IType.Always
