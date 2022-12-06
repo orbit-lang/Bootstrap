@@ -94,6 +94,8 @@ object TypeExpressionPathResolver : IPathResolver<TypeExpressionNode> {
 			pathResolverUtil.resolve(input, pass, environment, graph)
 		}
 
+		is StarNode -> pathResolverUtil.resolve(input, pass, environment, graph)
+
 		else -> TODO("Cannot resolve Path for unsupported Type Expression: $input")
 	}
 }

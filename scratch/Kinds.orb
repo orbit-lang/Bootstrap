@@ -1,15 +1,59 @@
-module Orb::Meta::Kinds with Orb::Types::Intrinsics {
-    trait Kind
-    kind Type = 0
-    kind Trait = 0
-    kind Field = 0
-    kind Signature = 0
+module Orb::Core::Types {
+    type Unit
+}
 
-    kind constructor Constructor [K] = K -> K
-        within K ^ 0
+module Orb::Core::Numbers {
+    type Int
+    type Real
+}
 
-    kind constructor Higher [K, L] = K -> L
-        within Above[K, L]
+module Orb::More::Attributes::Intrinsics {
+    attribute KindEquals = (A, B) => A ^ B
+    attribute TypeEquals = (A, B) => A = B
+    attribute Implements = (A, B) => A : B
 
-    kind Functor = Higher[Constructor, Type]
+    attribute AnyTypeArrow = (F) => .KindEquals(F, (Any) => Any)
+    attribute AnyArrow = (F) => .TypeEquals(F, (Any) -> Any)
+}
+
+module Orb::More::Kinds::Intrinsics with Orb::More::Attributes::* {
+    attribute Inhabitable = (T) => .KindEquals(T, {})
+    attribute TypeConstructor = (T) => .KindEquals(T, (U) => U where .Inhabitable(U))
+    attribute HigherKinded = (T) => .KindEquals(T, (U) => (Any) => Any)
+
+    alias Type0 = {}
+    alias Type1 = (T) => Type0 where .Inhabitable(T)
+    alias Type2 = (T) => (U) => Type0
+    alias Type3 = (T) => (U) => (V) => Type0
+}
+
+module TypeFunctions with Orb::* {
+    alias ID = (T) => T
+#    alias Exactly = (variadic T, N Int) => select .T() where N = Int
+#    alias Tuple = (variadic T) => T where .Exactly(T, 1)
+
+#    alias Apply = (F) => (A) => .F(A) where .AnyTypeArrow(F)
+#
+#    trait Foo(bar Int)
+
+#    context FunctorCtx [F, A, B] where .HigherKinded1(F) {
+#        trait Functor {
+#            fun (self .F(A)) map (f (A) -> B) (.F(B))
+#        }
+#    }
+
+#    projection Int : Foo
+#        with bar = 1
+
+    alias IsArrow = (F) => Any where .AnyArrow(F)
+    alias IsTArrow = (F) => Any where .AnyTypeArrow(F)
+
+    alias List = (Element) => [Element]
+
+    alias IsTypeConstructor = (T) => Any where .TypeConstructor(T)
+    alias IsTypeConstructorTest = .IsTypeConstructor(List)
+
+    fun (Unit) main () () {
+
+    }
 }

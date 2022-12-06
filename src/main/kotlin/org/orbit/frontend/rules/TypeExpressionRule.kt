@@ -7,7 +7,7 @@ import org.orbit.frontend.phase.Parser
 
 object StarRule : ValueRule<StarNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect { it.text == "*" }
+        val start = context.expect { it.text == "Any" }
 
         return +StarNode(start, start)
     }

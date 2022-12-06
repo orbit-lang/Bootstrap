@@ -7,8 +7,8 @@ import org.orbit.core.components.TokenTypes
 sealed interface TypeExpressionNode : ILiteralNode<String>
 
 data class StarNode(override val firstToken: Token, override val lastToken: Token) : TypeExpressionNode {
-	override val value: String = "*"
-	override fun getTypeName(): String = "*"
+	override val value: String = "Any"
+	override fun getTypeName(): String = "Any"
 
 	override fun getChildren(): List<INode> = emptyList()
 }
@@ -56,7 +56,7 @@ data class TypeIdentifierNode(
 ) : TypeExpressionNode, LValueTypeParameter {
 	companion object {
 		private val nullToken = Token(TokenTypes.TypeIdentifier, "AnyType", SourcePosition.unknown)
-		private val anyTypeIdentifierNode = TypeIdentifierNode(nullToken, nullToken, "*")
+		private val anyTypeIdentifierNode = TypeIdentifierNode(nullToken, nullToken, "Any")
 
 		fun hole(token: Token) : TypeIdentifierNode
 			= TypeIdentifierNode(token, token, "_")

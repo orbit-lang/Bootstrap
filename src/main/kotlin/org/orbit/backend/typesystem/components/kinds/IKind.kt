@@ -129,6 +129,14 @@ sealed interface IntrinsicKindInspector<T: AnyType> : IKindInspector<T> {
         override fun inspect(type: IType.Struct): IKind = IntrinsicKinds.Level0.type
     }
 
+    object UnionKindInspector : IntrinsicKindInspector<IType.Union> {
+        override fun inspect(type: IType.Union): IKind = IntrinsicKinds.Level0.type
+    }
+
+    object ArrayKindInspector : IntrinsicKindInspector<IType.Array> {
+        override fun inspect(type: IType.Array): IKind = IntrinsicKinds.Level0.type
+    }
+
     object AliasKindInspector : IntrinsicKindInspector<IType.Alias> {
         override fun inspect(type: IType.Alias): IKind = KindUtil.getKind(type.type, type.type::class.java.simpleName)
     }

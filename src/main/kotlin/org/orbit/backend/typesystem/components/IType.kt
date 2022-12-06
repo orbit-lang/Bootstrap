@@ -49,12 +49,12 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     object Always : IMetaType<Always> {
-        override val id: String = "*"
+        override val id: String = "Any"
         override fun substitute(substitution: Substitution): Always = this
         override fun plus(other: IMetaType<*>): IMetaType<*> = other
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
         override fun equals(other: Any?): Boolean = true
-        override fun toString(): String = "*"
+        override fun toString(): String = "Any"
     }
 
     data class Never(val message: String, override val id: String = "!") : IMetaType<Never>, IArrow<Never> {
@@ -460,7 +460,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
                     else -> false
                 }
 
-                override fun toString(): String = "*"
+                override fun toString(): String = "∞"
             }
         }
 

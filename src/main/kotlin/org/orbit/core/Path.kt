@@ -10,7 +10,7 @@ open class Path(open val relativeNames: List<String>) : AnyPrintable, Collection
 		val self = Path("Self")
 		val infer = Path("_")
 		val array = Path("[]")
-		val any = Path("*")
+		val any = Path("Any")
 		val lambda = Path("->")
 	}
 

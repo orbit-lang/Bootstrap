@@ -7,52 +7,12 @@ module Orb::Core::Numbers {
     type Real
 }
 
-module Orb::More::Attributes::Intrinsics {
-    attribute KindEquals = (A, B) => A ^ B
-    attribute TypeEquals = (A, B) => A = B
-    attribute Implements = (A, B) => A : B
+module Main with Orb::Core::* {
+    alias None = {}
+    alias Some = (T) => T
+    alias Option = () => (None | Some)
 
-    attribute AnyTypeArrow = (F) => .KindEquals(F, (*) => *)
-    attribute AnyArrow = (F) => .TypeEquals(F, (*) -> *)
-}
-
-module Orb::More::Kinds::Intrinsics with Orb::More::Attributes::* {
-    attribute Inhabitable = (T) => .KindEquals(T, {})
-    attribute TypeConstructor = (T) => .KindEquals(T, (U) => U where .Inhabitable(U))
-
-    alias KType0 = {}
-    alias KType1 = (T) => KType0 where .Inhabitable(T)
-    alias KType2 = (T) => (U) => KType0 where .TypeConstructor(T)
-#    alias KType2 = ()
-}
-
-module TypeFunctions with Orb::* {
-    alias ID = (T) => T
-#    alias Exactly = (variadic T, N Int) => select .T() where N = Int
-#    alias Tuple = (variadic T) => T where .Exactly(T, 1)
-
-#    alias Apply = (F) => (A) => .F(A) where .AnyTypeArrow(F)
-#
-#    trait Foo(bar Int)
-
-#    context FunctorCtx [F, A, B] where F ^ (*) -> * {
-#        trait Functor {
-#            fun (self .F(A)) map (f .Arrow(A, B)) (.F(B))
-#        }
-#    }
-
-#    projection Int : Foo
-#        with bar = 1
-
-    alias IsArrow = (F) => * where .AnyArrow(F)
-    alias IsTArrow = (F) => * where .AnyTypeArrow(F)
-#    alias IsArrowTest = .IsArrow((A) => A)
-#    alias IsTypeArrow = .IsTArrow((*) -> *)
-
-    alias IsTypeConstructor = (T) => * where .TypeConstructor(T)
-    alias IsTypeConstructorTest = .IsTypeConstructor((T) => (U) => U)
-
-    fun (Unit) main () () {
+    fun (Any) main () () {
 
     }
 }
