@@ -1,5 +1,5 @@
 context CollectionCtx [Element] {
     trait Collection {
-        (self Self) elementAt (idx Int) (Element)
+        fun (self Self) elementAt (idx Int) (Element)
     }
 }
