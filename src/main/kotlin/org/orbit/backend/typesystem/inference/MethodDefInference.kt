@@ -38,7 +38,7 @@ object MethodDefInference : ITypeInference<MethodDefNode, IMutableTypeEnvironmen
 
         return when (TypeUtils.checkEq(oEnv, returns, signature.returns)) {
             true -> signature
-            else -> throw invocation.make<TypeSystem>("Method `${node.signature.identifierNode.identifier}` declared return Type of `${signature.returns}`, found `$returns`", node)
+            else -> throw invocation.make<TypeSystem>("Method `${node.signature.identifierNode.identifier}` declares return Type of `${signature.returns}`, found `$returns`", node)
         }
     }
 }
