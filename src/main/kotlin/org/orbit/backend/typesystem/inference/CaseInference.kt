@@ -23,7 +23,7 @@ object CaseInference : ITypeInference<CaseNode, CaseTypeEnvironment>, KoinCompon
             ?: throw invocation.make<TypeSystem>("Could not infer `Self` Type in this context", node)
 
         if (!TypeUtils.checkEq(env, patternType, env.match)) {
-            throw invocation.make<TypeSystem>("Case patterns within a Select expression must match the condition type. Expected `${env.match}`, found `$patternType`", node.pattern)
+            throw invocation.make<TypeSystem>("Case patterns within a Select expression must match the condition type (or be an Else Case). Expected `${env.match}`, found `$patternType`", node.pattern)
         }
 
         if (!TypeUtils.checkEq(env, bodyType, selfType.returns)) {

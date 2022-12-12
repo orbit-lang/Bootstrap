@@ -24,7 +24,7 @@ module Main with Orb::Core::* {
     projection Int : Error
 
     context OptionCtx [Value] {
-        alias Option = (None: () => {} | Some: { value Value })
+        alias Option = (None: {} | Some: { value Value })
 
         fun (self Option) force () (Value) = select self {
             case Some(value) = value
@@ -38,6 +38,7 @@ module Main with Orb::Core::* {
 
     fun (self Foo) bar () (Int) = select self {
         case Foo(x, y) = x * y
+        case Int = 1
         case else = 0
     }
 
