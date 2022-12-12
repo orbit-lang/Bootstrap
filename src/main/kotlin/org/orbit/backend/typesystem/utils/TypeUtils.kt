@@ -6,6 +6,17 @@ enum class TypeCheckPosition {
     Any, AlwaysLeft, AlwaysRight;
 }
 
+interface ITypeCheckRule<A: AnyType, B: AnyType> {
+    fun check(a: A, b: B, env: ITypeEnvironment) : Boolean
+}
+
+//fun <A: AnyType, B: AnyType> ITypeCheckRule<A, B>.prepare(a: A, b: B, env: ITypeEnvironment) : Triple<A, B, ITypeEnvironment> {
+//    val aFlat = a.flatten(a, env)
+//    val bFlat = b.flatten(b, env)
+//
+//    val aSubs = aFlat.getUnsolvedTypeVariables()
+//}
+
 object TypeUtils {
     private fun <R> prepare(env: ITypeEnvironment, left: AnyType, right: AnyType, block: (AnyType, AnyType) -> R) : R {
         val lRaw = left.flatten(left, env)
@@ -39,6 +50,18 @@ object TypeUtils {
         when (left == right) {
             true -> right
             else -> when (right) {
+                is IType.Sum -> when (left) {
+                    is IType.Sum -> when (checkEq(env, left.left, right.left) && checkEq(env, left.right, right.right)) {
+                        true -> right
+                        else -> error
+                    }
+
+                    else -> when (checkEq(env, left, right.left) || checkEq(env, left, right.right)) {
+                        true -> right
+                        else -> error
+                    }
+                }
+
                 is IType.Case -> when (left) {
                     is IType.Case -> {
                         val lCondition = left.condition.flatten(left.condition, env)
