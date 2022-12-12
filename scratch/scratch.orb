@@ -2,6 +2,13 @@ module Orb::Core::Types {
     type Unit
 }
 
+module Orb::Core::Booleans {
+    type Bool {
+        constructor True
+        constructor False
+    }
+}
+
 module Orb::Core::Numbers {
     type Int
     type Real
@@ -17,7 +24,7 @@ module Main with Orb::Core::* {
     projection Int : Error
 
     context OptionCtx [Value] {
-        alias Option = (None: {} | Some: { value Value })
+        alias Option = (None: () => {} | Some: { value Value })
 
         fun (self Option) force () (Value) = select self {
             case Some(value) = value
@@ -27,13 +34,17 @@ module Main with Orb::Core::* {
         postfix operator forceUnwrap `!` by ::force
     }
 
+    alias Foo = { x Int, y Int }
+
+    fun (self Foo) bar () (Int) = select self {
+        case Foo(x, y) = x * y
+        case else = 0
+    }
+
     fun (Any) main () () {
         opt = Some(1)
-        none = None()
         s = opt! within OptionCtx [Int]
-        n = none!
 
         typeOf s
-        typeOf n
     }
 }

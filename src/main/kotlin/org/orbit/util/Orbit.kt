@@ -196,6 +196,8 @@ val mainModule = module {
 	single(CompoundAttributeExpressionInference)
 	single(SumTypeInference)
 	single(TaggedTypeExpressionInference)
+	single(TypedIdentifierBindingPatternInference)
+	single(DiscardBindingPatternInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }
