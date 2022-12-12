@@ -48,7 +48,10 @@ object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
 
         signatures.forEach { mEnv.add(it) }
 
-//        TypeInferenceUtils.inferAll(node.body, mEnv)
+        val body = node.body.filterNot { it is EntityDefNode }
+
+        // TODO - There is a bug in here where method signatures are getting bound twice
+        TypeInferenceUtils.inferAll(body, mEnv)
 
         return nCtx
     }

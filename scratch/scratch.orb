@@ -30,7 +30,7 @@ module Main with Orb::Core::* {
     fun (Any) main () () {
         opt = Some(1)
         none = None()
-        s = opt.force() within OptionCtx [Int]
+        s = opt! within OptionCtx [Int]
         n = none!
 
         typeOf s
