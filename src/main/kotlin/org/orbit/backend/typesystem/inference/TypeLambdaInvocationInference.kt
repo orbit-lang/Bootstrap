@@ -26,7 +26,7 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
 
         val nArrow = arrow.getDomain().zip(args).fold(arrow) { acc, next -> acc.substitute(Substitution(next.first, next.second)) as IType.ConstrainedArrow }
 
-        nArrow.constraints.forEach {it.invoke(LocalEnvironment(env)) }
+        nArrow.constraints.forEach { it.invoke(LocalEnvironment(env)) }
 
         return nArrow.getCodomain()
     }

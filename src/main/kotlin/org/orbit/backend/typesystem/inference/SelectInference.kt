@@ -7,8 +7,6 @@ import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.CaseNode
-import org.orbit.core.nodes.ElseNode
-import org.orbit.core.nodes.INode
 import org.orbit.core.nodes.SelectNode
 import org.orbit.util.Invocation
 
@@ -21,14 +19,6 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
 
         val nEnv = CaseTypeEnvironment(env, env.getSelfType(), constructableType)
         val nonElseCases = node.cases.filterNot { it.isElseCase }
-        val caseConstructors = TypeInferenceUtils.inferAllAs<CaseNode, IType.Case>(nonElseCases, nEnv)
-            .map {
-                val domain = it.getDomain()[0]
-                domain.flatten(domain, env)
-                as IType.IConstructor<*>
-            }
-            .distinctBy { it.getCanonicalName() }
-        val cardinality = caseConstructors.fold(ITypeCardinality.Zero as ITypeCardinality) { acc, next -> acc + next.getCardinality() }
         val elseNodes = node.cases.filter { it.isElseCase }
 
         if (elseNodes.count() > 1) {
@@ -37,33 +27,27 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
 
         val hasElseCase = elseNodes.count() == 1
 
-        when (hasElseCase) {
-            true -> {
-                val elseType = TypeInferenceUtils.infer(elseNodes[0], nEnv) as IType.Case
+        if (conditionType.getCardinality() == ITypeCardinality.Infinite && !hasElseCase) {
+            throw invocation.make<TypeSystem>("Type `$constructableType` has an infinite number of cases and therefore requires an Else case", node)
+        }
 
-                if (!TypeUtils.checkEq(nEnv, elseType.result, typeAnnotation)) {
-                    throw invocation.make<TypeSystem>("Else case expected to return $typeAnnotation, found $elseType", elseNodes[0])
+        val requiredConstructors = constructableType.getConstructors()
+        val providedConstructors = TypeInferenceUtils.inferAllAs<CaseNode, IType.Case>(nonElseCases, nEnv)
+            .flatMap { it.condition.getConstructors() }
+
+        val missingConstructors = requiredConstructors.toMutableList()
+        for (requiredConstructor in requiredConstructors) {
+            for (providedConstructor in providedConstructors) {
+                if (TypeUtils.checkEq(nEnv, providedConstructor, requiredConstructor)) {
+                    missingConstructors.remove(requiredConstructor)
                 }
             }
-            else -> {}
         }
 
-        if (cardinality is ITypeCardinality.Infinite) {
-            return when (hasElseCase) {
-                true -> typeAnnotation
-                else -> throw invocation.make<TypeSystem>("Type `$constructableType` has an infinite number of cases and therefore requires an Else case", node)
-            }
-        }
+        if (missingConstructors.isNotEmpty()) {
+            val prettyMissing = missingConstructors.joinToString("\n\t")
 
-        val expectedConstructors = constructableType.getConstructors()
-        val conditionCardinality = constructableType.getCardinality()
-
-        if (!hasElseCase && conditionCardinality is ITypeCardinality.Finite && caseConstructors.count() != conditionCardinality.count) {
-            val allCaseNames = caseConstructors.map { it.getCanonicalName() }
-            val missingCases = expectedConstructors.filterNot { it.getCanonicalName() in allCaseNames }
-            val prettyMissing = missingCases.joinToString("\n\t")
-
-            throw invocation.make<TypeSystem>("Missing ${missingCases.count()}/${expectedConstructors.count()} Case(s) for Select expression of Type `$constructableType`:\n\t$prettyMissing", node)
+            throw invocation.make<TypeSystem>("Missing ${missingConstructors.count()}/${requiredConstructors.count()} Case(s) for Select expression of Type `$constructableType`:\n\t$prettyMissing", node)
         }
 
         return typeAnnotation

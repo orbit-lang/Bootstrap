@@ -17,6 +17,7 @@ interface ParseRule<N: INode> {
 			}
 			data class Throw(val message: String, val position: SourcePosition) : Result {
 				constructor(message: String, token: Token) : this(message, token.position)
+				constructor(message: String, collector: Parser.TokenCollector) : this(message, collector.getCollectedTokens().last())
 			}
 		}
 

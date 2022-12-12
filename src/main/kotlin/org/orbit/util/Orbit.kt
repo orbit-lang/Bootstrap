@@ -14,7 +14,6 @@ import org.orbit.backend.codegen.utils.CodeGenUtil
 import org.orbit.backend.codegen.utils.ICodeGenTarget
 import org.orbit.backend.codegen.utils.IntrinsicCodeGenTarget
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.backend.typesystem.components.kinds.IKindInspector
 import org.orbit.backend.typesystem.components.kinds.IntrinsicKindInspector
@@ -23,6 +22,7 @@ import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.nodes.*
 import org.orbit.core.phase.CompilerGenerator
 import org.orbit.frontend.rules.CollectionTypeInference
+import org.orbit.frontend.rules.TaggedTypeExpressionPathResolver
 import org.orbit.graph.pathresolvers.*
 import org.orbit.graph.pathresolvers.util.ContextCompositionPathResolver
 import org.orbit.graph.pathresolvers.util.ContextInstantiationPathResolver
@@ -104,6 +104,8 @@ val mainModule = module {
 		util.registerPathResolver(AttributeInvocationPathResolver, AttributeInvocationNode::class.java)
 		util.registerPathResolver(TypeLambdaConstraintPathResolver, TypeLambdaConstraintNode::class.java)
 		util.registerPathResolver(CompoundAttributeExpressionPathResolver, CompoundAttributeExpressionNode::class.java)
+		util.registerPathResolver(SumTypePathResolver, SumTypeNode::class.java)
+		util.registerPathResolver(TaggedTypeExpressionPathResolver, TaggedTypeExpressionNode::class.java)
 
 		util
 	}
@@ -192,6 +194,8 @@ val mainModule = module {
 	single(AttributeInvocationInference)
 	single(AttributeOperatorExpressionInference)
 	single(CompoundAttributeExpressionInference)
+	single(SumTypeInference)
+	single(TaggedTypeExpressionInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

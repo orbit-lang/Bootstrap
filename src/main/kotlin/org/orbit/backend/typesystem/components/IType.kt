@@ -197,6 +197,33 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
+    data class Sum(val left: AnyType, val right: AnyType) : IConstructableType<Sum> {
+        override val id: String = "(${left.id} | ${right.id})"
+
+        override fun getConstructors(): List<IConstructor<*>>
+            = left.getConstructors() + right.getConstructors()
+
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = left.getUnsolvedTypeVariables() + right.getUnsolvedTypeVariables()
+
+        override fun isSpecialised(): Boolean = false
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Finite(2)
+
+        override fun substitute(substitution: Substitution): AnyType
+            = Sum(left.substitute(substitution), right.substitute(substitution))
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+
+            return "$indent($left | $right)"
+        }
+
+        override fun toString(): String
+            = prettyPrint()
+    }
+
     data class SingletonConstructor(val type: AnyType) : IConstructor<AnyType> {
         override val id: String = "() -> ${type.id}"
         override val constructedType: AnyType = type
@@ -954,8 +981,10 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         }
     }
 
-    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<Attribute.IAttributeApplication>) : IArrow<ConstrainedArrow> {
+    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<Attribute.IAttributeApplication>) : IArrow<ConstrainedArrow>, IConstructableType<ConstrainedArrow> {
         override val id: String = "$arrow + ${constraints.joinToString(", ")}"
+
+        override fun isSpecialised(): Boolean = false
 
         override fun getDomain(): List<AnyType>
             = arrow.getDomain()

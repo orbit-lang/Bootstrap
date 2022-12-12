@@ -23,7 +23,7 @@ module Orb::More::Kinds::Intrinsics with Orb::More::Attributes::* {
 
     alias Type0 = {}
     alias Type1 = (T) => Type0 where .Inhabitable(T)
-    alias Type2 = (T) => (U) => Type0
+    alias Type2 = (T) => .Type1(T)
     alias Type3 = (T) => (U) => (V) => Type0
 }
 
@@ -52,6 +52,9 @@ module TypeFunctions with Orb::* {
 
     alias IsTypeConstructor = (T) => Any where .TypeConstructor(T)
     alias IsTypeConstructorTest = .IsTypeConstructor(List)
+
+    alias Nat = () => (Zero: {} | Next: (N) => Nat where .TypeEqual(N, Nat))
+    alias GT0 = (N) => () => (Never | Any)
 
     fun (Unit) main () () {
 

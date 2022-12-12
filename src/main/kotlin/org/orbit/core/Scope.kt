@@ -160,6 +160,9 @@ class Scope(
 			return BindingSearchResult.Success(matches.first())
 		}
 
+		val first = matches.first()
+		if (matches.all { it.kind == first.kind && it.path == first.path }) return BindingSearchResult.Success(first)
+
 		// If we have multiple results, then we can start filtering on context.
 		// Unless context is null, in which case we're screwed!
 		if (context == null)

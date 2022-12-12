@@ -19,6 +19,7 @@ object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 		val node = context.attemptAny(listOf(
             StarRule,
             ExpandRule,
+            SumTypeRule,
             CollectionTypeRule,
             TypeLambdaRule,
             TypeLambdaInvocationRule,
