@@ -241,7 +241,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class Forward(val name: String) : IType {
-        override val id: String = "!!$name"
+        override val id: String = name
 
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Zero
         override fun substitute(substitution: Substitution): AnyType = this
@@ -256,8 +256,11 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             val printer = getKoinInstance<Printer>()
             val pretty = printer.apply(name, PrintableKey.Bold)
 
-            return "$indent!!$pretty"
+            return "$indent$pretty"
         }
+
+        override fun toString(): String
+            = prettyPrint()
     }
 
     data class Type(val name: String, val attributes: List<TypeAttribute> = emptyList(), private val explicitCardinality: ITypeCardinality = ITypeCardinality.Mono) : Entity<Type>, IConstructableType<Type> {
@@ -1225,6 +1228,8 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class PatternBinding(val name: String, val type: AnyType) : IType {
+        constructor(pair: Pair<String, AnyType>) : this(pair.first, pair.second)
+
         override val id: String = "$name => $type"
 
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Zero
