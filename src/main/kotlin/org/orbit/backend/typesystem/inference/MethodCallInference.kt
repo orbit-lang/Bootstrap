@@ -80,7 +80,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
         val zip = args.zip(arrow.parameters)
         for ((idx, pair) in zip.withIndex()) {
             if (!TypeUtils.checkEq(env, pair.first, pair.second)) {
-                throw invocation.make<TypeSystem>("Method `${node.messageIdentifier.identifier}` expects argument of Type `${pair.second}` at index $idx, found `$pair`", node.arguments[idx])
+                throw invocation.make<TypeSystem>("Method `${node.messageIdentifier.identifier}` expects argument of Type `${pair.second}` at index $idx, found `${pair.first}`", node.arguments[idx])
             }
         }
 

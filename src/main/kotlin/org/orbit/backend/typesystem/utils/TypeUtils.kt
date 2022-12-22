@@ -23,6 +23,8 @@ object TypeUtils {
         val rRaw = right.flatten(right, env)
 
         if (rRaw.getTypeCheckPosition() == TypeCheckPosition.AlwaysLeft) return block(rRaw, lRaw)
+        if (lRaw.getTypeCheckPosition() == TypeCheckPosition.AlwaysRight)
+            return block(rRaw, lRaw)
 
         return block(lRaw, rRaw)
     }
@@ -50,6 +52,17 @@ object TypeUtils {
         when (left == right) {
             true -> right
             else -> when (right) {
+                is IType.Union -> when (left) {
+                    is IType.Union -> TODO("COMPARE UNION <> UNION")
+                    // TODO - Beware! This might return true for different Unions with matching constructors
+                    is IType.UnionConstructor.ConcreteUnionConstructor -> when (right.unionConstructors.any { checkEq(env, left, it) }) {
+                        true -> right
+                        else -> error
+                    }
+
+                    else -> error
+                }
+
                 is IType.Sum -> when (left) {
                     is IType.Sum -> when (checkEq(env, left.left, right.left) && checkEq(env, left.right, right.right)) {
                         true -> right
@@ -111,6 +124,24 @@ object TypeUtils {
 
                 is IType.Struct -> when (left) {
                     is IType.Struct -> {
+                        val lNames = left.members.map { it.first }
+                        val rNames = right.members.map { it.first }
+
+                        if (lNames.count() != rNames.count()) return@prepare error
+
+                        val namesMatch = lNames.zip(rNames).all { it.first == it.second }
+
+                        if (!namesMatch) return@prepare error
+
+                        val lTypes = left.members.map { it.second }
+                        val rTypes = right.members.map { it.second }
+
+                        if (lTypes.count() != rTypes.count()) return@prepare error
+
+                        val typesMatch = lTypes.zip(rTypes).all { checkEq(env, it.first, it.second) }
+
+                        if (typesMatch) return@prepare right
+
                         val lTags = GlobalEnvironment.getTags(left)
                         val rTags = GlobalEnvironment.getTags(right)
 

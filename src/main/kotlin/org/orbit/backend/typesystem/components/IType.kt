@@ -202,6 +202,9 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     data class Sum(val left: AnyType, val right: AnyType) : IConstructableType<Sum> {
         override val id: String = "(${left.id} | ${right.id})"
 
+        override fun getTypeCheckPosition(): TypeCheckPosition
+            = TypeCheckPosition.AlwaysRight
+
         override fun getConstructors(): List<IConstructor<*>>
             = left.getConstructors() + right.getConstructors()
 
@@ -605,10 +608,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         fun getElement(at: I): AnyType
     }
 
-    interface IAlgebraicType<Self : IAlgebraicType<Self>> : AnyType, IConstructableType<Self> {
-        override fun getTypeCheckPosition(): TypeCheckPosition
-            = TypeCheckPosition.AlwaysLeft
-    }
+    interface IAlgebraicType<Self : IAlgebraicType<Self>> : AnyType, IConstructableType<Self>
 
     sealed interface IProductType<I, Self : IProductType<I, Self>> : IAlgebraicType<Self>, IIndexType<I, Self>
     sealed interface ISumType<Self : ISumType<Self>> : IAlgebraicType<Self>, IIndexType<AnyType, Self>
@@ -763,7 +763,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         }
 
         override fun equals(other: Any?): Boolean = when (other) {
-            is Struct -> other.members.count() == members.count() && other.members.zip(members).all { it.first == it.second }
+            is Struct -> other.members.count() == members.count() && other.members.zip(members).all {it.first == it.second }
             else -> false
         }
 
@@ -874,6 +874,9 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
             return "($pretty)"
         }
+
+        override fun getTypeCheckPosition(): TypeCheckPosition
+            = TypeCheckPosition.AlwaysRight
 
         override fun isSpecialised(): Boolean = false
 

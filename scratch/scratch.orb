@@ -9,9 +9,11 @@ module Orb::Core::Booleans {
     }
 }
 
-module Orb::Core::Numbers {
+module Orb::Core::Numbers with Orb::Core::Errors {
     type Int
     type Real
+
+    projection Int : Error
 }
 
 module Orb::Core::Errors {
@@ -28,24 +30,36 @@ module Orb::More::Attributes::Intrinsics {
 }
 
 module Main with Orb::* {
-    projection Int : Error
+    attribute Check = (A, B) => A = B
+
+    alias Option = (V) => (Some: { value V } | None: {})
+    alias Either = (L, R) => (Left: L | Right: R)
+    alias Choice = (A, B) => A where .Check(A, B) else .Either(A, B)
 
     context OptionCtx [ValueType] {
-        type Errors {
-            constructor ForceUnwrapNone
-        }
-
-        projection Errors : Error
-
-        alias Option = (Some: { value ValueType } | None: {})
-
-        fun (self Option) force () (ValueType) = select self {
+        fun (self .Option(ValueType)) force () (ValueType) = select self {
             case Some(value) = value
             case None = panic 0
         }
+
+        postfix operator forceUnwrap `!` by ::force
     }
 
-    fun (Any) main () () {
+    context CoalesceCtx [ValueType, FallbackType] {
+        fun (self .Option(ValueType)) coalesce (fallback FallbackType) (.Either(ValueType, FallbackType)) = select self {
+            case Some(value) = value
+            case None = fallback
+        }
 
+        infix operator coalesceFallback `??` by ::coalesce
+    }
+
+    fun (Any) main () () within OptionCtx [Int] & CoalesceCtx [Int, Bool] {
+        opt = Some(1)
+
+        typeOf opt!
+        typeOf opt ?? true
+
+        check 0, 0
     }
 }
