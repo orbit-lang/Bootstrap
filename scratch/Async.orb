@@ -1,0 +1,22 @@
+module Async {
+    alias Continuation = (T) => { block () -> T }
+
+    extension Continuation {
+        fun (Self) start (block () -> Self.T) (Self) = .Continuation(Self.T)(block)
+        fun (self Self) resume (result Self.T) (T)
+    }
+
+    fun (Int) fib (n Int) (Int) = fib(n - 1) + fib(n - 2)
+
+    fun (Any) doSomeWork () (Int) {
+        wait(1000)
+        return 1
+    }
+
+    fun (Any) main () () {
+        job1 = .Async(::doSomeWork)
+        job2 = .Async(::doSomeWork)
+
+        print .Await(job1 + job2)
+    }
+}

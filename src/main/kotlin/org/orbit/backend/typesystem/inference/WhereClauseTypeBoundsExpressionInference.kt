@@ -3,7 +3,7 @@ package org.orbit.backend.typesystem.inference
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
-import org.orbit.core.nodes.TypeBoundsOperator
+import org.orbit.core.nodes.ITypeBoundsOperator
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.core.nodes.WhereClauseTypeBoundsExpressionNode
 
@@ -12,11 +12,11 @@ object WhereClauseTypeBoundsExpressionInference : ITypeInference<WhereClauseType
         val type = TypeInferenceUtils.inferAs<TypeExpressionNode, IType.TypeVar>(node.sourceTypeExpression, env)
 
         return when (node.boundsType) {
-            TypeBoundsOperator.Like -> {
+            ITypeBoundsOperator.Like -> {
                 val trait = TypeInferenceUtils.inferAs<TypeExpressionNode, IType.Trait>(node.targetTypeExpression, env)
                 ConformanceConstraint(type, trait)
             }
-            TypeBoundsOperator.KindEq -> {
+            ITypeBoundsOperator.KindEq -> {
                 val arrow = TypeInferenceUtils.inferAs<TypeExpressionNode, AnyArrow>(node.targetTypeExpression, env)
                 KindEqualityConstraint(type, arrow)
             }

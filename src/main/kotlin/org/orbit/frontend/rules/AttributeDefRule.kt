@@ -12,7 +12,7 @@ object AttributeOperatorExpressionRule : ParseRule<AttributeOperatorExpressionNo
             ?: return ParseRule.Result.Failure.Rewind(collector)
 
         val op = context.expectAny(TokenTypes.OperatorSymbol, TokenTypes.Assignment, TokenTypes.Colon, TokenTypes.Identifier, consumes = true)
-        val boundsType = TypeBoundsOperator.valueOf(op)
+        val boundsType = ITypeBoundsOperator.valueOf(op)
         val rExpr = context.attempt(TypeExpressionRule)
             ?: return ParseRule.Result.Failure.Throw("Expected Type Expression on right-hand side of Attribute Operator Expression", collector.getCollectedTokens().last())
 

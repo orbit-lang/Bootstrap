@@ -5,7 +5,6 @@ import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyMetaType
 import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
 import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.core.components.Token
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
@@ -56,7 +55,7 @@ data class CompoundAttributeExpressionNode(
 data class AttributeOperatorExpressionNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val op: TypeBoundsOperator,
+    val op: ITypeBoundsOperator,
     val leftExpression: TypeExpressionNode,
     val rightExpression: TypeExpressionNode
 ) : IAttributeExpressionNode {

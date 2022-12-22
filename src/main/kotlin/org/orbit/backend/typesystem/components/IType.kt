@@ -1,5 +1,6 @@
 package org.orbit.backend.typesystem.components
 
+import org.orbit.backend.typesystem.components.kinds.IKind
 import org.orbit.backend.typesystem.intrinsics.OrbCoreBooleans
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
@@ -89,7 +90,8 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     object Unit : Entity<Unit> {
         override val id: String = "Unit"
 
-        val path: Path = OrbitMangler.unmangle("Orb::Core::Types::Unit")
+        override fun getPath(): Path
+            = OrbitMangler.unmangle("Orb::Core::Types::Unit")
 
         override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
         override fun substitute(substitution: Substitution): Unit = this
@@ -314,7 +316,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun toString(): String = prettyPrint()
 
-        fun getPath() : Path
+        override fun getPath() : Path
             = OrbitMangler.unmangle(name)
     }
 
@@ -373,9 +375,11 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Attribute(val name: String, val typeVariables: List<TypeVar>, val constraint: (IMutableTypeEnvironment) -> IMetaType<*>) : IType {
+    data class Attribute(val name: String, val typeVariables: List<TypeVar> = emptyList(), val proofs: List<IProof> = emptyList(), val constraint: (IMutableTypeEnvironment) -> IMetaType<*>) : IType {
         sealed interface IAttributeApplication : IType {
             fun invoke(env: IMutableTypeEnvironment) : IMetaType<*>
+
+            fun getOriginalAttribute() : Attribute
 
             fun combine(op: AttributeOperator, other: IAttributeApplication) : IAttributeApplication
                 = CompoundApplication(op, this, other)
@@ -383,6 +387,9 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         data class CompoundApplication(val op: AttributeOperator, val left: IAttributeApplication, val right: IAttributeApplication) : IAttributeApplication {
             override val id: String = "${left.id} $op ${right.id}"
+
+            override fun getOriginalAttribute(): Attribute
+                = left.getOriginalAttribute()
 
             override fun invoke(env: IMutableTypeEnvironment): IMetaType<*>
                 = op.apply(left, right, env)
@@ -396,6 +403,9 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         data class Application(val attribute: Attribute, val args: List<AnyType>) : IAttributeApplication {
             override val id: String = attribute.id
+
+            override fun getOriginalAttribute(): Attribute
+                = attribute
 
             override fun invoke(env: IMutableTypeEnvironment) : IMetaType<*> {
                 if (args.count() != attribute.typeVariables.count()) {
@@ -416,9 +426,21 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             // NOTE - We purposefully avoid substituting `attribute` here otherwise our abstract TypeVars are erased
             override fun substitute(substitution: Substitution): AnyType
                 = Application(attribute, args.substitute(substitution))
+
+            override fun prettyPrint(depth: Int): String {
+                val pretty = args.joinToString(", ")
+
+                return "$attribute($pretty)"
+            }
+
+            override fun toString(): String
+                = prettyPrint()
         }
 
         override val id: String = "$name : (${typeVariables.joinToString(", ")}) => ?"
+
+        override fun getCanonicalName(): String
+            = name
 
         operator fun plus(other: Attribute) : Attribute
             = Attribute("$name • ${other.name}", (typeVariables + other.typeVariables).distinct()) { constraint(it) + other.constraint(it) }
@@ -427,7 +449,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = ITypeCardinality.Zero
 
         override fun substitute(substitution: Substitution): AnyType
-            = Attribute(name, typeVariables.substitute(substitution) as List<TypeVar>, constraint)
+            = Attribute(name, typeVariables.substitute(substitution) as List<TypeVar>, proofs.substitute(substitution), constraint)
     }
 
     sealed interface IArrayConstructor : IConstructor<Array> {
@@ -855,8 +877,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun isSpecialised(): Boolean = false
 
-        override fun getCardinality(): ITypeCardinality
-            = unionConstructors.fold(ITypeCardinality.Zero as ITypeCardinality) { acc, next -> acc + next.getCardinality() }
+        override fun getCardinality(): ITypeCardinality = ITypeCardinality.Finite(unionConstructors.count())
 
         override fun getCases(result: AnyType): List<Case>
             = unionConstructors.fold(emptyList()) { acc, next -> acc + Case(next.arg, this) }
@@ -1294,6 +1315,9 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     fun getCardinality() : ITypeCardinality
     fun getConstructors() : List<IConstructor<*>> = emptyList()
     fun getUnsolvedTypeVariables() : List<IType.TypeVar> = emptyList()
+
+    fun getPath() : Path
+        = OrbitMangler.unmangle(getCanonicalName())
 
     fun prettyPrint(depth: Int = 0) : String {
         val indent = "\t".repeat(depth)

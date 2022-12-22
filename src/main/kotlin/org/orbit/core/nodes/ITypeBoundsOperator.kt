@@ -5,7 +5,6 @@ import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
-import org.orbit.backend.typesystem.components.kinds.IKind
 import org.orbit.backend.typesystem.components.kinds.KindUtil
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.components.Token
@@ -13,11 +12,11 @@ import org.orbit.core.components.TokenTypes
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
 
-sealed interface TypeBoundsOperator {
+sealed interface ITypeBoundsOperator {
     companion object : KoinComponent {
         private val invocation: Invocation by inject()
 
-        fun valueOf(token: Token) : TypeBoundsOperator = when {
+        fun valueOf(token: Token) : ITypeBoundsOperator = when {
             token.type == TokenTypes.Assignment -> Eq
             token.type == TokenTypes.Colon -> Like
             token.text == "^" -> KindEq
@@ -28,7 +27,7 @@ sealed interface TypeBoundsOperator {
 
     val op: String
 
-    object Eq : TypeBoundsOperator {
+    object Eq : ITypeBoundsOperator {
         override val op: String = "="
 
         override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> {
@@ -39,7 +38,7 @@ sealed interface TypeBoundsOperator {
         }
     }
 
-    object Like : TypeBoundsOperator {
+    object Like : ITypeBoundsOperator {
         override val op: String = ":"
 
         override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> = when (right) {
@@ -52,14 +51,12 @@ sealed interface TypeBoundsOperator {
         }
     }
 
-    object KindEq : TypeBoundsOperator {
+    object KindEq : ITypeBoundsOperator {
         override val op: String = "^"
 
         override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> {
             val lKind = KindUtil.getKind(left, left::class.java.simpleName)
             val rKind = KindUtil.getKind(right, right::class.java.simpleName)
-
-//            println("COMPARING KINDS: $lKind -- $rKind")
 
             return when (lKind == rKind) {
                 true -> IType.Always
@@ -68,7 +65,7 @@ sealed interface TypeBoundsOperator {
         }
     }
 
-    data class UserDefined(override val op: String) : TypeBoundsOperator {
+    data class UserDefined(override val op: String) : ITypeBoundsOperator {
         override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> {
             TODO("Unsupported TypeBoundsOperator: UserDefined")
         }

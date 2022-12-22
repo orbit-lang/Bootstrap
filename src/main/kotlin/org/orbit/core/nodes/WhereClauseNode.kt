@@ -7,7 +7,7 @@ interface WhereClauseExpressionNode : INode
 data class WhereClauseTypeBoundsExpressionNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val boundsType: TypeBoundsOperator,
+    val boundsType: ITypeBoundsOperator,
     val sourceTypeExpression: TypeExpressionNode,
     val targetTypeExpression: TypeExpressionNode
 ) : WhereClauseExpressionNode {

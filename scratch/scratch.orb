@@ -18,34 +18,34 @@ module Orb::Core::Errors {
     trait Error
 }
 
-module Main with Orb::Core::* {
-    type Nothing
+module Orb::More::Attributes::Intrinsics {
+    attribute KindEquals = (A, B) => A ^ B
+    attribute TypeEquals = (A, B) => A = B
+    attribute Implements = (A, B) => A : B
 
+    attribute AnyTypeArrow = (F) => .KindEquals(F, (_) => {})
+    attribute AnyArrow = (F) => .TypeEquals(F, (Any) -> Any)
+}
+
+module Main with Orb::* {
     projection Int : Error
 
-    context OptionCtx [Value] {
-        alias Option = (None: {} | Some: { value Value })
+    context OptionCtx [ValueType] {
+        type Errors {
+            constructor ForceUnwrapNone
+        }
 
-        fun (self Option) force () (Value) = select self {
+        projection Errors : Error
+
+        alias Option = (Some: { value ValueType } | None: {})
+
+        fun (self Option) force () (ValueType) = select self {
             case Some(value) = value
             case None = panic 0
         }
-
-        postfix operator forceUnwrap `!` by ::force
-    }
-
-    alias Foo = { x Int, y Int }
-
-    fun (self Foo) bar () (Int) = select self {
-        case Foo(x, y) = x * y
-        case Int = 1
-        case else = 0
     }
 
     fun (Any) main () () {
-        opt = Some(1)
-        s = opt! within OptionCtx [Int]
 
-        typeOf s
     }
 }

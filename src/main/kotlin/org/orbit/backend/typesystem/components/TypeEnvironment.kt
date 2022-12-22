@@ -61,6 +61,11 @@ sealed interface ITypeEnvironment {
     fun getSpecialisationEvidence(context: Context) : Set<Specialisation> = emptySet()
 }
 
+inline fun <reified T: AnyType> ITypeEnvironment.getTypeAs(path: Path) : T?
+    = getAllTypes().firstOrNull {
+        it.component is T && (it.component.getPath() == path || it.component.getPath().last() == path.last())
+    }?.component as? T
+
 fun ITypeEnvironment.aliasGuard(name: String) : IType.Alias?
     = getAllTypes().firstOrNull { it.component is IType.Alias && it.component.name == name }?.component as? IType.Alias
 
@@ -97,6 +102,8 @@ interface IMutableTypeEnvironment: ITypeEnvironment {
     fun bind(name: String, type: AnyType, index: Int)
     fun localCopy() : IMutableTypeEnvironment
 }
+
+data class AttributedEnvironment(private val parent: IMutableTypeEnvironment, val knownAttributes: List<IType.Attribute.IAttributeApplication>): IMutableTypeEnvironment by parent
 
 sealed interface ISelfTypeEnvironment : IMutableTypeEnvironment {
     fun getSelfType() : AnyType

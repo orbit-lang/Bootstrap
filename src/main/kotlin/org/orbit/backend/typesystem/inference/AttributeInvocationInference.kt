@@ -2,15 +2,15 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.kinds.KindUtil
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
+import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.AttributeInvocationNode
 import org.orbit.core.nodes.AttributeOperatorExpressionNode
+import org.orbit.core.nodes.ITypeBoundsOperator
 import org.orbit.util.Invocation
 
 object AttributeOperatorExpressionInference : ITypeInference<AttributeOperatorExpressionNode, ITypeEnvironment> {
@@ -18,7 +18,14 @@ object AttributeOperatorExpressionInference : ITypeInference<AttributeOperatorEx
         val lType = TypeInferenceUtils.infer(node.leftExpression, env)
         val rType = TypeInferenceUtils.infer(node.rightExpression, env)
 
-        val attr = IType.Attribute("", emptyList()) {
+        val proof = when (node.op) {
+            is ITypeBoundsOperator.Eq -> IProof.IntrinsicProofs.HasType(lType, rType)
+            is ITypeBoundsOperator.KindEq -> IProof.IntrinsicProofs.HasKind(lType, rType)
+            is ITypeBoundsOperator.Like -> IProof.IntrinsicProofs.HasTrait(lType, rType)
+            is ITypeBoundsOperator.UserDefined -> TODO("UserDefined Proof")
+        }
+
+        val attr = IType.Attribute("", emptyList(), listOf(proof)) {
             node.op.apply(lType, rType, env)
         }
 
@@ -31,10 +38,14 @@ object AttributeInvocationInference : ITypeInference<AttributeInvocationNode, IM
 
     override fun infer(node: AttributeInvocationNode, env: IMutableTypeEnvironment): AnyType {
         val args = TypeInferenceUtils.inferAll(node.arguments, env)
-        val attribute = env.getAllTypes().firstOrNull { it.component is IType.Attribute && it.component.name == node.identifier.getTypeName() }
-            ?.component as? IType.Attribute
+        val attribute = env.getTypeAs<IType.Attribute>(OrbitMangler.unmangle(node.identifier.getTypeName()))
             ?: throw invocation.make<TypeSystem>("Undefined Type Attribute `${node.identifier.getTypeName()}`", node.identifier)
 
-        return IType.Attribute.Application(attribute, args)
+        val subs = attribute.typeVariables.zip(args)
+        val nAttribute = subs.fold(attribute) { acc, next ->
+            acc.substitute(Substitution(next)) as IType.Attribute
+        }
+
+        return IType.Attribute.Application(nAttribute, args)
     }
 }

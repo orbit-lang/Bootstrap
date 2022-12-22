@@ -100,6 +100,10 @@ interface IKindInspector<T: AnyType> {
 }
 
 sealed interface IntrinsicKindInspector<T: AnyType> : IKindInspector<T> {
+    object Level0Inspector : IntrinsicKindInspector<IntrinsicKinds.Level0> {
+        override fun inspect(type: IntrinsicKinds.Level0): IKind = type
+    }
+
     object TypeKindInspector : IntrinsicKindInspector<IType.Type> {
         override fun inspect(type: IType.Type): IKind = IntrinsicKinds.Level0.type
     }

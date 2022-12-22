@@ -1,0 +1,33 @@
+module Orb::Core::Types {
+    type Unit
+}
+
+module Orb::Core::Booleans {
+    type Bool {
+        constructor True
+        constructor False
+    }
+}
+
+module Orb::Core::Numbers {
+    type Int
+    type Real
+}
+
+module Orb::Core::Errors {
+    trait Error
+}
+
+module Main with Orb::Core::* {
+    context MapCtx [K, V] {
+        alias MapEntry = { key K, value V }
+        alias Map = { entries [MapEntry] }
+
+#        fun (Map) new (k
+    }
+
+    fun (Any) main () () {
+        e = MapEntry(1, 2)
+        m = Map([e]) within MapCtx [Int, Int]
+    }
+}

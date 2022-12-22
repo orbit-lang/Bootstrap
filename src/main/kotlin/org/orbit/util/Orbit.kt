@@ -225,6 +225,7 @@ val mainModule = module {
 	single(IntrinsicKindInspector.StructKindInspector)
 	single(IntrinsicKindInspector.ArrayKindInspector)
 	single(IntrinsicKindInspector.UnionKindInspector)
+	single(IntrinsicKindInspector.Level0Inspector)
 }
 
 private inline fun <reified T: AnyType> org.koin.core.module.Module.single(inspector: IKindInspector<T>) : BeanDefinition<IKindInspector<T>>

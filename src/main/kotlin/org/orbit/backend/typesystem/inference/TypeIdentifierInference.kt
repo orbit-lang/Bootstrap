@@ -21,7 +21,7 @@ object TypeIdentifierInference : ITypeInference<TypeIdentifierNode, ITypeEnviron
 
         val path = node.getPath()
 
-        if (path == IType.Unit.path) return IType.Unit
+        if (path == IType.Unit.getPath()) return IType.Unit
 
         return env.getTypeOrNull(path)?.component
             ?: throw invocation.make<TypeSystem>("Undefined Type `${path.toString(OrbitMangler)}`", node)
