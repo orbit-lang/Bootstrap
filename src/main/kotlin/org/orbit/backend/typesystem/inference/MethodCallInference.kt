@@ -4,9 +4,11 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
+import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.MethodCallNode
+import org.orbit.core.phase.flatMapNotNull
 import org.orbit.util.Invocation
 
 object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, KoinComponent {
@@ -84,8 +86,69 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
             }
         }
 
-        val result = arrow.returns.flatten(arrow.returns, env)
+        val nArrow = when (arrow.getUnsolvedTypeVariables().isEmpty()) {
+            true -> arrow
+            else -> {
+                val allUnsolved = arrow.getUnsolvedTypeVariables()
+                val substitutions = mutableListOf<Substitution>()
+                for (tv in allUnsolved) {
+                    val proof = ProofAssistant.resolve(tv, arrow, receiver, args)
 
-        return env.getCurrentContext().applySpecialisations(result)
+                    if (proof !is IType.TypeVar) {
+                        substitutions.add(Substitution(tv, proof))
+                        continue
+                    }
+                }
+
+                if (substitutions.count() != arrow.getUnsolvedTypeVariables().count()) {
+                    val allOld = substitutions.map { it.old }
+                    val unsolved = allUnsolved.filterNot { allOld.contains(it) }
+                    val allPretty = unsolved.joinToString("\n\t")
+
+                    throw invocation.make<TypeSystem>("Cannot infer the following Type Variables in the current context:\n\t$allPretty\n\nUse `within Ctx [T...]` to specialise expression", node)
+                }
+
+                substitutions.fold(arrow) { acc, next -> acc.substitute(next) }
+            }
+        }
+
+        return nArrow.returns.flatten(IType.Always, env)
+    }
+}
+
+// TODO - Generalise & recurse
+object ProofAssistant {
+    fun resolve(typeVariable: IType.TypeVar, arrow: AnyArrow, receiver: AnyType, args: List<AnyType>) : AnyType {
+        val allArgs = listOf(receiver) + args
+
+        for (param in arrow.getDomain().withIndex()) {
+            if (param.value == typeVariable) return allArgs[param.index]
+
+            when (val idx = param.value.getUnsolvedTypeVariables().indexOf(typeVariable)) {
+                -1 -> continue
+                else -> when (receiver) {
+                    is IType.Struct -> return receiver.members[idx].second
+                    else -> continue
+                }
+            }
+        }
+
+        return typeVariable
+    }
+
+    fun resolve(typeVariable: IType.TypeVar, signature: IType.Signature, receiver: AnyType, args: List<AnyType>) : AnyType {
+        if (signature.receiver == typeVariable) return receiver
+
+        for (param in signature.parameters.withIndex()) {
+            if (param.value == typeVariable) return args[param.index]
+        }
+
+        return when (val idx = signature.receiver.getUnsolvedTypeVariables().indexOf(typeVariable)) {
+            -1 -> typeVariable
+            else -> when (receiver) {
+                is IType.Struct -> receiver.members[idx].second
+                else -> typeVariable
+            }
+        }
     }
 }

@@ -45,6 +45,11 @@ object TypeLambdaPathResolver : IPathResolver<TypeLambdaNode> {
                 pathResolverUtil.resolve(c, pass, environment, graph)
             }
 
+            input.elseClause?.let {
+                it.annotate(input.getGraphID(), Annotations.graphId)
+                pathResolverUtil.resolve(it, pass, environment, graph)
+            }
+
             pathResolverUtil.resolve(input.codomain, pass, environment, graph).also { result -> input.annotate(result.asSuccess().path, Annotations.path) }.also {
                 input.annotate(it.asSuccess().path, Annotations.path)
 

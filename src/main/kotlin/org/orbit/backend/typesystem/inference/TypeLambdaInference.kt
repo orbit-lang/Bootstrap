@@ -20,7 +20,11 @@ object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironm
         val attributes = TypeInferenceUtils.inferAllAs<TypeLambdaConstraintNode, IType.Attribute.IAttributeApplication>(node.constraints, nEnv)
         val mEnv = AttributedEnvironment(nEnv, attributes)
         val codomain = TypeInferenceUtils.infer(node.codomain, mEnv)
+        val fallback = when (node.elseClause) {
+            null -> null
+            else -> TypeInferenceUtils.infer(node.elseClause, mEnv)
+        }
 
-        return IType.ConstrainedArrow(domain.arrowOf(codomain), attributes)
+        return IType.ConstrainedArrow(domain.arrowOf(codomain), attributes, fallback)
     }
 }

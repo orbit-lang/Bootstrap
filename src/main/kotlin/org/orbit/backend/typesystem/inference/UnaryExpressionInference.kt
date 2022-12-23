@@ -2,12 +2,12 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.ITypeEnvironment
-import org.orbit.backend.typesystem.components.getOperators
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
+import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
+import org.orbit.backend.typesystem.utils.toSignature
 import org.orbit.core.nodes.UnaryExpressionNode
 import org.orbit.util.Invocation
 
@@ -31,6 +31,24 @@ object UnaryExpressionInference : ITypeInference<UnaryExpressionNode, ITypeEnvir
             throw invocation.make<TypeSystem>("Multiple ${node.fixity} Operators found matching `${node.operator}` of Type `($operand) -> *`:\n\t$pretty", node)
         }
 
-        return possibleOps[0].getCodomain()
+        val arrow = possibleOps[0]
+        val nArrow = when (arrow.getUnsolvedTypeVariables().isEmpty()) {
+            true -> arrow
+            else -> {
+                val substitutions = mutableListOf<Substitution>()
+                for (tv in arrow.getUnsolvedTypeVariables()) {
+                    val proof = ProofAssistant.resolve(tv, arrow, operand, emptyList())
+
+                    if (proof !is IType.TypeVar) {
+                        substitutions.add(Substitution(tv, proof))
+                        continue
+                    }
+                }
+
+                substitutions.fold(arrow) { acc, next -> acc.substitute(next) as AnyOperator }
+            }
+        }
+
+        return nArrow.getCodomain()
     }
 }

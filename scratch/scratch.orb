@@ -32,7 +32,7 @@ module Orb::More::Attributes::Intrinsics {
 module Main with Orb::* {
     attribute Check = (A, B) => A = B
 
-    alias Option = (V) => (Some: { value V } | None: {})
+    alias Option = (V) => (Some: { value V } | None: {=})
     alias Either = (L, R) => (Left: L | Right: R)
     alias Choice = (A, B) => A where .Check(A, B) else .Either(A, B)
 
@@ -46,7 +46,10 @@ module Main with Orb::* {
     }
 
     context CoalesceCtx [ValueType, FallbackType] {
-        fun (self .Option(ValueType)) coalesce (fallback FallbackType) (.Either(ValueType, FallbackType)) = select self {
+        alias LocalOption = .Option(ValueType)
+        alias LocalChoice = .Choice(ValueType, FallbackType)
+
+        fun (self LocalOption) coalesce (fallback FallbackType) (LocalChoice) = select self {
             case Some(value) = value
             case None = fallback
         }
@@ -54,12 +57,17 @@ module Main with Orb::* {
         infix operator coalesceFallback `??` by ::coalesce
     }
 
-    fun (Any) main () () within OptionCtx [Int] & CoalesceCtx [Int, Bool] {
+    fun (Any) main () () {
         opt = Some(1)
+        opt2 = Some(true)
+
+        typeOf opt.coalesce(true)
+        typeOf opt2.coalesce(0)
 
         typeOf opt!
-        typeOf opt ?? true
+        typeOf opt2!
 
-        check 0, 0
+        typeOf opt.force()
+        typeOf opt2.force()
     }
 }

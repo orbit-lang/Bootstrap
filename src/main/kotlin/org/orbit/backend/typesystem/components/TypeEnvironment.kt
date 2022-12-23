@@ -220,6 +220,8 @@ class LocalEnvironment(private val parent: IMutableTypeEnvironment, override val
         = storage.getKnownContexts() + parent.getKnownContexts()
 }
 
+data class Mono(val type: AnyType, val subs: List<Substitution>)
+
 object GlobalEnvironment : IMutableTypeEnvironment by TypeEnvironmentStorage(Context.root) {
     override val name: String = "𝜞"
     override fun getCurrentContext(): Context = Context.root
@@ -229,16 +231,6 @@ object GlobalEnvironment : IMutableTypeEnvironment by TypeEnvironmentStorage(Con
     private val singletonPool = mutableMapOf<String, IValue<*, *>>()
     private val lambdaBodies = mutableMapOf<AnyArrow, LambdaLiteralNode>()
     private val unionNameMap = mutableMapOf<String, String>()
-
-    fun getBaseContext(specialisedContext: Context) : Context? {
-        for (kv in specialisations) {
-            if (kv.value.contains(specialisedContext)) {
-                return getKnownContexts().first { it.name == kv.key }
-            }
-        }
-
-        return null
-    }
 
     fun register(singleton: IValue<*, *>) {
         singletonPool[singleton.type.id] = singleton

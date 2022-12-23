@@ -1,10 +1,14 @@
 package org.orbit.frontend.rules
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.TypeLambdaConstraintNode
 import org.orbit.core.nodes.TypeLambdaNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
+import org.orbit.util.Invocation
 
 object TypeLambdaConstraintRule : ParseRule<TypeLambdaConstraintNode> {
     override fun parse(context: Parser): ParseRule.Result {
@@ -17,7 +21,9 @@ object TypeLambdaConstraintRule : ParseRule<TypeLambdaConstraintNode> {
     }
 }
 
-object TypeLambdaRule : ParseRule<TypeLambdaNode> {
+object TypeLambdaRule : ParseRule<TypeLambdaNode>, KoinComponent {
+    private val invocation: Invocation by inject()
+
     override fun parse(context: Parser): ParseRule.Result {
         val collector = context.startCollecting()
         val delimRule = DelimitedRule(innerRule = TypeExpressionRule)
@@ -51,6 +57,19 @@ object TypeLambdaRule : ParseRule<TypeLambdaNode> {
             constraints.add(constraint)
 
             next = context.peek()
+        }
+
+        if (next.type == TokenTypes.Else) {
+            if (constraints.isEmpty()) {
+                throw invocation.make<TypeSystem>("Found `else` clause but no constraints declared in Type Lambda", next)
+            }
+
+            context.consume()
+
+            val elseClause = context.attempt(TypeExpressionRule)
+                ?: throw invocation.make<TypeSystem>("Expected Type Expression after `else` clause in Type Lambda", next)
+
+            return +TypeLambdaNode(delim.firstToken, codomain.lastToken, domain, codomain, constraints, elseClause)
         }
 
         return +TypeLambdaNode(delim.firstToken, codomain.lastToken, domain, codomain, constraints)

@@ -7,13 +7,16 @@ data class TypeLambdaNode(
     override val lastToken: Token,
     val domain: List<TypeExpressionNode>,
     val codomain: TypeExpressionNode,
-    val constraints: List<TypeLambdaConstraintNode>
+    val constraints: List<TypeLambdaConstraintNode>,
+    val elseClause: TypeExpressionNode? = null
 ) : TypeExpressionNode {
     override val value: String = "(${domain.joinToString(", ") { it.value }}) => ${codomain.value}"
     override fun getTypeName(): String = "TypeLambda"
 
-    override fun getChildren(): List<INode>
-        = domain + codomain + constraints
+    override fun getChildren(): List<INode> = when (elseClause) {
+        null -> domain + codomain + constraints
+        else -> domain + codomain + constraints + elseClause
+    }
 }
 
 data class TypeLambdaConstraintNode(

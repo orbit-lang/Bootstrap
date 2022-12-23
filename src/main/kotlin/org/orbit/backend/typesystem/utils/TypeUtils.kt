@@ -46,12 +46,21 @@ object TypeUtils {
 
     fun check(env: ITypeEnvironment, left: AnyType, right: AnyType) : AnyType = prepare(env, left, right) { left, right ->
         if (right is IType.Always) return@prepare left
+        if (right is IType.Never) return@prepare left
+        if (left is IType.Never) return@prepare right
 
         val error = IType.Never("Types are not equal: `${left}` & `${right}`")
 
         when (left == right) {
             true -> right
             else -> when (right) {
+                is IType.Never -> left
+
+                is IType.TypeVar -> when (right.constraints.all { it.isSolvedBy(left, env) }) {
+                    true -> left // NOTE - If we allow this, we have to return the most specific type here
+                    else -> error
+                }
+
                 is IType.Union -> when (left) {
                     is IType.Union -> TODO("COMPARE UNION <> UNION")
                     // TODO - Beware! This might return true for different Unions with matching constructors
@@ -171,8 +180,6 @@ object TypeUtils {
                     }
                     else -> error
                 }
-
-                is IType.Never -> left
 
                 else -> when (left) {
                     is IType.Union -> when (right) {

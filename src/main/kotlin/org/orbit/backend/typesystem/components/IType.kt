@@ -987,6 +987,9 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         fun getDomain(): List<AnyType>
         fun getCodomain(): AnyType
 
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = (getDomain().flatMap { it.getUnsolvedTypeVariables() } + getCodomain().getUnsolvedTypeVariables()).distinct()
+
         override fun getCardinality(): ITypeCardinality
             = getCodomain().getCardinality()
 
@@ -1008,7 +1011,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         }
     }
 
-    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<Attribute.IAttributeApplication>) : IArrow<ConstrainedArrow>, IConstructableType<ConstrainedArrow> {
+    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<Attribute.IAttributeApplication>, val fallback: AnyType? = null) : IArrow<ConstrainedArrow>, IConstructableType<ConstrainedArrow> {
         override val id: String = "$arrow + ${constraints.joinToString(", ")}"
 
         override fun isSpecialised(): Boolean = false
@@ -1028,8 +1031,10 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun never(args: List<AnyType>): Never
             = arrow.never(args)
 
-        override fun substitute(substitution: Substitution): AnyType
-            = ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute.Application>)
+        override fun substitute(substitution: Substitution): AnyType = when (fallback) {
+            null -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute.Application>)
+            else -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute.Application>, fallback.substitute(substitution))
+        }
 
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)

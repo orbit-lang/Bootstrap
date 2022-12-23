@@ -9,6 +9,7 @@ import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.TypeLambdaInvocationNode
 import org.orbit.util.Invocation
+import java.lang.Exception
 
 object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, IMutableTypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
@@ -54,7 +55,13 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
 
         val nArrow = arrow.getDomain().zip(args).fold(arrow) { acc, next -> acc.substitute(Substitution(next.first, next.second)) as IType.ConstrainedArrow }
 
-        nArrow.constraints.forEach { it.invoke(LocalEnvironment(env)) }
+        nArrow.constraints.forEach {
+            try {
+                it.invoke(LocalEnvironment(env))
+            } catch (e: Exception) {
+                return nArrow.fallback ?: throw e
+            }
+        }
 
         return nArrow.getCodomain()
     }
