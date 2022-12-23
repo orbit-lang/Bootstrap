@@ -21,18 +21,15 @@ module Orb::Core::Errors {
 }
 
 module Orb::More::Attributes::Intrinsics {
-    attribute KindEquals = (A, B) => A ^ B
-    attribute TypeEquals = (A, B) => A = B
-    attribute Implements = (A, B) => A : B
-
-    attribute AnyTypeArrow = (F) => .KindEquals(F, (_) => {})
-    attribute AnyArrow = (F) => .TypeEquals(F, (Any) -> Any)
+    attribute CheckKinds = (A, B) => A ^ B
+    attribute CheckTypes = (A, B) => A = B
+    attribute CheckTrait = (A, B) => A : B
 }
 
 module Main with Orb::* {
     attribute Check = (A, B) => A = B
 
-    alias Option = (V) => (Some: { value V } | None: {=})
+    alias Option = (V) => (Some: { value V } | None: {})
     alias Either = (L, R) => (Left: L | Right: R)
     alias Choice = (A, B) => A where .Check(A, B) else .Either(A, B)
 
@@ -58,16 +55,8 @@ module Main with Orb::* {
     }
 
     fun (Any) main () () {
-        opt = Some(1)
-        opt2 = Some(true)
-
-        typeOf opt.coalesce(true)
-        typeOf opt2.coalesce(0)
+        opt = ${None()}
 
         typeOf opt!
-        typeOf opt2!
-
-        typeOf opt.force()
-        typeOf opt2.force()
     }
 }

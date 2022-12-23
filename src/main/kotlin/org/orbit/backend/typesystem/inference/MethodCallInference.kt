@@ -127,7 +127,7 @@ object ProofAssistant {
             when (val idx = param.value.getUnsolvedTypeVariables().indexOf(typeVariable)) {
                 -1 -> continue
                 else -> when (receiver) {
-                    is IType.Struct -> return receiver.members[idx].second
+                    is IType.Struct -> return receiver.members.getOrNull(idx)?.second ?: typeVariable
                     else -> continue
                 }
             }
