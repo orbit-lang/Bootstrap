@@ -2,18 +2,13 @@ package org.orbit.backend.typesystem.components
 
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
-import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
-import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.nodes.LambdaLiteralNode
 import org.orbit.core.nodes.OperatorFixity
-import org.orbit.core.phase.flatMapNotNull
 import org.orbit.util.Invocation
 import org.orbit.util.getKoinInstance
-import kotlin.math.exp
-import kotlin.math.sin
 
 interface IContextualComponent
 

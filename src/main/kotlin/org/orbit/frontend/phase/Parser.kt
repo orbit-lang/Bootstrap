@@ -1,10 +1,11 @@
 package org.orbit.frontend.phase
 
-import org.orbit.core.*
-import org.orbit.core.components.*
+import org.orbit.core.components.SourcePosition
+import org.orbit.core.components.Token
+import org.orbit.core.components.TokenType
+import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.INode
-import org.orbit.core.phase.AdaptablePhase
-import org.orbit.core.phase.PhaseAdapter
+import org.orbit.core.phase.Phase
 import org.orbit.frontend.components.ParseError
 import org.orbit.frontend.rules.ParseRule
 import org.orbit.frontend.rules.ProgramRule
@@ -14,7 +15,7 @@ class Parser(
 	override val invocation: Invocation,
 	private val topLevelParseRule: ParseRule<*> = ProgramRule,
 	private val isRepl: Boolean = false,
-) : AdaptablePhase<Parser.InputType, Parser.Result>() {
+) : Phase<Parser.InputType, Parser.Result> {
 	data class InputType(val tokens: List<Token>) : Any()
 	data class Result(val ast: INode)
 
@@ -29,25 +30,8 @@ class Parser(
 			= collectedTokens
 	}
 
-	object LexerAdapter : PhaseAdapter<Lexer.Result, InputType> {
-		override fun bridge(output: Lexer.Result): InputType = InputType(output.tokens)
-	}
-
-	object FrontendAdapter : PhaseAdapter<FrontendPhaseType, InputType> {
-		override fun bridge(output: FrontendPhaseType): InputType {
-			val deferredInput = output.phaseLinker.execute(output.initialPhaseInput)
-
-			return LexerAdapter.bridge(deferredInput)
-		}
-	}
-
-	override val inputType: Class<InputType> = InputType::class.java
-	override val outputType: Class<Result> = Result::class.java
-
 	sealed class Errors {
 		object NoMoreTokens : OrbitException("There are no more tokens left to parse")
-		object NoParseRules : OrbitException("Parse rules were not provided")
-		data class UnsuccessfulParseAttempt(override val sourcePosition: SourcePosition) : ParseError("All rules failed to parse", sourcePosition)
 		data class UnexpectedToken(val token: Token, override val sourcePosition: SourcePosition = token.position) : ParseError("Unexpected token: ${token.type.identifier} -- ${token.text}", sourcePosition)
 	}
 	
@@ -64,11 +48,6 @@ class Parser(
 	private var protection: Boolean = false
 
 	private val collectors = mutableListOf<TokenCollector>()
-
-	init {
-	    registerAdapter(LexerAdapter)
-		registerAdapter(FrontendAdapter)
-	}
 
 	val hasMore: Boolean
 		get() = tokens.isNotEmpty()

@@ -7,7 +7,7 @@ import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ContainerNode
 import org.orbit.core.nodes.INode
 import org.orbit.core.nodes.getAnnotation
-import org.orbit.core.phase.AdaptablePhase
+import org.orbit.core.phase.Phase
 import org.orbit.frontend.phase.Parser
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -38,10 +38,8 @@ fun <K, V> mapOf(list: List<Pair<K, V>>) : Map<K, V> {
 	return mapOf(*list.toTypedArray())
 }
 
-object CanonicalNameResolver : AdaptablePhase<Parser.Result, NameResolverResult>(), KoinComponent, PriorityComparator<ContainerNode> {
+object CanonicalNameResolver : Phase<Parser.Result, NameResolverResult>, KoinComponent, PriorityComparator<ContainerNode> {
 	override val invocation: Invocation by inject()
-	override val inputType = Parser.Result::class.java
-	override val outputType = NameResolverResult::class.java
 
 	override fun compare(a: ContainerNode, b: ContainerNode): ContainerNode = when (a.within) {
 		null -> a

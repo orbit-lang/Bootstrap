@@ -1,22 +1,17 @@
 package org.orbit.frontend.phase
 
-import org.orbit.core.*
-import org.orbit.core.components.SourcePosition
-import org.orbit.core.components.Token
-import org.orbit.core.components.TokenType
-import org.orbit.core.components.TokenTypeProvider
-import org.orbit.core.phase.AdaptablePhase
-import org.orbit.core.phase.PhaseAdapter
-import org.orbit.core.components.TokenTypes
+import org.orbit.core.SourceProvider
+import org.orbit.core.components.*
+import org.orbit.core.phase.Phase
+import org.orbit.frontend.extensions.isWhitespace
 import org.orbit.util.Fatal
 import org.orbit.util.Invocation
-import org.orbit.frontend.extensions.*
 
 class Lexer(
     override val invocation: Invocation,
     private val tokenTypeProvider: TokenTypeProvider = TokenTypes,
     private val allowUnexpectedLexemes: Boolean = false
-) : AdaptablePhase<SourceProvider, Lexer.Result>() {
+) : Phase<SourceProvider, Lexer.Result> {
 	sealed class Errors {
 		data class UnexpectedLexeme(
 			val str: String,
@@ -36,18 +31,7 @@ class Lexer(
 		}
 	}
 
-	private object CommentParserAdapter : PhaseAdapter<CommentParser.Result, SourceProvider> {
-		override fun bridge(output: CommentParser.Result): SourceProvider = output.sourceProvider
-	}
-
-	override val inputType: Class<SourceProvider> = SourceProvider::class.java
-	override val outputType: Class<Result> = Result::class.java
-
 	private var position = SourcePosition(0, -1)
-
-	init {
-	    registerAdapter(CommentParserAdapter)
-	}
 
 	override fun execute(input: SourceProvider) : Result {
 		val source = input.getSource()

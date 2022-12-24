@@ -1,8 +1,5 @@
 package org.orbit.core
 
-import org.orbit.core.components.CompilationEvent
-import org.orbit.core.components.CompilationEventBusAware
-import org.orbit.core.components.CompilationEventBusAwareImpl
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.phase.Phase
 import org.orbit.graph.components.Binding
@@ -20,11 +17,7 @@ class Scope(
 	val identifier: ScopeIdentifier = ScopeIdentifier.next(),
 	val bindings: MutableList<Binding> = mutableListOf(),
 	private val imports: MutableSet<ScopeIdentifier> = mutableSetOf()
-) : CompilationEventBusAware by CompilationEventBusAwareImpl, Serializable {
-	sealed class Events(override val identifier: String) : CompilationEvent {
-		class BindingCreated(binding: Binding) : Events("Scope Binding Created: $binding")
-	}
-
+) : Serializable {
 	sealed class BindingSearchResult : Monoid<BindingSearchResult> {
 		private data class BindingNotFound(
 			override val phaseClazz: Class<out Phase<*, *>>,
@@ -120,7 +113,6 @@ class Scope(
 		val binding = Binding(kind, simpleName, path, vertexID)
 		if (!bindings.contains(binding)) {
 			bindings.add(binding)
-			compilationEventBus.notify(Events.BindingCreated(binding))
 		}
 
 		return binding

@@ -10,7 +10,7 @@ import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ContainerNode
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.core.nodes.annotateByKey
-import org.orbit.core.phase.AdaptablePhase
+import org.orbit.core.phase.Phase
 import org.orbit.graph.pathresolvers.IPathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.main.Build
@@ -18,11 +18,7 @@ import org.orbit.main.BuildConfig
 import org.orbit.util.Invocation
 import java.util.*
 
-class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<NameResolverInput, NameResolverResult>(),
-    KoinComponent {
-	override val inputType: Class<NameResolverInput> = NameResolverInput::class.java
-	override val outputType: Class<NameResolverResult> = NameResolverResult::class.java
-
+class ContainersResolver(override val invocation: Invocation) : Phase<NameResolverInput, NameResolverResult>, KoinComponent {
 	private val pathResolverUtil: PathResolverUtil by inject()
 	private val buildConfig: BuildConfig by inject()
 
@@ -107,32 +103,6 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 			nextContainer.annotateByKey(true, Annotations.resolved)
 
 			pathResolverUtil.resolve(nextContainer, IPathResolver.Pass.Initial, input.environment, input.graph)
-
-//			val importedScopes = nextContainer.with
-//				.flatMap {
-//					when (it.isWildcard) {
-//						true -> {
-//							val res = importManager.findEnclosingScopes(OrbitMangler.unmangle(it.value).dropLast(1))
-//
-//							res
-//						}
-//						else -> {
-//							val result = containerIndex[it.value]
-//
-//							if (result != null) {
-//								return@flatMap listOf(result.getScopeIdentifier())
-//							}
-//
-//							listOf(importManager.findEnclosingScope(it.value)
-//								?: throw invocation.make<CanonicalNameResolver>("Unknown container '${it.value}'. Containers currently in scope:\n\t${containerIndex.keys.joinToString("\n\t")}", it.firstToken))
-//						}
-//					}
-//				}
-
-//			val thisScope = input.environment.getScope(nextContainer.getScopeIdentifier())
-
-//			thisScope.importAll(importedScopes)
-
 			pathResolverUtil.resolve(nextContainer, IPathResolver.Pass.Subsequent(2), input.environment, input.graph)
 
 			val path = nextContainer.getPathOrNull()

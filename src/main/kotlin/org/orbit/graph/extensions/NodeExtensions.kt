@@ -19,15 +19,3 @@ fun INode.getGraphID() : GraphEntity.Vertex.ID {
 fun INode.getGraphIDOrNull() : GraphEntity.Vertex.ID? {
     return getAnnotation(Annotations.graphId)?.value
 }
-
-// TODO
-//fun INode.remove(annotation: Annotations) {
-//
-//
-//    annotations.removeIf {
-//        when (it.tag) {
-//            is KeyedNodeAnnotationTag<*> -> it.tag.key == annotation.key
-//            else -> false
-//        }
-//    }
-//}

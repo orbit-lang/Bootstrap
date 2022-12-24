@@ -5,7 +5,6 @@ import org.orbit.core.components.Token
 import org.orbit.core.components.Warning
 import org.orbit.core.nodes.INode
 import org.orbit.core.phase.Phase
-import org.orbit.core.phase.safeCast
 import org.orbit.backend.typesystem.components.IType
 
 open class OrbitException(override val message: String?) : Exception(message) {
@@ -56,13 +55,6 @@ class Invocation(val platform: Platform) {
 		return phaseResults.filter { it.key == key }
 			.map {
 				it.value as O
-			}
-	}
-
-	fun <O: Any> getResults(key: String, clazz: Class<O>) : List<O> {
-		return phaseResults.filter { it.key == key }
-			.map {
-				clazz.safeCast(it.value) ?: throw RuntimeException("FATAL - Invocation.kt+70")
 			}
 	}
 

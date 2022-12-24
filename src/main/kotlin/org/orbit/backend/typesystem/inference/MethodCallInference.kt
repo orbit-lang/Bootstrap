@@ -8,7 +8,6 @@ import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.MethodCallNode
-import org.orbit.core.phase.flatMapNotNull
 import org.orbit.util.Invocation
 
 object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, KoinComponent {

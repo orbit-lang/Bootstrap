@@ -1,21 +1,14 @@
 package org.orbit.frontend.phase
 
-import org.orbit.core.phase.ReifiedPhase
 import org.orbit.core.SourceProvider
+import org.orbit.core.phase.Phase
 import org.orbit.frontend.StringSourceProvider
 import org.orbit.frontend.components.Comment
 import org.orbit.frontend.extensions.isNewline
 import org.orbit.util.Invocation
 
-class CommentParser(override val invocation: Invocation) :
-	ReifiedPhase<SourceProvider, CommentParser.Result> {
+class CommentParser(override val invocation: Invocation) : Phase<SourceProvider, CommentParser.Result> {
 	data class Result(val sourceProvider: SourceProvider, val comments: List<Comment>)
-
-	override val inputType: Class<SourceProvider>
-		get() = SourceProvider::class.java
-
-	override val outputType: Class<Result>
-		get() = Result::class.java
 
 	override fun execute(input: SourceProvider) : Result {
 		val source = input.getSource()

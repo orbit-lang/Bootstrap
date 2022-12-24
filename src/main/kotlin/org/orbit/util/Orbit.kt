@@ -20,7 +20,6 @@ import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.backend.typesystem.components.kinds.IKindInspector
 import org.orbit.backend.typesystem.components.kinds.IntrinsicKindInspector
 import org.orbit.backend.typesystem.inference.*
-import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.nodes.*
 import org.orbit.frontend.rules.CollectionTypeInference
 import org.orbit.frontend.rules.TaggedTypeExpressionPathResolver
@@ -32,7 +31,6 @@ import kotlin.reflect.KClass
 
 val mainModule = module {
 	single { Invocation(Unix) }
-	single { CompilationEventBus() }
 	single { Printer(get<Invocation>().platform.getPrintableFactory()) }
 	single {
 		val util = PathResolverUtil()

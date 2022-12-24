@@ -5,8 +5,6 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.types.file
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.core.OrbitMangler
-import org.orbit.core.Scope
 import org.orbit.util.Invocation
 
 object Symbols : CliktCommand(), KoinComponent {

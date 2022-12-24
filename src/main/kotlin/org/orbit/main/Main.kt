@@ -2,45 +2,18 @@ package org.orbit.core
 
 import com.github.ajalt.clikt.core.subcommands
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
 import org.koin.core.component.inject
 import org.koin.core.definition.BeanDefinition
 import org.koin.core.definition.Definition
 import org.koin.core.module.Module
-import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.qualifier.Qualifier
-import org.koin.core.qualifier.StringQualifier
-import org.koin.mp.KoinPlatformTools
-import org.orbit.core.components.CompilationSchemeEntry
-import org.orbit.core.nodes.*
-import org.orbit.frontend.*
-import org.orbit.graph.pathresolvers.*
 import org.orbit.main.*
-import org.orbit.util.*
+import org.orbit.util.Invocation
+import org.orbit.util.Orbit
 import kotlin.time.ExperimentalTime
 
 interface Qualified {
 	fun toQualifier() : Qualifier
-}
-
-interface QualifiedEnum : Qualified {
-	val name: String
-	override fun toQualifier(): Qualifier = StringQualifier(name)
-}
-
-sealed class CodeGeneratorQualifier(val implementationExtension: String, val headerExtension: String) : QualifiedEnum {
-	object Swift : CodeGeneratorQualifier("swift", "")
-	object C : CodeGeneratorQualifier("c", "h")
-
-	override val name: String = javaClass.simpleName
-
-	companion object {
-		fun valueOf(name: String) = when (name) {
-			"Swift" -> Swift
-			"C" -> C
-			else -> throw NotImplementedError("Unsupported code generation target: $name")
-		}
-	}
 }
 
 inline fun <reified T> Module.single(
