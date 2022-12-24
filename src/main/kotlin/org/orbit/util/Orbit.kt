@@ -111,24 +111,7 @@ val mainModule = module {
 		util
 	}
 
-//	single<CodeGenFactory<SwiftHeader>>(CodeGeneratorQualifier.Swift) {
-//		SwiftCodeGenFactory
-//	}
-//
-//	single<CodeGenFactory<CHeader>>(CodeGeneratorQualifier.C) {
-//		CCodeGenFactory
-//	}
-//
-//	single<Mangler>(CodeGeneratorQualifier.C) {
-//		CMangler
-//	}
-//
-//	single<Mangler>(CodeGeneratorQualifier.Swift) {
-//		SwiftMangler
-//	}
-
 	single { NodeAnnotationMap() }
-	single { ImportManager(emptyList()) }
 
 	// Type Inference
 	single(AlgebraicConstructorInference)

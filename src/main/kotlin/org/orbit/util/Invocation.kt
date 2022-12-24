@@ -70,33 +70,12 @@ class Invocation(val platform: Platform) {
 		return getResults<O>(key).first()
 	}
 
-	fun <O: Any> getResult(key: String, clazz: Class<O>) : O {
-		return getResults(key, clazz).first()
-	}
-
-	inline fun <reified O: Any> getResultOrNull(key: String) : O? {
-		return getResults<O>(key).firstOrNull()
-	}
-
 	fun warn(warning: Warning) {
 		warnings.add(warning)
 	}
 
 	fun warn(message: String, position: SourcePosition) {
 		warn(Warning(message, position))
-	}
-
-	fun warn(message: String, token: Token) {
-		warn(message, token.position)
-	}
-
-	fun reportError(generator: (Printer) -> OrbitError<*>) {
-		val printer = Printer(platform.getPrintableFactory())
-		val error = generator(printer)
-
-		if (error is Fatal) throw make(error)
-
-		errors.add(error)
 	}
 
 	fun reportError(error: OrbitError<*>) {

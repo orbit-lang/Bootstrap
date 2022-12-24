@@ -76,16 +76,3 @@ interface AnyPrintable {
 interface PrinterAware {
 	val printer: Printer
 }
-
-object PrinterAwareImpl : PrinterAware, KoinComponent {
-	override val printer: Printer by inject()
-
-	fun bold(text: String) : String = printer.apply(text, PrintableKey.Bold)
-	fun warning(text: String) : String = printer.apply(text, PrintableKey.Warning)
-	fun error(text: String) : String = printer.apply(text, PrintableKey.Error)
-	fun success(text: String) : String = printer.apply(text, PrintableKey.Success)
-	fun underline(text: String) : String = printer.apply(text, PrintableKey.Underlined)
-	fun italics(text: String) : String = printer.apply(text, PrintableKey.Italics)
-	fun none(text: String) : String = printer.apply(text, PrintableKey.None)
-	fun framed(text: String) : String = printer.apply(text, PrintableKey.Framed)
-}

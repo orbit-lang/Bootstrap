@@ -8,7 +8,6 @@ import org.koin.core.component.inject
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Scope
 import org.orbit.util.Invocation
-import org.orbit.util.OrbitLibrary
 
 object Symbols : CliktCommand(), KoinComponent {
 	private val invocation: Invocation by inject()
@@ -19,18 +18,5 @@ object Symbols : CliktCommand(), KoinComponent {
 		if (!source.exists() || !source.isFile) {
 			throw invocation.make("Path must be a .orbl file")
 		}
-
-		val library = OrbitLibrary.fromPath(source)
-		val allBindings = library.scopes.flatMap(Scope::bindings)
-			.joinToString("\n\t") { "${it.kind::class.java.simpleName} : ${it.path.toString(OrbitMangler)}" }
-
-//		val allTypes = library.typeMap.toCtx().getTypes().joinToString("\n\t") { "${it::class.java.simpleName} : ${it.fullyQualifiedName}" }
-//
-//		println("Library @ ${source.absolutePath} contains the following symbols:")
-//
-//		println("Named bindings:\n\t${allBindings}")
-//
-//		println("")
-//		println("Types:\n\t${allTypes}")
 	}
 }

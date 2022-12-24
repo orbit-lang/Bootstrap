@@ -16,8 +16,3 @@ sealed class Either<L, R> {
     data class Left<T>(val value: T) : Either<T, Nothing>()
     data class Right<T>(val value: T) : Either<Nothing, T>()
 }
-
-interface Lens<Whole, Part> {
-    fun get(whole: Whole) : Part
-    fun set(whole: Whole, part: Part) : Whole
-}

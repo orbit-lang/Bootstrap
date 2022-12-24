@@ -5,19 +5,16 @@ import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.module
 import org.orbit.core.OrbitMangler
-import org.orbit.core.Scope
 import org.orbit.core.getPathOrNull
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ContainerNode
 import org.orbit.core.nodes.ProgramNode
 import org.orbit.core.nodes.annotateByKey
 import org.orbit.core.phase.AdaptablePhase
-import org.orbit.graph.extensions.getScopeIdentifier
 import org.orbit.graph.pathresolvers.IPathResolver
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.main.Build
 import org.orbit.main.BuildConfig
-import org.orbit.util.ImportManager
 import org.orbit.util.Invocation
 import java.util.*
 
@@ -28,16 +25,12 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 
 	private val pathResolverUtil: PathResolverUtil by inject()
 	private val buildConfig: BuildConfig by inject()
-	private val importManager: ImportManager by inject()
 
 	override fun execute(input: NameResolverInput): NameResolverResult {
         loadKoinModules(module {
             single { input.environment }
             single { input.graph }
         })
-
-		input.environment.import(importManager.allScopes)
-		input.graph.importAll(importManager.allGraphs)
 
 		val allContainers = (input.parserResult.ast as ProgramNode)
 			.search(ContainerNode::class.java)
@@ -98,13 +91,6 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 						continue
 					}
 
-					val importLookupResult = importManager.findSymbol(withNode.value)
-
-					if (importLookupResult is Scope.BindingSearchResult.Success) {
-						// This library is imported and therefore already resolved
-						continue
-					}
-
 					val withContainer = allContainers.find { it.identifier.value == withNode.value }
 						?: throw invocation.make<CanonicalNameResolver>("Unknown container '${withNode.value}'. Containers currently in scope:\n\t${containerIndex.keys.joinToString("\n\t")}", withNode.firstToken)
 
@@ -122,30 +108,30 @@ class ContainersResolver(override val invocation: Invocation) : AdaptablePhase<N
 
 			pathResolverUtil.resolve(nextContainer, IPathResolver.Pass.Initial, input.environment, input.graph)
 
-			val importedScopes = nextContainer.with
-				.flatMap {
-					when (it.isWildcard) {
-						true -> {
-							val res = importManager.findEnclosingScopes(OrbitMangler.unmangle(it.value).dropLast(1))
+//			val importedScopes = nextContainer.with
+//				.flatMap {
+//					when (it.isWildcard) {
+//						true -> {
+//							val res = importManager.findEnclosingScopes(OrbitMangler.unmangle(it.value).dropLast(1))
+//
+//							res
+//						}
+//						else -> {
+//							val result = containerIndex[it.value]
+//
+//							if (result != null) {
+//								return@flatMap listOf(result.getScopeIdentifier())
+//							}
+//
+//							listOf(importManager.findEnclosingScope(it.value)
+//								?: throw invocation.make<CanonicalNameResolver>("Unknown container '${it.value}'. Containers currently in scope:\n\t${containerIndex.keys.joinToString("\n\t")}", it.firstToken))
+//						}
+//					}
+//				}
 
-							res
-						}
-						else -> {
-							val result = containerIndex[it.value]
+//			val thisScope = input.environment.getScope(nextContainer.getScopeIdentifier())
 
-							if (result != null) {
-								return@flatMap listOf(result.getScopeIdentifier())
-							}
-
-							listOf(importManager.findEnclosingScope(it.value)
-								?: throw invocation.make<CanonicalNameResolver>("Unknown container '${it.value}'. Containers currently in scope:\n\t${containerIndex.keys.joinToString("\n\t")}", it.firstToken))
-						}
-					}
-				}
-
-			val thisScope = input.environment.getScope(nextContainer.getScopeIdentifier())
-
-			thisScope.importAll(importedScopes)
+//			thisScope.importAll(importedScopes)
 
 			pathResolverUtil.resolve(nextContainer, IPathResolver.Pass.Subsequent(2), input.environment, input.graph)
 
