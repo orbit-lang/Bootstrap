@@ -14,23 +14,10 @@ import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
-import org.orbit.core.CodeGeneratorQualifier
-import org.orbit.core.DummyPhase
-import org.orbit.core.components.CompilationEventBus
-import org.orbit.core.components.CompilationScheme
-import org.orbit.core.components.CompilationSchemeEntry
-import org.orbit.core.getResult
-import org.orbit.core.phase.CompilerGenerator
-import org.orbit.frontend.MultiFileSourceProvider
-import org.orbit.frontend.phase.CommentParser
-import org.orbit.frontend.phase.Lexer
-import org.orbit.frontend.phase.Parser
-import org.orbit.frontend.rules.ProgramRule
-import org.orbit.graph.phase.CanonicalNameResolver
-import org.orbit.util.*
+import org.orbit.util.Invocation
+import org.orbit.util.mainModule
 import java.io.File
 import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
 
 object Build : CliktCommand(), KoinComponent {
     const val COMMAND_OPTION_LONG_MAX_CYCLES = "--max-cycles"
@@ -43,8 +30,6 @@ object Build : CliktCommand(), KoinComponent {
     const val COMMAND_OPTION_DEFAULT_MAX_CYCLES = 25
 
 	private val invocation: Invocation by inject()
-	private val compilerGenerator: CompilerGenerator by inject()
-	private val compilationEventBus: CompilationEventBus by inject()
 
 	private val sources by argument(help = "Orbit source file to compile")
 		.file()
@@ -72,105 +57,16 @@ object Build : CliktCommand(), KoinComponent {
 		.default("C")
 
 	@ExperimentalTime
-	override fun run() {
-		println("Compilation completed in " + measureTime {
-            try {
-                startKoin {
-                    modules(mainModule)
-                }
+	override fun run() = try {
+        startKoin {
+            modules(mainModule)
+        }
 
-                loadKoinModules(module {
-                    single { BuildConfig(maxDepth, output, outputPath) }
-                    single { CodeGeneratorQualifier.valueOf(codeGenTarget) }
-                })
-
-                if (!outputPath.isDirectory) {
-                    throw invocation.make("Specified output path '${outputPath.absolutePath}' is not a directory")
-                }
-
-                // Creates an Orbit Library Directory
-                val completeLibraryOutputDirectoryPath = outputPath.toPath()
-                    .resolve(output)
-
-                val completeLibraryOutputDirectory = completeLibraryOutputDirectoryPath.toFile()
-
-                if (!completeLibraryOutputDirectory.exists()) {
-                    completeLibraryOutputDirectory.mkdirs()
-                }
-
-                val orbitLibraryPath = completeLibraryOutputDirectoryPath.resolve("$output.orbl")
-                val swiftLibraryPath = completeLibraryOutputDirectoryPath.resolve("$output.${codeGenTarget.lowercase()}")
-
-                val importedLibs = mutableListOf<OrbitLibrary>()
-
-                for (lpath in libraryPaths) {
-                    if (lpath.isDirectory) {
-                        val paths = lpath.listFiles(OrbitLibrary)
-                            ?: continue
-
-                        paths.forEach { println("Importing Orbit library '${it}'...") }
-                        paths.map(OrbitLibrary.Companion::fromPath)
-                            .forEach(importedLibs::add)
-                    } else {
-                        throw invocation.make("Library path provided via --library-path option must be a directory")
-                    }
-                }
-
-                loadKoinModules(module {
-                    single { ImportManager(importedLibs) }
-                })
-
-                // TODO - Platform should be derived from System.getProperty("os.name") or similar
-                // TODO - Support non *nix platforms
-                val sourceReader = MultiFileSourceProvider(sources)
-                val dummyPhase = DummyPhase(invocation, sourceReader)
-
-                // The first phase (CommentParser) needs an input, so we "cheat" here by inserting initial conditions
-                invocation.storeResult("__source__", sourceReader)
-
-                compilerGenerator["__source__"] = dummyPhase
-                compilerGenerator[CompilationSchemeEntry.commentParser] = CommentParser(invocation)
-                compilerGenerator[CompilationSchemeEntry.lexer] = Lexer(invocation)
-                compilerGenerator[CompilationSchemeEntry.parser] = Parser(invocation, ProgramRule)
-                compilerGenerator[CompilationSchemeEntry.canonicalNameResolver] = CanonicalNameResolver
-
-
-                compilationEventBus.events.registerObserver {
-                    val printer = Printer(invocation.platform.getPrintableFactory())
-                    val eventName = printer.apply(it.identifier, PrintableKey.Bold, PrintableKey.Underlined)
-
-//					if (verbose) {
-//						println("Compiler event: $eventName")
-//					}
-                }
-
-                compilerGenerator.run(CompilationScheme)
-
-                val parserResult = invocation.getResult<Parser.Result>(CompilationSchemeEntry.parser)
-
-                val orbitLibraryFile = orbitLibraryPath.toFile()
-
-                if (!orbitLibraryFile.exists()) {
-                    orbitLibraryFile.createNewFile()
-                }
-
-                val libraryExports = OrbitLibrary.fromInvocation(invocation)
-
-                libraryExports.write(orbitLibraryFile)
-
-                val swiftLibraryFile = swiftLibraryPath.toFile()
-
-                if (!swiftLibraryFile.exists()) {
-                    swiftLibraryFile.createNewFile()
-                }
-
-//                val codeWriter = CodeWriter(completeLibraryOutputDirectoryPath)
-//
-//                codeWriter.execute(parserResult.ast as ProgramNode)
-            } catch (ex: Exception) {
-                println(invocation.dumpWarnings())
-                println(ex.message)
-            }
+        loadKoinModules(module {
+            single { BuildConfig(maxDepth, output, outputPath) }
         })
-	}
+    } catch (ex: Exception) {
+        println(invocation.dumpWarnings())
+        println(ex.message)
+    }
 }

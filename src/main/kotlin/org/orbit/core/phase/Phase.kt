@@ -48,10 +48,6 @@ abstract class AdaptablePhase<I: Any, O: Any> : ReifiedPhase<I, O> {
         adapters[injectorClazz] = adapter
     }
 
-    fun <T> registerAdapter(adapter: PhaseAdapter<T, I>, inputClazz: Class<T>) {
-        adapters[inputClazz] = adapter
-    }
-
     inline fun <reified T, reified P: PhaseAdapter<T, I>> getAdapter() : P? {
         return adapters[T::class.java] as? P
     }
@@ -80,22 +76,6 @@ abstract class AdaptablePhase<I: Any, O: Any> : ReifiedPhase<I, O> {
                 )
             )
     }
-}
-
-inline fun <reified I, reified O> Phase<I, O>.asInputType(obj: Any) : I? {
-    return obj as? I
-}
-
-fun <I, O> Phase<I, O>.asInputType(obj: Any, clazz: Class<I>) : I? {
-    return clazz.safeCast(obj)
-}
-
-inline fun <reified I, reified O> Phase<I, O>.getInputType() : Class<I> {
-    return I::class.java
-}
-
-fun ReifiedPhase<*, *>.consumes(other: ReifiedPhase<*, *>) : Boolean {
-    return other.outputType == inputType
 }
 
 /**
@@ -127,9 +107,6 @@ class PhaseLinker<I1: Any, I2: Any, O1: Any, O2: Any>(
 
     override val inputType: Class<I1> = initialPhase.inputType
     override val outputType: Class<O2> = finalPhase.outputType
-
-    constructor(invocation: Invocation, initialPhase: ReifiedPhase<I1, O1>, vararg subsequentPhases: ReifiedPhase<*, *>, finalPhase: ReifiedPhase<I2, O2>)
-        : this(invocation, initialPhase, subsequentPhases.map { it.upcast() }, finalPhase)
 
     private inline fun <AI: Any, AO: Any, BI: Any, BO: Any> performBridgeCast(phaseA: Phase<AI, AO>, phaseB: ReifiedPhase<BI, BO>, result: AO, resultClazz: Class<AO>, inputBClazz: Class<BI>) : BI {
         var input = inputBClazz.safeCast(result)

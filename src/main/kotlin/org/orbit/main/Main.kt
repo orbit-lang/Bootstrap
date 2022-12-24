@@ -50,22 +50,6 @@ inline fun <reified T> Module.single(
 	return single(qualified.toQualifier(), createdAtStart = false, false, definition)
 }
 
-inline fun <reified T : Any> KoinComponent.injectQualified(
-	qualified: Qualified,
-	mode: LazyThreadSafetyMode = KoinPlatformTools.defaultLazyMode(),
-	noinline parameters: ParametersDefinition? = null
-): Lazy<T> =
-	lazy(mode) { get<T>(qualified.toQualifier(), parameters) }
-
-inline fun <reified T> KoinComponent.injectResult(
-	entry: CompilationSchemeEntry,
-	mode: LazyThreadSafetyMode = KoinPlatformTools.defaultLazyMode()
-) : Lazy<T> = lazy(mode) {
-	val invocation = getKoin().get<Invocation>()
-
-	return@lazy invocation.getResult(entry)
-}
-
 class Main {
     companion object : KoinComponent {
 		private val invocation: Invocation by inject()

@@ -1,6 +1,8 @@
 package org.orbit.util
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.option
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.definition.BeanDefinition
@@ -20,7 +22,6 @@ import org.orbit.backend.typesystem.components.kinds.IntrinsicKindInspector
 import org.orbit.backend.typesystem.inference.*
 import org.orbit.core.components.CompilationEventBus
 import org.orbit.core.nodes.*
-import org.orbit.core.phase.CompilerGenerator
 import org.orbit.frontend.rules.CollectionTypeInference
 import org.orbit.frontend.rules.TaggedTypeExpressionPathResolver
 import org.orbit.graph.pathresolvers.*
@@ -31,7 +32,6 @@ import kotlin.reflect.KClass
 
 val mainModule = module {
 	single { Invocation(Unix) }
-	single { CompilerGenerator(get()) }
 	single { CompilationEventBus() }
 	single { Printer(get<Invocation>().platform.getPrintableFactory()) }
 	single {
@@ -258,5 +258,8 @@ inline fun <reified T: Any> getKoinInstance(named: String) : T
 	= KoinPlatformTools.defaultContext().get().get(named(named))
 
 class Orbit : CliktCommand() {
+	private val measure by option("-m", "--measure" ,help = "Print time take by each phase, and total time")
+		.flag(default = false)
+
 	override fun run() {}
 }

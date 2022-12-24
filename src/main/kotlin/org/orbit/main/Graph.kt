@@ -3,6 +3,7 @@ package org.orbit.main
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
@@ -28,21 +29,23 @@ object Graph : CliktCommand(), KoinComponent {
 
     @OptIn(ExperimentalTime::class)
     override fun run() {
-        println("Graph resolution completed in " + measureTime {
-            try {
-                startKoin {
-                    modules(mainModule, module {
-                        single { BuildConfig(maxDepth, "Scratch", File("./scratch/")) }
-                    })
-                }
-
-                val ast = FrontendUtils.parse(FileSourceProvider(source), ProgramRule)
-                val result = CanonicalNameResolver.execute(ast)
-
-                println(result.graph)
-            } catch (ex: Exception) {
-                println(ex.message)
+        try {
+            startKoin {
+                modules(mainModule, module {
+                    single { BuildConfig(maxDepth, "Scratch", File("./scratch/")) }
+                })
             }
-        })
+
+            val ast = FrontendUtils.parse(FileSourceProvider(source), ProgramRule)
+            val result = CanonicalNameResolver.execute(ast)
+
+            println(result.graph)
+        } catch (ex: Exception) {
+            println(ex.message)
+        }
+
+//        if (measure) {
+//            println("Graph resolution completed in $time")
+//        }
     }
 }
