@@ -12,10 +12,8 @@ import com.github.ajalt.clikt.parameters.types.int
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
-import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import org.orbit.util.Invocation
-import org.orbit.util.mainModule
 import java.io.File
 import kotlin.time.ExperimentalTime
 
@@ -58,10 +56,6 @@ object Build : CliktCommand(), KoinComponent {
 
 	@ExperimentalTime
 	override fun run() = try {
-        startKoin {
-            modules(mainModule)
-        }
-
         loadKoinModules(module {
             single { BuildConfig(maxDepth, output, outputPath) }
         })

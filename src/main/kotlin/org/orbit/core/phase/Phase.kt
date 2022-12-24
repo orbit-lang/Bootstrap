@@ -9,3 +9,6 @@ interface Phase<I, O> {
 
     fun execute(input: I) : O
 }
+
+fun <I, O> Phase<I, O>.executeMeasured(invocation: Invocation, input: I) : O
+    = invocation.measure(this) { execute(input) }

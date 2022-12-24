@@ -1,25 +1,39 @@
 package org.orbit.util
 
+import org.orbit.backend.typesystem.components.IType
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.components.Warning
 import org.orbit.core.nodes.INode
 import org.orbit.core.phase.Phase
-import org.orbit.backend.typesystem.components.IType
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
+import kotlin.time.Duration
 
 open class OrbitException(override val message: String?) : Exception(message) {
 	companion object
 }
 
-class Invocation(val platform: Platform) {
+data class InvocationOptions(
+	val measurePhaseDuration: Boolean = false,
+	val measureTotalDuration: Boolean = false
+)
+
+@OptIn(ExperimentalTime::class)
+data class PhaseMeasurement(val phase: Phase<*, *>, val duration: Duration)
+
+class Invocation(val platform: Platform, val options: InvocationOptions = InvocationOptions()) {
 	data class OrbitErrorImpl<P: Phase<*, *>>(
 		override val phaseClazz: Class<P>,
 		override val message: String,
 		override val sourcePosition: SourcePosition
 	) : OrbitError<P>
 
+	private val printer = Printer(platform.getPrintableFactory())
 	private val warnings: MutableList<Warning> = mutableListOf()
 	private val errors: MutableList<OrbitError<*>> = mutableListOf()
+
+	private val phaseMeasurements = mutableListOf<PhaseMeasurement>()
 
 	val compilerErrorHeader: String get() {
 		val printer = Printer(platform.getPrintableFactory())
@@ -27,16 +41,35 @@ class Invocation(val platform: Platform) {
 		return printer.apply("***INTERNAL ERROR***", PrintableKey.Bold, PrintableKey.Italics, PrintableKey.Error)
 	}
 
-	val phaseResults = mutableMapOf<String, Any>()
+	@OptIn(ExperimentalTime::class)
+	fun <I, O> measure(phase: Phase<I, O>, block: () -> O) : O {
+		val result = measureTimedValue(block)
 
-	fun storeResult(key: String, result: Any) {
-		phaseResults[key] = result
+		phaseMeasurements.add(PhaseMeasurement(phase, result.duration))
+
+		return result.value
 	}
 
-	fun mergeResult(key: String, result: Any, where: (String) -> Boolean) {
-		val existing = phaseResults.keys.find(where) ?: return storeResult(key, result)
-		phaseResults.remove(existing)
-		storeResult(key, result)
+	@OptIn(ExperimentalTime::class)
+	fun report() {
+		val warnings = dumpWarnings()
+
+		println(warnings)
+
+		if (options.measurePhaseDuration) {
+			phaseMeasurements.forEach {
+				val pretty = printer.apply("Completed ${it.phase.phaseName} in ${it.duration}", PrintableKey.Italics)
+
+				println(pretty)
+			}
+		}
+
+		if (options.measureTotalDuration) {
+			val sum = phaseMeasurements.fold(Duration.ZERO) { acc, next -> acc + next.duration }
+			val pretty = printer.apply("Completed invocation in $sum", PrintableKey.Italics, PrintableKey.Bold, PrintableKey.Success)
+
+			println(pretty)
+		}
 	}
 
 	fun dumpWarnings() : String {
@@ -49,17 +82,6 @@ class Invocation(val platform: Platform) {
 		val printer = Printer(platform.getPrintableFactory())
 
 		return errors.joinToString("\n") { makeString(it) }
-	}
-
-	inline fun <reified O: Any> getResults(key: String) : List<O> {
-		return phaseResults.filter { it.key == key }
-			.map {
-				it.value as O
-			}
-	}
-
-	inline fun <reified O: Any> getResult(key: String) : O {
-		return getResults<O>(key).first()
 	}
 
 	fun warn(warning: Warning) {

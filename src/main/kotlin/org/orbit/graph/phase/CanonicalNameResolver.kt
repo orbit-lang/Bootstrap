@@ -52,8 +52,6 @@ object CanonicalNameResolver : Phase<Parser.Result, NameResolverResult>, KoinCom
 
 		val containerResolver = ContainersResolver(invocation)
 
-		return containerResolver.execute(NameResolverInput(input, environment, graph)).apply {
-			invocation.storeResult(this::class.java.simpleName, this)
-		}
+		return containerResolver.execute(NameResolverInput(input, environment, graph))
 	}
 }

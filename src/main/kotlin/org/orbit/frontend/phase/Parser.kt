@@ -326,23 +326,17 @@ class Parser(
 		return completeTokens.subList(fIdx, lIdx).joinToString(" ") { printer.apply(it.text, PrintableKey.Italics) }
 	}
 
-	override fun execute(input: InputType) : Result {
+	override fun execute(input: InputType): Result {
 		if (input.tokens.isEmpty()) throw Errors.NoMoreTokens
-		
+
 		tokens = input.tokens.toMutableList()
 		completeTokens = tokens
 
-		val ast = when(val res = topLevelParseRule.execute(this)) {
+		val ast = when (val res = topLevelParseRule.execute(this)) {
 			is ParseRule.Result.Failure.Throw -> throw invocation.make<Parser>(res.message, SourcePosition.unknown)
 			else -> res.unwrap<ParseRule.Result.Success<*>>()!!
 		}
 
-		val result = Result(ast.node)
-
-		invocation.mergeResult("Parser", result) {
-			it == "Parser"
-		}
-
-		return result
+		return Result(ast.node)
 	}
 }

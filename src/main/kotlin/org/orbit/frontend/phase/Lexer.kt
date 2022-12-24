@@ -33,7 +33,7 @@ class Lexer(
 
 	private var position = SourcePosition(0, -1)
 
-	override fun execute(input: SourceProvider) : Result {
+	override fun execute(input: SourceProvider): Result {
 		val source = input.getSource()
 
 		if (source.isEmpty()) throw invocation.make<Lexer>("Nothing to do")
@@ -44,7 +44,7 @@ class Lexer(
 
 		while (content.isNotEmpty()) {
 			var matched = false
-			
+
 			for (tt in tokenTypes) {
 				var nextChar = content.getOrNull(0) ?: break
 
@@ -100,11 +100,7 @@ class Lexer(
 				}
 			}
 		}
-		
-		val result = Result(tokens)
 
-		invocation.storeResult(this::class.java.simpleName, result)
-
-		return result
+		return Result(tokens)
 	}
 }

@@ -5,6 +5,7 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.context.startKoin
 import org.koin.core.definition.BeanDefinition
 import org.koin.core.parameter.DefinitionParameters
 import org.koin.core.qualifier.named
@@ -30,8 +31,6 @@ import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import kotlin.reflect.KClass
 
 val mainModule = module {
-	single { Invocation(Unix) }
-	single { Printer(get<Invocation>().platform.getPrintableFactory()) }
 	single {
 		val util = PathResolverUtil()
 
@@ -242,5 +241,12 @@ class Orbit : CliktCommand() {
 	private val measure by option("-m", "--measure" ,help = "Print time take by each phase, and total time")
 		.flag(default = false)
 
-	override fun run() {}
+	override fun run() {
+		startKoin {
+			modules(mainModule, module {
+				single { Invocation(Unix, InvocationOptions(measure, measure)) }
+				single { Printer(get<Invocation>().platform.getPrintableFactory()) }
+			})
+		}
+	}
 }

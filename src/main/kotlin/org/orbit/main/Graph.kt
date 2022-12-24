@@ -3,23 +3,21 @@ package org.orbit.main
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import org.koin.core.component.KoinComponent
-import org.koin.core.context.startKoin
+import org.koin.core.component.inject
+import org.koin.core.context.loadKoinModules
 import org.koin.dsl.module
 import org.orbit.frontend.FileSourceProvider
-import org.orbit.frontend.rules.ProgramRule
 import org.orbit.frontend.utils.FrontendUtils
-import org.orbit.graph.phase.CanonicalNameResolver
-import org.orbit.util.mainModule
+import org.orbit.util.Invocation
 import java.io.File
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
 
 object Graph : CliktCommand(), KoinComponent {
+    private val invocation: Invocation by inject()
+
     private val source by argument(help = "Orbit source file to graph")
         .file()
 
@@ -27,25 +25,17 @@ object Graph : CliktCommand(), KoinComponent {
         .int()
         .default(Build.COMMAND_OPTION_DEFAULT_MAX_CYCLES)
 
-    @OptIn(ExperimentalTime::class)
-    override fun run() {
-        try {
-            startKoin {
-                modules(mainModule, module {
-                    single { BuildConfig(maxDepth, "Scratch", File("./scratch/")) }
-                })
-            }
+    override fun run() = try {
+        loadKoinModules(module {
+            single { BuildConfig(maxDepth, "Scratch", File("./scratch/")) }
+        })
 
-            val ast = FrontendUtils.parse(FileSourceProvider(source), ProgramRule)
-            val result = CanonicalNameResolver.execute(ast)
+        val result = FrontendUtils.graph(FileSourceProvider(source))
 
-            println(result.graph)
-        } catch (ex: Exception) {
-            println(ex.message)
-        }
+        println(result.graph)
 
-//        if (measure) {
-//            println("Graph resolution completed in $time")
-//        }
+        invocation.report()
+    } catch (ex: Exception) {
+        println(ex.message)
     }
 }

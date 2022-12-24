@@ -10,7 +10,7 @@ import org.orbit.util.Invocation
 class CommentParser(override val invocation: Invocation) : Phase<SourceProvider, CommentParser.Result> {
 	data class Result(val sourceProvider: SourceProvider, val comments: List<Comment>)
 
-	override fun execute(input: SourceProvider) : Result {
+	override fun execute(input: SourceProvider): Result {
 		val source = input.getSource()
 		val comments = mutableListOf<Comment>()
 
@@ -20,7 +20,7 @@ class CommentParser(override val invocation: Invocation) : Phase<SourceProvider,
 		var stripped = ""
 		var ptr = -1
 
-		fun isNextChar(char: Char) : Boolean {
+		fun isNextChar(char: Char): Boolean {
 			if (ptr < source.length - 1) {
 				return source[ptr + 1] == char
 			}
@@ -68,7 +68,7 @@ class CommentParser(override val invocation: Invocation) : Phase<SourceProvider,
 				if (char == '#') {
 					inComment = true
 					currentType = Comment.Type.SingleLine
-				} else if(char == '/') {
+				} else if (char == '/') {
 					// Could be the start of a multiline comment.
 					// We need to lookahead one more character
 					if (isNextChar('*')) {
@@ -85,10 +85,6 @@ class CommentParser(override val invocation: Invocation) : Phase<SourceProvider,
 			}
 		}
 
-		val result = Result(StringSourceProvider(stripped), comments)
-
-		invocation.storeResult(this::class.java.simpleName, result)
-
-		return result
+		return Result(StringSourceProvider(stripped), comments)
 	}
 }
