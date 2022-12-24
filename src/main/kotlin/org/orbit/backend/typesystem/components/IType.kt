@@ -64,6 +64,9 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> throw getKoinInstance<Invocation>().make<TypeSystem>(message, node)
         }
 
+        override fun getTypeCheckPosition(): TypeCheckPosition
+            = TypeCheckPosition.AlwaysRight
+
         override fun getDomain(): List<AnyType> = emptyList()
         override fun getCodomain(): AnyType = this
         override fun curry(): IArrow<*> = this

@@ -3,6 +3,7 @@ package org.orbit.backend.typesystem.inference
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.core.nodes.NeverNode
 import org.orbit.core.nodes.StarNode
 
 object StarInference : ITypeInference<StarNode, ITypeEnvironment> {
@@ -11,4 +12,9 @@ object StarInference : ITypeInference<StarNode, ITypeEnvironment> {
 
         return IType.Always
     }
+}
+
+object NeverInference : ITypeInference<NeverNode, ITypeEnvironment> {
+    override fun infer(node: NeverNode, env: ITypeEnvironment): AnyType
+        = IType.Never("Encountered `Never`")
 }

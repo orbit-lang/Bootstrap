@@ -1,5 +1,6 @@
 package org.orbit.frontend.rules
 
+import org.orbit.core.nodes.NeverNode
 import org.orbit.core.nodes.StarNode
 import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.frontend.extensions.unaryPlus
@@ -13,11 +14,20 @@ object StarRule : ValueRule<StarNode> {
     }
 }
 
+object NeverRule : ValueRule<NeverNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val start = context.expect { it.text == "Never" }
+
+        return +NeverNode(start, start)
+    }
+}
+
 object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
 		val collector = context.startCollecting()
 		val node = context.attemptAny(listOf(
             StarRule,
+            NeverRule,
             ExpandRule,
             SumTypeRule,
             CollectionTypeRule,

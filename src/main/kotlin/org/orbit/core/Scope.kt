@@ -135,6 +135,7 @@ class Scope(
 		if (name == "_") return BindingSearchResult.Success(Binding.infer)
 		if (name == "[]") return BindingSearchResult.Success(Binding.array)
 		if (name == "Any") return BindingSearchResult.Success(Binding.any)
+		if (name == "Never") return BindingSearchResult.Success(Binding.never)
 		if (name == "->") return BindingSearchResult.Success(Binding.lambda)
 
 		val path = OrbitMangler.unmangle(name)

@@ -11,6 +11,7 @@ open class Path(open val relativeNames: List<String>) : AnyPrintable, Collection
 		val infer = Path("_")
 		val array = Path("[]")
 		val any = Path("Any")
+		val never = Path("Never")
 		val lambda = Path("->")
 	}
 

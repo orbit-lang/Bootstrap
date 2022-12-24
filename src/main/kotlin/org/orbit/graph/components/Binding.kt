@@ -17,6 +17,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 		object Trait : Entity
 		object Self : Entity
 		object Any : Entity
+		object Never : Entity
 		object Ephemeral : Entity
 		object Lambda : Entity
 		object Method : Kind
@@ -63,6 +64,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 		val infer = Binding(Kind.Type, "_", Path.infer)
 		val array = Binding(Kind.Type, "[]", Path.array)
 		val any = Binding(Kind.Any, "Any", Path.any)
+		val never = Binding(Kind.Never, "Never", Path.never)
 		val lambda = Binding(Kind.Lambda, "->", Path.lambda)
 	}
 

@@ -9,13 +9,13 @@ import org.orbit.core.nodes.INode
 import org.orbit.util.Invocation
 import org.orbit.util.getKoinInstance
 
-val typeContextMap = mutableMapOf<String, Context>()
-
 interface ITypeInference<N: INode, E: ITypeEnvironment> {
     fun infer(node: N, env: E) : AnyType
 }
 
-fun <N: INode, E: ITypeEnvironment> ITypeInference<N, E>.run(node: N, env: E) : AnyType = when (val result = infer(node, env)) {
-    is IType.Never -> throw getKoinInstance<Invocation>().make<TypeSystem>(result.message, node)
-    else -> result
-}
+fun <N: INode, E: ITypeEnvironment> ITypeInference<N, E>.run(node: N, env: E) : AnyType = infer(node, env)
+
+//= when (val result = infer(node, env)) {
+//    is IType.Never -> throw getKoinInstance<Invocation>().make<TypeSystem>(result.message, node)
+//    else -> result
+//}

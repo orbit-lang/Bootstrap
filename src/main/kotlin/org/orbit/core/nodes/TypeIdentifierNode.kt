@@ -9,7 +9,12 @@ sealed interface TypeExpressionNode : ILiteralNode<String>
 data class StarNode(override val firstToken: Token, override val lastToken: Token) : TypeExpressionNode {
 	override val value: String = "Any"
 	override fun getTypeName(): String = "Any"
+	override fun getChildren(): List<INode> = emptyList()
+}
 
+data class NeverNode(override val firstToken: Token, override val lastToken: Token) : TypeExpressionNode {
+	override val value: String = "Never"
+	override fun getTypeName(): String = "Never"
 	override fun getChildren(): List<INode> = emptyList()
 }
 

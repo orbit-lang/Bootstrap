@@ -63,6 +63,8 @@ object TypeUtils {
                 else -> when (right) {
                     is IType.Never -> left
 
+                    is IType.Safe -> check(env, left, right.type)
+
                     is IType.TypeVar -> when (right.constraints.all { it.isSolvedBy(left, env) }) {
                         true -> left // NOTE - If we allow this, we have to return the most specific type here
                         else -> error

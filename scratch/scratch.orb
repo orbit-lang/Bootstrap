@@ -36,7 +36,7 @@ module Main with Orb::* {
     context OptionCtx [ValueType] {
         fun (self .Option(ValueType)) force () (ValueType) = select self {
             case Some(value) = value
-            case None = panic 0
+            case None = 0
         }
 
         postfix operator forceUnwrap `!` by ::force
@@ -51,12 +51,15 @@ module Main with Orb::* {
             case None = fallback
         }
 
-        infix operator coalesceFallback `??` by ::coalesce
+        infix operator infixCoalesce `??` by ::coalesce
     }
 
-    fun (Any) main () () {
-        opt = ${None()}
+    context ErrorCtx [E] where E : Error {
+        fun (self E) throw () (Never) = panic self
+    }
 
-        typeOf opt!
+    fun (Any) main () () within ErrorCtx [Bool] {
+        i = 0.throw()
+        typeOf ${i}
     }
 }
