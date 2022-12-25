@@ -418,8 +418,43 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = prettyPrint()
     }
 
+    sealed interface ITypeEffect : IType {
+        fun invoke(env: IMutableTypeEnvironment) : AnyMetaType
+    }
+
+    data class ProjectionEffect(val type: AnyType, val trait: AnyType) : ITypeEffect {
+        override val id: String = "${type.id} ⥅ ${trait.id}"
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Zero
+
+        override fun substitute(substitution: Substitution): AnyType
+            = ProjectionEffect(type.substitute(substitution), trait.substitute(substitution))
+
+        override fun invoke(env: IMutableTypeEnvironment) : AnyMetaType {
+            if (trait !is Trait) return Never("Projection Effect cannot be guaranteed because $trait is not of Kind Trait")
+
+            env.add(Projection(type, trait), type)
+
+            return Always
+        }
+    }
+
+    data class TypeEffect(val name: String, val arguments: List<AnyType>, val effects: List<ITypeEffect>) : ITypeEffect {
+        override val id: String = "effect $name"
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Zero
+
+        override fun substitute(substitution: Substitution): AnyType
+            = TypeEffect(name, arguments.substitute(substitution), effects.substitute(substitution) as List<ITypeEffect>)
+
+        override fun invoke(env: IMutableTypeEnvironment)
+            = effects.fold(Always as AnyMetaType) { acc, next -> acc + next.invoke(env) }
+    }
+
     data class Attribute(val name: String, val node: IAttributeExpressionNode, val abstractTypes: List<TypeVar> = emptyList(), val concreteTypes: List<AnyType> = abstractTypes) : IAttribute {
-        override val id: String = "$name : (${abstractTypes.joinToString(", ")}) => ?"
+        override val id: String = "attribute $name"
 
         override fun invoke(env: IMutableTypeEnvironment) : AnyMetaType {
             if (getUnsolvedTypeVariables().isNotEmpty()) throw AttributeErrorFactory.invokeUnsolved(this)

@@ -27,6 +27,7 @@ object TokenTypes : TokenTypeProvider {
     object Api : TokenType("API", "api", true, false, Family.Keyword)
     object Attribute : TokenType("Attribute", "attribute", true, false, Family.Keyword)
     object Check : TokenType("Check", "check", true, false, Family.Keyword)
+    object Effect : TokenType("Effect", "effect", true, false, Family.Keyword)
     object Type : TokenType("Type", "type", true, false, Family.Keyword + Family.Kind)
     object Trait : TokenType("Trait", "trait", true, false, Family.Keyword + Family.Kind)
     object Family : TokenType("Family", "family", true, false, Family.Keyword + Family.Kind)
@@ -84,7 +85,7 @@ object TokenTypes : TokenTypeProvider {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Real, Int, Dot, Attribute, Context, Api, Module, Define, Defer, Fun, Observe, Where, Print,
+            Real, Int, Dot, Attribute, Context, Api, Module, Define, Defer, Effect, Fun, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias, Operator,
             Synthesise,
             Call,

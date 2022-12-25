@@ -1,39 +1,34 @@
-module Orb::Core::Types {
-    type Unit
-}
-
-module Orb::Core::Booleans {
-    type Bool {
-        constructor True
-        constructor False
-    }
-}
-
-module Orb::Core::Numbers {
-    type Int
-    type Real
-}
+#module Orb::Core::Types {
+#    type Unit
+#}
+#
+#module Orb::Core::Booleans {
+#    type Bool {
+#        constructor True
+#        constructor False
+#    }
+#}
+#
+#module Orb::Core::Numbers {
+#    type Int
+#    type Real
+#}
+#
 
 module Orb::Core::Errors {
     trait Error
 }
 
 module Main with Orb::* {
-    effect Cast = (A, B) => B
-        ensures A = B
+    effect AutoProjection = (A, B) => projection A : B
+
+    attribute ErrorCast = (A) => A : Error
+        with .AutoProjection(A, Error)
 #
-    attribute Check = (A, B) => A = B
-#        with .Cast(A, B)
-
-    attribute CheckTrait = (A, B) => A : B
-
-#    alias CheckInt = (T, U) => Any where .CheckTrait(U, T) else ${1}
-#    alias CheckTest = .CheckInt(Foo, Tr)
-    alias I = Int
-
-    projection Int : I
-
-    fun (Any) main () () {
-
-    }
+#    attribute TraitCast = (A, B) => A : B
+#        with .AutoProjection(A, B)
+#
+#    context ErrorCtx [E] where .TraitCast(E, Error) {
+#
+#    }
 }

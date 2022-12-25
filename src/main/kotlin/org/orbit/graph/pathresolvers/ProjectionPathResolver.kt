@@ -1,11 +1,9 @@
 package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.inject
-import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.ProjectionNode
-import org.orbit.core.nodes.annotateByKey
 import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -23,7 +21,7 @@ object ProjectionPathResolver : IPathResolver<ProjectionNode> {
 			val typeResult = TypeExpressionPathResolver.resolve(input.typeIdentifier, pass, environment, graph)
 				.asSuccess()
 
-			val graphID = input.getGraphID() //graph.find(typeResult.path.toString(OrbitMangler))
+			val graphID = input.getGraphID()
 
 			input.typeIdentifier.annotate(graphID, Annotations.graphId)
 			input.traitIdentifier.annotate(graphID, Annotations.graphId)

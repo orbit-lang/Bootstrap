@@ -17,12 +17,13 @@ data class ModuleNode(
     override val contexts: List<ContextNode> = emptyList(),
     override val context: IContextExpressionNode? = null,
     override val operatorDefs: List<OperatorDefNode>,
-    override val attributeDefs: List<AttributeDefNode>
+    override val attributeDefs: List<AttributeDefNode>,
+    override val effects: List<TypeEffectNode>
 ) : ContainerNode {
     val isEmpty: Boolean get() = entityDefs.isEmpty() && methodDefs.isEmpty() && typeAliasNodes.isEmpty() && extensions.isEmpty() && contexts.isEmpty()
 
     override fun getChildren(): List<INode> = when (within) {
-        null -> listOf(identifier) + implements + with + entityDefs + methodDefs + typeAliasNodes + projections + extensions + contexts + operatorDefs + attributeDefs
-        else -> listOf(identifier, within) + implements + with + entityDefs + methodDefs + typeAliasNodes + projections + extensions + contexts + operatorDefs + attributeDefs
+        null -> listOf(identifier) + implements + with + entityDefs + methodDefs + typeAliasNodes + projections + extensions + contexts + operatorDefs + attributeDefs + effects
+        else -> listOf(identifier, within) + implements + with + entityDefs + methodDefs + typeAliasNodes + projections + extensions + contexts + operatorDefs + attributeDefs + effects
     }
 }

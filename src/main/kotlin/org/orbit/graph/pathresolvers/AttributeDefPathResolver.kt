@@ -96,3 +96,4 @@ class AttributeDefPathResolver(private val parentPath: Path) : IPathResolver<Att
         return IPathResolver.Result.Success(path)
     }
 }
+
