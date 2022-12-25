@@ -13,7 +13,7 @@ object OperatorDefRule : ParseRule<OperatorDefNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect(TokenTypes.Fixity)
+        val start = context.expectAny(TokenTypes.Prefix, TokenTypes.Infix, TokenTypes.Postfix, consumes = true)
         val fixity = OperatorFixity.valueOf(start)
             ?: throw invocation.make<Parser>("Unknown Operator Fixity: ${start.text}", start)
 

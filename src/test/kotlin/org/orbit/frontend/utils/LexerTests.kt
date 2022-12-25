@@ -18,4 +18,9 @@ internal class LexerTests : FileBasedTest("lexer-tests", "orb") {
     fun `All Fail`() {
         assertAll(Scenario.Fail)
     }
+
+    @Test
+    fun `Isolate single test`() {
+        assert(Scenario.Fail, "garbage.orb")
+    }
 }

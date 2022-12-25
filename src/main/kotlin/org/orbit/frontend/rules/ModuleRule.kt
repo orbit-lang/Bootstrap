@@ -98,7 +98,7 @@ object ModuleRule : ParseRule<ModuleNode> {
                     attributeDefNodes.add(attribute)
                 }
 
-                TokenTypes.Fixity -> {
+                TokenTypes.Prefix, TokenTypes.Infix, TokenTypes.Postfix -> {
                     val op = context.attempt(OperatorDefRule)
                         ?: TODO("ModuleRule:OperatorDef")
 
@@ -107,7 +107,7 @@ object ModuleRule : ParseRule<ModuleNode> {
 
                 TokenTypes.Context -> {
                     val contextNode = context.attempt(ContextRule)
-                        ?: TODO("ModuleRule:Context ???")
+                        ?: TODO("ModuleRule:Context: ${context.peek()}")
 
                     contextNodes.add(contextNode)
                 }

@@ -1422,6 +1422,21 @@ data class IntValue(override val value: Int) : IValue<IType.Type, Int> {
     override fun toString(): String = prettyPrint()
 }
 
+data class RealValue(override val value: Double) : IValue<IType.Type, Double> {
+    override val type: IType.Type = OrbCoreNumbers.realType
+
+    override fun prettyPrint(depth: Int): String {
+        val printer = getKoinInstance<Printer>()
+        val indent = "\t".repeat(depth)
+        val pretty = printer.apply("$value", PrintableKey.Bold)
+
+        return "$indent$pretty"
+    }
+
+    override fun toString(): String
+        = prettyPrint()
+}
+
 object TrueValue : IValue<IType.Type, Boolean> {
     override val type: IType.Type = OrbCoreBooleans.trueType.flatten(IType.Always, GlobalEnvironment) as IType.Type
     override val value: Boolean = true

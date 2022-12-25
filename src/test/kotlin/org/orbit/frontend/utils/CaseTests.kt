@@ -6,6 +6,7 @@ import org.orbit.core.nodes.prettyPrint
 import org.orbit.frontend.rules.CaseRule
 import org.orbit.util.FileBasedTest
 import org.orbit.util.Scenario
+import java.lang.Exception
 
 internal class CaseTests : FileBasedTest("case-tests", "orb") {
     override fun generateActualResult(sourceProvider: SourceProvider): String

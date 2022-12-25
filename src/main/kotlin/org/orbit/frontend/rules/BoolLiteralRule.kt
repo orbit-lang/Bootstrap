@@ -7,7 +7,7 @@ import org.orbit.frontend.phase.Parser
 
 object BoolLiteralRule : ValueRule<BoolLiteralNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect(TokenTypes.Bool)
+        val start = context.expectAny(TokenTypes.True, TokenTypes.False, consumes = true)
 
         return +BoolLiteralNode(start, start, start.text.toBooleanStrict())
     }

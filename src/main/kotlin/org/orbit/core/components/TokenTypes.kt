@@ -5,63 +5,69 @@ object TokenTypes : TokenTypeProvider {
     object Colon : TokenType("Colon", "\\:", true, false, Family.Op)
     object Comma : TokenType("Comma", "\\,", true, false, Family.Op)
     object Dot : TokenType("Dot", "\\.", true, false, Family.Op)
-    object LParen : TokenType("LParen", "\\(", true, false, Family.Enclosing)
-    object RParen : TokenType("RParen", "\\)", true, false, Family.Enclosing)
-    object LBracket : TokenType("LBracket", "\\[", true, false, Family.Enclosing)
-    object RBracket : TokenType("RBracket", "\\]", true, false, Family.Enclosing)
-    object LBrace : TokenType("LBrace", "\\{", true, false, Family.Enclosing)
-    object RBrace : TokenType("RBrace", "\\}", true, false, Family.Enclosing)
-    object LAngle : TokenType("LAngle", "\\<", true, false, Family.Enclosing)
-    object RAngle : TokenType("RAngle", "\\>", true, false, Family.Enclosing)
-    object LExpand : TokenType("LExpand", "\\$\\{", true, false, Family.Enclosing)
     object Assignment : TokenType("Assignment", "\\=", true, false, Family.Op)
     object Dollar : TokenType("Dollar", "\\$[0-9]+", true, false, Family.Op)
     object OperatorSymbol : TokenType("OperatorSymbol", "((?:`[^`]+`)|(?:\\.{2,})|(?:[\\+\\-\\*\\/\\^\\!\\?\\%\\&\\<\\>\\|\\•]+))", true, false, Family.Op)
     object Annotation : TokenType("Annotation", "@", true, false, Family.Op)
+    object LExpand : TokenType("LExpand", "\\$\\{", true, false, Family.Op)
+
+    // Enclosing
+    object LParen : TokenType("LParen", "(", true, false, Family.Enclosing)
+    object RParen : TokenType("RParen", ")", true, false, Family.Enclosing)
+    object LBracket : TokenType("LBracket", "[", true, false, Family.Enclosing)
+    object RBracket : TokenType("RBracket", "]", true, false, Family.Enclosing)
+    object LBrace : TokenType("LBrace", "{", true, false, Family.Enclosing)
+    object RBrace : TokenType("RBrace", "}", true, false, Family.Enclosing)
+    object LAngle : TokenType("LAngle", "<", true, false, Family.Enclosing)
+    object RAngle : TokenType("RAngle", ">", true, false, Family.Enclosing)
+
     object Whitespace : TokenType("Whitespace", "[ \\t\\n\\r]", true, false, Family.White)
 	
     // Keywords
-    object Api : TokenType("API", "\\bapi\\b", true, false, Family.Keyword)
-    object Attribute : TokenType("Attribute", "\\battribute\\b", true, false, Family.Keyword)
-    object Check : TokenType("Check", "\\bcheck\\b", true, false, Family.Keyword)
-    object Type : TokenType("Type", "\\btype\\b", true, false, Family.Keyword + Family.Kind)
-    object Trait : TokenType("Trait", "\\btrait\\b", true, false, Family.Keyword + Family.Kind)
-    object Family : TokenType("Family", "\\bfamily\\b", true, false, Family.Keyword + Family.Kind)
-    object With : TokenType("With", "\\bwith\\b", true, false, Family.Keyword)
-    object Within : TokenType("Within", "\\bwithin\\b", true, false, Family.Keyword)
-    object Return : TokenType("Return", "\\breturn\\b", true, false, Family.Keyword)
-    object Module : TokenType("Module", "\\bmodule\\b", true, false, Family.Keyword)
-    object Define : TokenType("Define", "\\bdefine\\b", true, false, Family.Keyword)
-    object Defer : TokenType("Defer", "\\bdefer\\b", true, false, Family.Keyword)
-    object Fun : TokenType("Fun", "\\bfun\\b", true, false, Family.Keyword)
-    object Print : TokenType("Print", "\\bprint\\b", true, false, Family.Keyword)
-    object Required : TokenType("Required", "\\brequired\\b", true, false, Family.Keyword)
-    object Constructor : TokenType("Constructor", "\\bconstructor\\b", true, false, Family.Keyword)
-    object Projection : TokenType("Projection", "\\bprojection\\b", true, false, Family.Keyword)
-    object Extension : TokenType("Extension", "\\bextension\\b", true, false, Family.Keyword)
-    object Alias : TokenType("Alias", "\\balias\\b", true, false, Family.Keyword)
-    object Observe : TokenType("Observer", "\\bobserve\\b", true, false, Family.Keyword)
-    object Where : TokenType("Where", "\\bwhere\\b", true, false, Family.Keyword)
-    object Let : TokenType("Let", "\\blet\\b", true, false, Family.Keyword)
-    object In : TokenType("In", "\\bin\\b", true, false, Family.Keyword)
-    object Of : TokenType("Of", "\\bof\\b", true, false, Family.Keyword)
-    object TypeOf : TokenType("TypeOf", "\\btypeOf\\b", true, false, Family.Keyword)
-    object ContextOf : TokenType("ContextOf", "\\bcontextOf\\b", true, false, Family.Keyword)
-    object RefOf : TokenType("RefOf", "\\brefOf\\b", true, false, Family.Keyword)
-    object Expand : TokenType("Expand", "\\bexpand\\b", true, false, Family.Keyword)
-    object Mirror : TokenType("Mirror", "\\bmirror\\b", true, false, Family.Keyword)
-    object Context : TokenType("Context", "\\bcontext\\b", true, false, Family.Keyword)
-    object By : TokenType("By", "\\bby\\b", true, false, Family.Keyword)
-    object To : TokenType("To", "\\bto\\b", true, false, Family.Keyword)
-    object Fixity : TokenType("Fixity", "\\b(in|pre|post)fix\\b", true, false, Family.Keyword)
-    object Operator : TokenType("Operator", "\\boperator\\b", true, false, Family.Keyword)
+    object Api : TokenType("API", "api", true, false, Family.Keyword)
+    object Attribute : TokenType("Attribute", "attribute", true, false, Family.Keyword)
+    object Check : TokenType("Check", "check", true, false, Family.Keyword)
+    object Type : TokenType("Type", "type", true, false, Family.Keyword + Family.Kind)
+    object Trait : TokenType("Trait", "trait", true, false, Family.Keyword + Family.Kind)
+    object Family : TokenType("Family", "family", true, false, Family.Keyword + Family.Kind)
+    object With : TokenType("With", "with", true, false, Family.Keyword)
+    object Within : TokenType("Within", "within", true, false, Family.Keyword)
+    object Return : TokenType("Return", "return", true, false, Family.Keyword)
+    object Module : TokenType("Module", "module", true, false, Family.Keyword)
+    object Define : TokenType("Define", "define", true, false, Family.Keyword)
+    object Defer : TokenType("Defer", "defer", true, false, Family.Keyword)
+    object Fun : TokenType("Fun", "fun", true, false, Family.Keyword)
+    object Print : TokenType("Print", "print", true, false, Family.Keyword)
+    object Required : TokenType("Required", "required", true, false, Family.Keyword)
+    object Constructor : TokenType("Constructor", "constructor", true, false, Family.Keyword)
+    object Projection : TokenType("Projection", "projection", true, false, Family.Keyword)
+    object Extension : TokenType("Extension", "extension", true, false, Family.Keyword)
+    object Alias : TokenType("Alias", "alias", true, false, Family.Keyword)
+    object Observe : TokenType("Observer", "observe", true, false, Family.Keyword)
+    object Where : TokenType("Where", "where", true, false, Family.Keyword)
+    object Let : TokenType("Let", "let", true, false, Family.Keyword)
+    object In : TokenType("In", "in", true, false, Family.Keyword)
+    object Of : TokenType("Of", "of", true, false, Family.Keyword)
+    object TypeOf : TokenType("TypeOf", "typeOf", true, false, Family.Keyword)
+    object ContextOf : TokenType("ContextOf", "contextOf", true, false, Family.Keyword)
+    object RefOf : TokenType("RefOf", "refOf", true, false, Family.Keyword)
+    object Expand : TokenType("Expand", "expand", true, false, Family.Keyword)
+    object Mirror : TokenType("Mirror", "mirror", true, false, Family.Keyword)
+    object Context : TokenType("Context", "context", true, false, Family.Keyword)
+    object By : TokenType("By", "by", true, false, Family.Keyword)
+    object To : TokenType("To", "to", true, false, Family.Keyword)
+    object Operator : TokenType("Operator", "operator", true, false, Family.Keyword)
     object Call : TokenType("Call", "call", true, false, Family.Keyword)
     object Else : TokenType("Else", "else", true, false, Family.Keyword)
     object Case : TokenType("Case", "case", true, false, Family.Keyword)
     object Select : TokenType("Select", "select", true, false, Family.Keyword)
     object As : TokenType("As", "as", true, false, Family.Keyword)
-    object Bool : TokenType("Bool", "(true|false)", true, false, Family.Keyword)
+    object True : TokenType("True", "true", true, false, Family.Keyword)
+    object False : TokenType("False", "false", true, false, Family.Keyword)
     object Panic : TokenType("Panic", "panic", true, false, Family.Keyword)
+    object Prefix : TokenType("Prefix", "prefix", true, false, Family.Keyword)
+    object Infix : TokenType("Infix", "infix", true, false, Family.Keyword)
+    object Postfix : TokenType("Postfix", "postfix", true, false, Family.Keyword)
 
     // Compile-time functions
     object Synthesise : TokenType("Synthesise", "\\bsynthesise\\b", true, false, Family.CompileTime)
@@ -78,18 +84,17 @@ object TokenTypes : TokenTypeProvider {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Int, Real, Attribute, Context, Api, Module, Define, Defer, Fun, Observe, Where, Print,
+            Real, Int, Dot, Attribute, Context, Api, Module, Define, Defer, Fun, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias, Operator,
             Synthesise,
             Call,
             Dollar,
-            Fixity, Let, In, Of, By, To, Else, Case, Select, As,
-            Bool, Panic,
-            TypeIdentifier,
+            Prefix, Infix, Postfix, Let, In, Of, By, To, Else, Case, Select, As,
+            True, False, Panic,
             Colon, Comma, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle, LExpand,
             Expand, Mirror, TypeOf, RefOf, Check, ContextOf, Type, Trait, Within, With, Return, Family,
-            OperatorSymbol, Identifier, Dot
+            OperatorSymbol, TypeIdentifier, Identifier
         )
     }
 }

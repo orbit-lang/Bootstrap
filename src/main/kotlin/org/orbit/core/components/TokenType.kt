@@ -32,4 +32,7 @@ abstract class TokenType(
 		is TokenType -> other.identifier == identifier
 		else -> false
 	}
+
+	override fun toString(): String
+		= identifier
 }

@@ -8,6 +8,8 @@ object OrbCoreNumbers : IOrbModule {
     private val intIntArrow get() = IType.Arrow2(intType, intType, intType)
 
     val intType = IType.Type("Orb::Core::Numbers::Int", explicitCardinality = ITypeCardinality.Infinite)
+    val realType = IType.Type("Orb::Core::Numbers::Real", explicitCardinality = ITypeCardinality.Infinite)
+
     val infixAddIntInt = IType.InfixOperator("+", "infixPlus", intIntArrow)
     val infixSubIntInt = IType.InfixOperator("-", "infixSubtract", intIntArrow)
     val infixMulIntInt = IType.InfixOperator("*", "infixMultiply", intIntArrow)

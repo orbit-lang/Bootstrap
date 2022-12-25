@@ -55,6 +55,10 @@ module Main with Orb::* {
     }
 
     fun (Any) main () () {
-        typeOf ${0}
+        typeOf true
+        typeOf false
+
+        typeOf ${99}
+        typeOf ${123.456}
     }
 }

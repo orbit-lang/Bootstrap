@@ -104,6 +104,7 @@ val mainModule = module {
 		util.registerPathResolver(CompoundAttributeExpressionPathResolver, CompoundAttributeExpressionNode::class.java)
 		util.registerPathResolver(SumTypePathResolver, SumTypeNode::class.java)
 		util.registerPathResolver(TaggedTypeExpressionPathResolver, TaggedTypeExpressionNode::class.java)
+		util.registerPathResolver(RealLiteralPathResolver, RealLiteralNode::class.java)
 
 		util
 	}
@@ -180,6 +181,7 @@ val mainModule = module {
 	single(TaggedTypeExpressionInference)
 	single(TypedIdentifierBindingPatternInference)
 	single(DiscardBindingPatternInference)
+	single(RealLiteralInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

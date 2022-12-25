@@ -21,17 +21,18 @@ import org.orbit.util.Invocation
 object FrontendUtils : KoinComponent {
     private val invocation: Invocation by inject()
 
-    fun lex(sourceProvider: SourceProvider) : Lexer.Result
-        = Lexer(invocation, TokenTypes).executeMeasured(invocation, sourceProvider)
+    fun lex(sourceProvider: SourceProvider) : Lexer.Result {
+        val source = CommentParser(invocation).executeMeasured(invocation, sourceProvider)
+
+        return Lexer(invocation, TokenTypes).executeMeasured(invocation, source.sourceProvider)
+    }
 
     fun lex(source: String) : Lexer.Result
         = lex(StringSourceProvider(source))
 
     fun <N: INode> parse(sourceProvider: SourceProvider, rule: ParseRule<N>) : Parser.Result {
-        val source = CommentParser(invocation).executeMeasured(invocation, sourceProvider)
+        val tokens = lex(sourceProvider).tokens
         val parser = Parser(invocation, rule)
-        val tokens = lex(source.sourceProvider)
-            .tokens
 
         return parser.executeMeasured(invocation, Parser.InputType(tokens))
     }

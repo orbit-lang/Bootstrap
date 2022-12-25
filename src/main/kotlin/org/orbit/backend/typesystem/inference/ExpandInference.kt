@@ -15,6 +15,9 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
     private fun inferIntLiteral(node: IntLiteralNode) : IntValue
         = IntValue(node.value.second)
 
+    private fun inferRealLiteral(node: RealLiteralNode) : RealValue
+        = RealValue(node.value)
+
     private fun inferBoolLiteral(node: BoolLiteralNode) : AnyType = when (node.value) {
         true -> OrbCoreBooleans.trueType
         else -> OrbCoreBooleans.falseType
@@ -101,6 +104,7 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
 
     private fun inferExpression(node: IConstantExpressionNode, env: ITypeEnvironment) : AnyType = when (node) {
         is IntLiteralNode -> inferIntLiteral(node)
+        is RealLiteralNode -> inferRealLiteral(node)
         is BoolLiteralNode -> inferBoolLiteral(node)
         is IdentifierNode -> env.getBinding(node.identifier, node.index)?.type ?: IType.Never("`${node.identifier}` is not defined in the current context")
         is ConstructorInvocationNode -> inferConstructorInvocation(node, env)
@@ -108,7 +112,7 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
         is MethodCallNode -> inferMethodCall(node, env)
         is CollectionLiteralNode -> inferCollectionLiteral(node, env)
 
-        else -> throw invocation.make<TypeSystem>("Cannot expand value at compile-time: `$node`", node)
+        else -> throw invocation.make<TypeSystem>("Cannot expand value at compile-time: `${node.firstToken.text}`", node)
     }
 
     override fun infer(node: ExpandNode, env: ITypeEnvironment): AnyType

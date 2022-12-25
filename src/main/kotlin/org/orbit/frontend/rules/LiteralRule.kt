@@ -2,6 +2,7 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.nodes.IExpressionNode
 import org.orbit.core.nodes.RValueNode
+import org.orbit.core.nodes.RealLiteralNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
@@ -10,8 +11,8 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = default) : ValueRul
 		val default = arrayOf<ValueRule<*>>(
 			TupleLiteralRule,
 			InvokableReferenceRule,
-//			TypeIdentifierRule.Naked,
 			IdentifierRule,
+			RealLiteralRule,
 			IntLiteralRule,
 			BoolLiteralRule,
 			SymbolRule,

@@ -18,6 +18,6 @@ internal class CallTests: FileBasedTest("call-tests", "orb") {
 
     @Test
     fun `Isolate single test`() {
-        assert(Scenario.Pass, "type-lhs.orb", true)
+        assert(Scenario.Pass, "int-lhs.orb", true)
     }
 }

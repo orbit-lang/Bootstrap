@@ -12,3 +12,4 @@ object IntLiteralRule : ValueRule<IntLiteralNode> {
 		return +IntLiteralNode(start, start, start.text.toInt())
 	}
 }
+
