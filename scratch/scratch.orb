@@ -18,25 +18,20 @@ module Orb::Core::Errors {
     trait Error
 }
 
-module Foos {
-    trait Tr
-
-    type Foo : Tr
-
-    projection Foo : Tr
-}
-
-module Main with Orb::* with Foos {
-#    effect Cast = (A, B) => true
-#        when check A, B
+module Main with Orb::* {
+    effect Cast = (A, B) => B
+        ensures A = B
 #
     attribute Check = (A, B) => A = B
 #        with .Cast(A, B)
 
     attribute CheckTrait = (A, B) => A : B
 
-    alias CheckInt = (T, U) => Any where .CheckTrait(T, U)
-    alias CheckTest = .CheckInt(Foo, Tr)
+#    alias CheckInt = (T, U) => Any where .CheckTrait(U, T) else ${1}
+#    alias CheckTest = .CheckInt(Foo, Tr)
+    alias I = Int
+
+    projection Int : I
 
     fun (Any) main () () {
 

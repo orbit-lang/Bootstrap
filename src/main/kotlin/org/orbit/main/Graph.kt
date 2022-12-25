@@ -2,6 +2,7 @@ package org.orbit.main
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
@@ -11,6 +12,7 @@ import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.module
 import org.orbit.frontend.FileSourceProvider
+import org.orbit.frontend.MultiFileSourceProvider
 import org.orbit.frontend.utils.FrontendUtils
 import org.orbit.util.Invocation
 import java.io.File
@@ -20,6 +22,7 @@ object Graph : CliktCommand(), KoinComponent {
 
     private val source by argument(help = "Orbit source file to graph")
         .file()
+        .multiple()
 
     private val maxDepth by option("-x", Build.COMMAND_OPTION_LONG_MAX_CYCLES, help = "Sets the maximum allowed recursive cycles when resolving dependency graph")
         .int()
@@ -30,7 +33,7 @@ object Graph : CliktCommand(), KoinComponent {
             single { BuildConfig(maxDepth, "Scratch", File("./scratch/")) }
         })
 
-        val result = FrontendUtils.graph(FileSourceProvider(source))
+        val result = FrontendUtils.graph(MultiFileSourceProvider(source))
 
         println(result.graph)
 

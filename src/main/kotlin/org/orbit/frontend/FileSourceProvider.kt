@@ -13,6 +13,6 @@ class MultiFileSourceProvider(private val files: List<File>) : SourceProvider {
 	override fun getSource(): String {
 		val innerReaders = files.map(::FileSourceProvider)
 
-		return innerReaders.map { it.getSource() }.joinToString("\n")
+		return innerReaders.joinToString("\n") { it.getSource() }
 	}
 }
