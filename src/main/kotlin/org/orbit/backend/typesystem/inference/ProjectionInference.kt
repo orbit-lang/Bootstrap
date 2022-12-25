@@ -3,6 +3,7 @@ package org.orbit.backend.typesystem.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.kinds.KindUtil
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
@@ -94,7 +95,11 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
         }
 
         val projectedType = TypeInferenceUtils.infer(node.typeIdentifier, nEnv)
-        val projectedTrait = TypeInferenceUtils.inferAs<TypeExpressionNode, IType.Trait>(node.traitIdentifier, nEnv)
+        val pTrait = TypeInferenceUtils.infer(node.traitIdentifier, nEnv)
+            .flatten(IType.Always, nEnv)
+        val projectedTrait = pTrait as? IType.Trait
+            ?: throw invocation.make<TypeSystem>("Projecting conformance to non-Trait type $pTrait (Kind: ${KindUtil.getKind(pTrait, pTrait::class.java.simpleName,node)}) is currently unsupported", node.traitIdentifier)
+
         val projection = Projection(projectedType, projectedTrait)
         val mEnv = ProjectionEnvironment(nEnv, projection)
 

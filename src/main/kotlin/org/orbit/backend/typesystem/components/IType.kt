@@ -443,11 +443,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             return concreteTypes.filterIsInstance<TypeVar>()
         }
 
-        override fun getCanonicalName(): String
-            = name
-
-//        operator fun plus(other: Attribute) : Attribute
-//            = Attribute("$name • ${other.name}", (typeVariables + other.typeVariables).distinct()) { constraint(it) + other.constraint(it) }
+        override fun getCanonicalName(): String = name
 
         override fun getCardinality(): ITypeCardinality
             = ITypeCardinality.Zero

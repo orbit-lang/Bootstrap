@@ -43,8 +43,6 @@ private object AnyAttributeInvocationInference : IAttributeInvocationInference<I
 }
 
 object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironment>, KoinComponent {
-    private val invocation: Invocation by inject()
-
     override fun infer(node: TypeLambdaNode, env: IMutableTypeEnvironment): AnyType {
         val nEnv = env.fork()
 
