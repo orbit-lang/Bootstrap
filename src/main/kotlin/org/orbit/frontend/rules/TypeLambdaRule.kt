@@ -4,6 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.components.TokenTypes
+import org.orbit.core.nodes.AttributeOperatorExpressionNode
 import org.orbit.core.nodes.TypeLambdaConstraintNode
 import org.orbit.core.nodes.TypeLambdaNode
 import org.orbit.frontend.extensions.unaryPlus
@@ -14,10 +15,14 @@ object TypeLambdaConstraintRule : ParseRule<TypeLambdaConstraintNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val start = context.expect(TokenTypes.Where)
         val next = context.peek()
-        val invocation = context.attempt(AttributeInvocationRule)
+        val expr = context.attempt(AnyAttributeExpressionRule)
             ?: return ParseRule.Result.Failure.Throw("Expected Attribute invocation expression after `where`\n\te.g. `where .Equal(A, B)`", next)
 
-        return +TypeLambdaConstraintNode(start, invocation.lastToken, invocation)
+        if (expr is AttributeOperatorExpressionNode) {
+            return ParseRule.Result.Failure.Throw("Attribute Operators as Type Lambda Constraints are unsupported", next)
+        }
+
+        return +TypeLambdaConstraintNode(start, expr.lastToken, expr)
     }
 }
 

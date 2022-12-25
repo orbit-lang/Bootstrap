@@ -22,14 +22,34 @@ sealed interface AttributeOperator {
 
     val op: String
 
-    object And : AttributeOperator { override val op: String = "&" }
-    object Or : AttributeOperator { override val op: String = "|" }
+    object And : AttributeOperator {
+        override val op: String = "&"
 
-    fun apply(left: IType.Attribute.IAttributeApplication, right: IType.Attribute.IAttributeApplication, env: IMutableTypeEnvironment) : AnyMetaType
-        = left.invoke(env) + right.invoke(env)
+        override fun apply(left: IType.IAttribute, right: IType.IAttribute, env: IMutableTypeEnvironment): AnyMetaType
+            = left.invoke(env) + right.invoke(env)
+
+        override fun toString(): String = op
+    }
+
+    object Or : AttributeOperator {
+        override val op: String = "|"
+
+        override fun apply(left: IType.IAttribute, right: IType.IAttribute, env: IMutableTypeEnvironment): AnyMetaType = when (val l = left.invoke(env)) {
+            IType.Always -> when (val r = right.invoke(env)) {
+                is IType.Always -> IType.Always
+                else -> r
+            }
+
+            else -> l
+        }
+
+        override fun toString(): String = op
+    }
+
+    fun apply(left: IType.IAttribute, right: IType.IAttribute, env: IMutableTypeEnvironment) : AnyMetaType
 }
 
-interface IAttributeExpressionNode : INode
+sealed interface IAttributeExpressionNode : INode
 
 data class AttributeArrowNode(
     override val firstToken: Token,

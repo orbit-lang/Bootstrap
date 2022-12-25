@@ -50,10 +50,7 @@ class Lexer(
 
 			for (tt in tokenTypes) {
 				// NOTE - By doing these simple checks, we were able to recoup ~1/3 of the total lexing time
-				if (tt.family == TokenType.Family.Op) {
-					if (nextChar.isDigit()) continue
-					if (nextChar.isLetter()) continue
-				} else if (tt.family == TokenType.Family.Keyword) {
+				if (tt.family == TokenType.Family.Keyword) {
 					if (!nextChar.isLetter()) continue
 				}
 

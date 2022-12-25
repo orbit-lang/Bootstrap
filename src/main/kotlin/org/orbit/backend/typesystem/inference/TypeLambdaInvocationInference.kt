@@ -21,29 +21,11 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
         val arrow = when (fArrow) {
             is IType.ConstrainedArrow -> fArrow
             else -> {
-                env as? AttributedEnvironment ?: throw invocation.compilerError<TypeSystem>("Expected AttributedEnvironment, found $env", node)
-                if (node.arguments.count() > 1) TODO("Unsupported: 2+-ary Invokable Kinds")
-
-                val expectedArrow = IType.ConstrainedArrow(IType.Arrow1(IntrinsicKinds.Level0.type, IntrinsicKinds.Level0.type), emptyList())
-                val expectedKind = KindUtil.getKind(expectedArrow, expectedArrow::class.java.simpleName)
-                var isInvokable = false
-                for (attribute in env.knownAttributes) {
-                    val proofs = attribute.getOriginalAttribute().proofs
-                    for (proof in proofs) {
-                        if (proof !is IProof.IntrinsicProofs.HasKind) continue
-                        if (proof.source != fArrow) continue
-
-                        val kind = KindUtil.getKind(proof.target, proof.target::class.java.simpleName)
-
-                        isInvokable = kind == expectedKind
-                        break
-                    }
+                if (fArrow is IType.Attribute) {
+                    throw invocation.compilerError<TypeSystem>("Attempting to invoke Attribute ${fArrow} where Type Lambda expected. Attribute invocation only happens in Type Lambda `where` clauses", node)
                 }
-//
-                when (isInvokable) {
-                    true -> expectedArrow
-                    else -> throw invocation.make<TypeSystem>("Cannot invoke Type $pArrow", node.typeIdentifierNode)
-                }
+
+                throw invocation.make<TypeSystem>("Cannot invoke Type $pArrow", node.typeIdentifierNode)
             }
         }
 

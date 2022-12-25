@@ -22,7 +22,7 @@ data class TypeLambdaNode(
 data class TypeLambdaConstraintNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val invocation: AttributeInvocationNode
+    val invocation: IAttributeExpressionNode
 ) : INode {
     override fun getChildren(): List<INode>
         = listOf(invocation)

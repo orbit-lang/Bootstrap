@@ -9,56 +9,36 @@ module Orb::Core::Booleans {
     }
 }
 
-module Orb::Core::Numbers with Orb::Core::Errors {
+module Orb::Core::Numbers {
     type Int
     type Real
-
-    projection Int : Error
 }
 
 module Orb::Core::Errors {
     trait Error
 }
 
-module Orb::More::Attributes::Intrinsics {
-    attribute CheckKinds = (A, B) => A ^ B
-    attribute CheckTypes = (A, B) => A = B
-    attribute CheckTrait = (A, B) => A : B
+module Foos {
+    trait Tr
+
+    type Foo : Tr
+
+    projection Foo : Tr
 }
 
-module Main with Orb::* {
+module Main with Orb::* with Foos {
+#    effect Cast = (A, B) => true
+#        when check A, B
+#
     attribute Check = (A, B) => A = B
+#        with .Cast(A, B)
 
-    alias Option = (V) => (Some: { value V } | None: {})
-    alias Either = (L, R) => (Left: L | Right: R)
-    alias Choice = (A, B) => A where .Check(A, B) else .Either(A, B)
+    attribute CheckTrait = (A, B) => A : B
 
-    context OptionCtx [ValueType] {
-        fun (self .Option(ValueType)) force () (ValueType) = select self {
-            case Some(value) = value
-            case None = 0
-        }
-
-        postfix operator forceUnwrap `!` by ::force
-    }
-
-    context CoalesceCtx [ValueType, FallbackType] {
-        alias LocalOption = .Option(ValueType)
-        alias LocalChoice = .Choice(ValueType, FallbackType)
-
-        fun (self LocalOption) coalesce (fallback FallbackType) (LocalChoice) = select self {
-            case Some(value) = value
-            case None = fallback
-        }
-
-        infix operator infixCoalesce `??` by ::coalesce
-    }
+    alias CheckInt = (T, U) => Any where .CheckTrait(T, U)
+    alias CheckTest = .CheckInt(Foo, Tr)
 
     fun (Any) main () () {
-        typeOf true
-        typeOf false
 
-        typeOf ${99}
-        typeOf ${123.456}
     }
 }

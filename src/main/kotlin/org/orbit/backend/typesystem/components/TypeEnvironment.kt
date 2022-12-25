@@ -98,7 +98,7 @@ interface IMutableTypeEnvironment: ITypeEnvironment {
     fun localCopy() : IMutableTypeEnvironment
 }
 
-data class AttributedEnvironment(private val parent: IMutableTypeEnvironment, val knownAttributes: List<IType.Attribute.IAttributeApplication>): IMutableTypeEnvironment by parent
+data class AttributedEnvironment(private val parent: IMutableTypeEnvironment, val knownAttributes: List<IType.IAttribute>): IMutableTypeEnvironment by parent
 
 sealed interface ISelfTypeEnvironment : IMutableTypeEnvironment {
     fun getSelfType() : AnyType

@@ -16,20 +16,12 @@ import org.orbit.util.Invocation
 object AttributeOperatorExpressionInference : ITypeInference<AttributeOperatorExpressionNode, ITypeEnvironment> {
     override fun infer(node: AttributeOperatorExpressionNode, env: ITypeEnvironment): AnyType {
         val lType = TypeInferenceUtils.infer(node.leftExpression, env)
+            .flatten(IType.Always, env)
+
         val rType = TypeInferenceUtils.infer(node.rightExpression, env)
+            .flatten(IType.Always, env)
 
-        val proof = when (node.op) {
-            is ITypeBoundsOperator.Eq -> IProof.IntrinsicProofs.HasType(lType, rType)
-            is ITypeBoundsOperator.KindEq -> IProof.IntrinsicProofs.HasKind(lType, rType)
-            is ITypeBoundsOperator.Like -> IProof.IntrinsicProofs.HasTrait(lType, rType)
-            is ITypeBoundsOperator.UserDefined -> TODO("UserDefined Proof")
-        }
-
-        val attr = IType.Attribute("", emptyList(), listOf(proof)) {
-            node.op.apply(lType, rType, env)
-        }
-
-        return IType.Attribute.Application(attr, emptyList())
+        return node.op.apply(lType, rType, env)
     }
 }
 
@@ -41,11 +33,11 @@ object AttributeInvocationInference : ITypeInference<AttributeInvocationNode, IM
         val attribute = env.getTypeAs<IType.Attribute>(OrbitMangler.unmangle(node.identifier.getTypeName()))
             ?: throw invocation.make<TypeSystem>("Undefined Type Attribute `${node.identifier.getTypeName()}`", node.identifier)
 
-        val subs = attribute.typeVariables.zip(args)
+        val subs = attribute.abstractTypes.zip(args)
         val nAttribute = subs.fold(attribute) { acc, next ->
             acc.substitute(Substitution(next)) as IType.Attribute
         }
 
-        return IType.Attribute.Application(nAttribute, args)
+        return nAttribute.invoke(env)
     }
 }

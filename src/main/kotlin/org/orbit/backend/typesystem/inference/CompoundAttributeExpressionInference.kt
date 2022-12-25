@@ -10,9 +10,9 @@ import org.orbit.core.nodes.IAttributeExpressionNode
 
 object CompoundAttributeExpressionInference : ITypeInference<CompoundAttributeExpressionNode, IMutableTypeEnvironment> {
     override fun infer(node: CompoundAttributeExpressionNode, env: IMutableTypeEnvironment): AnyType {
-        val lResult = TypeInferenceUtils.inferAs<IAttributeExpressionNode, IType.Attribute.IAttributeApplication>(node.leftExpression, env)
-        val rResult = TypeInferenceUtils.inferAs<IAttributeExpressionNode, IType.Attribute.IAttributeApplication>(node.rightExpression, env)
+        val lResult = TypeInferenceUtils.inferAs<IAttributeExpressionNode, IType.Attribute>(node.leftExpression, env)
+        val rResult = TypeInferenceUtils.inferAs<IAttributeExpressionNode, IType.Attribute>(node.rightExpression, env)
 
-        return lResult.combine(node.op, rResult)
+        return lResult //.combine(node.op, rResult)
     }
 }

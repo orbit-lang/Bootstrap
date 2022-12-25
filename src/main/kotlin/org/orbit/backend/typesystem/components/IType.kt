@@ -1,5 +1,7 @@
 package org.orbit.backend.typesystem.components
 
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.kinds.IKind
 import org.orbit.backend.typesystem.intrinsics.OrbCoreBooleans
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
@@ -7,19 +9,16 @@ import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeCheckPosition
+import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.IIntrinsicOperator
-import org.orbit.core.nodes.AttributeOperator
-import org.orbit.core.nodes.INode
-import org.orbit.core.nodes.OperatorFixity
-import org.orbit.util.Invocation
-import org.orbit.util.PrintableKey
-import org.orbit.util.Printer
-import org.orbit.util.getKoinInstance
+import org.orbit.core.nodes.*
+import org.orbit.util.*
 import org.w3c.dom.Attr
 import java.util.Arrays
+import kotlin.math.abs
 
 fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) : M? {
     for (modifier in all()) {
@@ -381,81 +380,105 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Attribute(val name: String, val typeVariables: List<TypeVar> = emptyList(), val proofs: List<IProof> = emptyList(), val constraint: (IMutableTypeEnvironment) -> IMetaType<*>) : IType {
-        sealed interface IAttributeApplication : IType {
-            fun invoke(env: IMutableTypeEnvironment) : IMetaType<*>
+    object AttributeErrorFactory : KoinComponent {
+        private val invocation: Invocation by inject()
 
-            fun getOriginalAttribute() : Attribute
+        fun invokeUnsolved(attr: Attribute) : OrbitException {
+            // TODO - This currently implies that substitution always proceeds L -> R,
+            //  which might not be universally true
+            val missing = attr.getUnsolvedTypeVariables().joinToString(", ")
 
-            fun combine(op: AttributeOperator, other: IAttributeApplication) : IAttributeApplication
-                = CompoundApplication(op, this, other)
+            throw invocation.make<TypeSystem>("Attempting to invoke partially solved Attribute $attr.\nMissing bindings for the following Type Variables: $missing", attr.node)
         }
+    }
 
-        data class CompoundApplication(val op: AttributeOperator, val left: IAttributeApplication, val right: IAttributeApplication) : IAttributeApplication {
-            override val id: String = "${left.id} $op ${right.id}"
+    sealed interface IAttribute : IType {
+        fun invoke(env: IMutableTypeEnvironment) : AnyMetaType
+    }
 
-            override fun getOriginalAttribute(): Attribute
-                = left.getOriginalAttribute()
+    data class CompoundAttribute(val op: AttributeOperator, val left: IAttribute, val right: IAttribute) : IAttribute {
+        override val id: String = "${left.id} $op ${right.id}"
 
-            override fun invoke(env: IMutableTypeEnvironment): IMetaType<*>
-                = op.apply(left, right, env)
-
-            override fun getCardinality(): ITypeCardinality
-                = left.getCardinality() + right.getCardinality()
-
-            override fun substitute(substitution: Substitution): AnyType
-                = CompoundApplication(op, left.substitute(substitution) as IAttributeApplication, right.substitute(substitution) as IAttributeApplication)
-        }
-
-        data class Application(val attribute: Attribute, val args: List<AnyType>) : IAttributeApplication {
-            override val id: String = attribute.id
-
-            override fun getOriginalAttribute(): Attribute
-                = attribute
-
-            override fun invoke(env: IMutableTypeEnvironment) : IMetaType<*> {
-                if (args.count() != attribute.typeVariables.count()) {
-                    return Never("Attribute `${attribute.name}` expects ${attribute.typeVariables.count()} arguments, found ${args.count()}")
-                }
-
-                val nEnv = env.fork()
-                attribute.typeVariables.zip(args).forEach {
-                    nEnv.add(Alias(it.first.name, it.second))
-                }
-
-                return attribute.constraint(nEnv)
-            }
-
-            override fun getCardinality(): ITypeCardinality
-                = attribute.getCardinality()
-
-            // NOTE - We purposefully avoid substituting `attribute` here otherwise our abstract TypeVars are erased
-            override fun substitute(substitution: Substitution): AnyType
-                = Application(attribute, args.substitute(substitution))
-
-            override fun prettyPrint(depth: Int): String {
-                val pretty = args.joinToString(", ")
-
-                return "$attribute($pretty)"
-            }
-
-            override fun toString(): String
-                = prettyPrint()
-        }
-
-        override val id: String = "$name : (${typeVariables.joinToString(", ")}) => ?"
-
-        override fun getCanonicalName(): String
-            = name
-
-        operator fun plus(other: Attribute) : Attribute
-            = Attribute("$name • ${other.name}", (typeVariables + other.typeVariables).distinct()) { constraint(it) + other.constraint(it) }
+        override fun invoke(env: IMutableTypeEnvironment): AnyMetaType
+            = op.apply(left, right, env)
 
         override fun getCardinality(): ITypeCardinality
             = ITypeCardinality.Zero
 
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = left.getUnsolvedTypeVariables() + right.getUnsolvedTypeVariables()
+
         override fun substitute(substitution: Substitution): AnyType
-            = Attribute(name, typeVariables.substitute(substitution) as List<TypeVar>, proofs.substitute(substitution), constraint)
+            = CompoundAttribute(op, left.substitute(substitution) as  IAttribute, right.substitute(substitution) as IAttribute)
+
+        override fun prettyPrint(depth: Int): String
+            = "($left $op $right)"
+
+        override fun toString(): String
+            = prettyPrint()
+    }
+
+    data class Attribute(val name: String, val node: IAttributeExpressionNode, val abstractTypes: List<TypeVar> = emptyList(), val concreteTypes: List<AnyType> = abstractTypes) : IAttribute {
+        override val id: String = "$name : (${abstractTypes.joinToString(", ")}) => ?"
+
+        override fun invoke(env: IMutableTypeEnvironment) : AnyMetaType {
+            if (getUnsolvedTypeVariables().isNotEmpty()) throw AttributeErrorFactory.invokeUnsolved(this)
+
+            val nEnv = env.fork()
+
+            abstractTypes.zip(concreteTypes).forEach { nEnv.add(Alias(it.first.name, it.second)) }
+
+            return when (val result = TypeInferenceUtils.infer(node, nEnv)) {
+                is Never -> result.panic()
+                else -> Always
+            }
+        }
+
+        // NOTE - This currently implies that substitution always proceeds L -> R,
+        //  which might not be universally true
+        override fun getUnsolvedTypeVariables(): List<TypeVar> {
+            if (abstractTypes.isEmpty()) return emptyList()
+            if (abstractTypes.count() > concreteTypes.count()) return abstractTypes.drop(concreteTypes.count())
+
+            return concreteTypes.filterIsInstance<TypeVar>()
+        }
+
+        override fun getCanonicalName(): String
+            = name
+
+//        operator fun plus(other: Attribute) : Attribute
+//            = Attribute("$name • ${other.name}", (typeVariables + other.typeVariables).distinct()) { constraint(it) + other.constraint(it) }
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Zero
+
+        override fun substitute(substitution: Substitution): AnyType {
+            val unsolved = getUnsolvedTypeVariables()
+
+            if (unsolved.isEmpty()) return this
+
+            return Attribute(name, node, abstractTypes, concreteTypes.substitute(substitution))
+        }
+
+        override fun prettyPrint(depth: Int): String {
+            val printer = getKoinInstance<Printer>()
+            val prettyName = printer.apply(name, PrintableKey.Italics, PrintableKey.Bold)
+
+            val typeParameters = mutableListOf<AnyType>()
+            for (abstract in abstractTypes.withIndex()) {
+                val concrete = concreteTypes.getOrNull(abstract.index)
+                    ?: abstract.value
+
+                typeParameters.add(concrete)
+            }
+
+            val prettyTypeVars = typeParameters.joinToString(", ")
+
+            return "$prettyName($prettyTypeVars)"
+        }
+
+        override fun toString(): String
+            = prettyPrint()
     }
 
     sealed interface IArrayConstructor : IConstructor<Array> {
@@ -1014,7 +1037,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         }
     }
 
-    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<Attribute.IAttributeApplication>, val fallback: AnyType? = null) : IArrow<ConstrainedArrow>, IConstructableType<ConstrainedArrow> {
+    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<IAttribute>, val fallback: AnyType? = null) : IArrow<ConstrainedArrow>, IConstructableType<ConstrainedArrow> {
         override val id: String = "$arrow + ${constraints.joinToString(", ")}"
 
         override fun isSpecialised(): Boolean = false
@@ -1035,8 +1058,8 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = arrow.never(args)
 
         override fun substitute(substitution: Substitution): AnyType = when (fallback) {
-            null -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute.Application>)
-            else -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute.Application>, fallback.substitute(substitution))
+            null -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute>)
+            else -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute>, fallback.substitute(substitution))
         }
 
         override fun prettyPrint(depth: Int): String {
