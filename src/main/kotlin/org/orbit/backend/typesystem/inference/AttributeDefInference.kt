@@ -16,7 +16,12 @@ import org.orbit.util.Invocation
 object AttributeDefInference : ITypeInference<AttributeDefNode, IMutableTypeEnvironment>, KoinComponent {
     override fun infer(node: AttributeDefNode, env: IMutableTypeEnvironment): AnyType {
         val typeVariables = node.arrow.parameters.map { IType.TypeVar(it.getTypeName()) }
-        val attribute = IType.Attribute(node.getPath().toString(OrbitMangler), node.arrow.constraint, typeVariables)
+        val nEnv = env.fork()
+
+        typeVariables.forEach { nEnv.add(it) }
+
+        val body = TypeInferenceUtils.inferAs<IAttributeExpressionNode, IType.IAttributeExpression>(node.arrow.constraint, nEnv)
+        val attribute = IType.Attribute(node.getPath().toString(OrbitMangler), body, typeVariables, node.arrow.effects)
 
         env.add(attribute)
 

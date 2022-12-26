@@ -48,6 +48,21 @@ object AttributeOperatorExpressionPathResolver : IPathResolver<AttributeOperator
     }
 }
 
+object TypeEffectInvocationPathResolver : IPathResolver<TypeEffectInvocationNode> {
+    override val invocation: Invocation by inject()
+    private val pathResolverUtil: PathResolverUtil by inject()
+
+    override fun resolve(input: TypeEffectInvocationNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
+        input.effectIdentifier.annotate(input.getGraphID(), Annotations.graphId)
+        input.arguments.forEach {
+            it.annotate(input.getGraphID(), Annotations.graphId)
+            pathResolverUtil.resolve(it, IPathResolver.Pass.Initial, environment, graph)
+        }
+
+        return pathResolverUtil.resolve(input.effectIdentifier, IPathResolver.Pass.Initial, environment, graph)
+    }
+}
+
 object AttributeArrowPathResolver : IPathResolver<AttributeArrowNode> {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
@@ -59,6 +74,9 @@ object AttributeArrowPathResolver : IPathResolver<AttributeArrowNode> {
                 it.annotate(input.getGraphID(), Annotations.graphId)
                 environment.bind(Binding.Kind.Type, it.getTypeName(), Path(it.getTypeName()))
             }
+
+            input.effects.forEach { it.annotate(input.getGraphID(), Annotations.graphId) }
+            pathResolverUtil.resolveAll(input.effects, pass, environment, graph)
 
             pathResolverUtil.resolve(input.constraint, pass, environment, graph).also {
                 input.annotate(it.asSuccess().path, Annotations.path)

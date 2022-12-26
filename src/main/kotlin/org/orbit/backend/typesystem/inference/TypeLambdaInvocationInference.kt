@@ -35,7 +35,9 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
             throw invocation.make<TypeSystem>("Invocation of Type Lambda $arrow expects ${arrow.getDomain().count()} Type arguments, found ${args.count()}", node)
         }
 
-        val nArrow = arrow.getDomain().zip(args).fold(arrow) { acc, next -> acc.substitute(Substitution(next.first, next.second)) as IType.ConstrainedArrow }
+        val nArrow = arrow.getDomain().zip(args).fold(arrow) {
+            acc, next -> acc.substitute(Substitution(next.first, next.second)) as IType.ConstrainedArrow
+        }
 
         nArrow.constraints.forEach {
             try {

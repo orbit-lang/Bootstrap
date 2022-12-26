@@ -21,7 +21,9 @@ private object SingleAttributeInvocationInference : IAttributeInvocationInferenc
         val attr = env.getTypeAs<IType.Attribute>(OrbitMangler.unmangle(attrName))
             ?: throw invocation.make<TypeSystem>("Undefined Type Attribute `$attrName`", node.identifier)
 
-        return attr.abstractTypes.zip(concrete).fold(attr) { acc, next -> acc.substitute(Substitution(next.first, next.second)) as IType.Attribute }
+        return attr.typeVariables.zip(concrete).fold(attr) { acc, next ->
+            acc.substitute(Substitution(next.first, next.second)) as IType.Attribute
+        }
     }
 }
 

@@ -21,7 +21,7 @@ object AttributeOperatorExpressionInference : ITypeInference<AttributeOperatorEx
         val rType = TypeInferenceUtils.infer(node.rightExpression, env)
             .flatten(IType.Always, env)
 
-        return node.op.apply(lType, rType, env)
+        return IType.TypeOperatorExpression(node.op, lType, rType)
     }
 }
 
@@ -33,11 +33,11 @@ object AttributeInvocationInference : ITypeInference<AttributeInvocationNode, IM
         val attribute = env.getTypeAs<IType.Attribute>(OrbitMangler.unmangle(node.identifier.getTypeName()))
             ?: throw invocation.make<TypeSystem>("Undefined Type Attribute `${node.identifier.getTypeName()}`", node.identifier)
 
-        val subs = attribute.abstractTypes.zip(args)
+        val subs = attribute.typeVariables.zip(args)
         val nAttribute = subs.fold(attribute) { acc, next ->
             acc.substitute(Substitution(next)) as IType.Attribute
         }
 
-        return nAttribute.invoke(env)
+        return IType.AttributeInvocationExpression(nAttribute, args)
     }
 }

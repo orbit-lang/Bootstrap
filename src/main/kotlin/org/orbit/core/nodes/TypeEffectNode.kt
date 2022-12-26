@@ -26,3 +26,13 @@ data class TypeEffectNode(
     override fun getChildren(): List<INode>
         = listOf(identifier) + parameters + body
 }
+
+data class TypeEffectInvocationNode(
+    override val firstToken: Token,
+    override val lastToken: Token,
+    val effectIdentifier: TypeIdentifierNode,
+    val arguments: List<TypeIdentifierNode>
+) : INode {
+    override fun getChildren(): List<INode>
+        = listOf(effectIdentifier) + arguments
+}

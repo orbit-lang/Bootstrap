@@ -1,22 +1,24 @@
-#module Orb::Core::Types {
-#    type Unit
-#}
-#
-#module Orb::Core::Booleans {
-#    type Bool {
-#        constructor True
-#        constructor False
-#    }
-#}
-#
-#module Orb::Core::Numbers {
-#    type Int
-#    type Real
-#}
-#
+module Orb::Core::Types {
+    type Unit
+}
 
-module Orb::Core::Errors {
+module Orb::Core::Booleans {
+    type Bool {
+        constructor True
+        constructor False
+    }
+}
+
+module Orb::Core::Numbers {
+    type Int
+    type Real
+}
+
+
+module Orb::Core::Errors with Orb::Core::* {
     trait Error
+
+#    projection Int : Error
 }
 
 module Main with Orb::* {
@@ -24,10 +26,13 @@ module Main with Orb::* {
 
     attribute ErrorCast = (A) => A : Error
         with .AutoProjection(A, Error)
+
+    alias Test = (T) => Any where .ErrorCast(T)
+    alias ITest = .Test(Error)
 #
-#    attribute TraitCast = (A, B) => A : B
-#        with .AutoProjection(A, B)
-#
+    attribute TraitCast = (A, B) => A : B
+        with .AutoProjection(A, B)
+
 #    context ErrorCtx [E] where .TraitCast(E, Error) {
 #
 #    }

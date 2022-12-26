@@ -106,6 +106,7 @@ val mainModule = module {
 		util.registerPathResolver(TaggedTypeExpressionPathResolver, TaggedTypeExpressionNode::class.java)
 		util.registerPathResolver(RealLiteralPathResolver, RealLiteralNode::class.java)
 		util.registerPathResolver(ProjectionEffectPathResolver, ProjectionEffectNode::class.java)
+		util.registerPathResolver(TypeEffectInvocationPathResolver, TypeEffectInvocationNode::class.java)
 
 		util
 	}

@@ -55,10 +55,11 @@ data class AttributeArrowNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val parameters: List<TypeIdentifierNode>,
-    val constraint: IAttributeExpressionNode
+    val constraint: IAttributeExpressionNode,
+    val effects: List<TypeEffectInvocationNode>
 ) : INode {
     override fun getChildren(): List<INode>
-        = parameters + constraint
+        = parameters + constraint + effects
 }
 
 data class CompoundAttributeExpressionNode(

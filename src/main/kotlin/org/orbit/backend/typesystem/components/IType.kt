@@ -14,6 +14,7 @@ import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.IIntrinsicOperator
+import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.*
 import org.orbit.util.*
 import org.w3c.dom.Attr
@@ -388,7 +389,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             //  which might not be universally true
             val missing = attr.getUnsolvedTypeVariables().joinToString(", ")
 
-            throw invocation.make<TypeSystem>("Attempting to invoke partially solved Attribute $attr.\nMissing bindings for the following Type Variables: $missing", attr.node)
+            throw invocation.make<TypeSystem>("Attempting to invoke partially solved Attribute $attr.\nMissing bindings for the following Type Variables: $missing", SourcePosition.unknown)
         }
     }
 
@@ -453,17 +454,49 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = effects.fold(Always as AnyMetaType) { acc, next -> acc + next.invoke(env) }
     }
 
-    data class Attribute(val name: String, val node: IAttributeExpressionNode, val abstractTypes: List<TypeVar> = emptyList(), val concreteTypes: List<AnyType> = abstractTypes) : IAttribute {
+    sealed interface IAttributeExpression : IType {
+        fun evaluate(env: IMutableTypeEnvironment) : AnyMetaType
+    }
+
+    data class TypeOperatorExpression(val op: ITypeBoundsOperator, val left: AnyType, val right: AnyType) : IAttributeExpression {
+        override val id: String = "(${left.id} $op ${right.id})"
+
+        override fun evaluate(env: IMutableTypeEnvironment): AnyMetaType
+            = op.apply(left, right, env)
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Zero
+
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = (left.getUnsolvedTypeVariables() + right.getUnsolvedTypeVariables()).distinct()
+
+        override fun substitute(substitution: Substitution): AnyType
+            = TypeOperatorExpression(op, left.substitute(substitution), right.substitute(substitution))
+    }
+
+    data class AttributeInvocationExpression(val attribute: IAttribute, val args: List<AnyType>) : IAttributeExpression {
+        override val id: String = ".${attribute.id}(${args.joinToString(", ")})"
+
+        override fun evaluate(env: IMutableTypeEnvironment): AnyMetaType
+            = attribute.invoke(env)
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Zero
+
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = attribute.getUnsolvedTypeVariables()
+
+        override fun substitute(substitution: Substitution): AnyType
+            = AttributeInvocationExpression(attribute.substitute(substitution) as IAttribute, args.substitute(substitution))
+    }
+
+    data class Attribute(val name: String, val body: IAttributeExpression, val typeVariables: List<AnyType> = emptyList(), val effects: List<TypeEffectInvocationNode>) : IAttribute {
         override val id: String = "attribute $name"
 
         override fun invoke(env: IMutableTypeEnvironment) : AnyMetaType {
             if (getUnsolvedTypeVariables().isNotEmpty()) throw AttributeErrorFactory.invokeUnsolved(this)
 
-            val nEnv = env.fork()
-
-            abstractTypes.zip(concreteTypes).forEach { nEnv.add(Alias(it.first.name, it.second)) }
-
-            return when (val result = TypeInferenceUtils.infer(node, nEnv)) {
+            return when (val result = body.evaluate(env)) {
                 is Never -> result.panic()
                 else -> Always
             }
@@ -471,12 +504,8 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         // NOTE - This currently implies that substitution always proceeds L -> R,
         //  which might not be universally true
-        override fun getUnsolvedTypeVariables(): List<TypeVar> {
-            if (abstractTypes.isEmpty()) return emptyList()
-            if (abstractTypes.count() > concreteTypes.count()) return abstractTypes.drop(concreteTypes.count())
-
-            return concreteTypes.filterIsInstance<TypeVar>()
-        }
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = typeVariables.filterIsInstance<TypeVar>()
 
         override fun getCanonicalName(): String = name
 
@@ -488,22 +517,13 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
             if (unsolved.isEmpty()) return this
 
-            return Attribute(name, node, abstractTypes, concreteTypes.substitute(substitution))
+            return Attribute(name, body.substitute(substitution) as IAttributeExpression, typeVariables.substitute(substitution), effects)
         }
 
         override fun prettyPrint(depth: Int): String {
             val printer = getKoinInstance<Printer>()
             val prettyName = printer.apply(name, PrintableKey.Italics, PrintableKey.Bold)
-
-            val typeParameters = mutableListOf<AnyType>()
-            for (abstract in abstractTypes.withIndex()) {
-                val concrete = concreteTypes.getOrNull(abstract.index)
-                    ?: abstract.value
-
-                typeParameters.add(concrete)
-            }
-
-            val prettyTypeVars = typeParameters.joinToString(", ")
+            val prettyTypeVars = typeVariables.joinToString(", ")
 
             return "$prettyName($prettyTypeVars)"
         }
