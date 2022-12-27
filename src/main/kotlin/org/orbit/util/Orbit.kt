@@ -107,6 +107,7 @@ val mainModule = module {
 		util.registerPathResolver(RealLiteralPathResolver, RealLiteralNode::class.java)
 		util.registerPathResolver(ProjectionEffectPathResolver, ProjectionEffectNode::class.java)
 		util.registerPathResolver(TypeEffectInvocationPathResolver, TypeEffectInvocationNode::class.java)
+		util.registerPathResolver(AttributeMetaTypeExpressionPathResolver, AttributeMetaTypeExpressionNode::class.java)
 
 		util
 	}
@@ -185,6 +186,8 @@ val mainModule = module {
 	single(DiscardBindingPatternInference)
 	single(RealLiteralInference)
 	single(TypeEffectInference)
+	single(TypeEffectInvocationInference)
+	single(AttributeMetaTypeExpressionInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

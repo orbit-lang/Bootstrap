@@ -7,7 +7,7 @@ import org.orbit.frontend.phase.Parser
 object AnyAttributeExpressionRule : ParseRule<IAttributeExpressionNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val collector = context.startCollecting()
-        val node = context.attemptAny(listOf(AttributeOperatorExpressionRule, AttributeInvocationRule))
+        val node = context.attemptAny(listOf(AttributeOperatorExpressionRule, AttributeInvocationRule, AttributeMetaTypeExpressionRule))
             as? IAttributeExpressionNode
             ?: return ParseRule.Result.Failure.Rewind(collector)
 

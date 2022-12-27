@@ -15,23 +15,28 @@ object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
 
         abstracts.forEach { nEnv.add(it.abstract) }
 
-        val constraints = TypeInferenceUtils.inferAllAs<WhereClauseNode, ITypeConstraint>(node.clauses, nEnv)
-        val groupedConstraints = mutableMapOf<AnyType, List<ITypeConstraint>>()
-        for (constraint in constraints) {
-            val pConstraints = groupedConstraints[constraint.type] ?: emptyList()
+        val constraints = TypeInferenceUtils.inferAllAs<IContextClauseExpressionNode, IType.AttributeInvocationExpression>(node.clauses, nEnv)
 
-            if (pConstraints.contains(constraint)) continue
 
-            groupedConstraints[constraint.type] = pConstraints + constraints.filter { it.type === constraint.type }
-        }
+//        val groupedConstraints = mutableMapOf<AnyType, List<ITypeConstraint>>()
+//        for (constraint in constraints) {
+//            val pConstraints = groupedConstraints[constraint.type] ?: emptyList()
+//
+//            if (pConstraints.contains(constraint)) continue
+//
+//            groupedConstraints[constraint.type] = pConstraints + constraints.filter { it.type === constraint.type }
+//        }
+
+        constraints.forEach { it.evaluate(nEnv) }
 
         val nAbstracts = when (constraints.isEmpty()) {
             true -> abstracts
-            else -> groupedConstraints.mapNotNull {
-                val abstract = it.key as? IType.TypeVar ?: return@mapNotNull null
-
-                Specialisation(IType.TypeVar(abstract.name, it.value))
-            }
+            else -> abstracts
+//            else -> groupedConstraints.mapNotNull {
+//                val abstract = it.key as? IType.TypeVar ?: return@mapNotNull null
+//
+//                Specialisation(IType.TypeVar(abstract.name, it.value))
+//            }
         }
 
         val nCtx = Context(node.getPath(), nAbstracts)

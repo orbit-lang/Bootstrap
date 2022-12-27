@@ -14,26 +14,54 @@ module Orb::Core::Numbers {
     type Real
 }
 
-
 module Orb::Core::Errors with Orb::Core::* {
     trait Error
-
-#    projection Int : Error
 }
 
 module Main with Orb::* {
-    effect AutoProjection = (A, B) => projection A : B
+    trait IntRepresentable {
+        fun (self Self) intValue () (Int)
+    }
+
+    effect Projection = (A, B) => projection A : B
 
     attribute ErrorCast = (A) => A : Error
-        with .AutoProjection(A, Error)
+        with .Projection(A, Error)
 
-    alias Test = (T) => Any where .ErrorCast(T)
-    alias ITest = .Test(Error)
-#
-    attribute TraitCast = (A, B) => A : B
-        with .AutoProjection(A, B)
+    attribute TraitCast = (A, B) => Any
+        with .Projection(A, B)
 
-#    context ErrorCtx [E] where .TraitCast(E, Error) {
+    alias IntRepresentableCast = (T) => T
+        where .TraitCast(T, IntRepresentable)
+
+    context IntRepresentableCtx [I] where .TraitCast(I, IntRepresentable) {
+        fun (self I) test () (Int) = self.intValue()
+    }
+
+#    projection Int : IntRepresentable
+#        with intValue by { x ->
+#            typeOf x
+#            x
+#        }
 #
-#    }
+#    projection Real : IntRepresentable
+#        with intValue by { x -> 0 }
+
+    alias Either = (A, B) => (L: A | R: B)
+
+
+
+#    projection True : IntRepresentable
+#        with intValue by { x -> 0 }
+
+    fun (Unit) main () () {
+#        a = 1.intValue()
+#        b = 123.321.intValue()
+#        c = true.intValue()
+        p = .Either(Int, Real)()
+        typeOf p
+
+#        typeOf a
+#        typeOf b
+    }
 }

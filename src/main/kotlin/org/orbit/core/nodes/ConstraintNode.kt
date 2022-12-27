@@ -84,12 +84,21 @@ data class AttributeOperatorExpressionNode(
         = listOf(leftExpression, rightExpression)
 }
 
+data class AttributeMetaTypeExpressionNode(
+    override val firstToken: Token,
+    override val lastToken: Token,
+    val metaType: TypeIdentifierNode
+) : IAttributeExpressionNode {
+    override fun getChildren(): List<INode>
+        = listOf(metaType)
+}
+
 data class AttributeInvocationNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val identifier: TypeIdentifierNode,
     val arguments: List<TypeExpressionNode>
-) : IAttributeExpressionNode {
+) : IAttributeExpressionNode, IContextClauseExpressionNode {
     override fun getChildren(): List<INode>
         = listOf(identifier) + arguments
 }

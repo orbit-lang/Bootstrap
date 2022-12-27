@@ -47,12 +47,21 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
             throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> *`", node)
         }
 
-        possibleArrows = possibleArrows.filter { TypeUtils.checkEq(env, it.component.receiver, receiver) }
+        possibleArrows = possibleArrows.filter { TypeUtils.checkEq(env, receiver, it.component.receiver) }
 
         if (possibleArrows.count() > 1) {
             // See if we can find the most "specific" match (we could get here if a method was overloaded for a Trait AND an implementation of that Trait
             possibleArrows = possibleArrows.filter {
-                it.component.receiver.getCanonicalName() == receiver.getCanonicalName() || it.component.receiver.flatten(IType.Always, env) == receiver
+                receiver.getCanonicalName() == it.component.receiver.getCanonicalName() || TypeUtils.checkEq(env, receiver, it.component.receiver)
+            }
+
+            if (possibleArrows.count() > 1 && receiver is IType.TypeVar) {
+                possibleArrows = possibleArrows.filter {
+                    val synth = ProofAssistant.synthesise(receiver, env)
+                    val flat = it.component.receiver.flatten(IType.Always, env)
+
+                    synth == flat
+                }
             }
 
             if (possibleArrows.count() > 1) {
@@ -93,9 +102,15 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
                 for (tv in allUnsolved) {
                     val proof = ProofAssistant.resolve(tv, arrow, receiver, args)
 
-                    if (proof !is IType.TypeVar) {
+                    if (proof is IType.TypeVar) {
+                        // We couldn't find any evidence of `tv` aliasing a concrete type,
+                        // but if it has projections, we might be able to synthesise one
+                        val synth = ProofAssistant.synthesise(proof, env)
+                            ?: break
+
+                        substitutions.add(Substitution(tv, synth))
+                    } else {
                         substitutions.add(Substitution(tv, proof))
-                        continue
                     }
                 }
 
@@ -117,6 +132,16 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
 
 // TODO - Generalise & recurse
 object ProofAssistant {
+    fun synthesise(typeVariable: IType.TypeVar, env: ITypeEnvironment) : IType.Trait? {
+        val projections = env.getProjections(typeVariable)
+
+        return when (projections.count()) {
+            0 -> null
+            1 -> projections[0].component.target
+            else -> TODO("Synthesising Types from multiple Traits is currently unsupported")
+        }
+    }
+
     fun resolve(typeVariable: IType.TypeVar, arrow: AnyArrow, receiver: AnyType, args: List<AnyType>) : AnyType {
         val allArgs = listOf(receiver) + args
 

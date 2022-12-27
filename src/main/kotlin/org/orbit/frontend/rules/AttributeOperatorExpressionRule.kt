@@ -6,16 +6,21 @@ import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
 object AttributeOperatorExpressionRule : ParseRule<AttributeOperatorExpressionNode> {
+    private val validOpTokenTypes = listOf(TokenTypes.OperatorSymbol, TokenTypes.Assignment, TokenTypes.Colon, TokenTypes.Identifier)
+
     override fun parse(context: Parser): ParseRule.Result {
         val collector = context.startCollecting()
         val lExpr = context.attempt(TypeExpressionRule)
             ?: return ParseRule.Result.Failure.Rewind(collector)
 
-        val op = context.expectAny(
-            TokenTypes.OperatorSymbol,
-            TokenTypes.Assignment,
-            TokenTypes.Colon,
-            TokenTypes.Identifier, consumes = true)
+        var next = context.peek()
+
+        if (next.type !in validOpTokenTypes) {
+            return ParseRule.Result.Failure.Rewind(collector)
+        }
+
+        val op = context.consume()
+
         val boundsType = ITypeBoundsOperator.valueOf(op)
         val rExpr = context.attempt(TypeExpressionRule)
             ?: return ParseRule.Result.Failure.Throw(
@@ -23,7 +28,7 @@ object AttributeOperatorExpressionRule : ParseRule<AttributeOperatorExpressionNo
                 collector.getCollectedTokens().last()
             )
 
-        var next = context.peek()
+        next = context.peek()
         var lhs: IAttributeExpressionNode =
             AttributeOperatorExpressionNode(lExpr.firstToken, rExpr.lastToken, boundsType, lExpr, rExpr)
         while (next.type == TokenTypes.OperatorSymbol) {

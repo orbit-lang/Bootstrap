@@ -6,6 +6,7 @@ import org.orbit.frontend.rules.IntrinsicContextCompositionOperator
 interface IContextExpressionNode : INode
 
 sealed interface IContextDeclarationNode : INode
+sealed interface IContextClauseExpressionNode : INode
 
 data class ContextNode(
     override val firstToken: Token,
@@ -13,7 +14,7 @@ data class ContextNode(
     val contextIdentifier: TypeIdentifierNode,
     val typeVariables: List<TypeIdentifierNode>,
     val variables: List<PairNode>,
-    val clauses: List<WhereClauseNode>,
+    val clauses: List<IContextClauseExpressionNode>,
     val body: List<IContextDeclarationNode>
 ) : INode {
     override fun getChildren(): List<INode>

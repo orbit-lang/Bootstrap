@@ -94,6 +94,7 @@ interface IMutableTypeEnvironment: ITypeEnvironment {
     fun add(type: AnyType, explicitContext: Context)
     fun add(projection: Projection, type: AnyType)
     fun add(context: Context)
+    fun replace(old: AnyType, new: AnyType)
     fun bind(name: String, type: AnyType, index: Int)
     fun localCopy() : IMutableTypeEnvironment
 }
@@ -169,6 +170,9 @@ class LocalEnvironment(private val parent: IMutableTypeEnvironment, override val
     private val storage = TypeEnvironmentStorage(parent.getCurrentContext())
 
     override fun localCopy(): IMutableTypeEnvironment = this
+
+    override fun replace(old: AnyType, new: AnyType)
+        = storage.replace(old, new)
 
     override fun add(type: AnyType) {
         storage.add(type)
@@ -307,6 +311,17 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
         nStorage.bindings.addAll(bindings)
 
         return nStorage
+    }
+
+    override fun replace(old: AnyType, new: AnyType) {
+        val idx = types.indexOfFirst { it.component === old }
+
+        if (idx == -1) return
+
+        val elem = types[idx]
+
+        types.removeAt(idx)
+        types.add(ContextualDeclaration(elem.context, new))
     }
 
     override fun add(type: AnyType) {

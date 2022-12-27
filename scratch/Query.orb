@@ -1,0 +1,12 @@
+module Query {
+    query ConformanceQuery = (Tr) => (T) => T : Tr
+
+    trait IntRepresentable {
+        (self Self) intValue () (Int)
+    }
+
+    projection Int : IntRepresentable
+        with intValue by { self -> self }
+
+    alias ConformingType by .ConformanceQuery(IntRepresentable) # Int
+}

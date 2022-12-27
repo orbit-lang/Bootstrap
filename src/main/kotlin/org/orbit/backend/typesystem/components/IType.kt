@@ -2,14 +2,12 @@ package org.orbit.backend.typesystem.components
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.kinds.IKind
 import org.orbit.backend.typesystem.intrinsics.OrbCoreBooleans
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeCheckPosition
-import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
@@ -17,9 +15,6 @@ import org.orbit.core.components.IIntrinsicOperator
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.*
 import org.orbit.util.*
-import org.w3c.dom.Attr
-import java.util.Arrays
-import kotlin.math.abs
 
 fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) : M? {
     for (modifier in all()) {
@@ -437,12 +432,21 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
             env.add(Projection(type, trait), type)
 
+            if (type is TypeVar) {
+                val nType = TypeVar(type.name, listOf(ConformanceConstraint(type, trait)))
+
+                env.replace(type, nType)
+            }
+
             return Always
         }
     }
 
     data class TypeEffect(val name: String, val arguments: List<AnyType>, val effects: List<ITypeEffect>) : ITypeEffect {
         override val id: String = "effect $name"
+
+        override fun getCanonicalName(): String
+            = name
 
         override fun getCardinality(): ITypeCardinality
             = ITypeCardinality.Zero
@@ -458,7 +462,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         fun evaluate(env: IMutableTypeEnvironment) : AnyMetaType
     }
 
-    data class TypeOperatorExpression(val op: ITypeBoundsOperator, val left: AnyType, val right: AnyType) : IAttributeExpression {
+    data class AttributeTypeOperatorExpression(val op: ITypeBoundsOperator, val left: AnyType, val right: AnyType) : IAttributeExpression {
         override val id: String = "(${left.id} $op ${right.id})"
 
         override fun evaluate(env: IMutableTypeEnvironment): AnyMetaType
@@ -471,7 +475,23 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = (left.getUnsolvedTypeVariables() + right.getUnsolvedTypeVariables()).distinct()
 
         override fun substitute(substitution: Substitution): AnyType
-            = TypeOperatorExpression(op, left.substitute(substitution), right.substitute(substitution))
+            = AttributeTypeOperatorExpression(op, left.substitute(substitution), right.substitute(substitution))
+    }
+
+    data class AttributeMetaTypeExpression(val metaType: AnyMetaType) : IAttributeExpression {
+        override val id: String = metaType.id
+
+        override fun evaluate(env: IMutableTypeEnvironment): AnyMetaType
+            = metaType
+
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Zero
+
+        override fun getUnsolvedTypeVariables(): List<TypeVar>
+            = emptyList()
+
+        override fun substitute(substitution: Substitution): AnyType
+            = this
     }
 
     data class AttributeInvocationExpression(val attribute: IAttribute, val args: List<AnyType>) : IAttributeExpression {
@@ -490,15 +510,20 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = AttributeInvocationExpression(attribute.substitute(substitution) as IAttribute, args.substitute(substitution))
     }
 
-    data class Attribute(val name: String, val body: IAttributeExpression, val typeVariables: List<AnyType> = emptyList(), val effects: List<TypeEffectInvocationNode>) : IAttribute {
+    data class Attribute(val name: String, val body: IAttributeExpression, val typeVariables: List<AnyType> = emptyList(), val effects: List<TypeEffect>) : IAttribute {
         override val id: String = "attribute $name"
 
         override fun invoke(env: IMutableTypeEnvironment) : AnyMetaType {
-            if (getUnsolvedTypeVariables().isNotEmpty()) throw AttributeErrorFactory.invokeUnsolved(this)
+//            if (getUnsolvedTypeVariables().isNotEmpty()) throw AttributeErrorFactory.invokeUnsolved(this)
 
             return when (val result = body.evaluate(env)) {
                 is Never -> result.panic()
-                else -> Always
+                else -> {
+                    // If the premise `body` succeeds, we can now propagate our effects
+                    effects.forEach { it.invoke(env) }
+
+                    Always
+                }
             }
         }
 
@@ -517,7 +542,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
             if (unsolved.isEmpty()) return this
 
-            return Attribute(name, body.substitute(substitution) as IAttributeExpression, typeVariables.substitute(substitution), effects)
+            return Attribute(name, body.substitute(substitution) as IAttributeExpression, typeVariables.substitute(substitution), effects.substitute(substitution) as List<TypeEffect>)
         }
 
         override fun prettyPrint(depth: Int): String {

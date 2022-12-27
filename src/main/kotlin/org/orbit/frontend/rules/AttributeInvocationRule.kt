@@ -1,12 +1,27 @@
 package org.orbit.frontend.rules
 
+import org.koin.core.component.KoinComponent
+import org.orbit.core.Path
 import org.orbit.core.components.TokenTypes
-import org.orbit.core.nodes.AttributeInvocationNode
-import org.orbit.core.nodes.AttributeOperator
-import org.orbit.core.nodes.CompoundAttributeExpressionNode
-import org.orbit.core.nodes.IAttributeExpressionNode
+import org.orbit.core.nodes.*
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
+
+object AttributeMetaTypeExpressionRule : ParseRule<AttributeMetaTypeExpressionNode>, KoinComponent {
+    override fun parse(context: Parser): ParseRule.Result {
+        val collector = context.startCollecting()
+        val start = context.attempt(TypeIdentifierRule.Naked)
+            ?: return ParseRule.Result.Failure.Rewind(collector)
+
+        val path = Path(start.value)
+
+        if (path !in listOf(Path.any, Path.never)) {
+            return ParseRule.Result.Failure.Rewind(collector)
+        }
+
+        return +AttributeMetaTypeExpressionNode(start.firstToken, start.lastToken, start)
+    }
+}
 
 object AttributeInvocationRule : ParseRule<AttributeInvocationNode> {
     override fun parse(context: Parser): ParseRule.Result {

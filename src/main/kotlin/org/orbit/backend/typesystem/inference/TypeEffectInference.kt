@@ -34,6 +34,8 @@ object TypeEffectInference : ITypeInference<TypeEffectNode, IMutableTypeEnvironm
 
         val body = AnyTypeEffectInference.infer(node.body, nEnv) as IType.ITypeEffect
 
-        return IType.TypeEffect(node.identifier.getTypeName(), typeVariables, listOf(body))
+        return IType.TypeEffect(node.identifier.getTypeName(), typeVariables, listOf(body)).also {
+            env.add(it)
+        }
     }
 }

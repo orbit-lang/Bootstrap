@@ -5,6 +5,19 @@ import org.orbit.core.nodes.*
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
+sealed interface IContextClauseRule<N: IContextClauseExpressionNode> : ParseRule<N>
+
+object AnyContextClauseExpressionRule : IContextClauseRule<IContextClauseExpressionNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val collector = context.startCollecting()
+        val expr = context.attemptAny(listOf(AttributeInvocationRule))
+            as? IContextClauseExpressionNode
+            ?: return ParseRule.Result.Failure.Rewind(collector)
+
+        return +expr
+    }
+}
+
 object AnyContextVariableRule : ParseRule<ILiteralNode<String>> {
     override fun parse(context: Parser): ParseRule.Result = when (val node = context.attemptAny(listOf(PairRule, TypeIdentifierRule.Naked))) {
         null -> ParseRule.Result.Failure.Abort
@@ -40,10 +53,11 @@ object ContextRule : ParseRule<ContextNode> {
             return ParseRule.Result.Failure.Throw("Found empty Context declaration, expected non-empty block or `with` declaration", delim.lastToken)
         }
 
-        val clauses = mutableListOf<WhereClauseNode>()
+        val clauses = mutableListOf<IContextClauseExpressionNode>()
         next = context.peek()
         while (next.type == TokenTypes.Where) {
-            val clause = context.attempt(WhereClauseRule.context)
+            context.consume()
+            val clause = context.attempt(AnyContextClauseExpressionRule)
                 ?: return ParseRule.Result.Failure.Abort
 
             clauses.add(clause)

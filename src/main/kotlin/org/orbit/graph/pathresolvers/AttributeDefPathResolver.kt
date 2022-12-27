@@ -30,6 +30,16 @@ object AttributeInvocationPathResolver : IPathResolver<AttributeInvocationNode> 
     }
 }
 
+object AttributeMetaTypeExpressionPathResolver : IPathResolver<AttributeMetaTypeExpressionNode> {
+    override val invocation: Invocation by inject()
+
+    override fun resolve(input: AttributeMetaTypeExpressionNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
+        input.metaType.annotate(input.getGraphID(), Annotations.graphId)
+
+        return IPathResolver.Result.Success(Path(input.metaType.value))
+    }
+}
+
 object AttributeOperatorExpressionPathResolver : IPathResolver<AttributeOperatorExpressionNode> {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()

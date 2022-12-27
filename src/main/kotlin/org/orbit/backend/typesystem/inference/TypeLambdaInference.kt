@@ -41,6 +41,7 @@ private object AnyAttributeInvocationInference : IAttributeInvocationInference<I
         is AttributeInvocationNode -> SingleAttributeInvocationInference.infer(node, env)
         is AttributeOperatorExpressionNode -> TODO()
         is CompoundAttributeExpressionNode -> CompoundAttributeInvocationInference.infer(node, env)
+        is AttributeMetaTypeExpressionNode -> TODO()
     }
 }
 
