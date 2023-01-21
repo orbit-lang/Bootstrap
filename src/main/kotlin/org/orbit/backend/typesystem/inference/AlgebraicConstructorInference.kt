@@ -20,8 +20,9 @@ object AlgebraicConstructorInference : ITypeInference<AlgebraicConstructorNode, 
 
         val parameters = when (node.parameters.count()) {
             0 -> listOf(IType.Unit)
-            1 -> listOf(TypeInferenceUtils.infer(node.parameters[0], env))
-            else -> TODO("2+ Union Constructor args")
+            else -> TypeInferenceUtils.inferAll(node.parameters, env)
+//            1 -> listOf(TypeInferenceUtils.infer(node.parameters[0], env))
+//            else -> TODO("2+ Union Constructor args")
         }
 
         val constructor = IType.UnionConstructor(path.toString(OrbitMangler), union, parameters[0])

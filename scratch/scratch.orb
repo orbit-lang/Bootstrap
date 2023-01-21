@@ -19,49 +19,14 @@ module Orb::Core::Errors with Orb::Core::* {
 }
 
 module Main with Orb::* {
-    trait IntRepresentable {
-        fun (self Self) intValue () (Int)
-    }
+    attribute Eq = (A, B) => A = B
+    alias Nat = (Zero: Unit | Next: (N) => (Unit, N))
+    alias N1 = .Next(Zero)
 
-    effect Projection = (A, B) => projection A : B
-
-    attribute ErrorCast = (A) => A : Error
-        with .Projection(A, Error)
-
-    attribute TraitCast = (A, B) => Any
-        with .Projection(A, B)
-
-    alias IntRepresentableCast = (T) => T
-        where .TraitCast(T, IntRepresentable)
-
-    context IntRepresentableCtx [I] where .TraitCast(I, IntRepresentable) {
-        fun (self I) test () (Int) = self.intValue()
-    }
-
-#    projection Int : IntRepresentable
-#        with intValue by { x ->
-#            typeOf x
-#            x
-#        }
-#
-#    projection Real : IntRepresentable
-#        with intValue by { x -> 0 }
-
-    alias Either = (A, B) => (L: A | R: B)
-
-
-
-#    projection True : IntRepresentable
-#        with intValue by { x -> 0 }
+    alias LT = (N, M) => Any where .Eq(N, Nat) & .Eq(M, Nat)
+    alias LTTest = .LT(Zero, .Next(.Next(Zero)))
 
     fun (Unit) main () () {
-#        a = 1.intValue()
-#        b = 123.321.intValue()
-#        c = true.intValue()
-        p = .Either(Int, Real)()
-        typeOf p
-
-#        typeOf a
-#        typeOf b
+        
     }
 }
