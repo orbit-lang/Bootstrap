@@ -8,6 +8,8 @@ import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.core.definition.BeanDefinition
 import org.koin.core.parameter.DefinitionParameters
+import org.koin.core.qualifier.Qualifier
+import org.koin.core.qualifier.StringQualifier
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
@@ -233,9 +235,9 @@ private inline fun <reified N: INode, reified E: ITypeEnvironment> org.koin.core
 private inline fun <reified N: INode, reified E: ITypeEnvironment> org.koin.core.module.Module.inferenceFactory(crossinline generator: (DefinitionParameters) -> ITypeInference<N, E>) : BeanDefinition<ITypeInference<N, E>>
 	= factory(named("infer${N::class.java.simpleName}")) { params -> generator(params) }
 
-inline fun <reified T> getKoinInstance(): T {
+inline fun <reified T> getKoinInstance(qualifier: Qualifier? = null): T {
 	return object : KoinComponent {
-		val value: T by inject()
+		val value: T by inject(qualifier)
 	}.value
 }
 

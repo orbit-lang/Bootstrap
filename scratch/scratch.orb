@@ -27,6 +27,6 @@ module Main with Orb::* {
     alias LTTest = .LT(Zero, .Next(.Next(Zero)))
 
     fun (Unit) main () () {
-        
+
     }
 }
