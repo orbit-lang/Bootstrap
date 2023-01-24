@@ -31,7 +31,7 @@ object AnyTypeEffectExpressionRule : ParseRule<ITypeEffectExpressionNode> {
 
 object TypeEffectRule : ParseRule<TypeEffectNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val start = context.expect(TokenTypes.Effect)
+        val start = context.expect(TokenTypes.TypeEffect)
         val identifier = context.attempt(TypeIdentifierRule.Naked)
             ?: return ParseRule.Result.Failure.Abort // TODO - Error message
 

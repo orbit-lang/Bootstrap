@@ -136,7 +136,7 @@ class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 			val contexts = input.contexts
 			val opDefs = input.operatorDefs
 			val attributeDefs = input.attributeDefs
-			val effects = input.effects
+			val effects = input.typeEffects
 
 			// Run a first pass over all types & traits that resolves just their own paths
 			// (ignoring properties and trait conformance etc)

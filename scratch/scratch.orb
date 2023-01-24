@@ -19,7 +19,7 @@ module Orb::Core::Errors with Orb::Core::* {
 }
 
 module Main with Orb::* {
-    effect Throw()
+    effect Throw(errorCode Int)
 
     fun (Unit) main () () {
 
