@@ -128,6 +128,7 @@ class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 			val operatorResolver = OperatorDefPathResolver(containerPath)
 			val attributeResolver = AttributeDefPathResolver(containerPath)
 			val typeEffectResolver = TypeEffectPathResolver(containerPath)
+			val effectResolver = EffectPathResolver(containerPath)
 
 			val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
 			val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
@@ -136,7 +137,8 @@ class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 			val contexts = input.contexts
 			val opDefs = input.operatorDefs
 			val attributeDefs = input.attributeDefs
-			val effects = input.typeEffects
+			val typeEffects = input.typeEffects
+			val effects = input.effects
 
 			// Run a first pass over all types & traits that resolves just their own paths
 			// (ignoring properties and trait conformance etc)
@@ -144,10 +146,11 @@ class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 			resolveAll(traitResolver, traitDefs, IPathResolver.Pass.Initial)
 			resolveAll(typeResolver, typeDefs, IPathResolver.Pass.Initial)
 			resolveAll(familyResolver, families, IPathResolver.Pass.Initial)
-			resolveAll(typeEffectResolver, effects, IPathResolver.Pass.Initial)
+			resolveAll(typeEffectResolver, typeEffects, IPathResolver.Pass.Initial)
 			resolveAll(attributeResolver, attributeDefs, IPathResolver.Pass.Initial)
 			resolveAll(familyResolver, families, IPathResolver.Pass.Last)
 			resolveAll(contextResolver, contexts, IPathResolver.Pass.Initial)
+			resolveAll(effectResolver, effects, IPathResolver.Pass.Initial)
 
 			if (input is ModuleNode) {
 				val typeAliasResolver = TypeAliasPathResolver(containerPath)
@@ -160,8 +163,9 @@ class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 			resolveAll(traitResolver, traitDefs, IPathResolver.Pass.Last)
 			resolveAll(typeResolver, typeDefs, IPathResolver.Pass.Last)
 			resolveAll(operatorResolver, opDefs, IPathResolver.Pass.Last)
-			resolveAll(typeEffectResolver, effects, IPathResolver.Pass.Last)
+			resolveAll(typeEffectResolver, typeEffects, IPathResolver.Pass.Last)
 			resolveAll(attributeResolver, attributeDefs, IPathResolver.Pass.Last)
+			resolveAll(effectResolver, effects, IPathResolver.Pass.Last)
 
 			if (input is ModuleNode) {
 				for (typeProjection in input.projections) {
