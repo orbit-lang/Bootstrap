@@ -36,6 +36,27 @@ object EffectUtils : KoinComponent {
             val expectedCases = signature.effects.map { IType.Case(it, IType.Unit) }
             val mEnv = CaseTypeEnvironment(nEnv, IType.EffectHandler(expectedCases), IType.Unit)
             val cases = TypeInferenceUtils.inferAllAs<CaseNode, IType.Case>(handler.cases, mEnv)
+
+            if (cases.count() > expectedCases.count()) {
+                for ((idx, aCase) in cases.withIndex()) {
+                    var declared = false
+
+                    for (bCase in expectedCases) {
+                        val patternMatches = TypeUtils.checkEq(mEnv, bCase.condition, aCase.condition)
+                        val bodyMatches = TypeUtils.checkEq(mEnv, bCase.result, aCase.result)
+
+                        if (patternMatches && bodyMatches) {
+                            declared = true
+                            continue
+                        }
+                    }
+
+                    if (!declared) {
+                        throw invocation.make<TypeSystem>("Handling `$aCase` but method $signature does not declare that Effect", handler.cases[idx])
+                    }
+                }
+            }
+
             val unhandledCases = mutableListOf<IType.Case>()
             for (aCase in expectedCases) {
                 var handled = false

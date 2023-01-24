@@ -29,18 +29,20 @@ module Orb::Core::Errors with Orb::Core::* {
 #}
 
 module Main with Orb::* {
-    effect Throw(errorCode Int)
+    effect Throw()
+    effect DivideByZero()
 
     projection Int : Error
 
     fun (self Int) throwIfZero () (Int with Throw) = select self {
-        case 0 = 0
+        case 0 = 0 # cause Throw()
         case else = 1
     }
 
     fun (Unit) main () () {
         i = 2.throwIfZero() by { flow ->
             case Throw = flow.resume(0)
+            case DivideByZero = flow.resume(1)
         }
     }
 }
