@@ -127,7 +127,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
             }
         }
 
-        EffectUtils.check(nArrow.effects, node.firstToken.position)
+        EffectUtils.check(nArrow, node.effectHandler, GlobalEnvironment)
 
         return nArrow.returns.flatten(IType.Always, env)
     }

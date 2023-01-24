@@ -21,12 +21,16 @@ module Orb::Core::Errors with Orb::Core::* {
 module Main with Orb::* {
     effect Throw(errorCode Int)
 
+    projection Int : Error
+
     fun (self Int) throwIfZero () (Int with Throw) = select self {
         case 0 = 0
         case else = 1
     }
 
     fun (Unit) main () () {
-        i = 2.throwIfZero()
+        i = 2.throwIfZero() by { flow ->
+            case Throw = panic 0
+        }
     }
 }

@@ -28,6 +28,35 @@ object InvocationRule : CallRule<InvocationNode> {
     }
 }
 
+object EffectHandlerRule : ParseRule<EffectHandlerNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val collector = context.startCollecting()
+        val start = context.expect(TokenTypes.By)
+
+        context.expect(TokenTypes.LBrace)
+
+        val flowId = context.attempt(IdentifierRule)
+            ?: return ParseRule.Result.Failure.Throw("Expected Flow identifier in Effect Handler", collector)
+
+        context.expect { it.text == "->" }
+
+        var next = context.peek()
+        val cases = mutableListOf<CaseNode>()
+        while (next.type == TokenTypes.Case) {
+            val case = context.attempt(CaseRule)
+                ?: return ParseRule.Result.Failure.Abort
+
+            cases.add(case)
+
+            next = context.peek()
+        }
+
+        val end = context.expect(TokenTypes.RBrace)
+
+        return +EffectHandlerNode(start, end, flowId, cases)
+    }
+}
+
 object MethodCallRule : CallRule<MethodCallNode> {
     private fun parseRightHandSide(context: Parser) : Pair<IdentifierNode, List<IExpressionNode>>? {
         val identifier = context.attempt(IdentifierRule)
@@ -38,6 +67,19 @@ object MethodCallRule : CallRule<MethodCallNode> {
             ?: return null
 
         return Pair(identifier, delimResult.nodes)
+    }
+
+    private fun parseEffectHandler(context: Parser, partialResult: ParseRule.Result.Success<MethodCallNode>) : ParseRule.Result {
+        val next = context.peek()
+        if (next.type == TokenTypes.By) {
+            // Parse Effect Handler
+            val effectHandler = context.attempt(EffectHandlerRule)
+                ?: return ParseRule.Result.Failure.Abort
+
+            return +(partialResult.node.withEffectHandler(effectHandler))
+        }
+
+        return partialResult
     }
 
     override fun parse(context: Parser): ParseRule.Result {
@@ -68,18 +110,18 @@ object MethodCallRule : CallRule<MethodCallNode> {
         next = context.peek()
 
         if (next.type != TokenTypes.LParen) {
-            return +MethodCallNode(start, next, lhs, message, emptyList(), true)
+            return parseEffectHandler(context, +MethodCallNode(start, next, lhs, message, emptyList(), true))
         }
 
         val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)
         val delimResult = context.attempt(delim)
             ?: TODO("HERE!!@£")
 
-        if (!context.hasMore) return +MethodCallNode(start, delimResult.lastToken, lhs, message, delimResult.nodes, false)
+        if (!context.hasMore) return parseEffectHandler(context, +MethodCallNode(start, delimResult.lastToken, lhs, message, delimResult.nodes, false))
 
         next = context.peek()
 
-        if (next.type != TokenTypes.Dot) return +MethodCallNode(start, delimResult.lastToken, lhs, message, delimResult.nodes, false)
+        if (next.type != TokenTypes.Dot) return parseEffectHandler(context, +MethodCallNode(start, delimResult.lastToken, lhs, message, delimResult.nodes, false))
 
         // For every `.` we find, shift the current MethodCallNode left and parse a new `rhs`
         var rhs = Pair(message, delimResult.nodes)
@@ -96,6 +138,6 @@ object MethodCallRule : CallRule<MethodCallNode> {
             next = context.peek()
         }
 
-        return +MethodCallNode(start, delimResult.lastToken, lhs, rhs.first, rhs.second, false)
+        return parseEffectHandler(context, +MethodCallNode(start, delimResult.lastToken, lhs, rhs.first, rhs.second, false))
     }
 }

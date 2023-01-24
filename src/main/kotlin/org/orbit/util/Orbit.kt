@@ -110,6 +110,7 @@ val mainModule = module {
 		util.registerPathResolver(ProjectionEffectPathResolver, ProjectionEffectNode::class.java)
 		util.registerPathResolver(TypeEffectInvocationPathResolver, TypeEffectInvocationNode::class.java)
 		util.registerPathResolver(AttributeMetaTypeExpressionPathResolver, AttributeMetaTypeExpressionNode::class.java)
+		util.registerPathResolver(EffectHandlerPathResolver, EffectHandlerNode::class.java)
 
 		util
 	}

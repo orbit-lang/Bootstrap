@@ -19,8 +19,11 @@ object CaseInference : ITypeInference<CaseNode, CaseTypeEnvironment>, KoinCompon
         val patternType = TypeInferenceUtils.infer(node.pattern, env)
 
         val bodyType = TypeInferenceUtils.infer(node.body, env)
-        val selfType = env.getSelfType() as? IType.Signature
-            ?: throw invocation.make<TypeSystem>("Could not infer `Self` Type in this context", node)
+        val selfType = when (val self = env.getSelfType()) {
+            is IType.Signature -> self
+            is IType.EffectHandler -> return IType.Case(patternType, bodyType)
+            else -> throw invocation.make<TypeSystem>("Could not infer `Self` Type in this context", node)
+        }
 
         if (!TypeUtils.checkEq(env, patternType, env.match)) {
             throw invocation.make<TypeSystem>("Case patterns within a Select expression must match the condition type (or be an Else Case). Expected `${env.match}`, found `$patternType`", node.pattern)

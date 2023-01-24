@@ -20,6 +20,7 @@ object IdentifierBindingPatternInference : ITypeInference<IdentifierBindingPatte
     private val invocation: Invocation by inject()
 
     override fun infer(node: IdentifierBindingPatternNode, env: StructuralPatternEnvironment): AnyType {
+        // TODO - This is completely wrong! We need to check by index here, not name
         val member = env.structuralType.members.firstOrNull { it.first == node.identifier.identifier }
             ?: throw invocation.make<TypeSystem>("Cannot pattern match on Structural Type ${env.structuralType} because it does not declare a Member called `${node.identifier.identifier}`", node.identifier)
 
@@ -54,7 +55,7 @@ object StructuralPatternInference : ITypeInference<StructuralPatternNode, IMutab
 
     override fun infer(node: StructuralPatternNode, env: IMutableTypeEnvironment): AnyType {
         val patternType = TypeInferenceUtils.infer(node.typeExpressionNode, env)
-        val struct = patternType.flatten(patternType, env) as? IType.Struct
+        val struct = patternType.flatten(patternType, env) as? IType.IStructuralType
             ?: throw invocation.make<TypeSystem>("Cannot pattern match on non-Structural Type $patternType in Case expression", node)
 
         val nEnv = StructuralPatternEnvironment(env, struct)

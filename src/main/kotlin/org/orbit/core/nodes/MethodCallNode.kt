@@ -22,10 +22,16 @@ data class MethodCallNode(
     val receiverExpression: IExpressionNode,
     val messageIdentifier: IdentifierNode,
     override val arguments: List<IExpressionNode>,
-    val isPropertyAccess: Boolean = false
+    val isPropertyAccess: Boolean = false,
+    val effectHandler: EffectHandlerNode? = null
 ) : IInvokableNode, ValueRepresentableNode, IPatternNode, IMethodBodyStatementNode, IConstantExpressionNode {
-    override fun getChildren(): List<INode>
-        = listOf(receiverExpression, messageIdentifier) + arguments
+    override fun getChildren(): List<INode> = when (effectHandler) {
+        null -> listOf(receiverExpression, messageIdentifier) + arguments
+        else -> listOf(receiverExpression, messageIdentifier) + arguments + effectHandler
+    }
+
+    fun withEffectHandler(effectHandler: EffectHandlerNode) : MethodCallNode
+        = MethodCallNode(firstToken, lastToken, receiverExpression, messageIdentifier, arguments, isPropertyAccess, effectHandler)
 
     override fun getTypeName(): String = ""
 }

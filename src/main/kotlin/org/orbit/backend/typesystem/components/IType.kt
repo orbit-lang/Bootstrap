@@ -442,8 +442,8 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         }
     }
 
-    data class Effect(val name: String, val parameters: List<AnyType>) : IType {
-        constructor(path: Path, parameters: List<AnyType>) : this(path.toString(OrbitMangler), parameters)
+    data class Effect(val name: String, override val members: List<Pair<String, AnyType>>) : IStructuralType {
+        constructor(path: Path, parameters: List<Pair<String, AnyType>>) : this(path.toString(OrbitMangler), parameters)
 
         override val id: String = name
 
@@ -452,7 +452,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = ITypeCardinality.Infinite
 
         override fun substitute(substitution: Substitution): AnyType
-            = Effect(name, parameters.substitute(substitution))
+            = Effect(name, members.map { Pair(it.first, it.second.substitute(substitution)) })
 
         override fun prettyPrint(depth: Int): String {
             val printer = getKoinInstance<Printer>()
@@ -462,6 +462,17 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun toString(): String
             = prettyPrint()
+    }
+
+    data class EffectHandler(val cases: List<Case>) : IType {
+        override val id: String = ""
+
+        override fun getCardinality(): ITypeCardinality {
+            TODO("Not yet implemented")
+        }
+
+        override fun substitute(substitution: Substitution): AnyType
+            = this
     }
 
     data class TypeEffect(val name: String, val arguments: List<AnyType>, val effects: List<ITypeEffect>) : ITypeEffect {
@@ -838,7 +849,11 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         fun access(at: I) : AnyType
     }
 
-    data class Struct(val members: List<Pair<String, AnyType>>) : IProductType<String, Struct>, IAlgebraicType<Struct>, IAccessibleType<String> {
+    sealed interface IStructuralType : IType {
+        val members: List<Pair<String, AnyType>>
+    }
+
+    data class Struct(override val members: List<Pair<String, AnyType>>) : IStructuralType, IProductType<String, Struct>, IAlgebraicType<Struct>, IAccessibleType<String> {
         override val id: String = "{${members.joinToString("; ") { it.second.id }}}"
 
         fun getProperties() : List<Property>

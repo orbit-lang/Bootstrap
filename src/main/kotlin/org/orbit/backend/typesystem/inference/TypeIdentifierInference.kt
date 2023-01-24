@@ -12,6 +12,7 @@ import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.TypeIdentifierNode
 import org.orbit.util.Invocation
+import java.lang.Exception
 
 object TypeIdentifierInference : ITypeInference<TypeIdentifierNode, ITypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
@@ -19,7 +20,10 @@ object TypeIdentifierInference : ITypeInference<TypeIdentifierNode, ITypeEnviron
     override fun infer(node: TypeIdentifierNode, env: ITypeEnvironment): AnyType {
         if (node.isDiscard) return IType.Always
 
-        val path = node.getPath()
+        val path = try { node.getPath() } catch (ex: Exception) {
+            println(ex)
+            throw ex
+        }
 
         if (path == IType.Unit.getPath()) return IType.Unit
 
