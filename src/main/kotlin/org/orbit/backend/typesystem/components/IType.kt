@@ -453,6 +453,15 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun substitute(substitution: Substitution): AnyType
             = Effect(name, parameters.substitute(substitution))
+
+        override fun prettyPrint(depth: Int): String {
+            val printer = getKoinInstance<Printer>()
+
+            return printer.apply(name, PrintableKey.Bold, PrintableKey.Italics)
+        }
+
+        override fun toString(): String
+            = prettyPrint()
     }
 
     data class TypeEffect(val name: String, val arguments: List<AnyType>, val effects: List<ITypeEffect>) : ITypeEffect {

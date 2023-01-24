@@ -5,6 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
+import org.orbit.backend.typesystem.utils.EffectUtils
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.MethodCallNode
@@ -125,6 +126,8 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
                 substitutions.fold(arrow) { acc, next -> acc.substitute(next) }
             }
         }
+
+        EffectUtils.check(nArrow.effects, node.firstToken.position)
 
         return nArrow.returns.flatten(IType.Always, env)
     }
