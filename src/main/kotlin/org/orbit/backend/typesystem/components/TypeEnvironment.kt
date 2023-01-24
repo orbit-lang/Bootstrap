@@ -56,6 +56,9 @@ sealed interface ITypeEnvironment {
     fun getSpecialisationEvidence(context: Context) : Set<Specialisation> = emptySet()
 }
 
+fun ITypeEnvironment.getContextOrNull(path: Path) : Context?
+    = getContextOrNull(path.toString(OrbitMangler))
+
 inline fun <reified T: AnyType> ITypeEnvironment.getTypeAs(path: Path) : T?
     = getAllTypes().firstOrNull {
         it.component is T && (it.component.getPath() == path || it.component.getPath().last() == path.last())

@@ -2,10 +2,8 @@ package org.orbit.backend.typesystem.utils
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.CaseTypeEnvironment
-import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.intrinsics.OrbMoreFx
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.CaseNode
@@ -25,15 +23,25 @@ object EffectUtils : KoinComponent {
         }
 
         else -> {
+            // TODO - It would be nice to implement Effect Handlers completely at the library level, but for now
+            //  we have to do a bunch of gross dynamic stuff
+            val flowCtx = GlobalEnvironment.getContextOrNull(OrbMoreFx.flowCtx.getPath())!!
+            val specialisedCtx = flowCtx.solving(Specialisation(OrbMoreFx.flowResultType, signature.returns))
+            val specialisedResume = specialisedCtx.specialise(OrbMoreFx.flowResume)
+            val nEnv = env.fork()
+
+            nEnv.add(specialisedResume)
+            nEnv.bind(handler.flowIdentifier.identifier, OrbMoreFx.flowType, 0)
+
             val expectedCases = signature.effects.map { IType.Case(it, IType.Unit) }
-            val nEnv = CaseTypeEnvironment(env, IType.EffectHandler(expectedCases), IType.Unit)
-            val cases = TypeInferenceUtils.inferAllAs<CaseNode, IType.Case>(handler.cases, nEnv)
+            val mEnv = CaseTypeEnvironment(nEnv, IType.EffectHandler(expectedCases), IType.Unit)
+            val cases = TypeInferenceUtils.inferAllAs<CaseNode, IType.Case>(handler.cases, mEnv)
             val unhandledCases = mutableListOf<IType.Case>()
             for (aCase in expectedCases) {
                 var handled = false
                 for (bCase in cases) {
-                    val patternMatches = TypeUtils.checkEq(nEnv, bCase.condition, aCase.condition)
-                    val bodyMatches = TypeUtils.checkEq(nEnv, bCase.result, aCase.result)
+                    val patternMatches = TypeUtils.checkEq(mEnv, bCase.condition, aCase.condition)
+                    val bodyMatches = TypeUtils.checkEq(mEnv, bCase.result, aCase.result)
 
                     if (patternMatches && bodyMatches) {
                         handled = true

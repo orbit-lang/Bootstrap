@@ -18,6 +18,16 @@ module Orb::Core::Errors with Orb::Core::* {
     trait Error
 }
 
+#module Orb::More::Fx {
+#    context FlowCtx [ResultType] {
+#        type Flow
+#
+#        fun (self Flow) resume (result ResultType) () {
+#
+#        }
+#    }
+#}
+
 module Main with Orb::* {
     effect Throw(errorCode Int)
 
@@ -30,7 +40,7 @@ module Main with Orb::* {
 
     fun (Unit) main () () {
         i = 2.throwIfZero() by { flow ->
-            case Throw = panic 0
+            case Throw = flow.resume(0)
         }
     }
 }

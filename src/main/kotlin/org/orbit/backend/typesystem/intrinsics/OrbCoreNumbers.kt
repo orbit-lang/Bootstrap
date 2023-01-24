@@ -1,8 +1,6 @@
 package org.orbit.backend.typesystem.intrinsics
 
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.ITypeCardinality
+import org.orbit.backend.typesystem.components.*
 
 object OrbCoreNumbers : IOrbModule {
     private val intIntArrow get() = IType.Arrow2(intType, intType, intType)
@@ -20,6 +18,18 @@ object OrbCoreNumbers : IOrbModule {
     override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
     override fun getPublicOperators() : List<IType.IOperatorArrow<*, *>>
         = listOf(infixAddIntInt, infixSubIntInt, infixMulIntInt, infixModIntInt, pow)
+}
+
+object OrbMoreFx : IOrbModule {
+    val flowType = IType.Type("Orb::More::Fx::Flow")
+    val flowResultType = IType.TypeVar("Orb::More::Fx::FlowCtx::ResultType")
+    val flowCtx = Context("Orb::More::Fx::FlowCtx", Specialisation(IType.TypeVar("Orb::More::Fx::FlowCtx::ResultType")))
+    val flowResume = IType.Signature(flowType, "resume", listOf(IType.TypeVar("Orb::More::Fx::FlowCtx::ResultType")), IType.Unit, true)
+
+    override fun getContexts(): List<Context> = listOf(flowCtx)
+    override fun getPublicTypes(): List<AnyType> = listOf(flowType)
+    override fun getPublicOperators(): List<IType.IOperatorArrow<*, *>> = emptyList()
+    override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
 }
 
 object OrbCoreTypes : IOrbModule {

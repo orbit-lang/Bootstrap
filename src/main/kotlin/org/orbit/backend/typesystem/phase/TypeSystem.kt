@@ -21,6 +21,7 @@ object TypeSystem : Phase<ProgramNode, AnyMetaType>, KoinComponent {
             .import(OrbCoreNumbers)
             .import(OrbCoreTypes)
             .import(OrbCoreErrors)
+            .import(OrbMoreFx)
 //            .import(OrbCoreCollections)
 
         loadKoinModules(module {
