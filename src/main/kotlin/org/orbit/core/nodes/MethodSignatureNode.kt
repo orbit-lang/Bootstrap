@@ -12,13 +12,14 @@ data class MethodSignatureNode(
 	val typeParameters: TypeParametersNode? = null,
 	val typeConstraints: List<TypeConstraintWhereClauseNode> = emptyList(),
 	val isInstanceMethod: Boolean,
-	val receiverIdentifier: IdentifierNode?
+	val receiverIdentifier: IdentifierNode?,
+	val effects: List<TypeIdentifierNode> = emptyList()
 ) : INode {
 	inline fun <reified T> annotateParameter(idx: Int, value: T, tag: Annotations<T>) {}
 
 	override fun getChildren() : List<INode> = when (returnTypeNode) {
-		null -> listOf(identifierNode, receiverTypeNode) + parameterNodes + typeConstraints
-		else -> listOf(identifierNode, receiverTypeNode, returnTypeNode) + parameterNodes + typeConstraints
+		null -> listOf(identifierNode, receiverTypeNode) + parameterNodes + typeConstraints + effects
+		else -> listOf(identifierNode, receiverTypeNode, returnTypeNode) + parameterNodes + typeConstraints + effects
 	}
 
 	fun getAllParameters() : List<TypeExpressionNode> = parameterNodes.map { it.typeExpressionNode }

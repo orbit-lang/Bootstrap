@@ -12,12 +12,14 @@ import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
 import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.extensions.getGraphIDOrNull
+import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 import org.orbit.util.dispose
 import org.orbit.util.partial
 
 class MethodSignaturePathResolver : IPathResolver<MethodSignatureNode> {
 	override val invocation: Invocation by inject()
+	private val pathResolverUtil: PathResolverUtil by inject()
 
 	override fun resolve(input: MethodSignatureNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph) : IPathResolver.Result {
 		// We need to resolve any type parameters before we can look at the rest of the signature
@@ -63,6 +65,8 @@ class MethodSignaturePathResolver : IPathResolver<MethodSignatureNode> {
 		val retPath = retResult.unwrap(this, input.returnTypeNode?.firstToken?.position ?: SourcePosition.unknown)
 		// TODO - Should method names contain parameter names as well as/instead of types?
 		// i.e. Are parameter names important/overloadable?
+
+		pathResolverUtil.resolveAll(input.effects, pass, environment, graph)
 
 		input.returnTypeNode?.annotateByKey(retPath.path, Annotations.path)
 

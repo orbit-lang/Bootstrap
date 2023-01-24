@@ -21,6 +21,11 @@ module Orb::Core::Errors with Orb::Core::* {
 module Main with Orb::* {
     effect Throw(errorCode Int)
 
+    fun (self Int) throwIfZero () (Int with Throw) = select self {
+        case 0 = 0
+        case else = 1
+    }
+
     fun (Unit) main () () {
 
     }
