@@ -27,6 +27,6 @@ module Main with Orb::* {
     }
 
     fun (Unit) main () () {
-
+        i = 2.throwIfZero()
     }
 }

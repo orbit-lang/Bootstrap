@@ -443,7 +443,9 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class Effect(val name: String, val parameters: List<AnyType>) : IType {
-        override val id: String = "effect $name"
+        constructor(path: Path, parameters: List<AnyType>) : this(path.toString(OrbitMangler), parameters)
+
+        override val id: String = name
 
         // TODO - Effects probably have the Cardinality of the sum of all their parameters
         override fun getCardinality(): ITypeCardinality
@@ -1266,7 +1268,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Signature(val receiver: AnyType, val name: String, val parameters: List<AnyType>, val returns: AnyType, val isInstanceSignature: Boolean) : IArrow<Signature>, Trait.Member {
+    data class Signature(val receiver: AnyType, val name: String, val parameters: List<AnyType>, val returns: AnyType, val isInstanceSignature: Boolean, val effects: List<IType.Effect> = emptyList()) : IArrow<Signature>, Trait.Member {
         override val id: String get() {
             val pParams = parameters.joinToString(", ") { it.id }
 

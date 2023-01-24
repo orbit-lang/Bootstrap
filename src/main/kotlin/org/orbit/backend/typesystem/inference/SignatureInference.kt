@@ -5,6 +5,7 @@ import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.MethodSignatureNode
+import org.orbit.core.nodes.TypeIdentifierNode
 
 data class SignatureInference(val shouldDeclare: Boolean) : ITypeInference<MethodSignatureNode, IMutableTypeEnvironment> {
     override fun infer(node: MethodSignatureNode, env: IMutableTypeEnvironment): AnyType {
@@ -15,7 +16,8 @@ data class SignatureInference(val shouldDeclare: Boolean) : ITypeInference<Metho
             else -> TypeInferenceUtils.infer(r, env)
         }
 
-        val signature = IType.Signature(receiver, node.identifierNode.identifier, params, ret, node.isInstanceMethod)
+        val effects = TypeInferenceUtils.inferAllAs<TypeIdentifierNode, IType.Effect>(node.effects, env)
+        val signature = IType.Signature(receiver, node.identifierNode.identifier, params, ret, node.isInstanceMethod, effects)
 
         if (shouldDeclare) {
             env.add(signature)
