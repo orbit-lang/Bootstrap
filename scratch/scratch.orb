@@ -19,12 +19,7 @@ module Orb::Core::Errors with Orb::Core::* {
 }
 
 module Main with Orb::* {
-    attribute Eq = (A, B) => A = B
-    alias Nat = (Zero: Unit | Next: (N) => (Unit, N))
-    alias N1 = .Next(Zero)
-
-    alias LT = (N, M) => Any where .Eq(N, Nat) & .Eq(M, Nat)
-    alias LTTest = .LT(Zero, .Next(.Next(Zero)))
+    effect Throw()
 
     fun (Unit) main () () {
 
