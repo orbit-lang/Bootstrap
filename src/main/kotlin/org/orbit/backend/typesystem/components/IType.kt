@@ -442,6 +442,17 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         }
     }
 
+    data class Effect(val name: String, val parameters: List<AnyType>) : IType {
+        override val id: String = "effect $name"
+
+        // TODO - Effects probably have the Cardinality of the sum of all their parameters
+        override fun getCardinality(): ITypeCardinality
+            = ITypeCardinality.Infinite
+
+        override fun substitute(substitution: Substitution): AnyType
+            = Effect(name, parameters.substitute(substitution))
+    }
+
     data class TypeEffect(val name: String, val arguments: List<AnyType>, val effects: List<ITypeEffect>) : ITypeEffect {
         override val id: String = "effect $name"
 

@@ -190,6 +190,7 @@ val mainModule = module {
 	single(TypeEffectInference)
 	single(TypeEffectInvocationInference)
 	single(AttributeMetaTypeExpressionInference)
+	single(EffectInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }
