@@ -54,6 +54,8 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class Never(val message: String, override val id: String = "!") : IMetaType<Never>, IArrow<Never> {
+        override val effects: List<Effect> = listOf(Effect.die)
+
         fun panic(node: INode? = null): Nothing = when (node) {
             null -> throw getKoinInstance<Invocation>().make<TypeSystem>(message)
             else -> throw getKoinInstance<Invocation>().make<TypeSystem>(message, node)
@@ -230,6 +232,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     data class SingletonConstructor(val type: AnyType) : IConstructor<AnyType> {
         override val id: String = "() -> ${type.id}"
         override val constructedType: AnyType = type
+        override val effects: List<Effect> = emptyList()
 
         override fun getDomain(): List<AnyType> = emptyList()
         override fun getCodomain(): AnyType = type
@@ -323,6 +326,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
     data class Case(val condition: AnyType, val result: AnyType) : IArrow<Case> {
         override val id: String = "case (${condition.id}) -> ${result.id}"
+        override val effects: List<Effect> = emptyList()
 
         override fun getCardinality(): ITypeCardinality
             = condition.getCardinality()
@@ -443,6 +447,10 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class Effect(val name: String, override val members: List<Pair<String, AnyType>>) : IStructuralType {
+        companion object {
+            val die = Effect("Die", emptyList())
+        }
+
         constructor(path: Path, parameters: List<Pair<String, AnyType>>) : this(path.toString(OrbitMangler), parameters)
 
         override val id: String = name
@@ -593,6 +601,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     sealed interface IArrayConstructor : IConstructor<Array> {
         data class Empty(override val constructedType: Array) : IArrayConstructor {
             override val id: String = "[]"
+            override val effects: List<Effect> = emptyList()
 
             override fun getDomain(): List<AnyType> = emptyList()
             override fun getCodomain(): AnyType = Array(constructedType.element, Array.Size.Fixed(0))
@@ -608,6 +617,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         data class Populated(override val constructedType: Array, private val dynamicSize: Int? = null) : IArrayConstructor {
             override val id: String = "[]"
+            override val effects: List<Effect> = emptyList()
 
             override fun getDomain(): List<AnyType> {
                 val size = dynamicSize ?: when (constructedType.size) {
@@ -700,6 +710,8 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class TupleConstructor(val left: AnyType, val right: AnyType, override val constructedType: Tuple) : IConstructor<Tuple> {
+        override val effects: List<Effect> = emptyList()
+
         override fun getDomain(): List<AnyType>
             = listOf(left, right)
 
@@ -717,7 +729,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = TupleConstructor(left.substitute(substitution), right.substitute(substitution), constructedType.substitute(substitution))
 
         override fun prettyPrint(depth: Int): String
-            = Arrow2(left, right, constructedType).prettyPrint(depth)
+            = Arrow2(left, right, constructedType, effects).prettyPrint(depth)
 
         override fun toString(): String
             = prettyPrint()
@@ -923,6 +935,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
     data class StructConstructor(override val constructedType: Struct, val args: List<AnyType>) : IConstructor<Struct> {
         override val id: String = "(${args.joinToString(", ") { it.id }}) -> ${constructedType.id}"
+        override val effects: List<Effect> = emptyList()
 
         override fun getDomain(): List<AnyType> = args
         override fun getCodomain(): AnyType = constructedType
@@ -941,8 +954,11 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     data class UnionConstructor(val name: String, override val constructedType: Lazy<Union>, val arg: AnyType) : IConstructor<Lazy<Union>>, ICaseIterable<Union> {
+        override val effects: List<Effect> = emptyList()
+
         data class ConcreteUnionConstructor(val lazyConstructor: UnionConstructor) : IConstructor<Union> {
             override val id: String = "(${lazyConstructor.arg}) -> $constructedType"
+            override val effects: List<Effect> = emptyList()
             val name: String = lazyConstructor.name
 
             override fun getCanonicalName(): String = name
@@ -1076,6 +1092,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         val arrow: A
 
         override val id: String get() = "$identifier:${arrow.id}"
+        override val effects: List<Effect> get() = emptyList()
 
         override fun getDomain(): List<AnyType> = arrow.getDomain()
         override fun getCodomain(): AnyType = arrow.getCodomain()
@@ -1123,6 +1140,8 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     }
 
     sealed interface IArrow<Self : IArrow<Self>> : AnyType {
+        val effects: List<Effect>
+
         fun getDomain(): List<AnyType>
         fun getCodomain(): AnyType
 
@@ -1140,7 +1159,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             is Arrow1 -> curry()
             is Arrow2 -> curry().curry()
             is Arrow3 -> curry().curry().curry()
-            else -> Arrow0(this)
+            else -> Arrow0(this, effects)
         }
 
         override fun prettyPrint(depth: Int): String {
@@ -1150,7 +1169,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         }
     }
 
-    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<IAttribute>, val fallback: AnyType? = null) : IArrow<ConstrainedArrow>, IConstructableType<ConstrainedArrow> {
+    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<IAttribute>, val fallback: AnyType? = null, override val effects: List<Effect> = emptyList()) : IArrow<ConstrainedArrow>, IConstructableType<ConstrainedArrow> {
         override val id: String = "$arrow + ${constraints.joinToString(", ")}"
 
         override fun isSpecialised(): Boolean = false
@@ -1194,18 +1213,18 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = prettyPrint()
     }
 
-    data class Arrow0(val gives: AnyType) : IArrow<Arrow0> {
+    data class Arrow0(val gives: AnyType, override val effects: List<Effect>) : IArrow<Arrow0> {
         override val id: String = "() -> ${gives.id}"
 
         override fun getDomain(): List<AnyType> = emptyList()
         override fun getCodomain(): AnyType = gives
 
-        override fun substitute(substitution: Substitution): Arrow0 = Arrow0(gives.substitute(substitution))
+        override fun substitute(substitution: Substitution): Arrow0 = Arrow0(gives.substitute(substitution), effects.substitute(substitution) as List<Effect>)
         override fun curry(): Arrow0 = this
         override fun never(args: List<AnyType>): Never = Never("Unreachable")
 
         override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
-            = Arrow0(gives.flatten(from, env))
+            = Arrow0(gives.flatten(from, env), effects)
 
         override fun equals(other: Any?): Boolean = when (other) {
             is Arrow0 -> gives == other.gives
@@ -1215,17 +1234,17 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Arrow1(val takes: AnyType, val gives: AnyType) : IArrow<Arrow1> {
+    data class Arrow1(val takes: AnyType, val gives: AnyType, override val effects: List<Effect>) : IArrow<Arrow1> {
         override val id: String = "(${takes.id}) -> ${gives.id}"
 
         override fun getDomain(): List<AnyType> = listOf(takes)
         override fun getCodomain(): AnyType = gives
 
         override fun substitute(substitution: Substitution): Arrow1 =
-            Arrow1(takes.substitute(substitution), gives.substitute(substitution))
+            Arrow1(takes.substitute(substitution), gives.substitute(substitution), effects.substitute(substitution) as List<Effect>)
 
         override fun curry(): Arrow0
-            = Arrow0(Arrow1(takes, gives))
+            = Arrow0(Arrow1(takes, gives, emptyList()), effects)
 
         override fun never(args: List<AnyType>): Never =
             Never("$id expects argument of Type $takes, found $args[0]")
@@ -1239,7 +1258,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
             if (domain is Never) return codomain
 
-            return Arrow1(domain, codomain)
+            return Arrow1(domain, codomain, effects)
         }
 
         override fun equals(other: Any?): Boolean = when (other) {
@@ -1254,16 +1273,16 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Arrow2(val a: AnyType, val b: AnyType, val gives: AnyType) : IArrow<Arrow2> {
+    data class Arrow2(val a: AnyType, val b: AnyType, val gives: AnyType, override val effects: List<Effect>) : IArrow<Arrow2> {
         override val id: String = "(${a.id}, ${b.id}) -> ${gives.id}"
 
         override fun getDomain(): List<AnyType> = listOf(a, b)
         override fun getCodomain(): AnyType = gives
 
         override fun substitute(substitution: Substitution): Arrow2 =
-            Arrow2(a.substitute(substitution), b.substitute(substitution), gives.substitute(substitution))
+            Arrow2(a.substitute(substitution), b.substitute(substitution), gives.substitute(substitution), effects.substitute(substitution) as List<Effect>)
 
-        override fun curry(): Arrow1 = Arrow1(a, Arrow1(b, gives))
+        override fun curry(): Arrow1 = Arrow1(a, Arrow1(b, gives, emptyList()), effects)
 
         override fun never(args: List<AnyType>): Never =
             Never("$this expects arguments of ($a, $b), found (${args.joinToString(", ")})")
@@ -1271,7 +1290,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Arrow3(val a: AnyType, val b: AnyType, val c: AnyType, val gives: AnyType) : IArrow<Arrow3> {
+    data class Arrow3(val a: AnyType, val b: AnyType, val c: AnyType, val gives: AnyType, override val effects: List<Effect>) : IArrow<Arrow3> {
         override val id: String = "(${a.id}, ${b.id}, ${c.id}) -> ${gives.id}"
 
         override fun getDomain(): List<AnyType> = listOf(a, b, c)
@@ -1281,10 +1300,11 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             a.substitute(substitution),
             b.substitute(substitution),
             c.substitute(substitution),
-            gives.substitute(substitution)
+            gives.substitute(substitution),
+            effects.substitute(substitution) as List<Effect>
         )
 
-        override fun curry(): Arrow2 = Arrow2(a, b, Arrow1(c, gives))
+        override fun curry(): Arrow2 = Arrow2(a, b, Arrow1(c, gives, emptyList()), effects)
 
         override fun never(args: List<AnyType>): Never =
             Never("$id expects arguments of ($a, $b, $c), found (${args.joinToString(", ")})")
@@ -1292,7 +1312,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class Signature(val receiver: AnyType, val name: String, val parameters: List<AnyType>, val returns: AnyType, val isInstanceSignature: Boolean, val effects: List<IType.Effect> = emptyList()) : IArrow<Signature>, Trait.Member {
+    data class Signature(val receiver: AnyType, val name: String, val parameters: List<AnyType>, val returns: AnyType, val isInstanceSignature: Boolean, override val effects: List<IType.Effect> = emptyList()) : IArrow<Signature>, Trait.Member {
         override val id: String get() {
             val pParams = parameters.joinToString(", ") { it.id }
 
@@ -1313,13 +1333,13 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = returns.getCardinality()
 
         private fun toInstanceArrow() = when (parameters.count()) {
-            0 -> Arrow1(receiver, returns)
-            1 -> Arrow2(receiver, parameters[0], returns)
-            2 -> Arrow3(receiver, parameters[0], parameters[1], returns)
+            0 -> Arrow1(receiver, returns, effects)
+            1 -> Arrow2(receiver, parameters[0], returns, effects)
+            2 -> Arrow3(receiver, parameters[0], parameters[1], returns, effects)
             else -> TODO("3+-ary instance Arrows")
         }
 
-        fun toStaticArrow(): AnyArrow = parameters.arrowOf(returns)
+        fun toStaticArrow(): AnyArrow = parameters.arrowOf(returns, effects)
 
         fun toArrow() : AnyArrow = when (isInstanceSignature) {
             true -> toInstanceArrow()
@@ -1483,6 +1503,7 @@ sealed interface IIntrinsicType : IType {
     object RawInt : IIntrinsicType, IIntegralType<RawInt> {
         private object RawIntConstructor : IType.IConstructor<RawInt> {
             override val id: String = "(ℤ) -> ℤ"
+            override val effects: List<IType.Effect> = emptyList()
 
             override val constructedType: RawInt = RawInt
             override fun getDomain(): List<AnyType> = listOf(RawInt)
@@ -1625,10 +1646,10 @@ typealias AnyOperator = IType.IOperatorArrow<*, *>
 typealias AnyMetaType = IType.IMetaType<*>
 typealias AnyInt = IIntrinsicType.IIntegralType<*>
 
-fun List<AnyType>.arrowOf(codomain: AnyType) : AnyArrow = when (count()) {
-    0 -> IType.Arrow0(codomain)
-    1 -> IType.Arrow1(this[0], codomain)
-    2 -> IType.Arrow2(this[0], this[1], codomain)
-    3 -> IType.Arrow3(this[0], this[1], this[2], codomain)
+fun List<AnyType>.arrowOf(codomain: AnyType, effects: List<IType.Effect> = emptyList()) : AnyArrow = when (count()) {
+    0 -> IType.Arrow0(codomain, effects)
+    1 -> IType.Arrow1(this[0], codomain, effects)
+    2 -> IType.Arrow2(this[0], this[1], codomain, effects)
+    3 -> IType.Arrow3(this[0], this[1], this[2], codomain, effects)
     else -> TODO("4+-ary Arrows")
 }

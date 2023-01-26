@@ -3,7 +3,7 @@ package org.orbit.backend.typesystem.intrinsics
 import org.orbit.backend.typesystem.components.*
 
 object OrbCoreNumbers : IOrbModule {
-    private val intIntArrow get() = IType.Arrow2(intType, intType, intType)
+    private val intIntArrow get() = IType.Arrow2(intType, intType, intType, emptyList())
 
     val intType = IType.Type("Orb::Core::Numbers::Int", explicitCardinality = ITypeCardinality.Infinite)
     val realType = IType.Type("Orb::Core::Numbers::Real", explicitCardinality = ITypeCardinality.Infinite)

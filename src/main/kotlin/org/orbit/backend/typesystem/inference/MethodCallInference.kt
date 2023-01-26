@@ -31,7 +31,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
 
         if (node.isPropertyAccess) return inferPropertyAccess<IType.IAccessibleType<String>>(node, receiver.flatten(receiver, env), env)
 
-        val args = TypeInferenceUtils.inferAll(node.arguments, env)
+        var args = TypeInferenceUtils.inferAll(node.arguments, env)
         var possibleArrows = env.getSignatures(node.messageIdentifier.identifier)
         val expected = (env as? AnnotatedTypeEnvironment)?.typeAnnotation ?: IType.Always
 
@@ -85,7 +85,15 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
         val paramsCount = arrow.parameters.count()
 
         if (argsCount != paramsCount) {
-            throw invocation.make<TypeSystem>("Method `${node.messageIdentifier.identifier}` expects $paramsCount arguments, found $argsCount", node)
+            // SPECIAL CASE - Allow `f() == f(Unit)`
+            if (paramsCount == 1 && argsCount == 0 && arrow.parameters[0] == IType.Unit) {
+                args = listOf(IType.Unit)
+            } else {
+                throw invocation.make<TypeSystem>(
+                    "Method `${node.messageIdentifier.identifier}` expects $paramsCount arguments, found $argsCount",
+                    node
+                )
+            }
         }
 
         val zip = args.zip(arrow.parameters)

@@ -35,7 +35,13 @@ module Main with Orb::* {
 
     alias ThrowingFunction = () -> Unit with Throw
 
-    fun (Unit) main () () {
+    fun (Unit) try (fn ThrowingFunction) (Unit with Throw) {
+        typeOf fn
+    }
 
+    fun (Unit) main () () {
+        Unit.try({ x -> x }) by { flow ->
+            case Throw = flow.resume()
+        }
     }
 }
