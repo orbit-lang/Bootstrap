@@ -6,7 +6,8 @@ data class LambdaTypeNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val domain: List<TypeExpressionNode>,
-    val codomain: TypeExpressionNode
+    val codomain: TypeExpressionNode,
+    val effect: TypeIdentifierNode? = null
 ) : TypeExpressionNode {
     override val value: String = "->"
     override fun getTypeName(): String {

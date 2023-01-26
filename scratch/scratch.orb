@@ -18,6 +18,7 @@ module Orb::Core::Errors with Orb::Core::* {
     trait Error
 }
 
+#@IntrinsicModule
 #module Orb::More::Fx {
 #    context FlowCtx [ResultType] {
 #        type Flow
@@ -32,17 +33,9 @@ module Main with Orb::* {
     effect Throw()
     effect DivideByZero()
 
-    projection Int : Error
-
-    fun (self Int) throwIfZero () (Int with Throw) = select self {
-        case 0 = 0 # cause Throw()
-        case else = 1
-    }
+    alias ThrowingFunction = () -> Unit with Throw
 
     fun (Unit) main () () {
-        i = 2.throwIfZero() by { flow ->
-            case Throw = flow.resume(0)
-            case DivideByZero = flow.resume(1)
-        }
+
     }
 }
