@@ -18,51 +18,21 @@ module Orb::Core::Errors with Orb::Core::* {
     trait Error
 }
 
-#@IntrinsicModule
-#module Orb::More::Fx {
-#    context FlowCtx [ResultType] {
-#        type Flow
-#
-#        fun (self Flow) resume (result ResultType) () {
-#
-#        }
-#    }
-#}
-
 module Main with Orb::* {
     projection Int : Error
 
-    context ThrowingCtx [V] {
-        effect Exception = (Error) -> V
-        alias ThrowingFunction = () -> V with Exception
-        alias Caught = (
-            Success: { value V } |
-            Failure: { error Error }
-        )
+    effect DivideByZero = () -> Unit
 
-        fun (Unit) try (fn ThrowingFunction) (Caught) = Success(fn() by { flow ->
-            case Exception(error) = flow.resume(Failure(error))
-        })
-
-        fun (self Caught) catch (handler (Error) -> V) (V) = select self {
-            case Success(value) = value
-            case Failure(error) = handler(error)
-        }
-
-        prefix operator try `try` by Unit::try
-        infix operator catch `catch` by Caught::catch
+    fun (Unit) safeDivide (x Int, y Int) (Int with DivideByZero) = select y {
+        case 0 = cause .DivideByZero()
+        case else = x / y
     }
 
     fun (Unit) main () () {
-        x = `try` { x -> cause .Exception(0) }
-            `catch` { ex -> cause .Exception(1) }
-             within ThrowingCtx [Int]
+        Unit.safeDivide(1, 0) by { flow ->
+            case DivideByZero = flow.resume(0)
+        }
 
-        y = `try` { x -> true }
-            `catch` { ex -> false }
-             within ThrowingCtx [Bool]
-
-        typeOf x
-        typeOf y
+        return
     }
 }

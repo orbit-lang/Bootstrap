@@ -11,13 +11,14 @@ object OrbCoreNumbers : IOrbModule {
     val infixAddIntInt = IType.InfixOperator("+", "infixPlus", intIntArrow)
     val infixSubIntInt = IType.InfixOperator("-", "infixSubtract", intIntArrow)
     val infixMulIntInt = IType.InfixOperator("*", "infixMultiply", intIntArrow)
+    val infixDivIntInt = IType.InfixOperator("/", "infixDivide", intIntArrow)
     val infixModIntInt = IType.InfixOperator("%", "infixModulo", intIntArrow)
     val pow = IType.InfixOperator("**", "infixPow", intIntArrow)
 
     override fun getPublicTypes() : List<AnyType> = listOf(intType)
     override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
     override fun getPublicOperators() : List<IType.IOperatorArrow<*, *>>
-        = listOf(infixAddIntInt, infixSubIntInt, infixMulIntInt, infixModIntInt, pow)
+        = listOf(infixAddIntInt, infixSubIntInt, infixMulIntInt, infixDivIntInt, infixModIntInt, pow)
 }
 
 object OrbMoreFx : IOrbModule {

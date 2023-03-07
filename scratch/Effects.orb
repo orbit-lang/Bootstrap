@@ -1,0 +1,68 @@
+module Orb::Core::Types {
+    type Unit
+}
+
+module Orb::Core::Booleans {
+    type Bool {
+        constructor True
+        constructor False
+    }
+}
+
+module Orb::Core::Numbers {
+    type Int
+    type Real
+}
+
+module Orb::Core::Errors with Orb::Core::* {
+    trait Error
+}
+
+#@IntrinsicModule
+#module Orb::More::Fx {
+#    context FlowCtx [ResultType] {
+#        type Flow
+#
+#        fun (self Flow) resume (result ResultType) () {
+#
+#        }
+#    }
+#}
+
+module Main with Orb::* {
+    projection Int : Error
+
+    context ThrowingCtx [V] {
+        effect Exception = (Error) -> V
+        alias ThrowingFunction = () -> V with Exception
+        alias Caught = (
+            Success: { value V } |
+            Failure: { error Error }
+        )
+
+        fun (Unit) try (fn ThrowingFunction) (Caught) = Success(fn() by { flow ->
+            case Exception(error) = flow.resume(Failure(error))
+        })
+
+        fun (self Caught) catch (handler (Error) -> V) (V) = select self {
+            case Success(value) = value
+            case Failure(error) = handler(error)
+        }
+
+        prefix operator try `try` by Unit::try
+        infix operator catch `catch` by Caught::catch
+    }
+
+    fun (Unit) main () () {
+        x = `try` { x -> cause .Exception(0) }
+            `catch` { ex -> cause .Exception(1) }
+             within ThrowingCtx [Int]
+
+        y = `try` { x -> true }
+            `catch` { ex -> false }
+             within ThrowingCtx [Bool]
+
+        typeOf x
+        typeOf y
+    }
+}

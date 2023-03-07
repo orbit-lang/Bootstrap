@@ -29,6 +29,6 @@ object CauseInference : ITypeInference<CauseNode, ITypeEnvironment>, KoinCompone
             }
         }
 
-        return effect.gives
+        return IType.Always
     }
 }
