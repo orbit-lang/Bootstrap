@@ -17,7 +17,8 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
     private inline fun <reified T: IType.IAccessibleType<String>> inferPropertyAccess(node: MethodCallNode, receiver: AnyType, env: ITypeEnvironment) : AnyType {
         val propertyName = node.messageIdentifier.identifier
 
-        if (receiver !is T) throw invocation.make<TypeSystem>("Cannot access property `$propertyName` of non-Structural Type $receiver", node)
+        if (receiver !is T)
+            throw invocation.make<TypeSystem>("Cannot access property `$propertyName` of non-Structural Type $receiver", node)
 
         return receiver.access(propertyName)
     }

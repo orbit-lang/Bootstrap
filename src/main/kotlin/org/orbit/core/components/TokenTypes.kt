@@ -60,7 +60,6 @@ object TokenTypes : TokenTypeProvider {
     object By : TokenType("By", "by", true, false, Family.Keyword)
     object To : TokenType("To", "to", true, false, Family.Keyword)
     object Operator : TokenType("Operator", "operator", true, false, Family.Keyword)
-    object Call : TokenType("Call", "call", true, false, Family.Keyword)
     object Else : TokenType("Else", "else", true, false, Family.Keyword)
     object Case : TokenType("Case", "case", true, false, Family.Keyword)
     object Select : TokenType("Select", "select", true, false, Family.Keyword)
@@ -90,7 +89,6 @@ object TokenTypes : TokenTypeProvider {
             Real, Int, Dot, Attribute, Context, Api, Module, Define, Defer, Cause, Effect, TypeEffect, Fun, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias, Operator,
             Synthesise,
-            Call,
             Dollar,
             Prefix, Infix, Postfix, Let, In, Of, By, To, Else, Case, Select, As,
             True, False, Panic,

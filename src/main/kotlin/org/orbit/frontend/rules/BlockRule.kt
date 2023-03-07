@@ -16,9 +16,9 @@ class BlockRule(private vararg val bodyRules: ParseRule<*>) : ParseRule<BlockNod
 	}
 
 	companion object {
-		val default = BlockRule(MirrorRule, TypeOfRule, RefOfRule, ContextOfRule, DeferRule, PrintRule, ReturnRule, AssignmentRule, LambdaLiteralRule, MethodCallRule)
-		val lambda = BlockRule(MirrorRule, TypeOfRule, RefOfRule, ContextOfRule, DeferRule, PrintRule, ReturnRule, AssignmentRule, LambdaLiteralRule, ExpressionRule.defaultValue)
-		val methodBody = BlockRule(CheckRule, MirrorRule, TypeOfRule, RefOfRule, ContextOfRule, DeferRule, PrintRule, ReturnRule, AssignmentRule, MethodCallRule)
+		val default = BlockRule(CauseRule, MirrorRule, TypeOfRule, RefOfRule, ContextOfRule, DeferRule, PrintRule, ReturnRule, AssignmentRule, LambdaLiteralRule, MethodCallRule)
+		val lambda = BlockRule(CauseRule, MirrorRule, TypeOfRule, RefOfRule, ContextOfRule, DeferRule, PrintRule, ReturnRule, AssignmentRule, LambdaLiteralRule, ExpressionRule.defaultValue)
+		val methodBody = BlockRule(CauseRule, CheckRule, MirrorRule, TypeOfRule, RefOfRule, ContextOfRule, DeferRule, PrintRule, ReturnRule, AssignmentRule, MethodCallRule)
 	}
 	
 	override fun parse(context: Parser) : ParseRule.Result {

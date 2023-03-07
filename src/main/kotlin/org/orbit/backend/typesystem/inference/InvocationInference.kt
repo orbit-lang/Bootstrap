@@ -5,9 +5,9 @@ import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
+import org.orbit.backend.typesystem.utils.EffectUtils
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
-import org.orbit.core.nodes.IExpressionNode
 import org.orbit.core.nodes.InvocationNode
 import org.orbit.util.Invocation
 
@@ -15,11 +15,15 @@ object InvocationInference : ITypeInference<InvocationNode, IMutableTypeEnvironm
     private val invocation: Invocation by inject()
 
     override fun infer(node: InvocationNode, env: IMutableTypeEnvironment): AnyType {
-        val type = TypeInferenceUtils.inferAs<IExpressionNode, AnyArrow>(node.invokable, env)
+        var type = TypeInferenceUtils.infer(node.invokable, env)
+
+        type = type.flatten(IType.Always, env) as? AnyArrow ?: throw invocation.make<TypeSystem>("Cannot invoke non Arrow Type $type", node.invokable)
+
         val arrow = when (env.getCurrentContext().isComplete()) {
             true -> env.getCurrentContext().applySpecialisations(type) as AnyArrow
             else -> type
         }
+
         val args = TypeInferenceUtils.inferAll(node.arguments, env).map { it.flatten(it, env) }
         val expectedArgsCount = arrow.getDomain().count()
 
@@ -35,6 +39,9 @@ object InvocationInference : ITypeInference<InvocationNode, IMutableTypeEnvironm
                 throw invocation.make<TypeSystem>("Lambda `$arrow` expects argument of Type $rType at index ${item.index}, found $lType", node.arguments[item.index])
             }
         }
+
+        // TODO - Pass in EffectHandler
+        EffectUtils.check(arrow, node.effectHandler, GlobalEnvironment)
 
         val lambda = GlobalEnvironment.lambdaBody(arrow)
             ?: return arrow.getCodomain()

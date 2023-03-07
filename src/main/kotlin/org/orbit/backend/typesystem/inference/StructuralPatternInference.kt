@@ -2,10 +2,7 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.StructuralPatternEnvironment
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
@@ -16,15 +13,19 @@ import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 import kotlin.math.exp
 
-object IdentifierBindingPatternInference : ITypeInference<IdentifierBindingPatternNode, StructuralPatternEnvironment>, KoinComponent {
+object IdentifierBindingPatternInference : ITypeInference<IdentifierBindingPatternNode, IndexedStructuralPatternEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    override fun infer(node: IdentifierBindingPatternNode, env: StructuralPatternEnvironment): AnyType {
+    override fun infer(node: IdentifierBindingPatternNode, env: IndexedStructuralPatternEnvironment): AnyType {
         // TODO - This is completely wrong! We need to check by index here, not name
-        val member = env.structuralType.members.firstOrNull { it.first == node.identifier.identifier }
-            ?: throw invocation.make<TypeSystem>("Cannot pattern match on Structural Type ${env.structuralType} because it does not declare a Member called `${node.identifier.identifier}`", node.identifier)
+        val struct = env.parent.structuralType
+        if (struct.members.count() < env.index) {
+            throw invocation.make<TypeSystem>("Cannot bind identifier at index ${env.index} because pattern matched Type $struct only declares ${struct.members.count()} members", node)
+        }
 
-        return IType.PatternBinding(member)
+        val memberType = struct.members[env.index].second
+
+        return IType.PatternBinding(Pair(node.identifier.identifier, memberType))
     }
 }
 
@@ -59,7 +60,11 @@ object StructuralPatternInference : ITypeInference<StructuralPatternNode, IMutab
             ?: throw invocation.make<TypeSystem>("Cannot pattern match on non-Structural Type $patternType in Case expression", node)
 
         val nEnv = StructuralPatternEnvironment(env, struct)
-        val bindingTypes = TypeInferenceUtils.inferAllAs<IBindingPatternNode, IType.PatternBinding>(node.bindings, nEnv)
+        val bindingTypes = node.bindings.mapIndexed { idx, binding ->
+            val mEnv = IndexedStructuralPatternEnvironment(nEnv, idx)
+
+            TypeInferenceUtils.inferAs<IBindingPatternNode, IType.PatternBinding>(binding, mEnv)
+        }
 
         val expected = struct.members.count()
         val provided = bindingTypes.count()

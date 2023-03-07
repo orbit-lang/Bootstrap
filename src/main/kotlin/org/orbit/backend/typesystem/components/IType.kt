@@ -446,21 +446,35 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         }
     }
 
-    data class Effect(val name: String, override val members: List<Pair<String, AnyType>>) : IStructuralType {
+    data class Effect(val name: String, val takes: List<AnyType>, val gives: AnyType) : IArrow<Effect>, IStructuralType {
         companion object {
-            val die = Effect("Die", emptyList())
+            val die = Effect("Die", emptyList(), Always)
         }
 
-        constructor(path: Path, parameters: List<Pair<String, AnyType>>) : this(path.toString(OrbitMangler), parameters)
+        constructor(path: Path, takes: List<AnyType>, gives: AnyType) : this(path.toString(OrbitMangler), takes, gives)
 
         override val id: String = name
+        override val effects: List<Effect> = emptyList()
+        override val members: List<Pair<String, AnyType>> = takes.map { Pair("", it) }
+
+        override fun curry(): IArrow<*> = this
+
+        override fun never(args: List<AnyType>): Never {
+            TODO("Not yet implemented")
+        }
+
+        override fun getDomain(): List<AnyType>
+            = takes
+
+        override fun getCodomain(): AnyType
+            = gives
 
         // TODO - Effects probably have the Cardinality of the sum of all their parameters
         override fun getCardinality(): ITypeCardinality
             = ITypeCardinality.Infinite
 
         override fun substitute(substitution: Substitution): AnyType
-            = Effect(name, members.map { Pair(it.first, it.second.substitute(substitution)) })
+            = Effect(name, takes.substitute(substitution), gives.substitute(substitution))
 
         override fun prettyPrint(depth: Int): String {
             val printer = getKoinInstance<Printer>()
@@ -1219,7 +1233,8 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun getDomain(): List<AnyType> = emptyList()
         override fun getCodomain(): AnyType = gives
 
-        override fun substitute(substitution: Substitution): Arrow0 = Arrow0(gives.substitute(substitution), effects.substitute(substitution) as List<Effect>)
+        override fun substitute(substitution: Substitution): Arrow0
+            = Arrow0(gives.substitute(substitution), effects.substitute(substitution) as List<Effect>)
         override fun curry(): Arrow0 = this
         override fun never(args: List<AnyType>): Never = Never("Unreachable")
 

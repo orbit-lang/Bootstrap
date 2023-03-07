@@ -130,6 +130,7 @@ data class CaseTypeEnvironment(private val parent: IMutableTypeEnvironment, priv
 }
 
 data class StructuralPatternEnvironment(private val parent: ITypeEnvironment, val structuralType: IType.IStructuralType) : ITypeEnvironment by parent
+data class IndexedStructuralPatternEnvironment(val parent: StructuralPatternEnvironment, val index: Int) : ITypeEnvironment by parent
 
 data class ConstructorTypeEnvironment(private val parent: IMutableTypeEnvironment, val constructorArgs: List<AnyType>) : IMutableTypeEnvironment by parent {
     override fun getSpecialisationEvidence(context: Context): Set<Specialisation> {

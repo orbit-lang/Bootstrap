@@ -13,12 +13,12 @@ import org.orbit.util.Invocation
 object EffectUtils : KoinComponent {
     private val invocation: Invocation by inject()
 
-    fun check(signature: IType.Signature, handler: EffectHandlerNode?, env: IMutableTypeEnvironment) : Boolean = when (handler) {
+    fun check(arrow: AnyArrow, handler: EffectHandlerNode?, env: IMutableTypeEnvironment) : Boolean = when (handler) {
         null -> {
-            val pretty = signature.effects.joinToString(", ")
-            when (signature.effects.isEmpty()) {
+            val pretty = arrow.effects.joinToString(", ")
+            when (arrow.effects.isEmpty()) {
                 true -> true
-                else -> throw invocation.make<TypeSystem>("Method $signature declares Effect(s) which must be handled: $pretty", SourcePosition.unknown)
+                else -> throw invocation.make<TypeSystem>("Arrow $arrow declares Effect(s) which must be handled: $pretty", SourcePosition.unknown)
             }
         }
 
@@ -26,14 +26,14 @@ object EffectUtils : KoinComponent {
             // TODO - It would be nice to implement Effect Handlers completely at the library level, but for now
             //  we have to do a bunch of gross dynamic stuff
             val flowCtx = GlobalEnvironment.getContextOrNull(OrbMoreFx.flowCtx.getPath())!!
-            val specialisedCtx = flowCtx.solving(Specialisation(OrbMoreFx.flowResultType, signature.returns))
+            val specialisedCtx = flowCtx.solving(Specialisation(OrbMoreFx.flowResultType, arrow.getCodomain()))
             val specialisedResume = specialisedCtx.specialise(OrbMoreFx.flowResume)
             val nEnv = env.fork()
 
-            nEnv.add(specialisedResume)
+//            nEnv.add(specialisedResume)
             nEnv.bind(handler.flowIdentifier.identifier, OrbMoreFx.flowType, 0)
 
-            val expectedCases = signature.effects.map { IType.Case(it, IType.Unit) }
+            val expectedCases = arrow.effects.map { IType.Case(it, IType.Unit) }
             val mEnv = CaseTypeEnvironment(nEnv, IType.EffectHandler(expectedCases), IType.Unit)
             val cases = TypeInferenceUtils.inferAllAs<CaseNode, IType.Case>(handler.cases, mEnv)
 
@@ -52,7 +52,7 @@ object EffectUtils : KoinComponent {
                     }
 
                     if (!declared) {
-                        throw invocation.make<TypeSystem>("Handling `$aCase` but method $signature does not declare that Effect", handler.cases[idx])
+                        throw invocation.make<TypeSystem>("Handling `$aCase` but Arrow $arrow does not declare that Effect", handler.cases[idx])
                     }
                 }
             }

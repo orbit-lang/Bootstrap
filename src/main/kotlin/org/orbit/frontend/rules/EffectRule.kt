@@ -12,10 +12,11 @@ object EffectRule : ParseRule<EffectNode> {
         val identifier = context.attempt(TypeIdentifierRule.Naked)
             ?: return ParseRule.Result.Failure.Throw("Expected Effect identifier after `effect`", collector)
 
-        val delimRule = DelimitedRule(innerRule = ParameterRule())
-        val delim = context.attempt(delimRule)
-            ?: return ParseRule.Result.Failure.Throw("", collector)
+        context.expect(TokenTypes.Assignment)
 
-        return +EffectNode(start, delim.lastToken, identifier, delim.nodes)
+        val lambda = context.attempt(LambdaTypeRule)
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +EffectNode(start, lambda.lastToken, identifier, lambda)
     }
 }

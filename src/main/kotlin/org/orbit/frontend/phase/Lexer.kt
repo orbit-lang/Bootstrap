@@ -87,7 +87,7 @@ class Lexer(
 							nxt = content.getOrNull(++ptr) ?: break
 						}
 
-						if (chars == tt.pattern) {
+			 			if (chars == tt.pattern) {
 							position = position.moveCharacter(chars.count())
 							content = content.slice(IntRange(chars.count(), content.lastIndex))
 
@@ -131,8 +131,7 @@ class Lexer(
 
 					matched = true
 					break
-				}
-				else if (tt.family == TokenType.Family.Enclosing) {
+				} else if (tt.family == TokenType.Family.Enclosing) {
 					if (nextChar != tt.pattern.first()) continue
 
 					position = position.moveCharacter(1)
@@ -141,47 +140,7 @@ class Lexer(
 					tokens.add(Token(tt, tt.pattern, position))
 					matched = true
 					break
-				}
-
-					// TODO - Lexing Type IDs by hand is a pain in the arse!
-					//  Needs the formal grammar production sketching out before trying to tackle this one
-//				else if (tt == TokenTypes.TypeIdentifier) {
-//					if (!nextChar.isUpperCase()) continue
-//
-//					var id = ""
-//					// 38, 22
-//					while (nextChar.isLetter() || nextChar in listOf(':', '*')) {
-//						if (nextChar == ':') {
-//							val peek = content[1]
-//
-//							if (peek != ':') {
-//								break
-//							}
-//
-//							id += "::"
-//							position = position.moveCharacter(2)
-//							content = content.drop(2)
-//							nextChar = content.getOrNull(0) ?: break
-//						}
-//
-//						val pChar = nextChar
-//
-//						id += nextChar
-//
-//						position = position.moveCharacter(1)
-//						content = content.drop(1)
-//						nextChar = content.getOrNull(0) ?: break
-//
-//						// Jump out here because `*` always marks the end of a Wildcard Type ID
-//						if (pChar == '*') break
-//					}
-//
-//					tokens.add(Token(tt, id, position))
-//					matched = true
-//					break
-//				}
-
-				else if (tt == TokenTypes.Identifier) {
+				} else if (tt == TokenTypes.Identifier) {
 					if (nextChar.isLetter()) {
 						if (!nextChar.isLowerCase()) continue
 					} else if (nextChar != '_') continue

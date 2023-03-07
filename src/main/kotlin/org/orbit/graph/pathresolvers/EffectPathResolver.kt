@@ -9,7 +9,6 @@ import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
-import org.orbit.graph.extensions.getGraphID
 import org.orbit.graph.pathresolvers.util.PathResolverUtil
 import org.orbit.util.Invocation
 
@@ -33,11 +32,10 @@ class EffectPathResolver(val parentPath: Path) : IPathResolver<EffectNode> {
 
             input.annotate(graphID, Annotations.graphId)
             input.identifier.annotate(graphID, Annotations.graphId)
-            input.parameters.forEach { it.annotate(graphID, Annotations.graphId) }
+            input.lambda.annotate(graphID, Annotations.graphId)
         } else {
             input.identifier.annotate(path, Annotations.path)
-
-            pathResolverUtil.resolveAll(input.parameters, pass, environment, graph)
+            pathResolverUtil.resolve(input.lambda, pass, environment, graph)
         }
 
         return IPathResolver.Result.Success(path)

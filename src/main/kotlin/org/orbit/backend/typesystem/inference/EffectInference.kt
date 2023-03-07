@@ -10,8 +10,9 @@ import org.orbit.core.nodes.ParameterNode
 
 object EffectInference : ITypeInference<EffectNode, IMutableTypeEnvironment> {
     override fun infer(node: EffectNode, env: IMutableTypeEnvironment): AnyType {
-        val parameters = TypeInferenceUtils.inferAllAs<ParameterNode, IType.Property>(node.parameters, env)
-        val nEffect = IType.Effect(node.identifier.getPath(), parameters.map { Pair(it.id, it.type) })
+        val domain = TypeInferenceUtils.inferAll(node.lambda.domain, env)
+        val codomain = TypeInferenceUtils.infer(node.lambda.codomain, env)
+        val nEffect = IType.Effect(node.identifier.getPath(), domain, codomain)
 
         env.add(nEffect)
 

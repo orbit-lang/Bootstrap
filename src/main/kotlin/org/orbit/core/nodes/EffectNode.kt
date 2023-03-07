@@ -6,8 +6,11 @@ data class EffectNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val identifier: TypeIdentifierNode,
-    val parameters: List<ParameterNode> = emptyList()
-) : INode {
+    val lambda: LambdaTypeNode
+) : IContextDeclarationNode, EntityDefNode {
+    override val properties: List<ParameterNode> = emptyList()
+    override val typeIdentifierNode: TypeIdentifierNode = identifier
+
     override fun getChildren(): List<INode>
-        = parameters + identifier
+        = listOf(identifier, lambda)
 }

@@ -86,7 +86,7 @@ object ContextRule : ParseRule<ContextNode> {
         }
 
         // TODO - Allow Projections & Extensions here
-        val blockRule = BlockRule(TypeDefRule, TraitDefRule, MethodDefRule, ProjectionRule, OperatorDefRule, TypeAliasRule)
+        val blockRule = BlockRule(TypeDefRule, TraitDefRule, MethodDefRule, ProjectionRule, OperatorDefRule, TypeAliasRule, EffectRule)
         val body = context.attempt(blockRule)
             ?: return ParseRule.Result.Failure.Throw("Context declaration body must contain at least one of the following declarations: Type, Trait", next)
 

@@ -24,7 +24,13 @@ object InvocationRule : CallRule<InvocationNode> {
         val delim = context.attempt(delimRule)
             ?: return ParseRule.Result.Failure.Rewind(collector)
 
-        return +InvocationNode(lhs.firstToken, delim.lastToken, lhs, delim.nodes)
+        val effectHandler = when (context.peek().type) {
+            TokenTypes.By -> context.attempt(EffectHandlerRule)
+                ?: return ParseRule.Result.Failure.Abort
+            else -> null
+        }
+
+        return +InvocationNode(lhs.firstToken, delim.lastToken, lhs, delim.nodes, effectHandler)
     }
 }
 
@@ -110,7 +116,18 @@ object MethodCallRule : CallRule<MethodCallNode> {
         next = context.peek()
 
         if (next.type != TokenTypes.LParen) {
-            return parseEffectHandler(context, +MethodCallNode(start, next, lhs, message, emptyList(), true))
+            val args = when (next.type) {
+                TokenTypes.LBrace -> {
+                    // Trailing closure syntax, e.g: `Unit.call { x -> x }`
+                    val closure = context.attempt(LambdaLiteralRule)
+                        ?: return ParseRule.Result.Failure.Throw("Expected trailing closure after method call followed by `{`", collector)
+
+                    listOf(closure)
+                }
+                else -> emptyList()
+            }
+
+            return parseEffectHandler(context, +MethodCallNode(start, next, lhs, message, args, args.isEmpty()))
         }
 
         val delim = DelimitedRule(TokenTypes.LParen, TokenTypes.RParen, ExpressionRule.defaultValue)

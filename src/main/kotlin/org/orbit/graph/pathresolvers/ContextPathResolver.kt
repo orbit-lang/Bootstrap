@@ -72,6 +72,7 @@ data class ContextPathResolver(val parentPath: Path) : IPathResolver<ContextNode
                     is ProjectionNode -> ProjectionPathResolver
                     is OperatorDefNode -> OperatorDefPathResolver(parentPath)
                     is TypeAliasNode -> TypeAliasPathResolver(parentPath)
+                    is EffectNode -> EffectPathResolver(parentPath)
                     else -> pathResolverUtil.resolve(decl, pass, environment, graph)
                 } as IPathResolver<IContextDeclarationNode>
 

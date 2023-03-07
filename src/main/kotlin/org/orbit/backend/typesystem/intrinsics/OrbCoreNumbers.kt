@@ -27,7 +27,7 @@ object OrbMoreFx : IOrbModule {
     val flowResume = IType.Signature(flowType, "resume", listOf(IType.TypeVar("Orb::More::Fx::FlowCtx::ResultType")), IType.Unit, true)
 
     override fun getContexts(): List<Context> = listOf(flowCtx)
-    override fun getPublicTypes(): List<AnyType> = listOf(flowType)
+    override fun getPublicTypes(): List<AnyType> = listOf(flowType, flowResume)
     override fun getPublicOperators(): List<IType.IOperatorArrow<*, *>> = emptyList()
     override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
 }

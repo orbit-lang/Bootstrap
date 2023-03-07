@@ -123,6 +123,7 @@ private object UntypedParametersLambdaLiteralRule : ValueRule<LambdaLiteralNode>
         while (next.type != TokenTypes.RBrace) {
             val node = context.attemptAny(
                 listOf(
+                    CauseRule,
                     CheckRule,
                     MirrorRule,
                     TypeOfRule,

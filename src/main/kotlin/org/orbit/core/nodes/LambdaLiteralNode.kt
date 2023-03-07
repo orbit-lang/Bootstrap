@@ -24,7 +24,8 @@ data class InvocationNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val invokable: IExpressionNode,
-    override val arguments: List<IExpressionNode>
+    override val arguments: List<IExpressionNode>,
+    val effectHandler: EffectHandlerNode?
 ) : IExpressionNode, IInvokableNode {
     override fun getChildren(): List<INode> = listOf(invokable) + arguments
 }

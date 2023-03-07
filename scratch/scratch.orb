@@ -30,18 +30,39 @@ module Orb::Core::Errors with Orb::Core::* {
 #}
 
 module Main with Orb::* {
-    effect Throw()
-    effect DivideByZero()
+    projection Int : Error
 
-    alias ThrowingFunction = () -> Unit with Throw
+    context ThrowingCtx [V] {
+        effect Exception = (Error) -> V
+        alias ThrowingFunction = () -> V with Exception
+        alias Caught = (
+            Success: { value V } |
+            Failure: { error Error }
+        )
 
-    fun (Unit) try (fn ThrowingFunction) (Unit with Throw) {
-        typeOf fn
+        fun (Unit) try (fn ThrowingFunction) (Caught) = Success(fn() by { flow ->
+            case Exception(error) = flow.resume(Failure(error))
+        })
+
+        fun (self Caught) catch (handler (Error) -> V) (V) = select self {
+            case Success(value) = value
+            case Failure(error) = handler(error)
+        }
+
+        prefix operator try `try` by Unit::try
+        infix operator catch `catch` by Caught::catch
     }
 
     fun (Unit) main () () {
-        Unit.try({ x -> x }) by { flow ->
-            case Throw = flow.resume()
-        }
+        x = `try` { x -> cause .Exception(0) }
+            `catch` { ex -> cause .Exception(1) }
+             within ThrowingCtx [Int]
+
+        y = `try` { x -> true }
+            `catch` { ex -> false }
+             within ThrowingCtx [Bool]
+
+        typeOf x
+        typeOf y
     }
 }

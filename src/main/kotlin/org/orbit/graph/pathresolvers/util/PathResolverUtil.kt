@@ -18,13 +18,11 @@ class PathResolverUtil : KoinComponent {
 		pathResolvers[nodeType] = pathResolver
 	}
 
-	fun <N: INode> resolve(node: N, pass: IPathResolver.Pass, environment: Environment, graph: Graph) : IPathResolver.Result {
+	fun <N : INode> resolve(node: N, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
 		val resolver = pathResolvers[node::class.java] as? IPathResolver<N>
 			?: throw invocation.make<CanonicalNameResolver>("Cannot resolve path for Node ${node::class.java}", node)
 
-		val result = resolver.execute(IPathResolver.InputType(node, pass))
-
-		return result
+		return resolver.execute(IPathResolver.InputType(node, pass))
 	}
 
 	fun <N: INode> resolveAll(nodes: List<N>, pass: IPathResolver.Pass, environment: Environment, graph: Graph) : List<IPathResolver.Result> {
