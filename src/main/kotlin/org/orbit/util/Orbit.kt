@@ -112,6 +112,7 @@ val mainModule = module {
 		util.registerPathResolver(AttributeMetaTypeExpressionPathResolver, AttributeMetaTypeExpressionNode::class.java)
 		util.registerPathResolver(EffectHandlerPathResolver, EffectHandlerNode::class.java)
 		util.registerPathResolver(CausePathResolver, CauseNode::class.java)
+		util.registerPathResolver(ForPathResolver, ForNode::class.java)
 
 		util
 	}
@@ -194,6 +195,7 @@ val mainModule = module {
 	single(AttributeMetaTypeExpressionInference)
 	single(EffectInference)
 	single(CauseInference)
+	single(ForInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

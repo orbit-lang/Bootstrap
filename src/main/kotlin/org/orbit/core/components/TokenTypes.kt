@@ -29,6 +29,7 @@ object TokenTypes : TokenTypeProvider {
     object Check : TokenType("Check", "check", true, false, Family.Keyword)
     object Cause : TokenType("Cause", "cause", true, false, Family.Keyword)
     object Effect : TokenType("Effect", "effect", true, false, Family.Keyword)
+    object For : TokenType("For", "for", true, false, Family.Keyword)
     object TypeEffect : TokenType("TypeEffect", "\\btype effect\\b", false, false, Family.Keyword)
     object Type : TokenType("Type", "type", true, false, Family.Keyword + Family.Kind)
     object Trait : TokenType("Trait", "trait", true, false, Family.Keyword + Family.Kind)
@@ -86,7 +87,7 @@ object TokenTypes : TokenTypeProvider {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Real, Int, Dot, Attribute, Context, Api, Module, Define, Defer, Cause, Effect, TypeEffect, Fun, Observe, Where, Print,
+            Real, Int, Dot, Attribute, Context, Api, Module, Define, Defer, Cause, Effect, For, TypeEffect, Fun, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias, Operator,
             Synthesise,
             Dollar,
