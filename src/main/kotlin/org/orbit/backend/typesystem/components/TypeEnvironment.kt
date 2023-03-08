@@ -52,6 +52,7 @@ sealed interface ITypeEnvironment {
     fun getBinding(name: String, index: Int) : IRef?
     fun getCurrentContext() : Context
     fun getKnownContexts() : List<Context>
+    fun getTrackedEffects() : List<IType.Effect>
 
     fun getSpecialisationEvidence(context: Context) : Set<Specialisation> = emptySet()
 }
@@ -100,6 +101,7 @@ interface IMutableTypeEnvironment: ITypeEnvironment {
     fun replace(old: AnyType, new: AnyType)
     fun bind(name: String, type: AnyType, index: Int)
     fun localCopy() : IMutableTypeEnvironment
+    fun track(effect: IType.Effect)
 }
 
 data class AttributedEnvironment(private val parent: IMutableTypeEnvironment, val knownAttributes: List<IType.IAttribute>): IMutableTypeEnvironment by parent
@@ -172,6 +174,13 @@ fun IMutableTypeEnvironment.fork(path: Path) : LocalEnvironment
 
 class LocalEnvironment(private val parent: IMutableTypeEnvironment, override val name: String = parent.name) : IMutableTypeEnvironment {
     private val storage = TypeEnvironmentStorage(parent.getCurrentContext())
+
+    override fun track(effect: IType.Effect) {
+        storage.track(effect)
+    }
+
+    override fun getTrackedEffects(): List<IType.Effect>
+        = storage.getTrackedEffects()
 
     override fun localCopy(): IMutableTypeEnvironment = this
 
@@ -305,6 +314,14 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
     private val projections = mutableMapOf<String, List<ContextualDeclaration<Projection>>>()
     private val contexts = mutableListOf<Context>()
     private val bindings = mutableListOf<IRef>()
+    private val trackedEffects = mutableListOf<IType.Effect>()
+
+    override fun track(effect: IType.Effect) {
+        trackedEffects.add(effect)
+    }
+
+    override fun getTrackedEffects(): List<IType.Effect>
+        = trackedEffects
 
     override fun localCopy(): IMutableTypeEnvironment {
         val nStorage = TypeEnvironmentStorage(context)

@@ -19,6 +19,8 @@ data class SignatureInference(val shouldDeclare: Boolean) : ITypeInference<Metho
         val effects = TypeInferenceUtils.inferAllAs<TypeIdentifierNode, IType.Effect>(node.effects, env)
         val signature = IType.Signature(receiver, node.identifierNode.identifier, params, ret, node.isInstanceMethod, effects)
 
+        effects.forEach { env.track(it) }
+
         if (shouldDeclare) {
             env.add(signature)
         }
