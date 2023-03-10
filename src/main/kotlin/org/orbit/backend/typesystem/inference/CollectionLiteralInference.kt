@@ -20,6 +20,8 @@ object CollectionLiteralInference : ITypeInference<CollectionLiteralNode, ITypeE
         // TODO - Read collection type from delegate (if specified)
         // TODO - Homogeneity
 
+        if (elements.isEmpty()) return IType.Array(IType.Always, IType.Array.Size.Any)
+
         val element = elements[0]
 
         for (pair in elements.withIndex()) {

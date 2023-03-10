@@ -23,23 +23,18 @@ module Main with Orb::* {
 
     effect DivideByZero = () -> Unit
 
-    alias MapEntry = (K, V) => (K, V)
-    alias Map = (K, V) => [.MapEntry(K, V)]
-
     fun (Unit) safeDivide (x Int, y Int) (Int with DivideByZero) = select y {
         case 0 = cause .DivideByZero()
         case else = x / y
     }
 
-    fun (self Int) collect () ([Int]) = [self]
-
     fun (Unit) main () () {
         Unit.safeDivide(1, 0) by { flow ->
             case DivideByZero = flow.resume(0)
         }
-
+        
         xs = [1, 2, 3]
-        ys = for xs by { (x Int) -> x }
+        ys = for xs by { x -> x }
 
         typeOf ys
 

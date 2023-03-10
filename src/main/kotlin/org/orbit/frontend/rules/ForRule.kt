@@ -2,7 +2,6 @@ package org.orbit.frontend.rules
 
 import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.ForNode
-import org.orbit.core.nodes.IExpressionNode
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
@@ -14,8 +13,7 @@ object ForRule : ValueRule<ForNode> {
 
         context.expect(TokenTypes.By)
 
-        val body = context.attemptAny(LambdaLiteralRule, IdentifierRule, MethodReferenceRule)
-            as? IExpressionNode
+        val body = context.attempt(InvokableReferenceRule)
             ?: return ParseRule.Result.Failure.Abort
 
         return +ForNode(start, body.lastToken, iterable, body)

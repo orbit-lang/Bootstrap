@@ -8,8 +8,8 @@ import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
+import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.ForNode
-import org.orbit.frontend.rules.CollectionTypeInference
 import org.orbit.util.Invocation
 
 object ForInference : ITypeInference<ForNode, ITypeEnvironment>, KoinComponent {
@@ -20,11 +20,20 @@ object ForInference : ITypeInference<ForNode, ITypeEnvironment>, KoinComponent {
         val iter = expr as? IType.Array
             ?: throw invocation.make<TypeSystem>("For expressions can only iterate over Collections.", node.iterable)
 
-        // TODO - Ensure `iter` conforms to `Iterable` Trait
-
-        return when (val body = TypeInferenceUtils.infer(node.body, env)) {
-            is AnyArrow -> IType.Array(body.getCodomain(), iter.size)
+        val arrow = when (val body = TypeInferenceUtils.infer(node.body, env)) {
+            is AnyArrow -> body
             else -> throw invocation.make<TypeSystem>("The body of a For expression must be invokable. Found $body", node.body)
         }
+
+        val elem = when (arrow.getDomain().count()) {
+            1 -> arrow.getDomain()[0]
+            else -> throw invocation.make<TypeSystem>("The body of a For expression must be invokable and accept a single parameter. Found ${arrow.getDomain()}", node.body)
+        }
+
+        if (!TypeUtils.checkEq(env, iter.element, elem)) {
+            throw invocation.make<TypeSystem>("", node.body)
+        }
+
+        return IType.Array(arrow.getCodomain(), iter.size)
     }
 }
