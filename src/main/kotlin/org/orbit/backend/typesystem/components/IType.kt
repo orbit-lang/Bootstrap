@@ -678,7 +678,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             }
         }
 
-        override val id: String = "[${element.id};$size]"
+        override val id: String = "[${element.id}/$size]"
 
         override fun getConstructors(): List<IConstructor<*>> = when (size) {
             is Size.Fixed -> when (size.size) {
@@ -712,7 +712,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)
 
-            return "$indent[$element;$size]"
+            return "$indent[$element/$size]"
         }
 
         override fun toString(): String

@@ -19,25 +19,8 @@ module Orb::Core::Errors with Orb::Core::* {
 }
 
 module Main with Orb::* {
-    projection Int : Error
-
-    effect DivideByZero = () -> Unit
-
-    fun (Unit) safeDivide (x Int, y Int) (Int with DivideByZero) = select y {
-        case 0 = cause .DivideByZero()
-        case else = x / y
-    }
 
     fun (Unit) main () () {
-        Unit.safeDivide(1, 0) by { flow ->
-            case DivideByZero = flow.resume(0)
-        }
-        
-        xs = [1, 2, 3]
-        ys = for xs by { x -> x }
 
-        typeOf ys
-
-        return
     }
 }
