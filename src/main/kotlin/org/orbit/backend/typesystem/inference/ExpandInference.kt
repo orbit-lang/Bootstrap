@@ -102,6 +102,24 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
         return ArrayValue(array, nElements)
     }
 
+    private fun inferBinaryExpression(node: BinaryExpressionNode, env: ITypeEnvironment) : AnyType {
+        val lNode = node.left.unwrap() as? IConstantExpressionNode
+            ?: throw invocation.make<TypeSystem>("Cannot evaluate binary expression at compile-time because the left-hand side is not a constant expression", node.left)
+
+        val rNode = node.right.unwrap() as? IConstantExpressionNode
+            ?: throw invocation.make<TypeSystem>("Cannot evaluate binary expression at compile-time because the left-hand side is not a constant expression", node.right)
+
+        val lType = inferExpression(lNode, env)
+
+        if (lType !is IValue<*, *>) throw invocation.make<TypeSystem>("Cannot evaluate binary expression at compile-time because the left-hand side is not a constant expression", lNode)
+
+        val rType = inferExpression(rNode, env)
+
+        if (rType !is IValue<*, *>) throw invocation.make<TypeSystem>("Cannot evaluate binary expression at compile-time because the left-hand side is not a constant expression", rNode)
+
+        return TypeInferenceUtils.infer(node, env)
+    }
+
     private fun inferExpression(node: IConstantExpressionNode, env: ITypeEnvironment) : AnyType = when (node) {
         is IntLiteralNode -> inferIntLiteral(node)
         is RealLiteralNode -> inferRealLiteral(node)
@@ -111,6 +129,7 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
         is TypeIdentifierNode -> inferTypeIdentifier(node, env)
         is MethodCallNode -> inferMethodCall(node, env)
         is CollectionLiteralNode -> inferCollectionLiteral(node, env)
+        is BinaryExpressionNode -> inferBinaryExpression(node, env)
 
         else -> throw invocation.make<TypeSystem>("Cannot expand value at compile-time: `${node.firstToken.text}`", node)
     }

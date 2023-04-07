@@ -25,3 +25,8 @@ data class RValueNode(
 
 	override fun getChildren() : List<INode> = listOf(expressionNode)
 }
+
+fun INode.unwrap() : INode = when (this) {
+	is RValueNode -> expressionNode.unwrap()
+	else -> this
+}

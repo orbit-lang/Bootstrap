@@ -35,12 +35,11 @@ sealed interface AttributeOperator {
         override val op: String = "|"
 
         override fun apply(left: IType.IAttribute, right: IType.IAttribute, env: IMutableTypeEnvironment): AnyMetaType = when (val l = left.invoke(env)) {
-            IType.Always -> when (val r = right.invoke(env)) {
+            IType.Always -> l
+            else -> when (val r = right.invoke(env)) {
                 is IType.Always -> IType.Always
                 else -> r
             }
-
-            else -> l
         }
 
         override fun toString(): String = op

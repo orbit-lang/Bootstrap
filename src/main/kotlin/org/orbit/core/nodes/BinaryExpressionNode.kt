@@ -8,7 +8,9 @@ data class BinaryExpressionNode(
     val operator: String,
     val left: IExpressionNode,
     val right: IExpressionNode
-) : IExpressionNode, ValueRepresentableNode {
+) : IExpressionNode, ValueRepresentableNode, IConstantExpressionNode {
+    override fun getTypeName(): String = ""
+
 	override fun getChildren() : List<INode> {
 		return listOf(left, right)
 	}

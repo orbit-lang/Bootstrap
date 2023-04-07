@@ -1,5 +1,6 @@
 package org.orbit.frontend.rules
 
+import com.sun.jdi.Mirror
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.core.nodes.*
@@ -27,6 +28,7 @@ class ExpressionRule(private vararg val valueRules: ValueRule<*>) : ParseRule<IE
 
 	companion object {
 		val defaultValue = ExpressionRule(
+			MirrorRule,
 			ForRule,
 			AssignmentRule,
 			PanicRule,

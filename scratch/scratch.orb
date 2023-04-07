@@ -19,8 +19,10 @@ module Orb::Core::Errors with Orb::Core::* {
 }
 
 module Main with Orb::* {
+    attribute Same = (A, B) => A = B
+    attribute Like = (A, B) => A : B
 
     fun (Unit) main () () {
-
+        typeOf ${1 + 1}
     }
 }

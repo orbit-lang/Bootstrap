@@ -17,7 +17,6 @@ object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
 
         val constraints = TypeInferenceUtils.inferAllAs<IContextClauseExpressionNode, IType.AttributeInvocationExpression>(node.clauses, nEnv)
 
-
 //        val groupedConstraints = mutableMapOf<AnyType, List<ITypeConstraint>>()
 //        for (constraint in constraints) {
 //            val pConstraints = groupedConstraints[constraint.type] ?: emptyList()
