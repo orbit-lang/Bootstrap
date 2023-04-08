@@ -52,10 +52,6 @@ class Invocation(val platform: Platform, val options: InvocationOptions = Invoca
 
 	@OptIn(ExperimentalTime::class)
 	fun report() {
-		val warnings = dumpWarnings()
-
-		println(warnings)
-
 		if (options.measurePhaseDuration) {
 			phaseMeasurements.forEach {
 				val pretty = printer.apply("Completed ${it.phase.phaseName} in ${it.duration}", PrintableKey.Italics)
