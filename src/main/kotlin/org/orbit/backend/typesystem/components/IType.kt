@@ -1186,7 +1186,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         }
     }
 
-    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<IAttribute>, val fallback: AnyType? = null, override val effects: List<Effect> = emptyList()) : IArrow<ConstrainedArrow>, IConstructableType<ConstrainedArrow> {
+    data class ConstrainedArrow(val arrow: AnyArrow, val constraints: List<IAttribute>, val fallback: AnyType? = null, override val effects: List<Effect> = emptyList(), val referencedVariadicIndices: List<Int> = emptyList()) : IArrow<ConstrainedArrow>, IConstructableType<ConstrainedArrow> {
         override val id: String = "$arrow + ${constraints.joinToString(", ")}"
 
         override fun isSpecialised(): Boolean = false
@@ -1207,12 +1207,12 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = arrow.never(args)
 
         override fun substitute(substitution: Substitution): AnyType = when (fallback) {
-            null -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute>)
-            else -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute>, fallback.substitute(substitution))
+            null -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute>, null, effects.substitute(substitution) as List<Effect>, referencedVariadicIndices)
+            else -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute>, fallback.substitute(substitution), effects.substitute(substitution) as List<Effect>, referencedVariadicIndices)
         }
 
         override fun extendDomain(with: List<AnyType>): AnyArrow
-            = ConstrainedArrow(arrow.extendDomain(with), constraints, fallback, effects)
+            = ConstrainedArrow(arrow.extendDomain(with), constraints, fallback, effects, referencedVariadicIndices)
 
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)

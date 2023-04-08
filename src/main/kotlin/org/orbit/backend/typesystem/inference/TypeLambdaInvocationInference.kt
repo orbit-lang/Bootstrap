@@ -52,25 +52,24 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
         val nArrow = when (variadic) {
             null -> arrow
             else -> {
-                val nonVCount = arrow.getDomain().count { it is IType.TypeVar && it.isVariadic }
+                val maxVIdx = arrow.referencedVariadicIndices.maxOrNull()
+                    ?: throw invocation.make<TypeSystem>("Variadic Type Parameter $variadic is not consumed (sliced) in body of Type Lambda", node)
+
+                val nonVCount = arrow.getDomain().count { !(it is IType.TypeVar && it.isVariadic) }
                 val vCount = args.count() - nonVCount
 
-                if (vCount > 0) {
-                    val vArgs = args.subList(nonVCount, args.count())
-                    val nArrow = arrow.extendDomain(vArgs)
-                    val vSubs = mutableListOf<Substitution>()
-                    for (idx in nonVCount until nArrow.getDomain().count()) {
-                        val slice = IType.VariadicSlice(variadic, idx - 1)
-                        val vArg = vArgs[idx - 1]
-                        val sub = Substitution(slice, vArg)
+                if (vCount <= maxVIdx) {
+                    val referencedSlices = arrow.referencedVariadicIndices.map { IType.VariadicSlice(variadic, it) }
+                        .joinToString(", ")
 
-                        vSubs.add(sub)
-                    }
-
-                    vSubs.fold(nArrow) { acc, next -> acc.substitute(next) as IType.ConstrainedArrow } as IType.ConstrainedArrow
-                } else {
-                    arrow
+                    throw invocation.make<TypeSystem>("Variadic Type Lambda requires at least ${nonVCount + maxVIdx + 1} arguments because the following slices are consumed in the body:\n\t$referencedSlices", node)
                 }
+
+                val vSubs = arrow.referencedVariadicIndices.map {
+                    Substitution(IType.VariadicSlice(variadic, it), args[it])
+                }
+
+                vSubs.fold(arrow) { acc, next -> acc.substitute(next) as IType.ConstrainedArrow }
             }
         }
 

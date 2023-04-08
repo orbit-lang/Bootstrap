@@ -8,7 +8,6 @@ import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.*
 import org.orbit.util.Invocation
-import java.lang.Integer.max
 
 private sealed interface IAttributeInvocationInference<A: IAttributeExpressionNode> : ITypeInference<A, ITypeEnvironment>
 
@@ -73,13 +72,19 @@ object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironm
             type
         }
 
-        if (variadicCount > 0) {
-            if (lastVariadicIdx != domain.count() - 1) {
-                throw invocation.make<TypeSystem>("Only the last Type Parameter of a Type Lambda may be Variadic", node)
-            }
+        val vIndices = when (variadicCount) {
+            0 -> emptyList()
+            else -> {
+                if (lastVariadicIdx != domain.count() - 1) {
+                    throw invocation.make<TypeSystem>("Only the last Type Parameter of a Type Lambda may be Variadic", node)
+                }
 
-            if (variadicCount != 1) {
-                throw invocation.make<TypeSystem>("Only one Variadic Type Parameter is allowed in a Type Lambda", node)
+                if (variadicCount != 1) {
+                    throw invocation.make<TypeSystem>("Only one Variadic Type Parameter is allowed in a Type Lambda", node)
+                }
+
+                node.codomain.search(TypeSliceNode::class.java)
+                    .map { it.index }
             }
         }
 
@@ -94,6 +99,6 @@ object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironm
             else -> TypeInferenceUtils.infer(node.elseClause, mEnv)
         }
 
-        return IType.ConstrainedArrow(domain.arrowOf(codomain), attributes, fallback)
+        return IType.ConstrainedArrow(domain.arrowOf(codomain), attributes, fallback, emptyList(), vIndices)
     }
 }
