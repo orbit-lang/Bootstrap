@@ -45,7 +45,7 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
             if (variadic == null) {
                 throw invocation.make<TypeSystem>("Invocation of Type Lambda $arrow expects ${arrow.getDomain().count()} Type arguments, found ${args.count()}", node)
             } else {
-                throw invocation.make<TypeSystem>("Invocation of Variadic Type Lambda $arrow expects ${arrow.getDomain().count()} + $variadic Type arguments, found ${args.count()}", node)
+                throw invocation.make<TypeSystem>("Invocation of Variadic Type Lambda $arrow expects ${arrow.getDomain().count()} Type arguments, found ${args.count()}", node)
             }
         }
 
