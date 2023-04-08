@@ -29,7 +29,13 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
         val args = TypeInferenceUtils.inferAll(node.arguments, env)
         val domain = arrow.getDomain()
 
-        val variadic = (domain.lastOrNull() as? IType.TypeVar)
+        val variadic = when (val tv = domain.lastOrNull() as? IType.TypeVar) {
+            null -> null
+            else -> when (tv.isVariadic) {
+                true -> tv
+                else -> null
+            }
+        }
 
         val validRange = when (val v = variadic?.variadicBound) {
             null -> IntRange(domain.count(), domain.count())
@@ -65,8 +71,9 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
                     throw invocation.make<TypeSystem>("Variadic Type Lambda requires at least ${nonVCount + maxVIdx + 1} arguments because the following slices are consumed in the body:\n\t$referencedSlices", node)
                 }
 
+                val vArgs = args.drop(nonVCount)
                 val vSubs = arrow.referencedVariadicIndices.map {
-                    Substitution(IType.VariadicSlice(variadic, it), args[it])
+                    Substitution(IType.VariadicSlice(variadic, it), vArgs[it])
                 }
 
                 vSubs.fold(arrow) { acc, next -> acc.substitute(next) as IType.ConstrainedArrow }
