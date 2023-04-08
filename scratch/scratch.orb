@@ -22,13 +22,15 @@ module Main with Orb::* {
     attribute Same = (A, B) => A = B
     attribute Like = (A, B) => A : B
 
-    alias NTuple = (A, B, variadic T) => T
+    alias NTuple = (A, B, variadic T) => T[0]
 #    { elements for T by $0, size N }
 
     alias F = .NTuple(Int, Int, Int, Int, Int)
 
     fun (Unit) main () () {
-        f = F(1, 2)
+        # `F` reduces to an alias for `Int` in this example because NTuple only consumes
+        # its 1st Variadic parameter, and everything else is thrown away
+        f = F()
         typeOf f
     }
 }

@@ -83,8 +83,13 @@ interface INode {
 				}
 			}
 
-		return matches + getChildren().flatMap { it.search(nodeType, ignoreScopedNodes = ignoreScopedNodes) }
+		val sub = matches + getChildren().flatMap { it.search(nodeType, ignoreScopedNodes = ignoreScopedNodes) }
 			.prioritise(priorityComparator)
+
+		return when (this::class.java) {
+			nodeType -> sub + (this as N)
+			else -> sub
+		}
 	}
 }
 

@@ -94,6 +94,12 @@ object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironm
 
         val mEnv = AttributedEnvironment(nEnv, attributes)
         val codomain = TypeInferenceUtils.infer(node.codomain, mEnv)
+
+        if (codomain is IType.TypeVar && codomain.isVariadic) {
+            val example = IType.VariadicSlice(codomain, 0)
+            throw invocation.make<TypeSystem>("Cannot return Variadic Type Parameter $codomain. Suggest slicing instead, e.g. `$example`", node.codomain)
+        }
+
         val fallback = when (node.elseClause) {
             null -> null
             else -> TypeInferenceUtils.infer(node.elseClause, mEnv)
