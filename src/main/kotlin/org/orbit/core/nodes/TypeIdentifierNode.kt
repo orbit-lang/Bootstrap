@@ -58,7 +58,7 @@ data class TypeIdentifierNode(
     override val lastToken: Token,
     override val value: String,
     val typeParametersNode: TypeParametersNode = TypeParametersNode(firstToken, lastToken)
-) : TypeExpressionNode, LValueTypeParameter {
+) : ITypeLambdaParameterNode, LValueTypeParameter {
 	companion object {
 		private val nullToken = Token(TokenTypes.TypeIdentifier, "AnyType", SourcePosition.unknown)
 		private val anyTypeIdentifierNode = TypeIdentifierNode(nullToken, nullToken, "Any")
@@ -91,6 +91,31 @@ data class TypeIdentifierNode(
 
 	override fun toString() : String
 		= "${value}<${typeParametersNode.typeParameters.joinToString(", ") { it.toString() }}>"
+}
+
+data class VariadicTypeIdentifierNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
+	val identifier: TypeIdentifierNode
+) : ITypeLambdaParameterNode {
+	override val value: String = identifier.value
+	override fun getTypeName(): String = identifier.getTypeName()
+
+	override fun getChildren(): List<INode>
+		= listOf(identifier)
+}
+
+data class TypeSliceNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
+	val identifier: TypeIdentifierNode,
+	// TODO - We should be able to generalise this concept with Dependent Types (or maybe Quotient Types?)
+	val index: Int
+) : TypeExpressionNode {
+	override fun getTypeName(): String = "${identifier.getTypeName()}[$index]"
+	override val value: String = getTypeName()
+
+	override fun getChildren(): List<INode> = listOf(identifier)
 }
 
 data class CollectionTypeLiteralNode(

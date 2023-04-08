@@ -113,6 +113,7 @@ val mainModule = module {
 		util.registerPathResolver(EffectHandlerPathResolver, EffectHandlerNode::class.java)
 		util.registerPathResolver(CausePathResolver, CauseNode::class.java)
 		util.registerPathResolver(ForPathResolver, ForNode::class.java)
+		util.registerPathResolver(TypeSlicePathResolver, TypeSliceNode::class.java)
 
 		util
 	}
@@ -196,6 +197,7 @@ val mainModule = module {
 	single(EffectInference)
 	single(CauseInference)
 	single(ForInference)
+	single(TypeSliceInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

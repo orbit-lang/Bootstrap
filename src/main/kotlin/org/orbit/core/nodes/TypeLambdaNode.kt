@@ -2,10 +2,12 @@ package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
 
+sealed interface ITypeLambdaParameterNode : TypeExpressionNode
+
 data class TypeLambdaNode(
     override val firstToken: Token,
     override val lastToken: Token,
-    val domain: List<TypeExpressionNode>,
+    val domain: List<ITypeLambdaParameterNode>,
     val codomain: TypeExpressionNode,
     val constraints: List<TypeLambdaConstraintNode>,
     val elseClause: TypeExpressionNode? = null

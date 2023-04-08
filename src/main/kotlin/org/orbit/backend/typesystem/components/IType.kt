@@ -1168,6 +1168,9 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         fun curry(): IArrow<*>
         fun never(args: List<AnyType>): Never
 
+        fun extendDomain(with: List<AnyType>) : AnyArrow
+            = (getDomain().filterNot { it is TypeVar && it.isVariadic } + with).arrowOf(getCodomain(), effects)
+
         fun maxCurry(): Arrow0 = when (this) {
             is Arrow0 -> this
             is Arrow1 -> curry()
@@ -1207,6 +1210,9 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             null -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute>)
             else -> ConstrainedArrow(arrow.substitute(substitution) as AnyArrow, constraints.substitute(substitution) as List<Attribute>, fallback.substitute(substitution))
         }
+
+        override fun extendDomain(with: List<AnyType>): AnyArrow
+            = ConstrainedArrow(arrow.extendDomain(with), constraints, fallback, effects)
 
         override fun prettyPrint(depth: Int): String {
             val indent = "\t".repeat(depth)
@@ -1381,9 +1387,38 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    data class TypeVar(val name: String, val constraints: List<ITypeConstraint> = emptyList()) : AnyType, IConstructableType<TypeVar>, ITypeConstraint {
+    data class VariadicSlice(val typeVar: TypeVar, val slice: Int) : AnyType {
+        override val id: String = "$typeVar[$slice]"
+
+        override fun equals(other: Any?): Boolean = when (other) {
+            is VariadicSlice -> other.typeVar == typeVar && other.slice == slice
+            else -> false
+        }
+
+        override fun getCardinality(): ITypeCardinality
+            = typeVar.getCardinality()
+
+        override fun substitute(substitution: Substitution): AnyType = when (val o = substitution.old) {
+            is VariadicSlice -> when (o.typeVar == typeVar && o.slice == slice) {
+                true -> substitution.new
+                else -> this
+            }
+            else -> this
+        }
+
+        override fun prettyPrint(depth: Int): String {
+            return "$typeVar[$slice]"
+        }
+
+        override fun toString(): String
+            = prettyPrint()
+    }
+
+    data class TypeVar(val name: String, val constraints: List<ITypeConstraint> = emptyList(), val variadicBound: VariadicBound? = null) : AnyType, IConstructableType<TypeVar>, ITypeConstraint {
         override val id: String = "?$name"
         override val type: AnyType = this
+
+        val isVariadic: Boolean = variadicBound != null
 
         override fun isSolvedBy(input: AnyType, env: ITypeEnvironment): Boolean
             = constraints.all { it.isSolvedBy(input, env) }
@@ -1496,7 +1531,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     fun getTypeCheckPosition() : TypeCheckPosition = TypeCheckPosition.Any
     fun getCardinality() : ITypeCardinality
     fun getConstructors() : List<IConstructor<*>> = emptyList()
-    fun getUnsolvedTypeVariables() : List<IType.TypeVar> = emptyList()
+    fun getUnsolvedTypeVariables() : List<TypeVar> = emptyList()
 
     fun getPath() : Path
         = OrbitMangler.unmangle(getCanonicalName())
@@ -1570,7 +1605,7 @@ sealed interface IValue<T: AnyType, V> : IType {
 
     override val id: String get() = "$value : $type"
 
-    override fun substitute(substitution: Substitution): AnyType = type
+    override fun substitute(substitution: Substitution): AnyType = this
     override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
 
     override fun prettyPrint(depth: Int): String {

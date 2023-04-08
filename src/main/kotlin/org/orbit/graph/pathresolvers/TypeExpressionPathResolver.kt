@@ -37,6 +37,15 @@ object StructTypePathResolver : IPathResolver<StructTypeNode> {
 	}
 }
 
+object TypeSlicePathResolver : IPathResolver<TypeSliceNode> {
+	override val invocation: Invocation by inject()
+	private val pathResolverUtil: PathResolverUtil by inject()
+
+	override fun resolve(input: TypeSliceNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
+		return pathResolverUtil.resolve(input.identifier, pass, environment, graph)
+	}
+}
+
 object TypeExpressionPathResolver : IPathResolver<TypeExpressionNode> {
 	override val invocation: Invocation by inject()
 	private val pathResolverUtil: PathResolverUtil by inject()

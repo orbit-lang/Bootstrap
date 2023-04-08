@@ -5,6 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.AttributeOperatorExpressionNode
+import org.orbit.core.nodes.ITypeLambdaParameterNode
 import org.orbit.core.nodes.TypeLambdaConstraintNode
 import org.orbit.core.nodes.TypeLambdaNode
 import org.orbit.frontend.extensions.unaryPlus
@@ -26,12 +27,22 @@ object TypeLambdaConstraintRule : ParseRule<TypeLambdaConstraintNode> {
     }
 }
 
+object TypeLambdaParameterRule : ParseRule<ITypeLambdaParameterNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val typeParameter = context.attemptAny(listOf(VariadicTypeIdentifierRule, TypeIdentifierRule.Naked))
+            as? ITypeLambdaParameterNode
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +typeParameter
+    }
+}
+
 object TypeLambdaRule : ParseRule<TypeLambdaNode>, KoinComponent {
     private val invocation: Invocation by inject()
 
     override fun parse(context: Parser): ParseRule.Result {
         val collector = context.startCollecting()
-        val delimRule = DelimitedRule(innerRule = TypeExpressionRule)
+        val delimRule = DelimitedRule(innerRule = TypeLambdaParameterRule)
         val delim = context.attempt(delimRule)
             ?: return ParseRule.Result.Failure.Rewind(collector)
 

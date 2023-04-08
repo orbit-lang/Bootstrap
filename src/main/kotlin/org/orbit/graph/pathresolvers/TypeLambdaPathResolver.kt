@@ -3,9 +3,7 @@ package org.orbit.graph.pathresolvers
 import org.koin.core.component.inject
 import org.orbit.core.Path
 import org.orbit.core.getPath
-import org.orbit.core.nodes.Annotations
-import org.orbit.core.nodes.TypeLambdaConstraintNode
-import org.orbit.core.nodes.TypeLambdaNode
+import org.orbit.core.nodes.*
 import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
@@ -29,15 +27,17 @@ object TypeLambdaPathResolver : IPathResolver<TypeLambdaNode> {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
+    private fun resolveTypeParameter(node: ITypeLambdaParameterNode, environment: Environment) {
+        environment.bind(Binding.Kind.Type, node.getTypeName(), Path(node.getTypeName()))
+    }
+
     override fun resolve(input: TypeLambdaNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result = when (pass) {
         IPathResolver.Pass.Last -> {
             IPathResolver.Result.Success(input.getPath())
         }
 
         else -> environment.withScope {
-            input.domain.forEach { tp ->
-                environment.bind(Binding.Kind.Type, tp.getTypeName(), Path(tp.getTypeName()))
-            }
+            input.domain.forEach { resolveTypeParameter(it, environment) }
 
             input.codomain.annotate(input.getGraphID(), Annotations.graphId)
             input.constraints.forEach { c ->

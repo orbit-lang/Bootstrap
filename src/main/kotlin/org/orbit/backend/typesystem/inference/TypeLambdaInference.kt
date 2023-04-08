@@ -8,6 +8,7 @@ import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.nodes.*
 import org.orbit.util.Invocation
+import java.lang.Integer.max
 
 private sealed interface IAttributeInvocationInference<A: IAttributeExpressionNode> : ITypeInference<A, ITypeEnvironment>
 
@@ -46,15 +47,40 @@ private object AnyAttributeInvocationInference : IAttributeInvocationInference<I
 }
 
 object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironment>, KoinComponent {
+    private val invocation: Invocation by inject()
+
+    private fun constructTypeVariable(node: ITypeLambdaParameterNode) : IType.TypeVar = when (node) {
+        is TypeIdentifierNode -> IType.TypeVar(node.getTypeName())
+        // TODO - Variadic capture expressions, e.g. `variadic(2+) T`, `variadic(1...9) T`
+        is VariadicTypeIdentifierNode -> IType.TypeVar(node.getTypeName(), emptyList(), VariadicBound.Any)
+    }
+
     override fun infer(node: TypeLambdaNode, env: IMutableTypeEnvironment): AnyType {
         val nEnv = env.fork()
 
-        val domain = node.domain.map {
-            val type = IType.TypeVar(it.getTypeName())
+        var variadicCount = 0
+        var lastVariadicIdx = 0
+        val domain = node.domain.mapIndexed { idx, it ->
+            val type = constructTypeVariable(it)
+
+            if (type.isVariadic) {
+                variadicCount += 1
+                lastVariadicIdx = idx
+            }
 
             nEnv.add(type)
 
             type
+        }
+
+        if (variadicCount > 0) {
+            if (lastVariadicIdx != domain.count() - 1) {
+                throw invocation.make<TypeSystem>("Only the last Type Parameter of a Type Lambda may be Variadic", node)
+            }
+
+            if (variadicCount != 1) {
+                throw invocation.make<TypeSystem>("Only one Variadic Type Parameter is allowed in a Type Lambda", node)
+            }
         }
 
         val attributes = node.constraints.map {
