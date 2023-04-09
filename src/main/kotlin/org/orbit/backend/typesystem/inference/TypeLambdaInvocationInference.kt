@@ -5,12 +5,19 @@ import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
+import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.TypeLambdaInvocationNode
 import org.orbit.util.Invocation
 import java.lang.Integer.max
 
 object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, IMutableTypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
+
+    private fun checkDependentType(expected: AnyType, actual: AnyType, env: ITypeEnvironment) : Boolean {
+        if (actual !is IValue<*, *>) return false
+
+        return TypeUtils.checkEq(env, actual.type, expected)
+    }
 
     override fun infer(node: TypeLambdaInvocationNode, env: IMutableTypeEnvironment): AnyType {
         val pArrow = TypeInferenceUtils.infer(node.typeIdentifierNode, env)
@@ -52,6 +59,18 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
                 throw invocation.make<TypeSystem>("Invocation of Type Lambda $arrow expects ${arrow.getDomain().count()} Type arguments, found ${args.count()}", node)
             } else {
                 throw invocation.make<TypeSystem>("Invocation of Variadic Type Lambda $arrow expects ${arrow.getDomain().count()} Type arguments, found ${args.count()}", node)
+            }
+        }
+
+        for ((idx, tv) in domain.withIndex()) {
+            if (tv !is IType.TypeVar) continue
+            if (!tv.isDependent) continue
+
+            val arg = args[idx]
+            val dt = tv.dependentType ?: TODO("MISSING DEPENDENT TYPE")
+
+            if (!checkDependentType(dt, arg, env)) {
+                throw invocation.make<TypeSystem>("Type Lambda requires parameter at index $idx to be a constant value of Type $dt, found $arg", node)
             }
         }
 

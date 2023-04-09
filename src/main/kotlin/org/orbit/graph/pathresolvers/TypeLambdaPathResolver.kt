@@ -27,8 +27,15 @@ object TypeLambdaPathResolver : IPathResolver<TypeLambdaNode> {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
 
-    private fun resolveTypeParameter(node: ITypeLambdaParameterNode, environment: Environment) {
-        environment.bind(Binding.Kind.Type, node.getTypeName(), Path(node.getTypeName()))
+    private fun resolveDependentTypeParameter(node: DependentTypeParameterNode, environment: Environment, graph: Graph) {
+        pathResolverUtil.resolve(node.type, IPathResolver.Pass.Initial, environment, graph)
+
+        environment.bind(Binding.Kind.Value, node.identifier.getTypeName(), Path(node.identifier.getTypeName()))
+    }
+
+    private fun resolveTypeParameter(node: ITypeLambdaParameterNode, environment: Environment, graph: Graph) = when (node) {
+        is DependentTypeParameterNode -> resolveDependentTypeParameter(node, environment, graph)
+        else -> environment.bind(Binding.Kind.Type, node.getTypeName(), Path(node.getTypeName()))
     }
 
     override fun resolve(input: TypeLambdaNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result = when (pass) {
@@ -37,7 +44,7 @@ object TypeLambdaPathResolver : IPathResolver<TypeLambdaNode> {
         }
 
         else -> environment.withScope {
-            input.domain.forEach { resolveTypeParameter(it, environment) }
+            input.domain.forEach { resolveTypeParameter(it, environment, graph) }
 
             input.codomain.annotate(input.getGraphID(), Annotations.graphId)
             input.constraints.forEach { c ->

@@ -48,10 +48,15 @@ private object AnyAttributeInvocationInference : IAttributeInvocationInference<I
 object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    private fun constructTypeVariable(node: ITypeLambdaParameterNode) : IType.TypeVar = when (node) {
+    private fun constructTypeVariable(node: ITypeLambdaParameterNode, env: ITypeEnvironment) : IType.TypeVar = when (node) {
         is TypeIdentifierNode -> IType.TypeVar(node.getTypeName())
         // TODO - Variadic capture expressions, e.g. `variadic(2+) T`, `variadic(1...9) T`
         is VariadicTypeIdentifierNode -> IType.TypeVar(node.getTypeName(), emptyList(), VariadicBound.Any)
+        is DependentTypeParameterNode -> {
+            val dependentType = TypeInferenceUtils.infer(node.type, env)
+
+            IType.TypeVar(node.identifier.getTypeName(), emptyList(), null, dependentType)
+        }
     }
 
     override fun infer(node: TypeLambdaNode, env: IMutableTypeEnvironment): AnyType {
@@ -60,7 +65,7 @@ object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironm
         var variadicCount = 0
         var lastVariadicIdx = 0
         val domain = node.domain.mapIndexed { idx, it ->
-            val type = constructTypeVariable(it)
+            val type = constructTypeVariable(it, env)
 
             if (type.isVariadic) {
                 variadicCount += 1

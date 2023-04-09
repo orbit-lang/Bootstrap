@@ -40,7 +40,7 @@ data class Binding(val kind: Kind, val simpleName: String, val path: Path, val v
 
 		data class Union(val left: Kind, val right: Kind) : Kind {
 			companion object {
-				val entity = Union(Union(Union(Union(Type, Trait), TypeAlias), Context), Attribute)
+				val entity = Union(Union(Union(Union(Union(Type, Trait), Value), TypeAlias), Context), Attribute)
 				val entityOrMethod = Union(entity, Method)
 			}
 

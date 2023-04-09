@@ -198,6 +198,7 @@ val mainModule = module {
 	single(CauseInference)
 	single(ForInference)
 	single(TypeSliceInference)
+	single(MirrorInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

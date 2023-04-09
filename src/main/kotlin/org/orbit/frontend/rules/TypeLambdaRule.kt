@@ -4,10 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.components.TokenTypes
-import org.orbit.core.nodes.AttributeOperatorExpressionNode
-import org.orbit.core.nodes.ITypeLambdaParameterNode
-import org.orbit.core.nodes.TypeLambdaConstraintNode
-import org.orbit.core.nodes.TypeLambdaNode
+import org.orbit.core.nodes.*
 import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
@@ -27,9 +24,22 @@ object TypeLambdaConstraintRule : ParseRule<TypeLambdaConstraintNode> {
     }
 }
 
+object DependentTypeParameterRule : ParseRule<DependentTypeParameterNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val collector = context.startCollecting()
+        val identifier = context.attempt(TypeIdentifierRule.Naked)
+            ?: return ParseRule.Result.Failure.Rewind(collector)
+
+        val type = context.attempt(TypeExpressionRule)
+            ?: return ParseRule.Result.Failure.Rewind(collector)
+
+        return +DependentTypeParameterNode(identifier.firstToken, type.lastToken, identifier, type)
+    }
+}
+
 object TypeLambdaParameterRule : ParseRule<ITypeLambdaParameterNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val typeParameter = context.attemptAny(listOf(VariadicTypeIdentifierRule, TypeIdentifierRule.Naked))
+        val typeParameter = context.attemptAny(listOf(DependentTypeParameterRule, VariadicTypeIdentifierRule, TypeIdentifierRule.Naked))
             as? ITypeLambdaParameterNode
             ?: return ParseRule.Result.Failure.Abort
 

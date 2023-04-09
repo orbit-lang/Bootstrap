@@ -380,18 +380,6 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override fun toString(): String = prettyPrint()
     }
 
-    object AttributeErrorFactory : KoinComponent {
-        private val invocation: Invocation by inject()
-
-        fun invokeUnsolved(attr: Attribute) : OrbitException {
-            // TODO - This currently implies that substitution always proceeds L -> R,
-            //  which might not be universally true
-            val missing = attr.getUnsolvedTypeVariables().joinToString(", ")
-
-            throw invocation.make<TypeSystem>("Attempting to invoke partially solved Attribute $attr.\nMissing bindings for the following Type Variables: $missing", SourcePosition.unknown)
-        }
-    }
-
     sealed interface IAttribute : IType {
         fun invoke(env: IMutableTypeEnvironment) : AnyMetaType
     }
@@ -569,8 +557,6 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
         override val id: String = "attribute $name"
 
         override fun invoke(env: IMutableTypeEnvironment) : AnyMetaType {
-//            if (getUnsolvedTypeVariables().isNotEmpty()) throw AttributeErrorFactory.invokeUnsolved(this)
-
             return when (val result = body.evaluate(env)) {
                 is Never -> result.panic()
                 else -> {
@@ -1414,11 +1400,17 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             = prettyPrint()
     }
 
-    data class TypeVar(val name: String, val constraints: List<ITypeConstraint> = emptyList(), val variadicBound: VariadicBound? = null) : AnyType, IConstructableType<TypeVar>, ITypeConstraint {
+    sealed interface ITypeVar : AnyType {
+        val name: String
+    }
+
+    // TODO - Split TypeVar out into separate subtypes if ITypeVar: TypeVar, DependentTypeVar, VariadicTypeVar, etc
+    data class TypeVar(override val name: String, val constraints: List<ITypeConstraint> = emptyList(), val variadicBound: VariadicBound? = null, val dependentType: AnyType? = null) : ITypeVar, IConstructableType<TypeVar>, ITypeConstraint {
         override val id: String = "?$name"
         override val type: AnyType = this
 
         val isVariadic: Boolean = variadicBound != null
+        val isDependent: Boolean = dependentType != null
 
         override fun isSolvedBy(input: AnyType, env: ITypeEnvironment): Boolean
             = constraints.all { it.isSolvedBy(input, env) }
@@ -1452,7 +1444,29 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             else -> false
         }
 
-        override fun prettyPrint(depth: Int): String {
+        private fun prettyPrintVariadic(depth: Int) : String {
+            val indent = "\t".repeat(depth)
+            val printer = getKoinInstance<Printer>()
+            val path = OrbitMangler.unmangle(name)
+            val simpleName = path.last()
+            val prettyName = printer.apply("?$simpleName", PrintableKey.Bold, PrintableKey.Italics)
+
+            return "${indent}variadic $prettyName"
+        }
+
+        private fun prettyPrintDependent(depth: Int) : String {
+            val dt = dependentType ?: return ""
+
+            val indent = "\t".repeat(depth)
+            val printer = getKoinInstance<Printer>()
+            val path = OrbitMangler.unmangle(name)
+            val simpleName = path.last()
+            val prettyName = printer.apply("?$simpleName", PrintableKey.Bold, PrintableKey.Italics)
+
+            return "${indent}$prettyName $dt"
+        }
+
+        private fun prettyPrintTypeVar(depth: Int) : String {
             val indent = "\t".repeat(depth)
             val printer = getKoinInstance<Printer>()
             val path = OrbitMangler.unmangle(name)
@@ -1460,6 +1474,14 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
             val prettyName = printer.apply("?$simpleName", PrintableKey.Bold, PrintableKey.Italics)
 
             return "$indent$prettyName"
+        }
+
+        override fun prettyPrint(depth: Int): String = when (isVariadic) {
+            true -> prettyPrintVariadic(depth)
+            else -> when (isDependent) {
+                true -> prettyPrintDependent(depth)
+                else -> prettyPrintTypeVar(depth)
+            }
         }
 
         override fun toString(): String = prettyPrint()
