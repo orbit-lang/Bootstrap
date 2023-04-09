@@ -1,0 +1,42 @@
+module Orb::Core::Types {
+    type Unit
+}
+
+module Orb::Core::Booleans {
+    type Bool {
+        constructor True
+        constructor False
+    }
+}
+
+module Orb::Core::Numbers {
+    type Int
+    type Real
+}
+
+module Orb::Core::Errors with Orb::Core::* {
+    trait Error
+}
+
+module Main with Orb::* {
+    attribute Same = (A, B) => A = B
+    attribute Like = (A, B) => A : B
+
+    # NEXT - Dependent Types!
+    alias AtLeast = (I Int) => (J Int) => I >= J
+
+    # NEXT - Variadic Lambdas, e.g. `(variadic a A) -> a[0]`
+    # NEXT - Variadic Bounds, e.g. `(variadic+ T) => T[0]`
+    alias NTuple = (variadic T by `at least` 2) => (T[0]) -> T[1]
+#    { elements for T by $0, size N }
+
+    alias F = .NTuple(Int, Int)
+
+    fun (self F) apply (i Int, j Int) (Int) = self(i)
+
+    fun (Unit) main () () {
+        # `F` reduces to an alias for `Int` in this example because NTuple only consumes
+        # its 1st Variadic parameter, and everything else is thrown away
+        typeOf { x -> x }.apply(1, 2)
+    }
+}

@@ -31,6 +31,10 @@ class DelimitedRule<N: INode>(private val openingType: TokenType = TokenTypes.LP
             if (next.type == delimiterType) {
                 context.consume()
                 next = context.peek()
+            } else if (next.type == closingType) {
+                break
+            } else {
+                return ParseRule.Result.Failure.Abort
             }
         }
 

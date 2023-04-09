@@ -19,18 +19,10 @@ module Orb::Core::Errors with Orb::Core::* {
 }
 
 module Main with Orb::* {
-    attribute Same = (A, B) => A = B
-    attribute Like = (A, B) => A : B
+    alias AtLeast = (I Int) => I
 
-    alias NTuple = (A, B, variadic T) => T[0]
-#    { elements for T by $0, size N }
-
-    alias F = .NTuple(Int, Int, Int, Int, Int)
 
     fun (Unit) main () () {
-        # `F` reduces to an alias for `Int` in this example because NTuple only consumes
-        # its 1st Variadic parameter, and everything else is thrown away
-        f = F()
-        typeOf f
+
     }
 }
