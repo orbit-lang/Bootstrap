@@ -19,14 +19,20 @@ module Orb::Core::Errors with Orb::Core::* {
 }
 
 module Main with Orb::* {
-    alias Foo = { x ${1} }
-    alias AtLeast = (J) => (I J) => I
+    attribute Eq = (A, B) => A = B
 
-    alias Test = .AtLeast(Foo)
+    type Yes
+    type No
+
+    alias Equal = (T) => (A T, B T) => Yes where .Eq(A, B) else No
+    alias If = (C, A, B) => A where .Eq(C, Yes) else B
+
+    alias IntEq = .Equal(Int)
+    alias Test1 = .IntEq(${0}, ${0})
+    alias Test2 = .IntEq(${0}, ${1})
 
     fun (Unit) main () () {
-        f = ${Foo(${1})}
-        i = mirror .Test(${Foo(${1})})
-        typeOf i
+        typeOf mirror .If(Test1, Int, Bool)
+        typeOf mirror .If(Test2, Int, Bool)
     }
 }

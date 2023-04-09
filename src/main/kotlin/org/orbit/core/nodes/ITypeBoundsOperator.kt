@@ -5,6 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.components.IntValue
 import org.orbit.backend.typesystem.components.kinds.KindUtil
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.components.Token
@@ -14,14 +15,14 @@ import org.orbit.util.Invocation
 
 sealed interface ITypeBoundsOperator {
     companion object : KoinComponent {
-        private val invocation: Invocation by inject()
-
-        fun valueOf(token: Token) : ITypeBoundsOperator = when {
+        fun valueOf(token: Token) : ITypeBoundsOperator? = when {
             token.type == TokenTypes.Assignment -> Eq
             token.type == TokenTypes.Colon -> Like
             token.text == "^" -> KindEq
             token.type == TokenTypes.Identifier -> UserDefined(token.text)
-            else -> throw invocation.make<Parser>("Illegal Constraint operator `${token.text}`", token)
+            token.type == TokenTypes.RAngle -> Gt
+            token.type == TokenTypes.LAngle -> Lt
+            else -> null
         }
     }
 
@@ -35,6 +36,38 @@ sealed interface ITypeBoundsOperator {
                 is IType.Never -> result
                 else -> IType.Always
             }
+        }
+    }
+
+    object Gt : ITypeBoundsOperator {
+        override val op: String = ">"
+
+        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> = when (left) {
+            is IntValue -> when (right) {
+                is IntValue -> when (left.value > right.value) {
+                    true -> IType.Always
+                    else -> IType.Never("Attribute Operator `>` failed because `${left.value}` > `${right.value}` is false")
+                }
+                else -> IType.Never("Attribute Operator '>' failed because $right cannot be compared to $left")
+            }
+
+            else -> IType.Never("Attribute Operator '>' failed because $left and $right are not comparable")
+        }
+    }
+
+    object Lt : ITypeBoundsOperator {
+        override val op: String = "<"
+
+        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> = when (left) {
+            is IntValue -> when (right) {
+                is IntValue -> when (left.value < right.value) {
+                    true -> IType.Always
+                    else -> IType.Never("Attribute Operator `<` failed because `${left.value}` < `${right.value}` is false")
+                }
+                else -> IType.Never("Attribute Operator '<' failed because $right cannot be compared to $left")
+            }
+
+            else -> IType.Never("Attribute Operator '<' failed because $left and $right are not comparable")
         }
     }
 

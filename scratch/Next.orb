@@ -22,7 +22,7 @@ module Main with Orb::* {
     attribute Same = (A, B) => A = B
     attribute Like = (A, B) => A : B
 
-    # NEXT - Dependent Types!
+    # NEXT - Compile-time computation on Dependent Values
     alias AtLeast = (I Int) => (J Int) => I >= J
 
     # NEXT - Variadic Lambdas, e.g. `(variadic a A) -> a[0]`

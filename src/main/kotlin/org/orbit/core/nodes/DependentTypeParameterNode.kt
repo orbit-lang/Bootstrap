@@ -8,8 +8,7 @@ data class DependentTypeParameterNode(
     val identifier: TypeIdentifierNode,
     val type: TypeExpressionNode
 ) : ITypeLambdaParameterNode {
-    override fun getTypeName(): String
-        = "$identifier $type"
+    override fun getTypeName(): String = identifier.getTypeName()
 
     override val value: String = getTypeName()
 

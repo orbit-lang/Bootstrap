@@ -62,6 +62,7 @@ object TypeLambdaPathResolver : IPathResolver<TypeLambdaNode> {
 
                 input.domain.forEach { tp ->
                     environment.unbind(Binding.Kind.Type, tp.getTypeName(), Path(tp.getTypeName()))
+                    environment.unbind(Binding.Kind.Value, tp.getTypeName(), Path(tp.getTypeName()))
                 }
             }
         }

@@ -6,7 +6,7 @@ import org.orbit.frontend.extensions.unaryPlus
 import org.orbit.frontend.phase.Parser
 
 object AttributeOperatorExpressionRule : ParseRule<AttributeOperatorExpressionNode> {
-    private val validOpTokenTypes = listOf(TokenTypes.OperatorSymbol, TokenTypes.Assignment, TokenTypes.Colon, TokenTypes.Identifier)
+    private val validOpTokenTypes = listOf(TokenTypes.OperatorSymbol, TokenTypes.Assignment, TokenTypes.Colon, TokenTypes.Identifier, TokenTypes.LAngle, TokenTypes.RAngle)
 
     override fun parse(context: Parser): ParseRule.Result {
         val collector = context.startCollecting()
@@ -22,15 +22,12 @@ object AttributeOperatorExpressionRule : ParseRule<AttributeOperatorExpressionNo
         val op = context.consume()
 
         val boundsType = ITypeBoundsOperator.valueOf(op)
+            ?: return ParseRule.Result.Failure.Throw("Illegal Attribute Operator `${op.text}`", collector)
         val rExpr = context.attempt(TypeExpressionRule)
-            ?: return ParseRule.Result.Failure.Throw(
-                "Expected Type Expression on right-hand side of Attribute Operator Expression",
-                collector.getCollectedTokens().last()
-            )
+            ?: return ParseRule.Result.Failure.Throw("Expected Type Expression on right-hand side of Attribute Operator Expression", collector.getCollectedTokens().last())
 
         next = context.peek()
-        var lhs: IAttributeExpressionNode =
-            AttributeOperatorExpressionNode(lExpr.firstToken, rExpr.lastToken, boundsType, lExpr, rExpr)
+        var lhs: IAttributeExpressionNode = AttributeOperatorExpressionNode(lExpr.firstToken, rExpr.lastToken, boundsType, lExpr, rExpr)
         while (next.type == TokenTypes.OperatorSymbol) {
             val opToken = context.expect(TokenTypes.OperatorSymbol)
             val attrOp = AttributeOperator.valueOf(opToken)
