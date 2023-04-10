@@ -390,6 +390,13 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
             1 -> ContextualDeclaration(specialisations[0], specialisations[0].specialise(type.component))
             else -> {
                 val allEvidence = mutableListOf<Pair<Context, Set<Specialisation>>>()
+
+                val sieve = specialisations.filter { it.bindings == env.getCurrentContext().bindings }
+
+                if (sieve.count() == 1) {
+                    return ContextualDeclaration(sieve[0], sieve[0].specialise(type.component))
+                }
+
                 for (specialisation in specialisations) {
                     val evidence = env.getSpecialisationEvidence(specialisation)
 
