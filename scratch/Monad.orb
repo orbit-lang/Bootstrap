@@ -1,10 +1,8 @@
 module Monads {
-    trait constructor Monad<M> within KindEq [M, 0 -> 0] {
-        (self Self) pure <A> (value A) (M<A>)
-        (self Self) flatMap <A, B>(ma M<A>, fn A -> M<B>) (M<B>)
+    context MonadCtx [M, A, B] where .KindEq(M, (Any) -> Any) {
+        trait Monad {
+            fun (Self) pure (value A) (.M(A))
+            fun (Self) fmap (ma .M(A), fn (A) -> .M(B)) (.M(B))
+        }
     }
-
-    trait Monad [M]
-        with pure [A] by (A) -> M[A]
-        with fmap [A, B] by (M[A], A -> M[B]) -> M[B]
 }

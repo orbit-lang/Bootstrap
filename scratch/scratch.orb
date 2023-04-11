@@ -1,38 +1,16 @@
-module Orb::Core::Types {
-    type Unit
-}
-
-module Orb::Core::Booleans {
-    type Bool {
-        constructor True
-        constructor False
-    }
-}
-
-module Orb::Core::Numbers {
+module People {
+    type String
     type Int
-    type Real
+    alias Person = { surname String, name String, age Int }
 }
 
-module Orb::Core::Errors with Orb::Core::* {
-    trait Error
-}
-
-module Main with Orb::* {
-    attribute Eq = (A, B) => A = B
-
-    type Yes
-    type No
-
-    alias Equal = (T) => (A T, B T) => Yes where .Eq(A, B) else No
-    alias If = (C, A, B) => A where .Eq(C, Yes) else B
-
-    alias IntEq = .Equal(Int)
-    alias Test1 = .IntEq(${0}, ${0})
-    alias Test2 = .IntEq(${0}, ${1})
-
-    fun (Unit) main () () {
-        typeOf mirror .If(Test1, Int, Bool)
-        typeOf mirror .If(Test2, Int, Bool)
+module M with People {
+    trait Ordering {
+        fun (self Self) compare (other Self) (Self)
     }
+
+    projection Person : Ordering
+        with compare by { x, y -> x }
+
+    alias PersonOrdering = query T where T : Ordering
 }

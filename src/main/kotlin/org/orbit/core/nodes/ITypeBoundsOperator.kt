@@ -37,6 +37,8 @@ sealed interface ITypeBoundsOperator {
                 else -> IType.Always
             }
         }
+
+        override fun toString(): String = op
     }
 
     object Gt : ITypeBoundsOperator {
@@ -53,6 +55,8 @@ sealed interface ITypeBoundsOperator {
 
             else -> IType.Never("Attribute Operator '>' failed because $left and $right are not comparable")
         }
+
+        override fun toString(): String = op
     }
 
     object Lt : ITypeBoundsOperator {
@@ -69,6 +73,8 @@ sealed interface ITypeBoundsOperator {
 
             else -> IType.Never("Attribute Operator '<' failed because $left and $right are not comparable")
         }
+
+        override fun toString(): String = op
     }
 
     object Like : ITypeBoundsOperator {
@@ -82,6 +88,8 @@ sealed interface ITypeBoundsOperator {
 
             else -> IType.Never("Conformance Constraint expects Trait on right-hand side, found $right")
         }
+
+        override fun toString(): String = op
     }
 
     object KindEq : ITypeBoundsOperator {
@@ -96,12 +104,16 @@ sealed interface ITypeBoundsOperator {
                 else -> IType.Never("Kinds are not equal: $lKind & $rKind")
             }
         }
+
+        override fun toString(): String = op
     }
 
     data class UserDefined(override val op: String) : ITypeBoundsOperator {
         override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> {
             TODO("Unsupported TypeBoundsOperator: UserDefined")
         }
+
+        override fun toString(): String = op
     }
 
     fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment) : IType.IMetaType<*>

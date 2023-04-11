@@ -22,12 +22,9 @@ module Main with Orb::* {
     attribute Same = (A, B) => A = B
     attribute Like = (A, B) => A : B
 
-    # NEXT - Compile-time computation on Dependent Values
-    alias AtLeast = (I Int) => (J Int) => I >= J
-
     # NEXT - Variadic Lambdas, e.g. `(variadic a A) -> a[0]`
     # NEXT - Variadic Bounds, e.g. `(variadic+ T) => T[0]`
-    alias NTuple = (variadic T by `at least` 2) => (T[0]) -> T[1]
+    alias NTuple = (variadic T by AtLeast(${2})) => (T[0]) -> T[1]
 #    { elements for T by $0, size N }
 
     alias F = .NTuple(Int, Int)

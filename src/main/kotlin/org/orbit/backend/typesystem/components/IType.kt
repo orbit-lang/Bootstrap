@@ -1,7 +1,5 @@
 package org.orbit.backend.typesystem.components
 
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import org.orbit.backend.typesystem.intrinsics.OrbCoreBooleans
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.backend.typesystem.intrinsics.OrbCoreTypes
@@ -12,9 +10,14 @@ import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.components.IIntrinsicOperator
-import org.orbit.core.components.SourcePosition
-import org.orbit.core.nodes.*
-import org.orbit.util.*
+import org.orbit.core.nodes.AttributeOperator
+import org.orbit.core.nodes.INode
+import org.orbit.core.nodes.ITypeBoundsOperator
+import org.orbit.core.nodes.OperatorFixity
+import org.orbit.util.Invocation
+import org.orbit.util.PrintableKey
+import org.orbit.util.Printer
+import org.orbit.util.getKoinInstance
 
 fun <M: IIntrinsicOperator> IIntrinsicOperator.Factory<M>.parse(symbol: String) : M? {
     for (modifier in all()) {
@@ -519,6 +522,15 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         override fun substitute(substitution: Substitution): AnyType
             = AttributeTypeOperatorExpression(op, left.substitute(substitution), right.substitute(substitution))
+
+        override fun prettyPrint(depth: Int): String {
+            val indent = "\t".repeat(depth)
+
+            return "$indent$left $op $right"
+        }
+
+        override fun toString(): String
+            = prettyPrint()
     }
 
     data class AttributeMetaTypeExpression(val metaType: AnyMetaType) : IAttributeExpression {
@@ -1519,7 +1531,7 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
 
         fun isImplementedBy(type: AnyType, env: ITypeEnvironment) : Boolean {
             val type = type.flatten(type, env)
-            if (type is Trait) return type == this
+            if (type is Trait) return false // TODO - Work out the rules for Trait : Trait
             if (type is Struct) return isImplementedBy(type, env)
 
             val projections = env.getProjections(type) + when (env) {

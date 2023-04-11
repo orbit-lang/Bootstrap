@@ -114,6 +114,7 @@ val mainModule = module {
 		util.registerPathResolver(CausePathResolver, CauseNode::class.java)
 		util.registerPathResolver(ForPathResolver, ForNode::class.java)
 		util.registerPathResolver(TypeSlicePathResolver, TypeSliceNode::class.java)
+		util.registerPathResolver(TypeQueryPathResolver, TypeQueryExpressionNode::class.java)
 
 		util
 	}
@@ -199,6 +200,7 @@ val mainModule = module {
 	single(ForInference)
 	single(TypeSliceInference)
 	single(MirrorInference)
+	single(TypeQueryInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

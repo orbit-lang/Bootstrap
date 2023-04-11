@@ -72,6 +72,7 @@ object TokenTypes : TokenTypeProvider {
     object Infix : TokenType("Infix", "infix", true, false, Family.Keyword)
     object Postfix : TokenType("Postfix", "postfix", true, false, Family.Keyword)
     object Variadic : TokenType("Variadic", "variadic", true, false, Family.Keyword)
+    object Query : TokenType("Query", "query", true, false, Family.Keyword)
 
     // Compile-time functions
     object Synthesise : TokenType("Synthesise", "\\bsynthesise\\b", true, false, Family.CompileTime)
@@ -89,7 +90,7 @@ object TokenTypes : TokenTypeProvider {
         // Generally, the order of this list matters!
         return listOf(
             Real, Int, Dot, Attribute, Context, Api, Module, Define, Defer, Cause, Effect, For, TypeEffect, Fun, Observe, Where, Print,
-            Required, Projection, Extension, Constructor, Alias, Operator, Variadic,
+            Required, Projection, Extension, Constructor, Alias, Operator, Variadic, Query,
             Synthesise,
             Dollar,
             Prefix, Infix, Postfix, Let, In, Of, By, To, Else, Case, Select, As,

@@ -53,6 +53,7 @@ object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
 		val collector = context.startCollecting()
 		val node = context.attemptAny(listOf(
+            TypeQueryRule,
             VariadicTypeIdentifierRule,
             TypeSliceRule,
             StarRule,
