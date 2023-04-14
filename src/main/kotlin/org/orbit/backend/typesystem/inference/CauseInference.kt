@@ -2,9 +2,7 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
@@ -16,7 +14,7 @@ object CauseInference : ITypeInference<CauseNode, ITypeEnvironment>, KoinCompone
     private val invocation: Invocation by inject()
 
     override fun infer(node: CauseNode, env: ITypeEnvironment): AnyType {
-        val effect = TypeInferenceUtils.inferAs<TypeIdentifierNode, IType.Effect>(node.invocationNode.effectIdentifier, env)
+        val effect = TypeInferenceUtils.inferAs<TypeIdentifierNode, Effect>(node.invocationNode.effectIdentifier, env)
 
         if (!env.getTrackedEffects().contains(effect)) {
             throw invocation.make<TypeSystem>("Attempting to cause Effect $effect in a Method that does not declare it. Add `with $effect` to the return Type of your Method Signature", node.invocationNode)
@@ -34,6 +32,6 @@ object CauseInference : ITypeInference<CauseNode, ITypeEnvironment>, KoinCompone
             }
         }
 
-        return IType.Always
+        return Always
     }
 }

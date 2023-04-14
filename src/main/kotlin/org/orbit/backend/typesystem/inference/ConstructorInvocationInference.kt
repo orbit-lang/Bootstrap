@@ -16,7 +16,7 @@ object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode
         val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
         val nEnv = ConstructorTypeEnvironment(env, args)
         val type = TypeInferenceUtils.infer(node.typeExpressionNode, nEnv)
-        var constructedType = type.flatten(type, nEnv) as? IType.IConstructableType<*>
+        var constructedType = type.flatten(type, nEnv) as? IConstructableType<*>
             ?: throw invocation.make<TypeSystem>("Cannot construct value of uninhabited Type `$type`", node.typeExpressionNode)
 
         val typeVariables = constructedType.getUnsolvedTypeVariables()
@@ -33,7 +33,7 @@ object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode
             }
         }
 
-        constructedType = subs.fold(constructedType) { acc, next -> acc.substitute(next) as IType.IConstructableType<*> }
+        constructedType = subs.fold(constructedType) { acc, next -> acc.substitute(next) as IConstructableType<*> }
 
         for (pair in constraints) {
             val type = pair.key
@@ -51,11 +51,11 @@ object ConstructorInvocationInference : ITypeInference<ConstructorInvocationNode
 
         if (args.count() != params.count()) throw invocation.make<TypeSystem>("Constructor for Type `$type` expects ${params.count()} arguments, found ${args.count()}", node)
 
-        val errors = mutableListOf<IType.Never>()
+        val errors = mutableListOf<Never>()
         args.zip(params).forEach {
             val result = TypeUtils.check(nEnv, it.first, it.second)
 
-            if (result is IType.Never) errors.add(result)
+            if (result is Never) errors.add(result)
         }
 
         if (errors.isNotEmpty()) {

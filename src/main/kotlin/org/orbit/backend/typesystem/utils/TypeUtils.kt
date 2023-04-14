@@ -1,6 +1,7 @@
 package org.orbit.backend.typesystem.utils
 
 import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.Array
 
 enum class TypeCheckPosition {
     Any, AlwaysLeft, AlwaysRight;
@@ -32,8 +33,8 @@ object TypeUtils {
     }
 
     private fun checkArrowsEq(env: ITypeEnvironment, left: AnyArrow, right: AnyArrow) : Boolean {
-        if (left is IType.ConstrainedArrow && right !is IType.ConstrainedArrow) return false
-        if (right is IType.ConstrainedArrow && left !is IType.ConstrainedArrow) return false
+        if (left is ConstrainedArrow && right !is ConstrainedArrow) return false
+        if (right is ConstrainedArrow && left !is ConstrainedArrow) return false
 
         val lDomain = left.getDomain()
         val rDomain = left.getDomain()
@@ -52,28 +53,28 @@ object TypeUtils {
         if (cached != null) return cached
 
         return prepare(env, l, r) { left, right ->
-            if (right is IType.Always) return@prepare left
-            if (right is IType.Never) return@prepare left
-            if (left is IType.Never) return@prepare right
+            if (right is Always) return@prepare left
+            if (right is Never) return@prepare left
+            if (left is Never) return@prepare right
 
-            val error = IType.Never("Types are not equal: `${left}` & `${right}`")
+            val error = Never("Types are not equal: `${left}` & `${right}`")
 
             when (left == right) {
                 true -> right
                 else -> when (right) {
-                    is IType.Never -> left
+                    is Never -> left
 
-                    is IType.Safe -> check(env, left, right.type)
+                    is Safe -> check(env, left, right.type)
 
-                    is IType.TypeVar -> when (right.constraints.all { it.isSolvedBy(left, env) }) {
+                    is TypeVar -> when (right.constraints.all { it.isSolvedBy(left, env) }) {
                         true -> left // NOTE - If we allow this, we have to return the most specific type here
                         else -> error
                     }
 
-                    is IType.Union -> when (left) {
-                        is IType.Union -> TODO("COMPARE UNION <> UNION")
+                    is Union -> when (left) {
+                        is Union -> TODO("COMPARE UNION <> UNION")
                         // TODO - Beware! This might return true for different Unions with matching constructors
-                        is IType.UnionConstructor.ConcreteUnionConstructor -> when (right.unionConstructors.any { checkEq(env, left, it) }) {
+                        is UnionConstructor.ConcreteUnionConstructor -> when (right.unionConstructors.any { checkEq(env, left, it) }) {
                             true -> right
                             else -> error
                         }
@@ -81,8 +82,8 @@ object TypeUtils {
                         else -> error
                     }
 
-                    is IType.Sum -> when (left) {
-                        is IType.Sum -> when (checkEq(env, left.left, right.left) && checkEq(env, left.right, right.right)) {
+                    is Sum -> when (left) {
+                        is Sum -> when (checkEq(env, left.left, right.left) && checkEq(env, left.right, right.right)) {
                             true -> right
                             else -> error
                         }
@@ -93,8 +94,8 @@ object TypeUtils {
                         }
                     }
 
-                    is IType.Case -> when (left) {
-                        is IType.Case -> {
+                    is Case -> when (left) {
+                        is Case -> {
                             val lCondition = left.condition.flatten(left.condition, env)
                             val rCondition = right.condition.flatten(right.condition, env)
 
@@ -118,8 +119,8 @@ object TypeUtils {
                         else -> error
                     }
 
-                    is IType.Array -> when (left) {
-                        is IType.Array -> when (left.size == right.size) {
+                    is Array -> when (left) {
+                        is Array -> when (left.size == right.size) {
                             true -> check(env, left.element, right.element)
                             else -> error
                         }
@@ -127,21 +128,21 @@ object TypeUtils {
                         else -> error
                     }
 
-                    is IType.Signature -> when (left) {
-                        is IType.Signature -> when (checkSignatures(env, left, right)) {
+                    is Signature -> when (left) {
+                        is Signature -> when (checkSignatures(env, left, right)) {
                             true -> left
                             else -> error
                         }
                         else -> error
                     }
 
-                    is IType.Trait -> when (right.isImplementedBy(left, env)) {
+                    is Trait -> when (right.isImplementedBy(left, env)) {
                         true -> left
-                        else -> IType.Never("Type `$left` does not conform to Trait `$right`")
+                        else -> Never("Type `$left` does not conform to Trait `$right`")
                     }
 
-                    is IType.Struct -> when (left) {
-                        is IType.Struct -> {
+                    is Struct -> when (left) {
+                        is Struct -> {
                             val lNames = left.members.map { it.first }
                             val rNames = right.members.map { it.first }
 
@@ -177,7 +178,7 @@ object TypeUtils {
                                         if (pair.first.first != pair.second.first)
                                             return@prepare error
                                         // Ensure each left member type "fits" for the right member type (either exact same type or right is a TypeVar)
-                                        if (pair.second.second !is IType.TypeVar && !checkEq(env, pair.first.second, pair.second.second))
+                                        if (pair.second.second !is TypeVar && !checkEq(env, pair.first.second, pair.second.second))
                                             return@prepare error
                                     }
 
@@ -191,22 +192,22 @@ object TypeUtils {
                     }
 
                     else -> when (left) {
-                        is IType.Union -> when (right) {
-                            is IType.UnionConstructor.ConcreteUnionConstructor -> when ((left.getConstructors()).contains(right)) {
+                        is Union -> when (right) {
+                            is UnionConstructor.ConcreteUnionConstructor -> when ((left.getConstructors()).contains(right)) {
                                 true -> left
                                 else -> error
                             }
                             else -> error
                         }
-                        is IType.TypeVar -> when (left.constraints.all { it.isSolvedBy(right, env) }) {
+                        is TypeVar -> when (left.constraints.all { it.isSolvedBy(right, env) }) {
                             true -> left
                             else -> error
                         }
-                        is IType.Trait -> check(env, right, left)
-                        is IType.Lazy<*> -> check(env, left.type(), right)
-                        is IType.Never -> right
+                        is Trait -> check(env, right, left)
+                        is Lazy<*> -> check(env, left.type(), right)
+                        is Never -> right
                         is IValue<*, *> -> check(env, left.type, right)
-                        is IType.Signature -> when (right) {
+                        is Signature -> when (right) {
                             is AnyArrow -> check(env, left.toArrow(), right)
                             else -> error
                         }
@@ -215,24 +216,24 @@ object TypeUtils {
                 }
             }
         }.also {
-            if (it !is IType.Never) {
+            if (it !is Never) {
                 checkCache[l.id + r.id] = it
             }
         }
     }
 
     fun checkEq(env: ITypeEnvironment, left: AnyType, right: AnyType) : Boolean = when (check(env, left, right)) {
-        is IType.Never -> false
+        is Never -> false
         else -> true
     }
 
-    fun checkProperties(env: ITypeEnvironment, left: IType.Property, right: IType.Property) : Boolean {
+    fun checkProperties(env: ITypeEnvironment, left: Property, right: Property) : Boolean {
         if (left.name != right.name) return false
 
         return checkEq(env, left.type, right.type)
     }
 
-    fun checkSignatures(env: ITypeEnvironment, left: IType.Signature, right: IType.Signature) : Boolean {
+    fun checkSignatures(env: ITypeEnvironment, left: Signature, right: Signature) : Boolean {
         if (left.name != right.name) return false
         if (!checkEq(env, left.receiver, right.receiver)) return false
 
@@ -243,7 +244,7 @@ object TypeUtils {
     }
 }
 
-typealias AnyArrow = IType.IArrow<*>
+typealias AnyArrow = IArrow<*>
 
-fun AnyArrow.toSignature(receiver: AnyType, name: String) : IType.Signature
-    = IType.Signature(receiver, name, getDomain(), getCodomain(), false)
+fun AnyArrow.toSignature(receiver: AnyType, name: String) : Signature
+    = Signature(receiver, name, getDomain(), getCodomain(), false)

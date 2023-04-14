@@ -2,10 +2,7 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.CaseTypeEnvironment
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.LocalEnvironment
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
@@ -20,8 +17,8 @@ object CaseInference : ITypeInference<CaseNode, CaseTypeEnvironment>, KoinCompon
 
         val bodyType = TypeInferenceUtils.infer(node.body, env)
         val selfType = when (val self = env.getSelfType()) {
-            is IType.Signature -> self
-            is IType.EffectHandler -> return IType.Case(patternType, bodyType)
+            is Signature -> self
+            is EffectHandler -> return Case(patternType, bodyType)
             else -> throw invocation.make<TypeSystem>("Could not infer `Self` Type in this context", node)
         }
 
@@ -33,6 +30,6 @@ object CaseInference : ITypeInference<CaseNode, CaseTypeEnvironment>, KoinCompon
             throw invocation.make<TypeSystem>("Case expression expected to return Type `${selfType.returns}`, found `$bodyType`", node.body)
         }
 
-        return IType.Case(patternType, bodyType)
+        return Case(patternType, bodyType)
     }
 }

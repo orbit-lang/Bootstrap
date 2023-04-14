@@ -1,0 +1,39 @@
+module ComparatorsLibrary {
+	trait Comparator {
+		# Return the "min" of the given instances
+		fun (Self) compare (a Self, b Self) (Self)
+	}
+
+	context ComparableCtx [T] {
+		trait Comparator {
+			fun (T) compare (a T, b T) (T)
+		}
+
+		# TODO - Type Queries will be evaluated lazily
+		alias ComparatorImpl = query C where C : Comparator
+			# We have control over compile-time error message when the end user has not defined a valid impl
+			# else Never("Could not find a valid Comparator for Type ${T}")
+			# Or we can define our own default impl
+			# else Comparator with compare by { x, y -> x }
+
+		fun (self T) isLessThan (other T) (Bool) = select ComparatorImpl.compare(self, other) {
+		    case self = true
+		    case else = false
+		}
+	}
+}
+
+module ComparatorsLibraryConsumer with ComparatorsLibrary {
+	type IntComparator
+
+	projection IntComparator : Comparator
+        with compare by { x, y -> x }
+
+	fun (Unit) main () () within ComparatorCtx [Int] {
+		i = 1
+		j = 2
+
+		IO.show(i.isLessThan(j)) # true
+		IO.show(j.isLessThan(i)) # false
+	}
+}

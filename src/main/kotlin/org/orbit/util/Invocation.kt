@@ -1,6 +1,7 @@
 package org.orbit.util
 
 import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.Never
 import org.orbit.core.components.SourcePosition
 import org.orbit.core.components.Token
 import org.orbit.core.components.Warning
@@ -156,7 +157,7 @@ class Invocation(val platform: Platform, val options: InvocationOptions = Invoca
 		return Exception(makeString<P>(message, sourcePosition))
 	}
 
-	inline fun <reified P: Phase<*, *>> make(reason: IType.Never, node: INode) : Exception {
+	inline fun <reified P: Phase<*, *>> make(reason: Never, node: INode) : Exception {
 		return make<P>(reason.message, node)
 	}
 

@@ -17,6 +17,6 @@ object AssignmentInference : ITypeInference<AssignmentStatementNode, ISelfTypeEn
         env.bind(node.identifier.identifier, flat, node.identifier.index)
 
         // Assignments are Type "neutral": they allow any enclosing Type Annotation to flow through
-        return IType.Always
+        return Always
     }
 }

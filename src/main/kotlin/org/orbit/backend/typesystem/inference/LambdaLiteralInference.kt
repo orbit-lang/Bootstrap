@@ -16,7 +16,7 @@ object LambdaLiteralInference : ITypeInference<LambdaLiteralNode, IMutableTypeEn
             type
         }
 
-        val partial = parameters.arrowOf(IType.Always)
+        val partial = parameters.arrowOf(Always)
         val mEnv = SelfTypeEnvironment(nEnv, partial)
         val body = TypeInferenceUtils.infer(node.body, mEnv)
 

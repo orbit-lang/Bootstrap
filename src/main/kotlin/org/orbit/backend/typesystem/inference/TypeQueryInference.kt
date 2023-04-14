@@ -15,19 +15,19 @@ object TypeQueryInference : ITypeInference<TypeQueryExpressionNode, IMutableType
 
     override fun infer(node: TypeQueryExpressionNode, env: IMutableTypeEnvironment): AnyType {
         val nEnv = env.fork()
-        val tv = IType.TypeVar(node.value)
+        val tv = TypeVar(node.value)
 
         nEnv.add(tv)
 
-        val attribute = TypeInferenceUtils.inferAs<IAttributeExpressionNode, IType.IAttributeExpression>(node.clause, nEnv)
+        val attribute = TypeInferenceUtils.inferAs<IAttributeExpressionNode, IAttributeExpression>(node.clause, nEnv)
 
         val results = mutableListOf<AnyType>()
-        val allTypes = env.getAllTypes().filterNot { it.component is IType.Always || it.component.getPath() == Path.self }
+        val allTypes = env.getAllTypes().filterNot { it.component is Always || it.component.getPath() == Path.self }
         for (type in allTypes) {
             val sub = Substitution(tv, type.component)
-            val nAttr = attribute.substitute(sub) as IType.IAttributeExpression
+            val nAttr = attribute.substitute(sub) as IAttributeExpression
 
-            if (nAttr.evaluate(env) is IType.Always) {
+            if (nAttr.evaluate(env) is Always) {
                 results.add(type.component)
             }
         }

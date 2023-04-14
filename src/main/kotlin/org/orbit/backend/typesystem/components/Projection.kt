@@ -1,6 +1,6 @@
 package org.orbit.backend.typesystem.components
 
-data class Projection(val source: AnyType, val target: IType.Trait) : IContextualComponent {
+data class Projection(val source: AnyType, val target: Trait) : IContextualComponent {
     val uniqueId: String get() = "${source.id} : ${target.id}"
 
     fun prettyPrint(depth: Int = 0) : String

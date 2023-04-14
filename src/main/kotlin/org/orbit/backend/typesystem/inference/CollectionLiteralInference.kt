@@ -2,8 +2,9 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.backend.typesystem.components.Always
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.Array
 import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
@@ -20,7 +21,7 @@ object CollectionLiteralInference : ITypeInference<CollectionLiteralNode, ITypeE
         // TODO - Read collection type from delegate (if specified)
         // TODO - Homogeneity
 
-        if (elements.isEmpty()) return IType.Array(IType.Always, IType.Array.Size.Any)
+        if (elements.isEmpty()) return Array(Always, Array.Size.Any)
 
         val element = elements[0]
 
@@ -30,6 +31,6 @@ object CollectionLiteralInference : ITypeInference<CollectionLiteralNode, ITypeE
             }
         }
 
-        return IType.Array(element, IType.Array.Size.Fixed(elements.count()))
+        return Array(element, Array.Size.Fixed(elements.count()))
     }
 }

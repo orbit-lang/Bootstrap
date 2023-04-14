@@ -12,3 +12,6 @@ data class MethodReferenceNode(
     override fun getChildren(): List<INode>
         = listOf(typeExpressionNode, identifierNode)
 }
+
+fun MethodSignatureNode.toMethodReferenceNode() : MethodReferenceNode
+    = MethodReferenceNode(firstToken, lastToken, false, receiverTypeNode, identifierNode)

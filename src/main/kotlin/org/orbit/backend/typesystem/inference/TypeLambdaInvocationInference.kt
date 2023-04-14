@@ -23,9 +23,9 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
         val pArrow = TypeInferenceUtils.infer(node.typeIdentifierNode, env)
 
         val arrow = when (val fArrow = pArrow.flatten(pArrow, env)) {
-            is IType.ConstrainedArrow -> fArrow
+            is ConstrainedArrow -> fArrow
             else -> {
-                if (fArrow is IType.Attribute) {
+                if (fArrow is Attribute) {
                     throw invocation.compilerError<TypeSystem>("Attempting to invoke Attribute $fArrow where Type Lambda expected. Attribute invocation only happens in Type Lambda `where` clauses", node)
                 }
 
@@ -36,7 +36,7 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
         val args = TypeInferenceUtils.inferAll(node.arguments, env)
         val domain = arrow.getDomain()
 
-        val variadic = when (val tv = domain.lastOrNull() as? IType.TypeVar) {
+        val variadic = when (val tv = domain.lastOrNull() as? TypeVar) {
             null -> null
             else -> when (tv.isVariadic) {
                 true -> tv
@@ -63,7 +63,7 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
         }
 
         for ((idx, tv) in domain.withIndex()) {
-            if (tv !is IType.TypeVar) continue
+            if (tv !is TypeVar) continue
             if (!tv.isDependent) continue
 
             val arg = args[idx]
@@ -80,11 +80,11 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
                 val maxVIdx = arrow.referencedVariadicIndices.maxOrNull()
                     ?: throw invocation.make<TypeSystem>("Variadic Type Parameter $variadic is not consumed (sliced) in body of Type Lambda", node)
 
-                val nonVCount = arrow.getDomain().count { !(it is IType.TypeVar && it.isVariadic) }
+                val nonVCount = arrow.getDomain().count { !(it is TypeVar && it.isVariadic) }
                 val vCount = args.count() - nonVCount
 
                 if (vCount <= maxVIdx) {
-                    val referencedSlices = arrow.referencedVariadicIndices.map { IType.VariadicSlice(variadic, it) }
+                    val referencedSlices = arrow.referencedVariadicIndices.map { VariadicSlice(variadic, it) }
                         .joinToString(", ")
 
                     throw invocation.make<TypeSystem>("Variadic Type Lambda requires at least ${nonVCount + maxVIdx + 1} arguments because the following slices are consumed in the body:\n\t$referencedSlices", node)
@@ -92,15 +92,15 @@ object TypeLambdaInvocationInference : ITypeInference<TypeLambdaInvocationNode, 
 
                 val vArgs = args.drop(nonVCount)
                 val vSubs = arrow.referencedVariadicIndices.map {
-                    Substitution(IType.VariadicSlice(variadic, it), vArgs[it])
+                    Substitution(VariadicSlice(variadic, it), vArgs[it])
                 }
 
-                vSubs.fold(arrow) { acc, next -> acc.substitute(next) as IType.ConstrainedArrow }
+                vSubs.fold(arrow) { acc, next -> acc.substitute(next) as ConstrainedArrow }
             }
         }
 
         val mArrow = nArrow.getDomain().zip(args).fold(nArrow) {
-            acc, next -> acc.substitute(Substitution(next.first, next.second)) as IType.ConstrainedArrow
+            acc, next -> acc.substitute(Substitution(next.first, next.second)) as ConstrainedArrow
         }
 
         mArrow.constraints.forEach {

@@ -10,10 +10,10 @@ data class Context private constructor(val name: String, val bindings: Set<Speci
     companion object {
         val root = Context("\uD835\uDF92", emptySet())
 
-        fun build(name: String, unknownTypes: List<IType.TypeVar>) : Context
+        fun build(name: String, unknownTypes: List<TypeVar>) : Context
             = Context(name, unknownTypes.map { Specialisation(it) }.toSet())
 
-        fun build(name: String, unknownType: IType.TypeVar) : Context
+        fun build(name: String, unknownType: TypeVar) : Context
             = build(name, listOf(unknownType))
     }
 
@@ -24,7 +24,7 @@ data class Context private constructor(val name: String, val bindings: Set<Speci
 
     override fun getCardinality(): ITypeCardinality = ITypeCardinality.Zero
 
-    fun getConstraints(typeVariable: IType.TypeVar) : List<ITypeConstraint>
+    fun getConstraints(typeVariable: TypeVar) : List<ITypeConstraint>
         = bindings.firstOrNull { it.abstract.name == typeVariable.name }?.abstract?.constraints ?: emptyList()
 
     fun <T: AnyType> specialise(type: T) : T {
@@ -37,7 +37,7 @@ data class Context private constructor(val name: String, val bindings: Set<Speci
         TODO("Not yet implemented")
     }
 
-    private fun solving(abstract: IType.TypeVar, concrete: AnyType) : Context = Context(name, bindings.map {
+    private fun solving(abstract: TypeVar, concrete: AnyType) : Context = Context(name, bindings.map {
         when (it.abstract.name == abstract.name) {
             true -> it.abstract to concrete
             else -> it
@@ -58,8 +58,8 @@ data class Context private constructor(val name: String, val bindings: Set<Speci
 
     fun isComplete() : Boolean = getUnsolved().isEmpty()
 
-    fun getUnsolved() : List<IType.TypeVar> = bindings.mapNotNull { when (it.concrete) {
-        is IType.Never -> it.abstract
+    fun getUnsolved() : List<TypeVar> = bindings.mapNotNull { when (it.concrete) {
+        is Never -> it.abstract
         else -> null
     }}
 

@@ -4,10 +4,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
-import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
-import org.orbit.backend.typesystem.utils.toSignature
 import org.orbit.core.nodes.UnaryExpressionNode
 import org.orbit.util.Invocation
 
@@ -39,7 +37,7 @@ object UnaryExpressionInference : ITypeInference<UnaryExpressionNode, ITypeEnvir
                 for (tv in arrow.getUnsolvedTypeVariables()) {
                     val proof = ProofAssistant.resolve(tv, arrow, operand, emptyList())
 
-                    if (proof !is IType.TypeVar) {
+                    if (proof !is TypeVar) {
                         substitutions.add(Substitution(tv, proof))
                         continue
                     }

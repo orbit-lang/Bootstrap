@@ -3,6 +3,7 @@ package org.orbit.backend.typesystem.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.Unit
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.OrbitMangler
@@ -16,13 +17,13 @@ object TypeAliasInference : ITypeInference<TypeAliasNode, IMutableTypeEnvironmen
 
     override fun infer(node: TypeAliasNode, env: IMutableTypeEnvironment): AnyType {
         val path = node.getPath()
-        val dummy = IType.Alias(Path.self, IType.Unit)
+        val dummy = TypeAlias(Path.self, Unit)
         val nEnv = env.fork()
 
         nEnv.add(dummy)
 
         val type = TypeInferenceUtils.infer(node.targetType, nEnv)
-        val alias = IType.Alias(path, type)
+        val alias = TypeAlias(path, type)
         val pAlias = env.aliasGuard(path.toString(OrbitMangler))
 
         if (pAlias != null) {

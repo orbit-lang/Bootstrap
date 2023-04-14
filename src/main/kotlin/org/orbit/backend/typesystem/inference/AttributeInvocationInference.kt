@@ -16,8 +16,8 @@ object AttributeMetaTypeExpressionInference : ITypeInference<AttributeMetaTypeEx
     private val invocation: Invocation by inject()
 
     override fun infer(node: AttributeMetaTypeExpressionNode, env: ITypeEnvironment): AnyType = when (val path = Path(node.metaType.value)) {
-        Path.any -> IType.AttributeMetaTypeExpression(IType.Always)
-        Path.never -> IType.AttributeMetaTypeExpression(IType.Never(""))
+        Path.any -> AttributeMetaTypeExpression(Always)
+        Path.never -> AttributeMetaTypeExpression(Never(""))
         else -> throw invocation.make<TypeSystem>("Invalid Meta Type expression `${path}`. Expected `Any` or `Never`", node)
     }
 }
@@ -25,12 +25,12 @@ object AttributeMetaTypeExpressionInference : ITypeInference<AttributeMetaTypeEx
 object AttributeOperatorExpressionInference : ITypeInference<AttributeOperatorExpressionNode, ITypeEnvironment> {
     override fun infer(node: AttributeOperatorExpressionNode, env: ITypeEnvironment): AnyType {
         val lType = TypeInferenceUtils.infer(node.leftExpression, env)
-            .flatten(IType.Always, env)
+            .flatten(Always, env)
 
         val rType = TypeInferenceUtils.infer(node.rightExpression, env)
-            .flatten(IType.Always, env)
+            .flatten(Always, env)
 
-        return IType.AttributeTypeOperatorExpression(node.op, lType, rType)
+        return AttributeTypeOperatorExpression(node.op, lType, rType)
     }
 }
 
@@ -39,14 +39,14 @@ object AttributeInvocationInference : ITypeInference<AttributeInvocationNode, IM
 
     override fun infer(node: AttributeInvocationNode, env: IMutableTypeEnvironment): AnyType {
         val args = TypeInferenceUtils.inferAll(node.arguments, env)
-        val attribute = env.getTypeAs<IType.Attribute>(OrbitMangler.unmangle(node.identifier.getTypeName()))
+        val attribute = env.getTypeAs<Attribute>(OrbitMangler.unmangle(node.identifier.getTypeName()))
             ?: throw invocation.make<TypeSystem>("Undefined Type Attribute `${node.identifier.getTypeName()}`", node.identifier)
 
         val subs = attribute.typeVariables.zip(args)
         val nAttribute = subs.fold(attribute) { acc, next ->
-            acc.substitute(Substitution(next)) as IType.Attribute
+            acc.substitute(Substitution(next)) as Attribute
         }
 
-        return IType.AttributeInvocationExpression(nAttribute, args)
+        return AttributeInvocationExpression(nAttribute, args)
     }
 }

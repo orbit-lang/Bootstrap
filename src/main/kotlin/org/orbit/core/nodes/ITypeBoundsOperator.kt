@@ -1,17 +1,11 @@
 package org.orbit.core.nodes
 
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.ITypeEnvironment
-import org.orbit.backend.typesystem.components.IntValue
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.components.kinds.KindUtil
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.components.Token
 import org.orbit.core.components.TokenTypes
-import org.orbit.frontend.phase.Parser
-import org.orbit.util.Invocation
 
 sealed interface ITypeBoundsOperator {
     companion object : KoinComponent {
@@ -31,10 +25,10 @@ sealed interface ITypeBoundsOperator {
     object Eq : ITypeBoundsOperator {
         override val op: String = "="
 
-        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> {
+        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): AnyMetaType {
             return when (val result = TypeUtils.check(env, left, right)) {
-                is IType.Never -> result
-                else -> IType.Always
+                is Never -> result
+                else -> Always
             }
         }
 
@@ -44,16 +38,16 @@ sealed interface ITypeBoundsOperator {
     object Gt : ITypeBoundsOperator {
         override val op: String = ">"
 
-        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> = when (left) {
+        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IMetaType<*> = when (left) {
             is IntValue -> when (right) {
                 is IntValue -> when (left.value > right.value) {
-                    true -> IType.Always
-                    else -> IType.Never("Attribute Operator `>` failed because `${left.value}` > `${right.value}` is false")
+                    true -> Always
+                    else -> Never("Attribute Operator `>` failed because `${left.value}` > `${right.value}` is false")
                 }
-                else -> IType.Never("Attribute Operator '>' failed because $right cannot be compared to $left")
+                else -> Never("Attribute Operator '>' failed because $right cannot be compared to $left")
             }
 
-            else -> IType.Never("Attribute Operator '>' failed because $left and $right are not comparable")
+            else -> Never("Attribute Operator '>' failed because $left and $right are not comparable")
         }
 
         override fun toString(): String = op
@@ -62,16 +56,16 @@ sealed interface ITypeBoundsOperator {
     object Lt : ITypeBoundsOperator {
         override val op: String = "<"
 
-        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> = when (left) {
+        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): AnyMetaType = when (left) {
             is IntValue -> when (right) {
                 is IntValue -> when (left.value < right.value) {
-                    true -> IType.Always
-                    else -> IType.Never("Attribute Operator `<` failed because `${left.value}` < `${right.value}` is false")
+                    true -> Always
+                    else -> Never("Attribute Operator `<` failed because `${left.value}` < `${right.value}` is false")
                 }
-                else -> IType.Never("Attribute Operator '<' failed because $right cannot be compared to $left")
+                else -> Never("Attribute Operator '<' failed because $right cannot be compared to $left")
             }
 
-            else -> IType.Never("Attribute Operator '<' failed because $left and $right are not comparable")
+            else -> Never("Attribute Operator '<' failed because $left and $right are not comparable")
         }
 
         override fun toString(): String = op
@@ -80,13 +74,13 @@ sealed interface ITypeBoundsOperator {
     object Like : ITypeBoundsOperator {
         override val op: String = ":"
 
-        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> = when (right) {
-            is IType.Trait -> when (right.isImplementedBy(left, env)) {
-                true -> IType.Always
-                else -> IType.Never("Conformance Constraint failed: Type $left does not conform to Trait $right")
+        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): AnyMetaType = when (right) {
+            is Trait -> when (right.isImplementedBy(left, env)) {
+                true -> Always
+                else -> Never("Conformance Constraint failed: Type $left does not conform to Trait $right")
             }
 
-            else -> IType.Never("Conformance Constraint expects Trait on right-hand side, found $right")
+            else -> Never("Conformance Constraint expects Trait on right-hand side, found $right")
         }
 
         override fun toString(): String = op
@@ -95,13 +89,13 @@ sealed interface ITypeBoundsOperator {
     object KindEq : ITypeBoundsOperator {
         override val op: String = "^"
 
-        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> {
+        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): AnyMetaType {
             val lKind = KindUtil.getKind(left, left::class.java.simpleName)
             val rKind = KindUtil.getKind(right, right::class.java.simpleName)
 
             return when (lKind == rKind) {
-                true -> IType.Always
-                else -> IType.Never("Kinds are not equal: $lKind & $rKind")
+                true -> Always
+                else -> Never("Kinds are not equal: $lKind & $rKind")
             }
         }
 
@@ -109,12 +103,12 @@ sealed interface ITypeBoundsOperator {
     }
 
     data class UserDefined(override val op: String) : ITypeBoundsOperator {
-        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): IType.IMetaType<*> {
+        override fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment): AnyMetaType {
             TODO("Unsupported TypeBoundsOperator: UserDefined")
         }
 
         override fun toString(): String = op
     }
 
-    fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment) : IType.IMetaType<*>
+    fun apply(left: AnyType, right: AnyType, env: ITypeEnvironment) : AnyMetaType
 }

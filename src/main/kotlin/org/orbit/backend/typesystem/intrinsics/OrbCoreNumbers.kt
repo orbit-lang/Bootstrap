@@ -1,53 +1,54 @@
 package org.orbit.backend.typesystem.intrinsics
 
 import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.Unit
 
 object OrbCoreNumbers : IOrbModule {
-    private val intIntArrow get() = IType.Arrow2(intType, intType, intType, emptyList())
+    private val intIntArrow get() = Arrow2(intType, intType, intType, emptyList())
 
-    val intType = IType.Type("Orb::Core::Numbers::Int", explicitCardinality = ITypeCardinality.Infinite)
-    val realType = IType.Type("Orb::Core::Numbers::Real", explicitCardinality = ITypeCardinality.Infinite)
+    val intType = Type("Orb::Core::Numbers::Int", explicitCardinality = ITypeCardinality.Infinite)
+    val realType = Type("Orb::Core::Numbers::Real", explicitCardinality = ITypeCardinality.Infinite)
 
-    val infixAddIntInt = IType.InfixOperator("+", "infixPlus", intIntArrow)
-    val infixSubIntInt = IType.InfixOperator("-", "infixSubtract", intIntArrow)
-    val infixMulIntInt = IType.InfixOperator("*", "infixMultiply", intIntArrow)
-    val infixDivIntInt = IType.InfixOperator("/", "infixDivide", intIntArrow)
-    val infixModIntInt = IType.InfixOperator("%", "infixModulo", intIntArrow)
-    val pow = IType.InfixOperator("**", "infixPow", intIntArrow)
+    val infixAddIntInt = InfixOperator("+", "infixPlus", intIntArrow)
+    val infixSubIntInt = InfixOperator("-", "infixSubtract", intIntArrow)
+    val infixMulIntInt = InfixOperator("*", "infixMultiply", intIntArrow)
+    val infixDivIntInt = InfixOperator("/", "infixDivide", intIntArrow)
+    val infixModIntInt = InfixOperator("%", "infixModulo", intIntArrow)
+    val pow = InfixOperator("**", "infixPow", intIntArrow)
 
     override fun getPublicTypes() : List<AnyType> = listOf(intType)
-    override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
-    override fun getPublicOperators() : List<IType.IOperatorArrow<*, *>>
+    override fun getPublicTypeAliases(): List<TypeAlias> = emptyList()
+    override fun getPublicOperators() : List<IOperatorArrow<*, *>>
         = listOf(infixAddIntInt, infixSubIntInt, infixMulIntInt, infixDivIntInt, infixModIntInt, pow)
 }
 
 object OrbMoreFx : IOrbModule {
-    val flowType = IType.Type("Orb::More::Fx::Flow")
-    val flowResultType = IType.TypeVar("Orb::More::Fx::FlowCtx::ResultType")
-    val flowCtx = Context("Orb::More::Fx::FlowCtx", Specialisation(IType.TypeVar("Orb::More::Fx::FlowCtx::ResultType")))
-    val flowResume = IType.Signature(flowType, "resume", listOf(IType.TypeVar("Orb::More::Fx::FlowCtx::ResultType")), IType.Unit, true)
+    val flowType = Type("Orb::More::Fx::Flow")
+    val flowResultType = TypeVar("Orb::More::Fx::FlowCtx::ResultType")
+    val flowCtx = Context("Orb::More::Fx::FlowCtx", Specialisation(TypeVar("Orb::More::Fx::FlowCtx::ResultType")))
+    val flowResume = Signature(flowType, "resume", listOf(TypeVar("Orb::More::Fx::FlowCtx::ResultType")), Unit, true)
 
     override fun getContexts(): List<Context> = listOf(flowCtx)
     override fun getPublicTypes(): List<AnyType> = listOf(flowType, flowResume)
-    override fun getPublicOperators(): List<IType.IOperatorArrow<*, *>> = emptyList()
-    override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
+    override fun getPublicOperators(): List<IOperatorArrow<*, *>> = emptyList()
+    override fun getPublicTypeAliases(): List<TypeAlias> = emptyList()
 }
 
 object OrbCoreTypes : IOrbModule {
-    val unitType = IType.Unit
-    val tupleType = IType.Type("Orb::Core::Types::Tuple")
-    val anyType = IType.Always
+    val unitType = Unit
+    val tupleType = Type("Orb::Core::Types::Tuple")
+    val anyType = Always
 
     override fun getPublicTypes(): List<AnyType> = listOf(unitType, tupleType, anyType)
-    override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
-    override fun getPublicOperators(): List<IType.IOperatorArrow<*, *>> = emptyList()
+    override fun getPublicTypeAliases(): List<TypeAlias> = emptyList()
+    override fun getPublicOperators(): List<IOperatorArrow<*, *>> = emptyList()
 }
 
 object OrbCoreErrors : IOrbModule {
-    val errorTrait = IType.Trait("Orb::Core::Errors::Error", emptyList(), emptyList())
+    val errorTrait = Trait("Orb::Core::Errors::Error", emptyList(), emptyList())
 
     override fun getPublicTypes(): List<AnyType> = listOf(errorTrait)
-    override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
-    override fun getPublicOperators(): List<IType.IOperatorArrow<*, *>> = emptyList()
+    override fun getPublicTypeAliases(): List<TypeAlias> = emptyList()
+    override fun getPublicOperators(): List<IOperatorArrow<*, *>> = emptyList()
 }
 

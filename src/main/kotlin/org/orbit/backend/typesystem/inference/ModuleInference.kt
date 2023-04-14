@@ -1,6 +1,7 @@
 package org.orbit.backend.typesystem.inference
 
 import org.koin.core.parameter.parametersOf
+import org.orbit.backend.typesystem.components.Always
 import org.orbit.backend.typesystem.components.AnyType
 import org.orbit.backend.typesystem.components.GlobalEnvironment
 import org.orbit.backend.typesystem.components.IType
@@ -24,6 +25,6 @@ object ModuleInference : ITypeInference<ModuleNode, GlobalEnvironment> {
         TypeInferenceUtils.inferAll(node.extensions, env)
         TypeInferenceUtils.inferAll(node.methodDefs, env)
 
-        return IType.Always
+        return Always
     }
 }

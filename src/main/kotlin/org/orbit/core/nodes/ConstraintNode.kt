@@ -2,9 +2,7 @@ package org.orbit.core.nodes
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.AnyMetaType
-import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
-import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.*
 import org.orbit.core.components.Token
 import org.orbit.frontend.phase.Parser
 import org.orbit.util.Invocation
@@ -25,7 +23,7 @@ sealed interface AttributeOperator {
     object And : AttributeOperator {
         override val op: String = "&"
 
-        override fun apply(left: IType.IAttribute, right: IType.IAttribute, env: IMutableTypeEnvironment): AnyMetaType
+        override fun apply(left: IAttribute, right: IAttribute, env: IMutableTypeEnvironment): AnyMetaType
             = left.invoke(env) + right.invoke(env)
 
         override fun toString(): String = op
@@ -34,10 +32,10 @@ sealed interface AttributeOperator {
     object Or : AttributeOperator {
         override val op: String = "|"
 
-        override fun apply(left: IType.IAttribute, right: IType.IAttribute, env: IMutableTypeEnvironment): AnyMetaType = when (val l = left.invoke(env)) {
-            IType.Always -> l
+        override fun apply(left: IAttribute, right: IAttribute, env: IMutableTypeEnvironment): AnyMetaType = when (val l = left.invoke(env)) {
+            Always -> l
             else -> when (val r = right.invoke(env)) {
-                is IType.Always -> IType.Always
+                is Always -> Always
                 else -> r
             }
         }
@@ -45,7 +43,7 @@ sealed interface AttributeOperator {
         override fun toString(): String = op
     }
 
-    fun apply(left: IType.IAttribute, right: IType.IAttribute, env: IMutableTypeEnvironment) : AnyMetaType
+    fun apply(left: IAttribute, right: IAttribute, env: IMutableTypeEnvironment) : AnyMetaType
 }
 
 sealed interface IAttributeExpressionNode : INode

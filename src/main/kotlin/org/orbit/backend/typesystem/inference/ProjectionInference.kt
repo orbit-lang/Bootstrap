@@ -12,15 +12,13 @@ import org.orbit.backend.typesystem.utils.toSignature
 import org.orbit.core.nodes.MethodDelegateNode
 import org.orbit.core.nodes.ProjectedPropertyAssignmentNode
 import org.orbit.core.nodes.ProjectionNode
-import org.orbit.core.nodes.TypeExpressionNode
 import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
-import kotlin.math.exp
 
-private sealed interface TraitMemberVerificationResult<M: IType.Trait.Member> {
-    data class Implemented<M: IType.Trait.Member>(val members: List<M>) : TraitMemberVerificationResult<M>
-    data class NotImplemented<M: IType.Trait.Member>(val reasons: List<String>) : TraitMemberVerificationResult<M> {
+private sealed interface TraitMemberVerificationResult<M: Trait.Member> {
+    data class Implemented<M: Trait.Member>(val members: List<M>) : TraitMemberVerificationResult<M>
+    data class NotImplemented<M: Trait.Member>(val reasons: List<String>) : TraitMemberVerificationResult<M> {
         constructor(reason: String) : this(listOf(reason))
     }
 
@@ -41,7 +39,7 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
     private val invocation: Invocation by inject()
     private val printer: Printer by inject()
 
-    private fun verifyProperty(env: ITypeEnvironment, expected: IType.Property, provided: List<IType.Property>) : TraitMemberVerificationResult<IType.Property> {
+    private fun verifyProperty(env: ITypeEnvironment, expected: Property, provided: List<Property>) : TraitMemberVerificationResult<Property> {
         val implementations = provided.filter { TypeUtils.checkProperties(env, it, expected) }
 
         if (implementations.isEmpty()) {
@@ -59,7 +57,7 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
         return TraitMemberVerificationResult.Implemented(implementations)
     }
 
-    private fun verifySignature(env: IMutableTypeEnvironment, expected: IType.Signature, provided: List<IType.Signature>) : TraitMemberVerificationResult<IType.Signature> {
+    private fun verifySignature(env: IMutableTypeEnvironment, expected: Signature, provided: List<Signature>) : TraitMemberVerificationResult<Signature> {
         val implementations = provided.filter { TypeUtils.checkSignatures(env, it, expected) }
 
         if (implementations.isEmpty()) {
@@ -77,7 +75,7 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
         return TraitMemberVerificationResult.Implemented(implementations)
     }
 
-    private fun check(results: TraitMemberVerificationResult<out IType.Trait.Member>, node: ProjectionNode, projectedType: AnyType, projectedTrait: IType.Trait) {
+    private fun check(results: TraitMemberVerificationResult<out Trait.Member>, node: ProjectionNode, projectedType: AnyType, projectedTrait: Trait) {
         if (results is TraitMemberVerificationResult.NotImplemented) {
             val projection = Projection(projectedType, projectedTrait)
             val header = "Projection `$projection` is incomplete for the following reasons:"
@@ -96,8 +94,8 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
 
         val projectedType = TypeInferenceUtils.infer(node.typeIdentifier, nEnv)
         val pTrait = TypeInferenceUtils.infer(node.traitIdentifier, nEnv)
-            .flatten(IType.Always, nEnv)
-        val projectedTrait = pTrait as? IType.Trait
+            .flatten(Always, nEnv)
+        val projectedTrait = pTrait as? Trait
             ?: throw invocation.make<TypeSystem>("Projecting conformance to non-Trait type $pTrait (Kind: ${KindUtil.getKind(pTrait, pTrait::class.java.simpleName,node)}) is currently unsupported", node.traitIdentifier)
 
         val projection = Projection(projectedType, projectedTrait)
@@ -107,11 +105,11 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
 
         val flat = projectedType.flatten(projectedType, mEnv)
 
-        if (flat is IType.Union) {
+        if (flat is Union) {
             for (constructor in flat.unionConstructors) {
                 env.add(Projection(constructor, projection.target), constructor)
             }
-        } else if (flat is IType.Struct) {
+        } else if (flat is Struct) {
             env.add(Projection(flat, projection.target), flat)
         }
 
@@ -119,13 +117,13 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
         val propertyNodes = node.body.filterIsInstance<ProjectedPropertyAssignmentNode>()
 
         val properties = propertyNodes.map {
-            TypeInferenceUtils.inferAs<ProjectedPropertyAssignmentNode, IType.Property>(it, mEnv)
+            TypeInferenceUtils.inferAs<ProjectedPropertyAssignmentNode, Property>(it, mEnv)
         } + when (flat) {
-            is IType.Struct -> flat.getProperties()
+            is Struct -> flat.getProperties()
             else -> emptyList()
         }
 
-        val propertyResults = projectedTrait.properties.fold(TraitMemberVerificationResult.Implemented<IType.Property>(emptyList()) as TraitMemberVerificationResult<IType.Property>) { acc, next ->
+        val propertyResults = projectedTrait.properties.fold(TraitMemberVerificationResult.Implemented<Property>(emptyList()) as TraitMemberVerificationResult<Property>) { acc, next ->
             acc + verifyProperty(mEnv, next, properties)
         }
 
@@ -139,7 +137,7 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
             }
         }
 
-        val signatureResults = projectedTrait.signatures.fold(TraitMemberVerificationResult.Implemented<IType.Signature>(emptyList()) as TraitMemberVerificationResult<IType.Signature>) { acc, next ->
+        val signatureResults = projectedTrait.signatures.fold(TraitMemberVerificationResult.Implemented<Signature>(emptyList()) as TraitMemberVerificationResult<Signature>) { acc, next ->
             acc + verifySignature(mEnv, next, signatures)
         }
 

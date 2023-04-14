@@ -15,7 +15,7 @@ object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
 
         abstracts.forEach { nEnv.add(it.abstract) }
 
-        val constraints = TypeInferenceUtils.inferAllAs<IContextClauseExpressionNode, IType.AttributeInvocationExpression>(node.clauses, nEnv)
+        val constraints = TypeInferenceUtils.inferAllAs<IContextClauseExpressionNode, AttributeInvocationExpression>(node.clauses, nEnv)
 
 //        val groupedConstraints = mutableMapOf<AnyType, List<ITypeConstraint>>()
 //        for (constraint in constraints) {
@@ -48,7 +48,7 @@ object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
         TypeInferenceUtils.inferAll(entityDefs, mEnv)
 
         val signatureNodes = node.body.filterIsInstance<MethodDefNode>().map { it.signature }
-        val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, IType.Signature>(signatureNodes, mEnv, parametersOf(false))
+        val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, Signature>(signatureNodes, mEnv, parametersOf(false))
 
         signatures.forEach { mEnv.add(it) }
 

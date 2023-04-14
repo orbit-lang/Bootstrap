@@ -3,6 +3,7 @@ package org.orbit.backend.typesystem.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.Array
 import org.orbit.backend.typesystem.intrinsics.OrbCoreBooleans
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
@@ -26,7 +27,7 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
     private fun inferConstructorInvocation(node: ConstructorInvocationNode, env: ITypeEnvironment) : IValue<*, *> {
         val type = TypeInferenceUtils.infer(node, env)
         val flat = type.flatten(type, env)
-        val struct = flat as? IType.Struct
+        val struct = flat as? Struct
             ?: throw invocation.make<TypeSystem>("Cannot construct compile-time instance of non-Structural Type $flat", node.typeExpressionNode)
         val args = TypeInferenceUtils.inferAll(node.parameterNodes, env)
         val pMap = struct.members
@@ -49,7 +50,7 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
         val type = TypeInferenceUtils.infer(node, env)
         val flat = type.flatten(type, env)
 
-        if (flat !is IType.IConstructableType<*>) {
+        if (flat !is IConstructableType<*>) {
             throw invocation.make<TypeSystem>("Cannot expand instance of non-Constructable Type $type", node)
         }
 
@@ -79,7 +80,7 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
     }
 
     private fun inferCollectionLiteral(node: CollectionLiteralNode, env: ITypeEnvironment) : IValue<*, *> {
-        val array = TypeInferenceUtils.inferAs<CollectionLiteralNode, IType.Array>(node, env)
+        val array = TypeInferenceUtils.inferAs<CollectionLiteralNode, Array>(node, env)
         val elements = TypeInferenceUtils.inferAll(node.elements, env)
         val nElements = mutableListOf<AnyType>()
         for (element in elements.withIndex()) {
@@ -124,7 +125,7 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
         is IntLiteralNode -> inferIntLiteral(node)
         is RealLiteralNode -> inferRealLiteral(node)
         is BoolLiteralNode -> inferBoolLiteral(node)
-        is IdentifierNode -> env.getBinding(node.identifier, node.index)?.type ?: IType.Never("`${node.identifier}` is not defined in the current context")
+        is IdentifierNode -> env.getBinding(node.identifier, node.index)?.type ?: Never("`${node.identifier}` is not defined in the current context")
         is ConstructorInvocationNode -> inferConstructorInvocation(node, env)
         is TypeIdentifierNode -> inferTypeIdentifier(node, env)
         is MethodCallNode -> inferMethodCall(node, env)

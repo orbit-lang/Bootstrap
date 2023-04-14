@@ -2,10 +2,7 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.ITypeEnvironment
-import org.orbit.backend.typesystem.components.getOperators
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
@@ -18,7 +15,7 @@ object BinaryExpressionInference : ITypeInference<BinaryExpressionNode, ITypeEnv
     override fun infer(node: BinaryExpressionNode, env: ITypeEnvironment): AnyType {
         val lType = TypeInferenceUtils.infer(node.left, env)
         val rType = TypeInferenceUtils.infer(node.right, env)
-        val possibleOps = env.getOperators<IType.InfixOperator>()
+        val possibleOps = env.getOperators<InfixOperator>()
             .filter { it.symbol == node.operator }
             .filter { TypeUtils.checkEq(env, lType, it.getDomain()[0]) && TypeUtils.checkEq(env, rType, it.getDomain()[1]) }
 

@@ -3,6 +3,7 @@ package org.orbit.backend.typesystem.utils
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.Unit
 import org.orbit.backend.typesystem.intrinsics.OrbMoreFx
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.core.components.SourcePosition
@@ -33,9 +34,9 @@ object EffectUtils : KoinComponent {
 //            nEnv.add(specialisedResume)
             nEnv.bind(handler.flowIdentifier.identifier, OrbMoreFx.flowType, 0)
 
-            val expectedCases = arrow.effects.map { IType.Case(it, IType.Unit) }
-            val mEnv = CaseTypeEnvironment(nEnv, IType.EffectHandler(expectedCases), IType.Unit)
-            val cases = TypeInferenceUtils.inferAllAs<CaseNode, IType.Case>(handler.cases, mEnv)
+            val expectedCases = arrow.effects.map { Case(it, Unit) }
+            val mEnv = CaseTypeEnvironment(nEnv, EffectHandler(expectedCases), Unit)
+            val cases = TypeInferenceUtils.inferAllAs<CaseNode, Case>(handler.cases, mEnv)
 
             if (cases.count() > expectedCases.count()) {
                 for ((idx, aCase) in cases.withIndex()) {
@@ -57,7 +58,7 @@ object EffectUtils : KoinComponent {
                 }
             }
 
-            val unhandledCases = mutableListOf<IType.Case>()
+            val unhandledCases = mutableListOf<Case>()
             for (aCase in expectedCases) {
                 var handled = false
                 for (bCase in cases) {

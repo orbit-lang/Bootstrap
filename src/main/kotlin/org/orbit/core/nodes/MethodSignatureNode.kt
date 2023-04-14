@@ -2,6 +2,8 @@ package org.orbit.core.nodes
 
 import org.orbit.core.components.Token
 
+sealed interface ISignatureRepresentableNode : INode
+
 data class MethodSignatureNode(
     override val firstToken: Token,
     override val lastToken: Token,
@@ -14,7 +16,7 @@ data class MethodSignatureNode(
 	val isInstanceMethod: Boolean,
 	val receiverIdentifier: IdentifierNode?,
 	val effects: List<TypeIdentifierNode> = emptyList()
-) : INode {
+) : ISignatureRepresentableNode {
 	inline fun <reified T> annotateParameter(idx: Int, value: T, tag: Annotations<T>) {}
 
 	override fun getChildren() : List<INode> = when (returnTypeNode) {

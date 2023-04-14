@@ -1,12 +1,11 @@
 package org.orbit.backend.typesystem.intrinsics
 
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.*
 
 object OrbCoreCollections : IOrbModule {
-    val collectionTrait = IType.Trait("Orb::Core::Collections::Collection", emptyList(), emptyList())
+    val collectionTrait = Trait("Orb::Core::Collections::Collection", emptyList(), emptyList())
 
     override fun getPublicTypes(): List<AnyType> = listOf(collectionTrait)
-    override fun getPublicTypeAliases(): List<IType.Alias> = emptyList()
-    override fun getPublicOperators(): List<IType.IOperatorArrow<*, *>> = emptyList()
+    override fun getPublicTypeAliases(): List<TypeAlias> = emptyList()
+    override fun getPublicOperators(): List<IOperatorArrow<*, *>> = emptyList()
 }

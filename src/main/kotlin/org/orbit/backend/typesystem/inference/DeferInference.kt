@@ -1,9 +1,6 @@
 package org.orbit.backend.typesystem.inference
 
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.ISelfTypeEnvironment
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.SelfTypeEnvironment
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.DeferNode
 
@@ -13,7 +10,7 @@ object DeferInference : ITypeInference<DeferNode, ISelfTypeEnvironment> {
             null -> env
             else -> {
                 val self = when (val t = env.getSelfType()) {
-                    is IType.Signature -> t.returns
+                    is Signature -> t.returns
                     else -> t
                 }
 
@@ -23,6 +20,6 @@ object DeferInference : ITypeInference<DeferNode, ISelfTypeEnvironment> {
 
         TypeInferenceUtils.infer(node.blockNode, nEnv)
 
-        return IType.Always
+        return Always
     }
 }

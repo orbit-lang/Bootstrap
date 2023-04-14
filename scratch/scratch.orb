@@ -1,16 +1,29 @@
-module People {
-    type String
-    type Int
-    alias Person = { surname String, name String, age Int }
+module Orb::Core::Types {
+    type Unit
 }
 
-module M with People {
-    trait Ordering {
-        fun (self Self) compare (other Self) (Self)
+module Orb::Core::Booleans {
+    type Bool {
+        constructor True
+        constructor False
+    }
+}
+
+module Orb::Core::Numbers {
+    type Int
+    type Real
+}
+
+module Orb::Core::Errors with Orb::Core::* {
+    trait Error
+}
+
+module M with Orb::Core::* {
+    trait Comparator {
+        fun (Self) compare (a Self, b Self) (Self)
     }
 
-    projection Person : Ordering
-        with compare by { x, y -> x }
-
-    alias PersonOrdering = query T where T : Ordering
+    projection Int : Comparator {
+        fun (Int) compare (a Int, b Bool) (Int) = a
+    }
 }

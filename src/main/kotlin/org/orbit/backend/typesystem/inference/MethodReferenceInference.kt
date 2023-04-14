@@ -2,10 +2,7 @@ package org.orbit.backend.typesystem.inference
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.ITypeEnvironment
-import org.orbit.backend.typesystem.components.getSignatures
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.backend.typesystem.utils.TypeUtils
@@ -19,7 +16,7 @@ object MethodReferenceInference : ITypeInference<MethodReferenceNode, ITypeEnvir
         val receiver = TypeInferenceUtils.infer(node.typeExpressionNode, env)
 
         if (node.isConstructor) {
-            return IType.Signature(receiver, "__init__", emptyList(), receiver, false)
+            return Signature(receiver, "__init__", emptyList(), receiver, false)
         }
 
         var possibleSignatures = env.getSignatures(node.identifierNode.identifier)

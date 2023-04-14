@@ -12,27 +12,27 @@ object TypeDefInference: ITypeInference<TypeDefNode, IMutableTypeEnvironment> {
         val path = node.getPath()
 
         val mType = when (node.body.count()) {
-            0 -> IType.Type(path)
+            0 -> Type(path)
             else -> {
-                val lazyUnion = IType.Lazy(path.toString(OrbitMangler)) {
+                val lazyUnion = Lazy(path.toString(OrbitMangler)) {
                     val type = env.getTypeOrNull(path)?.component
                         ?: TODO("NOT A UNION")
 
                     when (type) {
-                        is IType.Union -> type
-                        is IType.Alias -> type.type as IType.Union
+                        is Union -> type
+                        is TypeAlias -> type.type as Union
                         else -> TODO("NOT A UNION 2")
                     }
                 }
                 val nEnv = SelfTypeEnvironment(env.fork(), lazyUnion)
 
-                nEnv.add(IType.Alias(path, lazyUnion))
+                nEnv.add(TypeAlias(path, lazyUnion))
 
                 val constructorNodes = node.body.filterIsInstance<AlgebraicConstructorNode>()
-                val constructors = TypeInferenceUtils.inferAllAs<AlgebraicConstructorNode, IType.UnionConstructor>(constructorNodes, nEnv)
-                val union = IType.Union(constructors)
+                val constructors = TypeInferenceUtils.inferAllAs<AlgebraicConstructorNode, UnionConstructor>(constructorNodes, nEnv)
+                val union = Union(constructors)
 
-                IType.Alias(path, union)
+                TypeAlias(path, union)
             }
         }
 

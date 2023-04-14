@@ -8,6 +8,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.module
+import org.orbit.backend.typesystem.components.Always
 import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.utils.BackendUtils
 import org.orbit.frontend.FileSourceProvider
@@ -28,7 +29,7 @@ object Check : CliktCommand(), KoinComponent {
 
         val result = BackendUtils.check(MultiFileSourceProvider(source))
 
-        if (result !is IType.Always) {
+        if (result !is Always) {
             println(result)
         }
 

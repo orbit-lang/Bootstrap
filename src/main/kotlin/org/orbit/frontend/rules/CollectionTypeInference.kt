@@ -1,7 +1,7 @@
 package org.orbit.frontend.rules
 
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.Array
 import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.backend.typesystem.inference.ITypeInference
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
@@ -11,6 +11,6 @@ object CollectionTypeInference : ITypeInference<CollectionTypeNode, ITypeEnviron
     override fun infer(node: CollectionTypeNode, env: ITypeEnvironment): AnyType {
         val elementType = TypeInferenceUtils.infer(node.elementType, env)
 
-        return IType.Array(elementType, node.size)
+        return Array(elementType, node.size)
     }
 }

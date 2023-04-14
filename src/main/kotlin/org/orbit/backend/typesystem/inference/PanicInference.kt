@@ -3,10 +3,10 @@ package org.orbit.backend.typesystem.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
 import org.orbit.backend.typesystem.components.ITypeEnvironment
+import org.orbit.backend.typesystem.components.Lazy
+import org.orbit.backend.typesystem.components.Never
 import org.orbit.backend.typesystem.intrinsics.OrbCoreErrors
-import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.PanicNode
@@ -22,6 +22,6 @@ object PanicInference : ITypeInference<PanicNode, ITypeEnvironment>, KoinCompone
             throw invocation.make<TypeSystem>("Panic expression must conform to Trait ${OrbCoreErrors.errorTrait}", node.expr)
         }
 
-        return IType.Lazy("!") { IType.Never("Panic @ ${node.firstToken.position}") }
+        return Lazy("!") { Never("Panic @ ${node.firstToken.position}") }
     }
 }

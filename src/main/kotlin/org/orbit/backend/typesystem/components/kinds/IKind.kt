@@ -4,10 +4,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 import org.koin.mp.KoinPlatformTools
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.ITypeCardinality
-import org.orbit.backend.typesystem.components.Substitution
+import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.Array
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.core.components.Token
@@ -104,55 +102,55 @@ sealed interface IntrinsicKindInspector<T: AnyType> : IKindInspector<T> {
         override fun inspect(type: IntrinsicKinds.Level0): IKind = type
     }
 
-    object TypeKindInspector : IntrinsicKindInspector<IType.Type> {
-        override fun inspect(type: IType.Type): IKind = IntrinsicKinds.Level0.type
+    object TypeKindInspector : IntrinsicKindInspector<Type> {
+        override fun inspect(type: Type): IKind = IntrinsicKinds.Level0.type
     }
 
-    object TraitKindInspector : IntrinsicKindInspector<IType.Trait> {
-        override fun inspect(type: IType.Trait): IKind = IntrinsicKinds.Level0.trait
+    object TraitKindInspector : IntrinsicKindInspector<Trait> {
+        override fun inspect(type: Trait): IKind = IntrinsicKinds.Level0.trait
     }
 
     sealed interface IFunctionKindInspector<A: AnyArrow> : IntrinsicKindInspector<A> {
-        object F0 : IFunctionKindInspector<IType.Arrow0>
-        object F1 : IFunctionKindInspector<IType.Arrow1>
-        object F2 : IFunctionKindInspector<IType.Arrow2>
-        object F3 : IFunctionKindInspector<IType.Arrow3>
+        object F0 : IFunctionKindInspector<Arrow0>
+        object F1 : IFunctionKindInspector<Arrow1>
+        object F2 : IFunctionKindInspector<Arrow2>
+        object F3 : IFunctionKindInspector<Arrow3>
 
         override fun inspect(type: A): IKind = IntrinsicKinds.Level0.type
     }
 
-    object TypeVariableKindInspector : IntrinsicKindInspector<IType.TypeVar> {
-        override fun inspect(type: IType.TypeVar): IKind = IntrinsicKinds.Level0.type
+    object TypeVariableKindInspector : IntrinsicKindInspector<TypeVar> {
+        override fun inspect(type: TypeVar): IKind = IntrinsicKinds.Level0.type
     }
 
-    object TupleKindInspector : IntrinsicKindInspector<IType.Tuple> {
-        override fun inspect(type: IType.Tuple): IKind = IntrinsicKinds.Level0.type
+    object TupleKindInspector : IntrinsicKindInspector<Tuple> {
+        override fun inspect(type: Tuple): IKind = IntrinsicKinds.Level0.type
     }
 
-    object StructKindInspector : IntrinsicKindInspector<IType.Struct> {
-        override fun inspect(type: IType.Struct): IKind = IntrinsicKinds.Level0.type
+    object StructKindInspector : IntrinsicKindInspector<Struct> {
+        override fun inspect(type: Struct): IKind = IntrinsicKinds.Level0.type
     }
 
-    object UnionKindInspector : IntrinsicKindInspector<IType.Union> {
-        override fun inspect(type: IType.Union): IKind = IntrinsicKinds.Level0.type
+    object UnionKindInspector : IntrinsicKindInspector<Union> {
+        override fun inspect(type: Union): IKind = IntrinsicKinds.Level0.type
     }
 
-    object ArrayKindInspector : IntrinsicKindInspector<IType.Array> {
-        override fun inspect(type: IType.Array): IKind = IntrinsicKinds.Level0.type
+    object ArrayKindInspector : IntrinsicKindInspector<Array> {
+        override fun inspect(type: Array): IKind = IntrinsicKinds.Level0.type
     }
 
-    object AliasKindInspector : IntrinsicKindInspector<IType.Alias> {
-        override fun inspect(type: IType.Alias): IKind = KindUtil.getKind(type.type, type.type::class.java.simpleName)
+    object AliasKindInspector : IntrinsicKindInspector<TypeAlias> {
+        override fun inspect(type: TypeAlias): IKind = KindUtil.getKind(type.type, type.type::class.java.simpleName)
     }
 
-    object AlwaysKindInspector : IKindInspector<IType.Always> {
-        override fun inspect(type: IType.Always): IKind = IntrinsicKinds.AnyKind
+    object AlwaysKindInspector : IKindInspector<Always> {
+        override fun inspect(type: Always): IKind = IntrinsicKinds.AnyKind
     }
 
-    object HigherKindInspector : IntrinsicKindInspector<IType.ConstrainedArrow> {
-        override fun inspect(type: IType.ConstrainedArrow): IKind = when (type.arrow) {
-            is IType.Arrow0 -> IntrinsicKinds.Arrow(IntrinsicKinds.Level0.type, KindUtil.getKind(type.arrow.gives, type.arrow.gives::class.java.simpleName))
-            is IType.Arrow1 -> IntrinsicKinds.Arrow(KindUtil.getKind(type.arrow.takes, type.arrow.takes::class.java.simpleName), KindUtil.getKind(type.arrow.gives, type.arrow.gives::class.java.simpleName))
+    object HigherKindInspector : IntrinsicKindInspector<ConstrainedArrow> {
+        override fun inspect(type: ConstrainedArrow): IKind = when (type.arrow) {
+            is Arrow0 -> IntrinsicKinds.Arrow(IntrinsicKinds.Level0.type, KindUtil.getKind(type.arrow.gives, type.arrow.gives::class.java.simpleName))
+            is Arrow1 -> IntrinsicKinds.Arrow(KindUtil.getKind(type.arrow.takes, type.arrow.takes::class.java.simpleName), KindUtil.getKind(type.arrow.gives, type.arrow.gives::class.java.simpleName))
             else -> TODO("UNSUPPORTED ARROW ARITY: ${type.arrow}")
         }
     }

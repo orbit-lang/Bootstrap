@@ -21,7 +21,7 @@ object MethodDefInference : ITypeInference<MethodDefNode, IMutableTypeEnvironmen
             else -> ContextualTypeEnvironment(env, TypeInferenceUtils.inferAs(n, nEnv))
         }
 
-        val signature = TypeInferenceUtils.inferAs<MethodSignatureNode, IType.Signature>(node.signature, mEnv, parametersOf(false))
+        val signature = TypeInferenceUtils.inferAs<MethodSignatureNode, Signature>(node.signature, mEnv, parametersOf(false))
         val oEnv = AnnotatedSelfTypeEnvironment(mEnv, signature, signature.returns)
 
         if (node.signature.isInstanceMethod) {

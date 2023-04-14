@@ -10,22 +10,22 @@ object ContextOfInference : ITypeInference<ContextOfNode, ITypeEnvironment> {
         val type = TypeInferenceUtils.infer(node.expressionNode, env)
         val decl = env.getTypeOrNull(type.getCanonicalName())
             ?: env.getAllTypes().lastOrNull { TypeUtils.checkEq(env, it.component, type) }
-            ?: return IType.Always
+            ?: return Always
 
         if (decl.context.isComplete()) {
             print(decl.context)
 
-            return IType.Always
+            return Always
         }
 
         if (env.getCurrentContext().isComplete() && decl.context.getCanonicalName() == env.getCurrentContext().getCanonicalName()) {
             print(env.getCurrentContext())
 
-            return IType.Always
+            return Always
         }
 
         println(decl.context)
 
-        return IType.Always
+        return Always
     }
 }

@@ -14,7 +14,7 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
     private val invocation: Invocation by inject()
 
     private fun inferFiniteType(node: SelectNode, conditionType: AnyType, typeAnnotation: AnyType, env: AnnotatedSelfTypeEnvironment) : AnyType {
-        val constructableType = conditionType as? IType.IConstructableType<*>
+        val constructableType = conditionType as? IConstructableType<*>
             ?: throw invocation.compilerError<TypeSystem>("Finite non-constructable type?!", node)
 
         val nEnv = CaseTypeEnvironment(env, env.getSelfType(), constructableType)
@@ -32,7 +32,7 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
         }
 
         val requiredConstructors = constructableType.getConstructors()
-        val providedConstructors = TypeInferenceUtils.inferAllAs<CaseNode, IType.Case>(nonElseCases, nEnv)
+        val providedConstructors = TypeInferenceUtils.inferAllAs<CaseNode, Case>(nonElseCases, nEnv)
             .flatMap { it.condition.getConstructors() }
 
         val missingConstructors = requiredConstructors.toMutableList()
@@ -66,17 +66,17 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
         }
 
         val nonElseCases = node.cases.filterNot { it.isElseCase }
-        val expectedCase = IType.Case(conditionType, typeAnnotation)
+        val expectedCase = Case(conditionType, typeAnnotation)
 
         for (caseNode in nonElseCases) {
-            val case = TypeInferenceUtils.inferAs<CaseNode, IType.Case>(caseNode, nEnv)
+            val case = TypeInferenceUtils.inferAs<CaseNode, Case>(caseNode, nEnv)
 
             if (!TypeUtils.checkEq(nEnv, case, expectedCase)) {
                 throw invocation.make<TypeSystem>("Case $case does not match expected $expectedCase in Select expression", caseNode)
             }
         }
 
-        val elseType = TypeInferenceUtils.infer(elseCases[0], nEnv) as IType.Case
+        val elseType = TypeInferenceUtils.infer(elseCases[0], nEnv) as Case
 
         if (!TypeUtils.checkEq(nEnv, elseType, expectedCase)) {
             throw invocation.make<TypeSystem>("Else case expected to return $typeAnnotation, found $elseType", elseCases[0])

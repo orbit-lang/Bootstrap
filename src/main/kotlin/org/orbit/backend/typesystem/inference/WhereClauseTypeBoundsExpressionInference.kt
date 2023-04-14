@@ -9,11 +9,11 @@ import org.orbit.core.nodes.WhereClauseTypeBoundsExpressionNode
 
 object WhereClauseTypeBoundsExpressionInference : ITypeInference<WhereClauseTypeBoundsExpressionNode, ITypeEnvironment> {
     override fun infer(node: WhereClauseTypeBoundsExpressionNode, env: ITypeEnvironment): AnyType {
-        val type = TypeInferenceUtils.inferAs<TypeExpressionNode, IType.TypeVar>(node.sourceTypeExpression, env)
+        val type = TypeInferenceUtils.inferAs<TypeExpressionNode, TypeVar>(node.sourceTypeExpression, env)
 
         return when (node.boundsType) {
             ITypeBoundsOperator.Like -> {
-                val trait = TypeInferenceUtils.inferAs<TypeExpressionNode, IType.Trait>(node.targetTypeExpression, env)
+                val trait = TypeInferenceUtils.inferAs<TypeExpressionNode, Trait>(node.targetTypeExpression, env)
                 ConformanceConstraint(type, trait)
             }
             ITypeBoundsOperator.KindEq -> {

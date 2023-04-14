@@ -14,7 +14,7 @@ object TypeEffectInvocationInference : ITypeInference<TypeEffectInvocationNode, 
 
     override fun infer(node: TypeEffectInvocationNode, env: ITypeEnvironment): AnyType {
         val args = TypeInferenceUtils.inferAll(node.arguments, env)
-        val effect = env.getTypeAs<IType.TypeEffect>(node.effectIdentifier.getPath())
+        val effect = env.getTypeAs<TypeEffect>(node.effectIdentifier.getPath())
             ?: throw invocation.make<TypeSystem>("Unknown Type Effect `${node.effectIdentifier.getTypeName()}`", node.effectIdentifier)
 
         if (args.count() != effect.arguments.count()) {
@@ -22,6 +22,6 @@ object TypeEffectInvocationInference : ITypeInference<TypeEffectInvocationNode, 
         }
 
         return effect.arguments.zip(args)
-            .fold(effect) { acc, next -> acc.substitute(Substitution(next.first, next.second)) as IType.TypeEffect }
+            .fold(effect) { acc, next -> acc.substitute(Substitution(next.first, next.second)) as TypeEffect }
     }
 }

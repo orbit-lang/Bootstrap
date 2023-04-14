@@ -4,8 +4,8 @@ import org.orbit.backend.typesystem.components.*
 
 interface IOrbModule {
     fun getPublicTypes() : List<AnyType>
-    fun getPublicTypeAliases() : List<IType.Alias>
-    fun getPublicOperators() : List<IType.IOperatorArrow<*, *>>
+    fun getPublicTypeAliases() : List<TypeAlias>
+    fun getPublicOperators() : List<IOperatorArrow<*, *>>
     fun getContexts() : List<Context> = emptyList()
 }
 

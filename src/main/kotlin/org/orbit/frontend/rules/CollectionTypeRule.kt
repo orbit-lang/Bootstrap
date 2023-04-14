@@ -1,6 +1,6 @@
 package org.orbit.frontend.rules
 
-import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.Array
 import org.orbit.core.components.TokenTypes
 import org.orbit.core.nodes.CollectionTypeNode
 import org.orbit.frontend.extensions.unaryPlus
@@ -24,10 +24,10 @@ object CollectionTypeRule : ValueRule<CollectionTypeNode> {
 				val end = context.attempt(IntLiteralRule)
 					?: return ParseRule.Result.Failure.Throw("Expected Int literal after `[${elementType.value}/...`", collector)
 
-				IType.Array.Size.Fixed(end.value.second)
+				Array.Size.Fixed(end.value.second)
 			}
 
-			else -> IType.Array.Size.Any
+			else -> Array.Size.Any
 		}
 
 		val end = context.expect(TokenTypes.RBracket)

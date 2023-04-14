@@ -24,7 +24,7 @@ operator fun ITypeConstraint.plus(other: ITypeConstraint) : CompoundConstraint =
     }
 }
 
-data class ConformanceConstraint(override val type: AnyType, val trait: IType.Trait) : ITypeConstraint {
+data class ConformanceConstraint(override val type: AnyType, val trait: Trait) : ITypeConstraint {
     override val id: String = "$type : $trait"
 
     override fun isSolvedBy(input: AnyType, env: ITypeEnvironment): Boolean

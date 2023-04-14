@@ -17,7 +17,7 @@ object InvocationInference : ITypeInference<InvocationNode, IMutableTypeEnvironm
     override fun infer(node: InvocationNode, env: IMutableTypeEnvironment): AnyType {
         var type = TypeInferenceUtils.infer(node.invokable, env)
 
-        type = type.flatten(IType.Always, env) as? AnyArrow ?: throw invocation.make<TypeSystem>("Cannot invoke non Arrow Type $type", node.invokable)
+        type = type.flatten(Always, env) as? AnyArrow ?: throw invocation.make<TypeSystem>("Cannot invoke non Arrow Type $type", node.invokable)
 
         val arrow = when (env.getCurrentContext().isComplete()) {
             true -> env.getCurrentContext().applySpecialisations(type) as AnyArrow
@@ -32,8 +32,8 @@ object InvocationInference : ITypeInference<InvocationNode, IMutableTypeEnvironm
         }
 
         for (item in args.zip(arrow.getDomain()).withIndex()) {
-            val lType = item.value.first.flatten(IType.Always, env)
-            val rType = item.value.second.flatten(IType.Always, env)
+            val lType = item.value.first.flatten(Always, env)
+            val rType = item.value.second.flatten(Always, env)
 
             if (!TypeUtils.checkEq(env, lType, rType)) {
                 throw invocation.make<TypeSystem>("Lambda `$arrow` expects argument of Type $rType at index ${item.index}, found $lType", node.arguments[item.index])

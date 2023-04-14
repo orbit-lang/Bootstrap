@@ -18,21 +18,21 @@ private object SingleAttributeInvocationInference : IAttributeInvocationInferenc
         val concrete = TypeInferenceUtils.inferAll(node.arguments, env)
         val attrName = node.identifier.getTypeName()
 
-        val attr = env.getTypeAs<IType.Attribute>(OrbitMangler.unmangle(attrName))
+        val attr = env.getTypeAs<Attribute>(OrbitMangler.unmangle(attrName))
             ?: throw invocation.make<TypeSystem>("Undefined Type Attribute `$attrName`", node.identifier)
 
         return attr.typeVariables.zip(concrete).fold(attr) { acc, next ->
-            acc.substitute(Substitution(next.first, next.second)) as IType.Attribute
+            acc.substitute(Substitution(next.first, next.second)) as Attribute
         }
     }
 }
 
 private object CompoundAttributeInvocationInference : IAttributeInvocationInference<CompoundAttributeExpressionNode>, KoinComponent {
     override fun infer(node: CompoundAttributeExpressionNode, env: ITypeEnvironment): AnyType {
-        val lAttribute = AnyAttributeInvocationInference.infer(node.leftExpression, env) as IType.IAttribute
-        val rAttribute = AnyAttributeInvocationInference.infer(node.rightExpression, env) as IType.IAttribute
+        val lAttribute = AnyAttributeInvocationInference.infer(node.leftExpression, env) as IAttribute
+        val rAttribute = AnyAttributeInvocationInference.infer(node.rightExpression, env) as IAttribute
 
-        return IType.CompoundAttribute(node.op, lAttribute, rAttribute)
+        return CompoundAttribute(node.op, lAttribute, rAttribute)
     }
 }
 
@@ -48,14 +48,14 @@ private object AnyAttributeInvocationInference : IAttributeInvocationInference<I
 object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    private fun constructTypeVariable(node: ITypeLambdaParameterNode, env: ITypeEnvironment) : IType.TypeVar = when (node) {
-        is TypeIdentifierNode -> IType.TypeVar(node.getTypeName())
+    private fun constructTypeVariable(node: ITypeLambdaParameterNode, env: ITypeEnvironment) : TypeVar = when (node) {
+        is TypeIdentifierNode -> TypeVar(node.getTypeName())
         // TODO - Variadic capture expressions, e.g. `variadic(2+) T`, `variadic(1...9) T`
-        is VariadicTypeIdentifierNode -> IType.TypeVar(node.getTypeName(), emptyList(), VariadicBound.Any)
+        is VariadicTypeIdentifierNode -> TypeVar(node.getTypeName(), emptyList(), VariadicBound.Any)
         is DependentTypeParameterNode -> {
             val dependentType = TypeInferenceUtils.infer(node.type, env)
 
-            IType.TypeVar(node.identifier.getTypeName(), emptyList(), null, dependentType)
+            TypeVar(node.identifier.getTypeName(), emptyList(), null, dependentType)
         }
     }
 
@@ -94,14 +94,14 @@ object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironm
         }
 
         val attributes = node.constraints.map {
-            AnyAttributeInvocationInference.infer(it.invocation, nEnv) as IType.IAttribute
+            AnyAttributeInvocationInference.infer(it.invocation, nEnv) as IAttribute
         }
 
         val mEnv = AttributedEnvironment(nEnv, attributes)
         val codomain = TypeInferenceUtils.infer(node.codomain, mEnv)
 
-        if (codomain is IType.TypeVar && codomain.isVariadic) {
-            val example = IType.VariadicSlice(codomain, 0)
+        if (codomain is TypeVar && codomain.isVariadic) {
+            val example = VariadicSlice(codomain, 0)
             throw invocation.make<TypeSystem>("Cannot return Variadic Type Parameter $codomain. Suggest slicing instead, e.g. `$example`", node.codomain)
         }
 
@@ -110,6 +110,6 @@ object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironm
             else -> TypeInferenceUtils.infer(node.elseClause, mEnv)
         }
 
-        return IType.ConstrainedArrow(domain.arrowOf(codomain), attributes, fallback, emptyList(), vIndices)
+        return ConstrainedArrow(domain.arrowOf(codomain), attributes, fallback, emptyList(), vIndices)
     }
 }

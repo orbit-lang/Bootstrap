@@ -28,7 +28,7 @@ internal class ContextTest {
 
     @Test
     fun `Solving an unknown type variable gives equal Context`() {
-        val a = IType.TypeVar("A")
+        val a = TypeVar("A")
         val sut = Context.root
         val res = sut.solving(Specialisation(a))
 
@@ -37,8 +37,8 @@ internal class ContextTest {
 
     @Test
     fun `Solving a known type variable gives same name, different bindings`() {
-        val a = IType.TypeVar("A")
-        val t = IType.Type("T")
+        val a = TypeVar("A")
+        val t = Type("T")
         val sut = Context.build("C", a)
         val res = sut.solving(a to t)
 

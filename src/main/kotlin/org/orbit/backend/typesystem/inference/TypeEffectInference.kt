@@ -1,9 +1,6 @@
 package org.orbit.backend.typesystem.inference
 
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.IMutableTypeEnvironment
-import org.orbit.backend.typesystem.components.IType
-import org.orbit.backend.typesystem.components.fork
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.ITypeEffectExpressionNode
 import org.orbit.core.nodes.ProjectionEffectNode
@@ -14,7 +11,7 @@ private object ProjectionEffectInference : ITypeInference<ProjectionEffectNode, 
         val type = TypeInferenceUtils.infer(node.type, env)
         val trait = TypeInferenceUtils.infer(node.trait, env)
 
-        return IType.ProjectionEffect(type, trait)
+        return ProjectionEffect(type, trait)
     }
 }
 
@@ -27,14 +24,14 @@ private object AnyTypeEffectInference : ITypeInference<ITypeEffectExpressionNode
 
 object TypeEffectInference : ITypeInference<TypeEffectNode, IMutableTypeEnvironment> {
     override fun infer(node: TypeEffectNode, env: IMutableTypeEnvironment): AnyType {
-        val typeVariables = node.parameters.map { IType.TypeVar(it.getTypeName()) }
+        val typeVariables = node.parameters.map { TypeVar(it.getTypeName()) }
         val nEnv = env.fork()
 
         typeVariables.forEach { nEnv.add(it) }
 
-        val body = AnyTypeEffectInference.infer(node.body, nEnv) as IType.ITypeEffect
+        val body = AnyTypeEffectInference.infer(node.body, nEnv) as ITypeEffect
 
-        return IType.TypeEffect(node.identifier.getTypeName(), typeVariables, listOf(body)).also {
+        return TypeEffect(node.identifier.getTypeName(), typeVariables, listOf(body)).also {
             env.add(it)
         }
     }

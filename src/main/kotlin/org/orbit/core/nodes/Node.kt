@@ -89,7 +89,7 @@ interface INode {
 		return when (this::class.java) {
 			nodeType -> sub + (this as N)
 			else -> sub
-		}
+		}.distinctBy { it.firstToken }
 	}
 }
 

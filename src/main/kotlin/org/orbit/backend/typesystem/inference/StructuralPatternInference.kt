@@ -11,7 +11,6 @@ import org.orbit.util.Invocation
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
-import kotlin.math.exp
 
 object IdentifierBindingPatternInference : ITypeInference<IdentifierBindingPatternNode, IndexedStructuralPatternEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
@@ -25,7 +24,7 @@ object IdentifierBindingPatternInference : ITypeInference<IdentifierBindingPatte
 
         val memberType = struct.members[env.index].second
 
-        return IType.PatternBinding(Pair(node.identifier.identifier, memberType))
+        return PatternBinding(Pair(node.identifier.identifier, memberType))
     }
 }
 
@@ -42,13 +41,13 @@ object TypedIdentifierBindingPatternInference : ITypeInference<TypedIdentifierBi
             throw invocation.make<TypeSystem>("Cannot pattern match on Structural Type ${env.structuralType} because of mismatched types: expected ${member.second}, found $providedType", node.typePattern)
         }
 
-        return IType.PatternBinding(member)
+        return PatternBinding(member)
     }
 }
 
 object DiscardBindingPatternInference : ITypeInference<DiscardBindingPatternNode, StructuralPatternEnvironment> {
     override fun infer(node: DiscardBindingPatternNode, env: StructuralPatternEnvironment): AnyType
-        = IType.PatternBinding("_", IType.Always)
+        = PatternBinding("_", Always)
 }
 
 object StructuralPatternInference : ITypeInference<StructuralPatternNode, IMutableTypeEnvironment>, KoinComponent {
@@ -56,14 +55,14 @@ object StructuralPatternInference : ITypeInference<StructuralPatternNode, IMutab
 
     override fun infer(node: StructuralPatternNode, env: IMutableTypeEnvironment): AnyType {
         val patternType = TypeInferenceUtils.infer(node.typeExpressionNode, env)
-        val struct = patternType.flatten(patternType, env) as? IType.IStructuralType
+        val struct = patternType.flatten(patternType, env) as? IStructuralType
             ?: throw invocation.make<TypeSystem>("Cannot pattern match on non-Structural Type $patternType in Case expression", node)
 
         val nEnv = StructuralPatternEnvironment(env, struct)
         val bindingTypes = node.bindings.mapIndexed { idx, binding ->
             val mEnv = IndexedStructuralPatternEnvironment(nEnv, idx)
 
-            TypeInferenceUtils.inferAs<IBindingPatternNode, IType.PatternBinding>(binding, mEnv)
+            TypeInferenceUtils.inferAs<IBindingPatternNode, PatternBinding>(binding, mEnv)
         }
 
         val expected = struct.members.count()

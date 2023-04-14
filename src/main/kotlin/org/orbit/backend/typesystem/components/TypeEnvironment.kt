@@ -12,10 +12,10 @@ import org.orbit.util.getKoinInstance
 
 interface IContextualComponent
 
-data class Specialisation(val abstract: IType.TypeVar, val concrete: AnyType) {
-    constructor(abstract: IType.TypeVar) : this(abstract, IType.Never("Type Variable `$abstract` has not been specialised in this Context"))
-    constructor(path: Path) : this(IType.TypeVar(path.toString(OrbitMangler)))
-    constructor(pair: Pair<IType.TypeVar, AnyType>) : this(pair.first, pair.second)
+data class Specialisation(val abstract: TypeVar, val concrete: AnyType) {
+    constructor(abstract: TypeVar) : this(abstract, Never("Type Variable `$abstract` has not been specialised in this Context"))
+    constructor(path: Path) : this(TypeVar(path.toString(OrbitMangler)))
+    constructor(pair: Pair<TypeVar, AnyType>) : this(pair.first, pair.second)
 
     private val uniqueId: String get() = "${abstract.name}__${concrete.id}"
 
@@ -33,10 +33,10 @@ data class Specialisation(val abstract: IType.TypeVar, val concrete: AnyType) {
         = prettyPrint()
 }
 
-operator fun IType.TypeVar.times(type: AnyType) : Specialisation
+operator fun TypeVar.times(type: AnyType) : Specialisation
     = Specialisation(this, type)
 
-infix fun IType.TypeVar.to(type: AnyType) : Specialisation
+infix fun TypeVar.to(type: AnyType) : Specialisation
     = Specialisation(this, type)
 
 data class ContextualDeclaration<C: IContextualComponent>(val context: Context, val component: C)
@@ -52,7 +52,7 @@ sealed interface ITypeEnvironment {
     fun getBinding(name: String, index: Int) : IRef?
     fun getCurrentContext() : Context
     fun getKnownContexts() : List<Context>
-    fun getTrackedEffects() : List<IType.Effect>
+    fun getTrackedEffects() : List<Effect>
 
     fun getSpecialisationEvidence(context: Context) : Set<Specialisation> = emptySet()
 }
@@ -65,19 +65,19 @@ inline fun <reified T: AnyType> ITypeEnvironment.getTypeAs(path: Path) : T?
         it.component is T && (it.component.getPath() == path || it.component.getPath().last() == path.last())
     }?.component as? T
 
-fun ITypeEnvironment.aliasGuard(name: String) : IType.Alias?
-    = getAllTypes().firstOrNull { it.component is IType.Alias && it.component.name == name }?.component as? IType.Alias
+fun ITypeEnvironment.aliasGuard(name: String) : TypeAlias?
+    = getAllTypes().firstOrNull { it.component is TypeAlias && it.component.name == name }?.component as? TypeAlias
 
 interface IPanicEnvironment : ITypeEnvironment
 
 fun ITypeEnvironment.getTypeOrNull(name: String) : ContextualDeclaration<AnyType>?
     = getTypeOrNull(name, this)
 
-fun ITypeEnvironment.getSignatures() : List<ContextualDeclaration<IType.Signature>>
-    = getAllTypes().filter { it.component is IType.Signature } as List<ContextualDeclaration<IType.Signature>>
+fun ITypeEnvironment.getSignatures() : List<ContextualDeclaration<Signature>>
+    = getAllTypes().filter { it.component is Signature } as List<ContextualDeclaration<Signature>>
 
-fun ITypeEnvironment.getSignatures(name: String) : List<ContextualDeclaration<IType.Signature>> {
-    val signatures = mutableListOf<ContextualDeclaration <IType.Signature>>()
+fun ITypeEnvironment.getSignatures(name: String) : List<ContextualDeclaration<Signature>> {
+    val signatures = mutableListOf<ContextualDeclaration <Signature>>()
     for (signature in getSignatures()) {
         if (signature.component.name == name) {
             signatures.add(when (getCurrentContext().isComplete()) {
@@ -101,10 +101,10 @@ interface IMutableTypeEnvironment: ITypeEnvironment {
     fun replace(old: AnyType, new: AnyType)
     fun bind(name: String, type: AnyType, index: Int)
     fun localCopy() : IMutableTypeEnvironment
-    fun track(effect: IType.Effect)
+    fun track(effect: Effect)
 }
 
-data class AttributedEnvironment(private val parent: IMutableTypeEnvironment, val knownAttributes: List<IType.IAttribute>): IMutableTypeEnvironment by parent
+data class AttributedEnvironment(private val parent: IMutableTypeEnvironment, val knownAttributes: List<IAttribute>): IMutableTypeEnvironment by parent
 
 sealed interface ISelfTypeEnvironment : IMutableTypeEnvironment {
     fun getSelfType() : AnyType
@@ -112,7 +112,7 @@ sealed interface ISelfTypeEnvironment : IMutableTypeEnvironment {
 
 data class SelfTypeEnvironment(private val parent: IMutableTypeEnvironment, private val self: AnyType) : ISelfTypeEnvironment, IMutableTypeEnvironment by LocalEnvironment(parent) {
     init {
-        add(IType.Alias("Self", self))
+        add(TypeAlias("Self", self))
     }
 
     override fun getSelfType(): AnyType = self
@@ -131,7 +131,7 @@ data class CaseTypeEnvironment(private val parent: IMutableTypeEnvironment, priv
     override fun getSelfType(): AnyType = self
 }
 
-data class StructuralPatternEnvironment(private val parent: ITypeEnvironment, val structuralType: IType.IStructuralType) : ITypeEnvironment by parent
+data class StructuralPatternEnvironment(private val parent: ITypeEnvironment, val structuralType: IStructuralType) : ITypeEnvironment by parent
 data class IndexedStructuralPatternEnvironment(val parent: StructuralPatternEnvironment, val index: Int) : ITypeEnvironment by parent
 
 data class ConstructorTypeEnvironment(private val parent: IMutableTypeEnvironment, val constructorArgs: List<AnyType>) : IMutableTypeEnvironment by parent {
@@ -145,16 +145,16 @@ data class ConstructorTypeEnvironment(private val parent: IMutableTypeEnvironmen
     }
 }
 
-data class AnnotatedTypeEnvironment(private val parent: IMutableTypeEnvironment, val typeAnnotation: AnyType = IType.Always): IMutableTypeEnvironment by parent, IAnnotatedTypeEnvironment {
+data class AnnotatedTypeEnvironment(private val parent: IMutableTypeEnvironment, val typeAnnotation: AnyType = Always): IMutableTypeEnvironment by parent, IAnnotatedTypeEnvironment {
     override fun getAnnotation(): AnyType = typeAnnotation
 }
 
 data class ProjectionEnvironment(private val parent: IMutableTypeEnvironment, val projection: Projection) : IMutableTypeEnvironment by parent {
     init {
-        add(IType.Alias("Self", projection.source))
+        add(TypeAlias("Self", projection.source))
     }
 }
-data class ProjectedSignatureEnvironment(val parent: ProjectionEnvironment, val projectedSignature: IType.Signature) : IMutableTypeEnvironment by parent {
+data class ProjectedSignatureEnvironment(val parent: ProjectionEnvironment, val projectedSignature: Signature) : IMutableTypeEnvironment by parent {
     override fun localCopy(): IMutableTypeEnvironment
         = ProjectedSignatureEnvironment(ProjectionEnvironment(LocalEnvironment(parent), parent.projection), projectedSignature)
 }
@@ -175,11 +175,11 @@ fun IMutableTypeEnvironment.fork(path: Path) : LocalEnvironment
 class LocalEnvironment(private val parent: IMutableTypeEnvironment, override val name: String = parent.name) : IMutableTypeEnvironment {
     private val storage = TypeEnvironmentStorage(parent.getCurrentContext())
 
-    override fun track(effect: IType.Effect) {
+    override fun track(effect: Effect) {
         storage.track(effect)
     }
 
-    override fun getTrackedEffects(): List<IType.Effect>
+    override fun getTrackedEffects(): List<Effect>
         = storage.getTrackedEffects()
 
     override fun localCopy(): IMutableTypeEnvironment = this
@@ -294,10 +294,10 @@ object GlobalEnvironment : IMutableTypeEnvironment by TypeEnvironmentStorage(Con
     fun getSpecialisations(context: Context) : List<Context>
         = specialisations[context.name] ?: emptyList()
 
-    fun getUnionName(union: IType.Union) : String? = when (val name = unionNameMap[union.id]) {
+    fun getUnionName(union: Union) : String? = when (val name = unionNameMap[union.id]) {
         null -> {
             val matches =
-                getAllTypes().filter { it.component is IType.Alias && it.component.type is IType.Union && it.component.type.id == union.id }
+                getAllTypes().filter { it.component is TypeAlias && it.component.type is Union && it.component.type.id == union.id }
 
             when (matches.count()) {
                 1 -> matches[0].component.getCanonicalName().apply { unionNameMap[union.id] = this }
@@ -314,13 +314,13 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
     private val projections = mutableMapOf<String, List<ContextualDeclaration<Projection>>>()
     private val contexts = mutableListOf<Context>()
     private val bindings = mutableListOf<IRef>()
-    private val trackedEffects = mutableListOf<IType.Effect>()
+    private val trackedEffects = mutableListOf<Effect>()
 
-    override fun track(effect: IType.Effect) {
+    override fun track(effect: Effect) {
         trackedEffects.add(effect)
     }
 
-    override fun getTrackedEffects(): List<IType.Effect>
+    override fun getTrackedEffects(): List<Effect>
         = trackedEffects
 
     override fun localCopy(): IMutableTypeEnvironment {
@@ -457,7 +457,7 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
     }
 
     override fun getProjections(type: AnyType): List<ContextualDeclaration<Projection>> = when (type) {
-        is IType.Always -> projections.flatMap { it.value }
+        is Always -> projections.flatMap { it.value }
         else -> projections[type.id] ?: emptyList()
     }
 
@@ -495,9 +495,9 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
     override fun getKnownContexts(): List<Context> = contexts
 }
 
-fun ITypeEnvironment.getPrefixOperators() : List<IType.PrefixOperator> = getOperators()
-fun ITypeEnvironment.getInfixOperators() : List<IType.InfixOperator> = getOperators()
-fun ITypeEnvironment.getPostfixOperators() : List<IType.PostfixOperator> = getOperators()
+fun ITypeEnvironment.getPrefixOperators() : List<PrefixOperator> = getOperators()
+fun ITypeEnvironment.getInfixOperators() : List<InfixOperator> = getOperators()
+fun ITypeEnvironment.getPostfixOperators() : List<PostfixOperator> = getOperators()
 
 fun ITypeEnvironment.getOperators(fixity: OperatorFixity) : List<AnyOperator> = when (fixity) {
     OperatorFixity.Prefix -> getPrefixOperators()
@@ -505,7 +505,7 @@ fun ITypeEnvironment.getOperators(fixity: OperatorFixity) : List<AnyOperator> = 
     OperatorFixity.Postfix -> getPostfixOperators()
 }
 
-inline fun <reified O: IType.IOperatorArrow<*, *>> ITypeEnvironment.getOperators() : List<O>
+inline fun <reified O: IOperatorArrow<*, *>> ITypeEnvironment.getOperators() : List<O>
     = (getAllTypes().filter { it.component is O } as List<ContextualDeclaration<O>>)
         .map { when (getCurrentContext().isComplete()) {
             true -> getCurrentContext().applySpecialisations(it.component) as O

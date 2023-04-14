@@ -3,6 +3,7 @@ package org.orbit.backend.typesystem.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.Unit
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.backend.typesystem.utils.EffectUtils
@@ -14,7 +15,7 @@ import org.orbit.util.Invocation
 object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
-    private inline fun <reified T: IType.IAccessibleType<String>> inferPropertyAccess(node: MethodCallNode, receiver: AnyType, env: ITypeEnvironment) : AnyType {
+    private inline fun <reified T: IAccessibleType<String>> inferPropertyAccess(node: MethodCallNode, receiver: AnyType, env: ITypeEnvironment) : AnyType {
         val propertyName = node.messageIdentifier.identifier
 
         if (receiver !is T)
@@ -30,11 +31,11 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
             else -> type
         }
 
-        if (node.isPropertyAccess) return inferPropertyAccess<IType.IAccessibleType<String>>(node, receiver.flatten(receiver, env), env)
+        if (node.isPropertyAccess) return inferPropertyAccess<IAccessibleType<String>>(node, receiver.flatten(receiver, env), env)
 
         var args = TypeInferenceUtils.inferAll(node.arguments, env)
         var possibleArrows = env.getSignatures(node.messageIdentifier.identifier)
-        val expected = (env as? AnnotatedTypeEnvironment)?.typeAnnotation ?: IType.Always
+        val expected = (env as? AnnotatedTypeEnvironment)?.typeAnnotation ?: Always
 
         if (possibleArrows.isEmpty()) {
             throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> *`", node)
@@ -57,10 +58,10 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
                 receiver.getCanonicalName() == it.component.receiver.getCanonicalName() || TypeUtils.checkEq(env, receiver, it.component.receiver)
             }
 
-            if (possibleArrows.count() > 1 && receiver is IType.TypeVar) {
+            if (possibleArrows.count() > 1 && receiver is TypeVar) {
                 possibleArrows = possibleArrows.filter {
                     val synth = ProofAssistant.synthesise(receiver, env)
-                    val flat = it.component.receiver.flatten(IType.Always, env)
+                    val flat = it.component.receiver.flatten(Always, env)
 
                     synth == flat
                 }
@@ -87,8 +88,8 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
 
         if (argsCount != paramsCount) {
             // SPECIAL CASE - Allow `f() == f(Unit)`
-            if (paramsCount == 1 && argsCount == 0 && arrow.parameters[0] == IType.Unit) {
-                args = listOf(IType.Unit)
+            if (paramsCount == 1 && argsCount == 0 && arrow.parameters[0] == Unit) {
+                args = listOf(Unit)
             } else {
                 throw invocation.make<TypeSystem>(
                     "Method `${node.messageIdentifier.identifier}` expects $paramsCount arguments, found $argsCount",
@@ -112,7 +113,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
                 for (tv in allUnsolved) {
                     val proof = ProofAssistant.resolve(tv, arrow, receiver, args)
 
-                    if (proof is IType.TypeVar) {
+                    if (proof is TypeVar) {
                         // We couldn't find any evidence of `tv` aliasing a concrete type,
                         // but if it has projections, we might be able to synthesise one
                         val synth = ProofAssistant.synthesise(proof, env)
@@ -138,13 +139,13 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
 
         EffectUtils.check(nArrow, node.effectHandler, GlobalEnvironment)
 
-        return nArrow.returns.flatten(IType.Always, env)
+        return nArrow.returns.flatten(Always, env)
     }
 }
 
 // TODO - Generalise & recurse
 object ProofAssistant {
-    fun synthesise(typeVariable: IType.TypeVar, env: ITypeEnvironment) : IType.Trait? {
+    fun synthesise(typeVariable: TypeVar, env: ITypeEnvironment) : Trait? {
         val projections = env.getProjections(typeVariable)
 
         return when (projections.count()) {
@@ -154,7 +155,7 @@ object ProofAssistant {
         }
     }
 
-    fun resolve(typeVariable: IType.TypeVar, arrow: AnyArrow, receiver: AnyType, args: List<AnyType>) : AnyType {
+    fun resolve(typeVariable: TypeVar, arrow: AnyArrow, receiver: AnyType, args: List<AnyType>) : AnyType {
         val allArgs = listOf(receiver) + args
 
         for (param in arrow.getDomain().withIndex()) {
@@ -163,7 +164,7 @@ object ProofAssistant {
             when (val idx = param.value.getUnsolvedTypeVariables().indexOf(typeVariable)) {
                 -1 -> continue
                 else -> when (receiver) {
-                    is IType.Struct -> return receiver.members.getOrNull(idx)?.second ?: typeVariable
+                    is Struct -> return receiver.members.getOrNull(idx)?.second ?: typeVariable
                     else -> continue
                 }
             }
@@ -172,7 +173,7 @@ object ProofAssistant {
         return typeVariable
     }
 
-    fun resolve(typeVariable: IType.TypeVar, signature: IType.Signature, receiver: AnyType, args: List<AnyType>) : AnyType {
+    fun resolve(typeVariable: TypeVar, signature: Signature, receiver: AnyType, args: List<AnyType>) : AnyType {
         if (signature.receiver == typeVariable) return receiver
 
         for (param in signature.parameters.withIndex()) {
@@ -182,7 +183,7 @@ object ProofAssistant {
         return when (val idx = signature.receiver.getUnsolvedTypeVariables().indexOf(typeVariable)) {
             -1 -> typeVariable
             else -> when (receiver) {
-                is IType.Struct -> receiver.members[idx].second
+                is Struct -> receiver.members[idx].second
                 else -> typeVariable
             }
         }
