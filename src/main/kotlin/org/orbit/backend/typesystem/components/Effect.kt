@@ -6,8 +6,7 @@ import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 
-data class Effect(val name: String, val takes: List<AnyType>, val gives: AnyType) : IArrow<Effect>,
-    IStructuralType {
+data class Effect(val name: String, val takes: List<AnyType>, val gives: AnyType) : IArrow<Effect>, IStructuralType {
     companion object {
         val die = Effect("Die", emptyList(), Always)
     }
@@ -36,6 +35,11 @@ data class Effect(val name: String, val takes: List<AnyType>, val gives: AnyType
 
     override fun substitute(substitution: Substitution): AnyType
         = Effect(name, takes.substitute(substitution), gives.substitute(substitution))
+
+    override fun equals(other: Any?): Boolean = when (other) {
+        is Effect -> other.name == name && other.takes == takes && other.gives == gives
+        else -> false
+    }
 
     override fun prettyPrint(depth: Int): String {
         val printer = getKoinInstance<Printer>()

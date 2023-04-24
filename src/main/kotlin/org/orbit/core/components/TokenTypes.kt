@@ -78,7 +78,7 @@ object TokenTypes : TokenTypeProvider {
     object Synthesise : TokenType("Synthesise", "\\bsynthesise\\b", true, false, Family.CompileTime)
 
     // Literals
-    object Int : TokenType("Int", "[0-9]+", true, false, Family.Num)
+    object Int : TokenType("Int", "(\\-|\\+)?[0-9]+", true, false, Family.Num)
     object Real : TokenType("Real", "[0-9]+\\\\.[0-9]+", true, false, Family.Num)
     object Identifier : TokenType("Identifier", "[a-z_]+[a-zA-Z0-9_]*", true, false, Family.Id)
     object TypeIdentifier : TokenType("TypeIdentifier", "(_|([A-Z]+[a-zA-Z0-9_]*)(::[A-Z]+[a-zA-Z0-9_]*)*(::\\*)?)", true, false, Family.Id)

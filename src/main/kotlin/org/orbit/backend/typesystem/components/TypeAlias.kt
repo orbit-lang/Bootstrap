@@ -26,8 +26,10 @@ data class TypeAlias(val name: String, val type: AnyType) : ISpecialisedType {
     override fun getCardinality(): ITypeCardinality
         = type.getCardinality()
 
-    override fun substitute(substitution: Substitution): AnyType
-        = TypeAlias(name, type.substitute(substitution))
+    override fun substitute(substitution: Substitution): AnyType = when (name) {
+        "Self" -> substitution.new
+        else -> TypeAlias(name, type.substitute(substitution))
+    }
 
     override fun getCanonicalName(): String = name
     override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType

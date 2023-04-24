@@ -9,7 +9,6 @@ import org.koin.core.context.startKoin
 import org.koin.core.definition.BeanDefinition
 import org.koin.core.parameter.DefinitionParameters
 import org.koin.core.qualifier.Qualifier
-import org.koin.core.qualifier.StringQualifier
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
@@ -113,7 +112,8 @@ val mainModule = module {
 		util.registerPathResolver(EffectHandlerPathResolver, EffectHandlerNode::class.java)
 		util.registerPathResolver(CausePathResolver, CauseNode::class.java)
 		util.registerPathResolver(ForPathResolver, ForNode::class.java)
-		util.registerPathResolver(TypeSlicePathResolver, TypeSliceNode::class.java)
+		util.registerPathResolver(IndexSlicePathResolver, IndexSliceNode::class.java)
+		util.registerPathResolver(RangeSlicePathResolver, RangeSliceNode::class.java)
 		util.registerPathResolver(TypeQueryPathResolver, TypeQueryExpressionNode::class.java)
 
 		util
@@ -198,7 +198,8 @@ val mainModule = module {
 	single(EffectInference)
 	single(CauseInference)
 	single(ForInference)
-	single(TypeSliceInference)
+	single(IndexSliceInference)
+	single(RangeSliceInference)
 	single(MirrorInference)
 	single(TypeQueryInference)
 

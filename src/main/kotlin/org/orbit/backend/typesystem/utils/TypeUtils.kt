@@ -247,4 +247,4 @@ object TypeUtils {
 typealias AnyArrow = IArrow<*>
 
 fun AnyArrow.toSignature(receiver: AnyType, name: String) : Signature
-    = Signature(receiver, name, getDomain(), getCodomain(), false)
+    = Signature(receiver, name, getDomain(), getCodomain(), false, effects)

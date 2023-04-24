@@ -97,40 +97,6 @@ class Lexer(
 							break
 						}
 					}
-				} else if (tt.family == TokenType.Family.Num) {
-					if (!nextChar.isDigit()) continue
-
-					var num = ""
-					var matchedDot = false
-					while (nextChar.isDigit() || nextChar == '.') {
-						if (nextChar == '.') {
-							// If we find a `.` while trying to parse an Int, this is a failure
-							if (tt == TokenTypes.Int) break
-
-							val peek = content[1]
-
-							if (!peek.isDigit()) break
-
-							if (matchedDot) break
-
-							matchedDot = true
-						}
-
-						num += nextChar
-
-						content = content.drop(1)
-						nextChar = content.getOrNull(0) ?: break
-						position = position.moveCharacter(1)
-					}
-
-					if (num.contains(".")) {
-						tokens.add(Token(TokenTypes.Real, num, position))
-					} else {
-						tokens.add(Token(TokenTypes.Int, num, position))
-					}
-
-					matched = true
-					break
 				} else if (tt.family == TokenType.Family.Enclosing) {
 					if (nextChar != tt.pattern.first()) continue
 
@@ -146,7 +112,7 @@ class Lexer(
 					} else if (nextChar != '_') continue
 
 					var id = ""
-					while (nextChar.isLetter() || nextChar == '_') {
+					while (nextChar.isLetter() || nextChar.isDigit() || nextChar == '_') {
 						id += nextChar
 
 						position = position.moveCharacter(1)

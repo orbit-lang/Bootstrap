@@ -27,7 +27,7 @@ data class Specialisation(val abstract: TypeVar, val concrete: AnyType) {
     }
 
     fun prettyPrint(depth: Int = 0) : String
-        = "${"\t".repeat(depth)}$abstract => $concrete"
+        = "${"\t".repeat(depth)}$abstract : $concrete"
 
     override fun toString(): String
         = prettyPrint()

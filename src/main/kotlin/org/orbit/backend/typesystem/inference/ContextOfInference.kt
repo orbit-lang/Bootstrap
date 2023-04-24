@@ -13,13 +13,13 @@ object ContextOfInference : ITypeInference<ContextOfNode, ITypeEnvironment> {
             ?: return Always
 
         if (decl.context.isComplete()) {
-            print(decl.context)
+            println(decl.context)
 
             return Always
         }
 
         if (env.getCurrentContext().isComplete() && decl.context.getCanonicalName() == env.getCurrentContext().getCanonicalName()) {
-            print(env.getCurrentContext())
+            println(env.getCurrentContext())
 
             return Always
         }

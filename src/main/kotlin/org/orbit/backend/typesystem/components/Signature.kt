@@ -6,7 +6,7 @@ import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 
 data class Signature(val receiver: AnyType, val name: String, val parameters: List<AnyType>, val returns: AnyType, val isInstanceSignature: Boolean, override val effects: List<Effect> = emptyList()) : IArrow<Signature>,
-    Trait.Member {
+    TraitMember {
     override val id: String get() {
         val pParams = parameters.joinToString(", ") { it.id }
 
@@ -41,12 +41,7 @@ data class Signature(val receiver: AnyType, val name: String, val parameters: Li
     }
 
     override fun substitute(substitution: Substitution): Signature
-        = Signature(
-        receiver.substitute(substitution),
-        name,
-        parameters.map { it.substitute(substitution) },
-        returns.substitute(substitution),
-        isInstanceSignature
+        = Signature(receiver.substitute(substitution), name, parameters.map { it.substitute(substitution) }, returns.substitute(substitution), isInstanceSignature, effects
     )
 
     override fun equals(other: Any?): Boolean = when (other) {
@@ -65,3 +60,15 @@ data class Signature(val receiver: AnyType, val name: String, val parameters: Li
 
     override fun toString(): String = prettyPrint()
 }
+
+fun Signature.substituteReceiver(old: AnyType, new: AnyType) : Signature
+    = Signature(receiver.substitute(old, new), name, parameters, returns, isInstanceSignature, effects)
+
+fun Signature.substituteParameters(old: AnyType, new: AnyType) : Signature
+    = Signature(receiver, name, parameters.substitute(Substitution(old, new)), returns, isInstanceSignature, effects)
+
+fun Signature.substituteReturns(old: AnyType, new: AnyType) : Signature
+    = Signature(receiver, name, parameters, returns.substitute(old, new), isInstanceSignature, effects)
+
+fun AnyType.substitute(old: AnyType, new: AnyType) : AnyType
+    = substitute(Substitution(old, new))

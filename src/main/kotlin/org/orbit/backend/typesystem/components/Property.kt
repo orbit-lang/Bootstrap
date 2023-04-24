@@ -4,7 +4,7 @@ import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 
-data class Property(val name: String, val type: AnyType) : AnyType, Trait.Member {
+data class Property(val name: String, val type: AnyType) : AnyType, TraitMember {
     override val id: String = "$name: $type"
 
     override fun getCardinality(): ITypeCardinality

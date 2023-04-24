@@ -28,7 +28,7 @@ object InvocationInference : ITypeInference<InvocationNode, IMutableTypeEnvironm
         val expectedArgsCount = arrow.getDomain().count()
 
         if (args.count() != expectedArgsCount) {
-            throw invocation.make<TypeSystem>("Invocation of Type $arrow requires $expectedArgsCount arguments, found ${args.count()}", node.invokable)
+            throw invocation.make<TypeSystem>("Invocation of $arrow requires $expectedArgsCount arguments, found ${args.count()}", node.invokable)
         }
 
         for (item in args.zip(arrow.getDomain()).withIndex()) {

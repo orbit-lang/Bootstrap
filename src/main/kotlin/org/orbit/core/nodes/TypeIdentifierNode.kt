@@ -105,17 +105,71 @@ data class VariadicTypeIdentifierNode(
 		= listOf(identifier)
 }
 
-data class TypeSliceNode(
-	override val firstToken: Token,
-	override val lastToken: Token,
-	val identifier: TypeIdentifierNode,
-	// TODO - We should be able to generalise this concept with Dependent Types (or maybe Quotient Types?)
-	val index: Int
-) : TypeExpressionNode {
-	override fun getTypeName(): String = "${identifier.getTypeName()}[$index]"
-	override val value: String = getTypeName()
+sealed interface ITypeSliceNode : TypeExpressionNode {
+	val identifier: TypeIdentifierNode
 
 	override fun getChildren(): List<INode> = listOf(identifier)
+}
+
+data class IndexSliceNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
+	override val identifier: TypeIdentifierNode,
+	// TODO - We should be able to generalise this concept with Dependent Types (or maybe Quotient Types?)
+	val index: Int
+) : ITypeSliceNode {
+	override fun getTypeName(): String = "${identifier.getTypeName()}[$index]"
+	override val value: String = getTypeName()
+}
+
+interface ICaseIterable<Self> {
+	fun allCases() : List<Self>
+}
+
+interface ICaseConvertible<I, Self> : ICaseIterable<Self> {
+	fun fromOrNull(input: I) : Self?
+}
+
+fun <I, Self> ICaseConvertible<I, Self>.from(input: I) : Self
+	= fromOrNull(input)!!
+
+enum class IRangeOperator(val op: String) {
+	Inclusive("..."),
+	Exclusive("..");
+
+	companion object : ICaseConvertible<String, IRangeOperator> {
+		override fun allCases(): List<IRangeOperator>
+			= listOf(Inclusive, Exclusive)
+
+		override fun fromOrNull(input: String) : IRangeOperator? = when (input) {
+			Inclusive.op -> Inclusive
+			Exclusive.op -> Exclusive
+			else -> null
+		}
+	}
+
+	override fun toString(): String = op
+}
+
+data class RangeSliceNode(
+	override val firstToken: Token,
+	override val lastToken: Token,
+	override val identifier: TypeIdentifierNode,
+	val start: Int,
+	val end: Int,
+	val operator: IRangeOperator
+) : ITypeSliceNode {
+	val lastIndex: Int = when (operator) {
+		IRangeOperator.Inclusive -> end
+		IRangeOperator.Exclusive -> end - 1
+	}
+
+	override fun getTypeName(): String = when (operator) {
+		IRangeOperator.Inclusive -> "${identifier.getTypeName()}[$start...$end]"
+		IRangeOperator.Exclusive -> "${identifier.getTypeName()}[$start..$end]"
+	}
+
+	override val value: String = getTypeName()
 }
 
 data class CollectionTypeLiteralNode(

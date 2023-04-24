@@ -88,7 +88,7 @@ object TypeLambdaInference : ITypeInference<TypeLambdaNode, IMutableTypeEnvironm
                     throw invocation.make<TypeSystem>("Only one Variadic Type Parameter is allowed in a Type Lambda", node)
                 }
 
-                node.codomain.search(TypeSliceNode::class.java)
+                node.codomain.search(IndexSliceNode::class.java)
                     .map { it.index }
             }
         }

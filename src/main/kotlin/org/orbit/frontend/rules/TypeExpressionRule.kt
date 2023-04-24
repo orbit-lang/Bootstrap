@@ -32,7 +32,7 @@ object VariadicTypeIdentifierRule : ValueRule<VariadicTypeIdentifierNode> {
     }
 }
 
-object TypeSliceRule : ValueRule<TypeSliceNode> {
+object IndexTypeSliceRule : ValueRule<IndexSliceNode> {
     override fun parse(context: Parser): ParseRule.Result {
         val collector = context.startCollecting()
         val identifier = context.attempt(TypeIdentifierRule.Naked)
@@ -45,7 +45,39 @@ object TypeSliceRule : ValueRule<TypeSliceNode> {
 
         val end = context.expect(TokenTypes.RBracket)
 
-        return +TypeSliceNode(identifier.firstToken, end, identifier, index.value.second)
+        return +IndexSliceNode(identifier.firstToken, end, identifier, index.value.second)
+    }
+}
+
+object RangeTypeSliceRule : ValueRule<RangeSliceNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val collector = context.startCollecting()
+        val identifier = context.attempt(TypeIdentifierRule.Naked)
+            ?: return ParseRule.Result.Failure.Rewind(collector)
+
+        context.expectOrNull(TokenTypes.LBracket) ?: return ParseRule.Result.Failure.Rewind(collector)
+
+        val start = context.attempt(IntLiteralRule)
+            ?: return ParseRule.Result.Failure.Abort
+
+        context.expectOrNull(TokenTypes.Dot) ?: return ParseRule.Result.Failure.Rewind(collector)
+        context.expectOrNull(TokenTypes.Dot) ?: return ParseRule.Result.Failure.Rewind(collector)
+
+        val next = context.peek()
+        val op = when (next.type) {
+            TokenTypes.Dot -> {
+                context.consume()
+                "..."
+            }
+            else -> "..."
+        }
+
+        val end = context.attempt(IntLiteralRule)
+            ?: return ParseRule.Result.Failure.Abort
+
+        val last = context.expect(TokenTypes.RBracket)
+
+        return +RangeSliceNode(identifier.firstToken, last, identifier, start.value.second, end.value.second, IRangeOperator.from(op))
     }
 }
 
@@ -53,9 +85,10 @@ object TypeExpressionRule : ValueRule<TypeExpressionNode> {
 	override fun parse(context: Parser): ParseRule.Result {
 		val collector = context.startCollecting()
 		val node = context.attemptAny(listOf(
+            RangeTypeSliceRule,
             TypeQueryRule,
             VariadicTypeIdentifierRule,
-            TypeSliceRule,
+            IndexTypeSliceRule,
             StarRule,
             NeverRule,
             ExpandRule,

@@ -5,10 +5,7 @@ import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 
-data class Trait(override val id: String, val properties: List<Property>, val signatures: List<Signature>) :
-    Entity<Trait> {
-    sealed interface Member
-
+data class Trait(override val id: String, val properties: List<Property>, val signatures: List<Signature>) : Entity<Trait>, TraitMember {
     override fun substitute(substitution: Substitution): Trait
         = Trait(id, properties.map { it.substitute(substitution) }, signatures.map { it.substitute(substitution) })
 

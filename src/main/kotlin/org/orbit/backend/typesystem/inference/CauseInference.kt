@@ -16,7 +16,14 @@ object CauseInference : ITypeInference<CauseNode, ITypeEnvironment>, KoinCompone
     override fun infer(node: CauseNode, env: ITypeEnvironment): AnyType {
         val effect = TypeInferenceUtils.inferAs<TypeIdentifierNode, Effect>(node.invocationNode.effectIdentifier, env)
 
-        if (!env.getTrackedEffects().contains(effect)) {
+        val matches = mutableListOf<Effect>()
+        for (e in env.getTrackedEffects()) {
+            if (TypeUtils.checkEq(env, e, effect)) {
+                matches.add(e)
+            }
+        }
+
+        if (matches.isEmpty()) {
             throw invocation.make<TypeSystem>("Attempting to cause Effect $effect in a Method that does not declare it. Add `with $effect` to the return Type of your Method Signature", node.invocationNode)
         }
 
