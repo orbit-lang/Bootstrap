@@ -24,6 +24,6 @@ module M with Orb::Core::* {
     }
 
     projection Int : Comparator {
-        fun (Int) compare (a Int, b Int) (Int) = a
+        fun (Int) compare (a Int, b Int) (Int) = a + b
     }
 }

@@ -32,7 +32,9 @@ object ProjectionInference : ITypeInference<ProjectionNode, IMutableTypeEnvironm
 
         val mEnv = ProjectionEnvironment(nEnv, projection)
 
-        node.body.forEach { TypeInferenceUtils.infer(it, mEnv, parametersOf(SignatureInference.Option.Persistent)) }
+        mEnv.annotate(SignatureInference.Option.Persistent)
+
+        node.body.forEach { TypeInferenceUtils.infer(it, mEnv) }
 
         env.add(projection, projectedType)
 
