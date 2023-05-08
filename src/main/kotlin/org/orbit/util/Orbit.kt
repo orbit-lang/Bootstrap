@@ -115,6 +115,7 @@ val mainModule = module {
 		util.registerPathResolver(IndexSlicePathResolver, IndexSliceNode::class.java)
 		util.registerPathResolver(RangeSlicePathResolver, RangeSliceNode::class.java)
 		util.registerPathResolver(TypeQueryPathResolver, TypeQueryExpressionNode::class.java)
+		util.registerPathResolver(SelfPathResolver, SelfNode::class.java)
 
 		util
 	}
@@ -153,7 +154,7 @@ val mainModule = module {
 	single(ReturnStatementInference)
 	single(RValueInference)
 	single(SelectInference)
-	inferenceFactory { shouldDeclare -> SignatureInference(shouldDeclare.get()) }
+	single(SignatureInference)
 	single(StructTypeInference)
 	single(StructuralPatternInference)
 	single(TraitDefInference)
@@ -202,6 +203,7 @@ val mainModule = module {
 	single(RangeSliceInference)
 	single(MirrorInference)
 	single(TypeQueryInference)
+	single(SelfInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

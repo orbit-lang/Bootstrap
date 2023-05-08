@@ -6,8 +6,38 @@ import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.core.nodes.TypeIdentifierNode
 
-data class SignatureInference(val shouldDeclare: Boolean) : ITypeInference<MethodSignatureNode, IMutableTypeEnvironment> {
+object SignatureInference : ITypeInference<MethodSignatureNode, IMutableTypeEnvironment> {
+    sealed interface Option {
+        object None : Option
+        object Persistent : Option
+        object Virtual : Option
+        data class Options(val options: List<Option>) : Option
+
+        fun contains(option: Option) : Boolean = when (this) {
+            is None -> false
+            is Options -> options.contains(option)
+            else -> this == option
+        }
+
+        operator fun plus(other: Option) : Option = when (other) {
+            is None -> this
+            is Options -> when (this) {
+                is Options -> Options(options + other.options)
+                else -> Options(other.options + this)
+            }
+
+            else -> when (this) {
+                is None -> other
+                is Options -> Options(options + other)
+                else -> Options(listOf(this, other))
+            }
+        }
+    }
+
     override fun infer(node: MethodSignatureNode, env: IMutableTypeEnvironment): AnyType {
+        val options = env.consume() as? Option
+            ?: throw Exception("FATAL: No Options specified for Signature Inference")
+
         val receiver = TypeInferenceUtils.infer(node.receiverTypeNode, env)
         val params = TypeInferenceUtils.inferAll(node.parameterNodes, env)
         val ret = when (val r = node.returnTypeNode) {
@@ -16,12 +46,12 @@ data class SignatureInference(val shouldDeclare: Boolean) : ITypeInference<Metho
         }
 
         val effects = TypeInferenceUtils.inferAllAs<TypeIdentifierNode, Effect>(node.effects, env)
-        val signature = Signature(receiver, node.identifierNode.identifier, params, ret, node.isInstanceMethod, effects)
+        val signature = Signature(receiver, node.identifierNode.identifier, params, ret, node.isInstanceMethod, effects, isVirtual = options.contains(Option.Virtual))
 
         effects.forEach { env.track(it) }
 
-        if (shouldDeclare) {
-            env.add(signature)
+        if (options.contains(Option.Persistent)) {
+            GlobalEnvironment.add(signature)
         }
 
         return signature

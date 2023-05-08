@@ -1,6 +1,5 @@
 package org.orbit.backend.typesystem.inference
 
-import org.koin.core.parameter.parametersOf
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.OrbitMangler
@@ -15,7 +14,12 @@ object TraitDefInference : ITypeInference<TraitDefNode, IMutableTypeEnvironment>
         val protoTrait = Trait(path.toString(OrbitMangler), emptyList(), emptyList())
         val nEnv = SelfTypeEnvironment(env, protoTrait)
         val properties = TypeInferenceUtils.inferAllAs<ParameterNode, Property>(node.properties, nEnv)
-        val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, Signature>(node.signatures, nEnv, parametersOf(true))
+
+        val options = SignatureInference.Option.Persistent + SignatureInference.Option.Virtual
+
+        nEnv.annotate(options)
+
+        val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, Signature>(node.signatures, nEnv)
         val trait = Trait(path.toString(OrbitMangler), properties, signatures)
 
         env.add(trait)

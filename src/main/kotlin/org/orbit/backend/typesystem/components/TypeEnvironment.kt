@@ -102,6 +102,8 @@ interface IMutableTypeEnvironment: ITypeEnvironment {
     fun bind(name: String, type: AnyType, index: Int)
     fun localCopy() : IMutableTypeEnvironment
     fun track(effect: Effect)
+    fun annotate(value: Any)
+    fun consume() : Any
 }
 
 data class AttributedEnvironment(private val parent: IMutableTypeEnvironment, val knownAttributes: List<IAttribute>): IMutableTypeEnvironment by parent
@@ -230,6 +232,13 @@ class LocalEnvironment(private val parent: IMutableTypeEnvironment, override val
 
     override fun getKnownContexts(): List<Context>
         = storage.getKnownContexts() + parent.getKnownContexts()
+
+    override fun annotate(value: Any) {
+        storage.annotate(value)
+    }
+
+    override fun consume(): Any
+        = storage.consume()
 }
 
 data class Mono(val type: AnyType, val subs: List<Substitution>)
@@ -315,6 +324,18 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
     private val contexts = mutableListOf<Context>()
     private val bindings = mutableListOf<IRef>()
     private val trackedEffects = mutableListOf<Effect>()
+    private var annotatedValue: Any? = null
+
+    override fun annotate(value: Any) {
+        if (annotatedValue != null) throw Exception("FATAL: Attempting to re-annotate Mutable Type Environment before the previous value has been consumed")
+
+        annotatedValue = value
+    }
+
+    override fun consume(): Any = when (annotatedValue) {
+        null -> throw Exception("FATAL: Attempting to consume missing annotation")
+        else -> annotatedValue!!
+    }
 
     override fun track(effect: Effect) {
         trackedEffects.add(effect)

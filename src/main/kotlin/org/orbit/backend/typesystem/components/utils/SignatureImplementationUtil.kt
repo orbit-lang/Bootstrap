@@ -24,23 +24,22 @@ data class SignatureImplementationUtil(private val signature: Signature) : IImpl
     private fun checkImpl(type: AnyType, env: ITypeEnvironment) : TraitMemberVerificationResult {
         var signatures = env.getSignatures().filter {
             TypeUtils.checkEq(env, it.component.receiver, type)
-        }
+        }.map { it.component }.distinct()
 
         signatures = signatures.filter {
-            checkSignatures(it.component, signature, env)
+            !it.isVirtual && checkSignatures(it, signature, env)
         }
 
         return when (signatures.count()) {
-            1 -> TraitMemberVerificationResult.Implemented(signatures[0].component)
+            1 -> TraitMemberVerificationResult.Implemented(signatures[0])
             0 -> TraitMemberVerificationResult.NotImplemented("Signature $signature is not implemented for Type $type")
             else -> {
-                val pretty = signatures.joinToString("\n\t")
+                val pretty = signatures.joinToString("\n\t") { it.toString() }
 
                 TraitMemberVerificationResult.NotImplemented("Signature $signature is implemented multiple times for Type $type:\n\t$pretty")
             }
         }
     }
-
 
     override fun isImplemented(by: AnyType, env: ITypeEnvironment): TraitMemberVerificationResult {
         val flat = by.flatten(by, env)

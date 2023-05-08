@@ -90,6 +90,7 @@ object TypeExpressionRule : ValueRule<TypeExpressionNode> {
             VariadicTypeIdentifierRule,
             IndexTypeSliceRule,
             StarRule,
+            SelfRule,
             NeverRule,
             ExpandRule,
             SumTypeRule,

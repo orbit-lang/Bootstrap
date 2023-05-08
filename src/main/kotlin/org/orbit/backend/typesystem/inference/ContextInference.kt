@@ -48,7 +48,7 @@ object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
         TypeInferenceUtils.inferAll(entityDefs, mEnv)
 
         val signatureNodes = node.body.filterIsInstance<MethodDefNode>().map { it.signature }
-        val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, Signature>(signatureNodes, mEnv, parametersOf(false))
+        val signatures = TypeInferenceUtils.inferAllAs<MethodSignatureNode, Signature>(signatureNodes, mEnv)
 
         signatures.forEach { mEnv.add(it) }
 

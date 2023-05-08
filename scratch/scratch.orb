@@ -19,24 +19,11 @@ module Orb::Core::Errors with Orb::Core::* {
 }
 
 module M with Orb::Core::* {
-#    trait Comparator {
-#        fun (Self) compare (a Self, b Self) (Self)
-#    }
-#
-#    projection Int : Comparator {
-#        fun (Int) compare (a Int, b Bool) (Int) = a
-#    }
+    trait Comparator {
+        fun (Self) compare (a Self, b Self) (Self)
+    }
 
-    fun (Int) add (i Int, j Int) (Int) = i + j
-    fun (self (Int, Int) -> Int) partial (i Int) ((Int) -> Int) = { j -> self(i, j) }
-    fun (self (Int) -> Int) curry () (() -> Int) = { x -> self(x) }
-
-    # (A, B) -> C ==> (A) -> (B) -> C
-    alias Curry = (S, variadic T) => (T[0..1]) -> (T[1]) -> S
-
-    fun (Unit) main () () {
-        add2 = ::add.partial(2)
-        typeOf add2
-        typeOf mirror .Curry(Int, Bool, Int)
+    projection Int : Comparator {
+        fun (Int) compare (a Int, b Int) (Int) = a
     }
 }

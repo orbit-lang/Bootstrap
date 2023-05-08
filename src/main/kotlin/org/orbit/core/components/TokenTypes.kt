@@ -71,6 +71,7 @@ object TokenTypes : TokenTypeProvider {
     object Prefix : TokenType("Prefix", "prefix", true, false, Family.Keyword)
     object Infix : TokenType("Infix", "infix", true, false, Family.Keyword)
     object Postfix : TokenType("Postfix", "postfix", true, false, Family.Keyword)
+    object Self : TokenType("Self", "Self", true, false, Family.Keyword)
     object Variadic : TokenType("Variadic", "variadic", true, false, Family.Keyword)
     object Query : TokenType("Query", "query", true, false, Family.Keyword)
 
@@ -91,7 +92,7 @@ object TokenTypes : TokenTypeProvider {
         return listOf(
             Real, Int, Dot, Attribute, Context, Api, Module, Define, Defer, Cause, Effect, For, TypeEffect, Fun, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias, Operator, Variadic, Query,
-            Synthesise,
+            Synthesise, Self,
             Dollar,
             Prefix, Infix, Postfix, Let, In, Of, By, To, Else, Case, Select, As,
             True, False, Panic,
