@@ -18,12 +18,14 @@ module Orb::Core::Errors with Orb::Core::* {
     trait Error
 }
 
-module M with Orb::Core::* {
+module Orb::Core::Compare with Orb::Core::Numbers {
     trait Comparator {
         fun (Self) compare (a Self, b Self) (Self)
     }
 
-    projection Int : Comparator {
-        fun (Int) compare (a Int, b Int) (Int) = a + b
-    }
+    projection Int : Comparator
+        with compare by { i, j -> i }
+}
+
+module M with Orb::Core::* {
 }

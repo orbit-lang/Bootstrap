@@ -68,8 +68,6 @@ inline fun <reified T: AnyType> ITypeEnvironment.getTypeAs(path: Path) : T?
 fun ITypeEnvironment.aliasGuard(name: String) : TypeAlias?
     = getAllTypes().firstOrNull { it.component is TypeAlias && it.component.name == name }?.component as? TypeAlias
 
-interface IPanicEnvironment : ITypeEnvironment
-
 fun ITypeEnvironment.getTypeOrNull(name: String) : ContextualDeclaration<AnyType>?
     = getTypeOrNull(name, this)
 
