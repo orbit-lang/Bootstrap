@@ -16,7 +16,10 @@ class TypeDefNode(
     override val properties: List<ParameterNode> = emptyList(),
     val traitConformances: List<TypeExpressionNode> = emptyList(),
     val body: List<ITypeDefBodyNode> = emptyList(),
+    val cases: List<IdentifierNode> = emptyList()
 ) : EntityDefNode, IContextDeclarationNode {
+    val isEnum: Boolean get() = cases.isNotEmpty()
+
     override fun getChildren() : List<INode>
-		= listOf(typeIdentifierNode) + traitConformances + properties + body
+		= listOf(typeIdentifierNode) + traitConformances + properties + body + cases
 }

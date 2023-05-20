@@ -46,35 +46,6 @@ object TypeDefRule : EntityDefParseRule<TypeDefNode> {
 				return +TypeDefNode(start, end, typeIdentifierNode)
 			}
 
-			// NOTE - We have an ambiguous grammar here.
-			/*
-				EXAMPLE:
-					type T
-					(T) foo () (T)
-
-				The method signature's receiver parses as a continuation of the TypeDef, e.g. type T(T).
-
-				We can actually disambiguate this situation, but maybe TypeDefs without parameters should
-				be forced to add empty parens, e.g. type T()
-			*/
-
-			// We use a separate parser here to avoid popping from our own token stack,
-			// which would otherwise be quite difficult to rewind if the following case parses
-
-			val lookaheadParser = Parser(context.invocation, MethodSignatureRule(false))
-
-			try {
-				lookaheadParser.execute(Parser.InputType(context.tokens))
-
-				// This is the ambiguous case described above.
-				// We can jump out here, safe in the knowledge that
-				// doing a lookahead parse did not affect the main token stack
-				return +TypeDefNode(start, end, typeIdentifierNode)
-			} catch (_: Exception) {
-				// This is not a real parse error; it just means this isn't the ambiguous case (see above).
-				// fallthrough
-			}
-
 			// NOTE - Don't forget to move beyond the paren as we only peeked at it before now
 			context.consume()
 
@@ -96,6 +67,25 @@ object TypeDefRule : EntityDefParseRule<TypeDefNode> {
 					break
 				}
 			}
+		} else if (next.type == TokenTypes.Of) {
+			// Parsing an Enum: a Type with a predefined set of values
+			context.consume()
+			next = context.peek()
+			val cases = mutableListOf<IdentifierNode>()
+			while (next.type == TokenTypes.Identifier) {
+				val case = context.attempt(IdentifierRule)
+					?: return ParseRule.Result.Failure.Abort
+
+				cases.add(case)
+
+				next = context.peek()
+				if (next.type != TokenTypes.Comma) break
+
+				context.expect(TokenTypes.Comma)
+				next = context.peek()
+			}
+
+			return +TypeDefNode(start, cases.last().lastToken, typeIdentifierNode, cases = cases)
 		}
 
 		if (!context.hasMore) {

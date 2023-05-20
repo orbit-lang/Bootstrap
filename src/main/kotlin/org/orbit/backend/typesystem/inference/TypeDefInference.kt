@@ -1,6 +1,7 @@
 package org.orbit.backend.typesystem.inference
 
 import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.Enum
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
@@ -24,6 +25,7 @@ object TypeDefInference: ITypeInference<TypeDefNode, IMutableTypeEnvironment> {
                         else -> TODO("NOT A UNION 2")
                     }
                 }
+
                 val nEnv = SelfTypeEnvironment(env.fork(), lazyUnion)
 
                 nEnv.add(TypeAlias(path, lazyUnion))
@@ -36,8 +38,13 @@ object TypeDefInference: ITypeInference<TypeDefNode, IMutableTypeEnvironment> {
             }
         }
 
-        GlobalEnvironment.add(mType)
+        val nType = when (node.isEnum) {
+            true -> Enum.create(mType as Type, node.cases.map { it.identifier })
+            else -> mType
+        }
 
-        return mType
+        GlobalEnvironment.add(nType)
+
+        return nType
     }
 }

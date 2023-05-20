@@ -3,11 +3,16 @@ module Orb::Core::Types {
 }
 
 module Orb::Core::Booleans {
-    type Bool of true, false
+    type Bool {
+        constructor True
+        constructor False
+    }
 }
 
 module M with Orb::Core::* {
-    fun (Unit) main () () {
+    type State of on, off
 
+    fun (Unit) main () () {
+        x = .on
     }
 }
