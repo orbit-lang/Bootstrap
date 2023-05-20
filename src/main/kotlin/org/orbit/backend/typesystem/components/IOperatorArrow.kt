@@ -12,7 +12,7 @@ sealed interface IOperatorArrow<A: IArrow<A>, Self: IOperatorArrow<A, Self>> : I
     val arrow: A
 
     override val id: String get() = "$identifier:${arrow.id}"
-    override val effects: List<Effect> get() = emptyList()
+    override val effects: List<Effect> get() = arrow.effects
 
     override fun getDomain(): List<AnyType> = arrow.getDomain()
     override fun getCodomain(): AnyType = arrow.getCodomain()

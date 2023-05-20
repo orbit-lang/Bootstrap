@@ -101,7 +101,7 @@ interface IMutableTypeEnvironment: ITypeEnvironment {
     fun localCopy() : IMutableTypeEnvironment
     fun track(effect: Effect)
     fun annotate(value: Any)
-    fun consume() : Any
+    fun consume(fallback: Any? = null) : Any
 }
 
 data class AttributedEnvironment(private val parent: IMutableTypeEnvironment, val knownAttributes: List<IAttribute>): IMutableTypeEnvironment by parent
@@ -235,7 +235,7 @@ class LocalEnvironment(private val parent: IMutableTypeEnvironment, override val
         storage.annotate(value)
     }
 
-    override fun consume(): Any
+    override fun consume(fallback: Any?): Any
         = storage.consume()
 }
 
@@ -330,8 +330,8 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
         annotatedValue = value
     }
 
-    override fun consume(): Any = when (annotatedValue) {
-        null -> throw Exception("FATAL: Attempting to consume missing annotation")
+    override fun consume(fallback: Any?): Any = when (annotatedValue) {
+        null -> fallback ?: throw Exception("FATAL: Attempting to consume missing annotation")
         else -> annotatedValue!!
     }
 

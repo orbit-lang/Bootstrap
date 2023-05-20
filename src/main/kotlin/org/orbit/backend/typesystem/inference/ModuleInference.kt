@@ -1,10 +1,7 @@
 package org.orbit.backend.typesystem.inference
 
 import org.koin.core.parameter.parametersOf
-import org.orbit.backend.typesystem.components.Always
-import org.orbit.backend.typesystem.components.AnyType
-import org.orbit.backend.typesystem.components.GlobalEnvironment
-import org.orbit.backend.typesystem.components.IType
+import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
 import org.orbit.core.nodes.ModuleNode
 import org.orbit.core.nodes.TraitDefNode
@@ -20,7 +17,12 @@ object ModuleInference : ITypeInference<ModuleNode, GlobalEnvironment> {
         TypeInferenceUtils.inferAll(node.contexts, env)
         TypeInferenceUtils.inferAll(node.typeAliasNodes, env)
         TypeInferenceUtils.inferAll(node.projections, env)
-        TypeInferenceUtils.inferAll(node.methodDefs.map { it.signature }, env, parametersOf(true))
+
+        val nEnv = env.fork()
+
+        nEnv.annotate(SignatureInference.Option.Persistent)
+
+        TypeInferenceUtils.inferAll(node.methodDefs.map { it.signature }, nEnv)
         TypeInferenceUtils.inferAll(node.operatorDefs, env)
         TypeInferenceUtils.inferAll(node.extensions, env)
         TypeInferenceUtils.inferAll(node.methodDefs, env)

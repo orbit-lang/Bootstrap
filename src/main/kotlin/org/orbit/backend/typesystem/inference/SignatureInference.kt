@@ -35,8 +35,8 @@ object SignatureInference : ITypeInference<MethodSignatureNode, IMutableTypeEnvi
     }
 
     override fun infer(node: MethodSignatureNode, env: IMutableTypeEnvironment): AnyType {
-        val options = env.consume() as? Option
-            ?: throw Exception("FATAL: No Options specified for Signature Inference")
+        val options = env.consume(Option.None) as? Option
+            ?: Option.None
 
         val receiver = TypeInferenceUtils.infer(node.receiverTypeNode, env)
         val params = TypeInferenceUtils.inferAll(node.parameterNodes, env)
