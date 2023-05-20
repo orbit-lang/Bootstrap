@@ -123,7 +123,6 @@ class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 			val typeResolver = TypeDefPathResolver(containerPath)
 			val traitResolver = TraitDefPathResolver(containerPath)
 			val extensionResolver = ExtensionPathResolver(containerPath)
-			val familyResolver = FamilyPathResolver(containerPath)
 			val contextResolver = ContextPathResolver(containerPath)
 			val operatorResolver = OperatorDefPathResolver(containerPath)
 			val attributeResolver = AttributeDefPathResolver(containerPath)
@@ -133,7 +132,6 @@ class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 			val traitDefs = input.entityDefs.filterIsInstance<TraitDefNode>()
 			val typeDefs = input.entityDefs.filterIsInstance<TypeDefNode>()
 			val extensions = input.search<ExtensionNode>()
-			val families = input.search<FamilyNode>()
 			val contexts = input.contexts
 			val opDefs = input.operatorDefs
 			val attributeDefs = input.attributeDefs
@@ -145,10 +143,8 @@ class ContainerPathResolver<C: ContainerNode> : IPathResolver<C> {
 			// NOTE - We need to do 2 passes over types to avoid order-of-definition problems
 			resolveAll(traitResolver, traitDefs, IPathResolver.Pass.Initial)
 			resolveAll(typeResolver, typeDefs, IPathResolver.Pass.Initial)
-			resolveAll(familyResolver, families, IPathResolver.Pass.Initial)
 			resolveAll(typeEffectResolver, typeEffects, IPathResolver.Pass.Initial)
 			resolveAll(attributeResolver, attributeDefs, IPathResolver.Pass.Initial)
-			resolveAll(familyResolver, families, IPathResolver.Pass.Last)
 			resolveAll(contextResolver, contexts, IPathResolver.Pass.Initial)
 			resolveAll(effectResolver, effects, IPathResolver.Pass.Initial)
 

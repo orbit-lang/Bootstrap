@@ -3,29 +3,11 @@ module Orb::Core::Types {
 }
 
 module Orb::Core::Booleans {
-    type Bool {
-        constructor True
-        constructor False
-    }
-}
-
-module Orb::Core::Numbers {
-    type Int
-    type Real
-}
-
-module Orb::Core::Errors with Orb::Core::* {
-    trait Error
-}
-
-module Orb::Core::Compare with Orb::Core::Numbers {
-    trait Comparator {
-        fun (Self) compare (a Self, b Self) (Self)
-    }
-
-    projection Int : Comparator
-        with compare by { i, j -> i }
+    type Bool of true, false
 }
 
 module M with Orb::Core::* {
+    fun (Unit) main () () {
+
+    }
 }

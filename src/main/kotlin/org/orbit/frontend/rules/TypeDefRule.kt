@@ -10,7 +10,7 @@ import org.orbit.frontend.extensions.unaryPlus
 
 interface EntityDefParseRule<E: EntityDefNode> : ParseRule<E> {
 	companion object {
-		val moduleTopLevelRules = listOf<ParseRule<*>>(ProjectionRule, TypeAliasRule, TypeDefRule, TraitDefRule, FamilyRule)
+		val moduleTopLevelRules = listOf<ParseRule<*>>(ProjectionRule, TypeAliasRule, TypeDefRule, TraitDefRule)
 		val apiTopLevelRules = listOf<ParseRule<*>>(TypeAliasRule, TraitDefRule, TypeDefRule, TraitDefRule)
 	}
 }
