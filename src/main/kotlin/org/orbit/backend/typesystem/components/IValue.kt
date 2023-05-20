@@ -12,6 +12,9 @@ sealed interface IValue<T: AnyType, V> : IType {
 
     override val id: String get() = "$value : $type"
 
+    override fun erase(): AnyType
+        = type
+
     override fun substitute(substitution: Substitution): AnyType = this
     override fun getCardinality(): ITypeCardinality = ITypeCardinality.Mono
 

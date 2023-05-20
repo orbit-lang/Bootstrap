@@ -34,6 +34,8 @@ interface IType : IContextualComponent, Substitutable<AnyType> {
     fun getConstructors() : List<IConstructor<*>> = emptyList()
     fun getUnsolvedTypeVariables() : List<TypeVar> = emptyList()
 
+    fun erase() : AnyType = this
+
     fun getPath() : Path
         = OrbitMangler.unmangle(getCanonicalName())
 

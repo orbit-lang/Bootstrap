@@ -66,11 +66,24 @@ private object TypeIdentifierBindingPatternRule : IPatternRule<TypedIdentifierBi
     }
 }
 
+object EnumCasePatternRule : IPatternRule<EnumCaseReferenceNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val collector = context.startCollecting()
+        val node = context.attempt(EnumCaseReferenceRule)
+            ?: return ParseRule.Result.Failure.Rewind(collector)
+
+        return +node
+    }
+}
+
 private object AnyBindingPatternRule : IPatternRule<ITerminalBindingPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
         context.mark()
-        val node = context.attemptAny(listOf(TypeIdentifierBindingPatternRule, DiscardBindingPatternRule, IdentifierBindingPatternRule))
-            as? ITerminalBindingPatternNode
+        val node = context.attemptAny(listOf(
+            TypeIdentifierBindingPatternRule,
+            DiscardBindingPatternRule,
+            IdentifierBindingPatternRule)
+        ) as? ITerminalBindingPatternNode
             ?: return ParseRule.Result.Failure.Rewind(context.end())
 
         return +node
@@ -120,7 +133,7 @@ private object ElsePatternRule : ParseRule<ElseNode> {
 
 object AnyPatternRule : ParseRule<IPatternNode> {
     override fun parse(context: Parser): ParseRule.Result {
-        val node = context.attemptAny(listOf(StructuralPatternRule, ElsePatternRule, MethodCallRule, LiteralPatternRule))
+        val node = context.attemptAny(listOf(EnumCasePatternRule, StructuralPatternRule, ElsePatternRule, MethodCallRule, LiteralPatternRule))
             as? IPatternNode
             ?: return ParseRule.Result.Failure.Abort
 

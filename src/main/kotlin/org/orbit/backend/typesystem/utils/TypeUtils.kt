@@ -2,6 +2,7 @@ package org.orbit.backend.typesystem.utils
 
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.components.Array
+import org.orbit.backend.typesystem.components.Enum
 
 enum class TypeCheckPosition {
     Any, AlwaysLeft, AlwaysRight;
@@ -63,6 +64,19 @@ object TypeUtils {
                 true -> right
                 else -> when (right) {
                     is Never -> left
+
+                    is Enum -> when (left) {
+                        is EnumCase -> check(env, left.type, right)
+                        else -> error
+                    }
+
+                    is EnumCase -> when (left) {
+                        is EnumCase -> when (left) {
+                            right -> right
+                            else -> error
+                        }
+                        else -> error
+                    }
 
                     is Safe -> check(env, left, right.type)
 

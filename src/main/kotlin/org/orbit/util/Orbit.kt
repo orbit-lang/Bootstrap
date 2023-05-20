@@ -22,6 +22,9 @@ import org.orbit.backend.typesystem.components.ITypeEnvironment
 import org.orbit.backend.typesystem.components.kinds.IKindInspector
 import org.orbit.backend.typesystem.components.kinds.IntrinsicKindInspector
 import org.orbit.backend.typesystem.inference.*
+import org.orbit.backend.typesystem.utils.ArrowArrowUnifier
+import org.orbit.backend.typesystem.utils.ITypeUnifier
+import org.orbit.backend.typesystem.utils.TypeTypeUnifier
 import org.orbit.core.nodes.*
 import org.orbit.frontend.rules.CollectionTypeInference
 import org.orbit.frontend.rules.TaggedTypeExpressionPathResolver
@@ -116,6 +119,7 @@ val mainModule = module {
 		util.registerPathResolver(RangeSlicePathResolver, RangeSliceNode::class.java)
 		util.registerPathResolver(TypeQueryPathResolver, TypeQueryExpressionNode::class.java)
 		util.registerPathResolver(SelfPathResolver, SelfNode::class.java)
+		util.registerPathResolver(EnumCaseReferencePathResolver, EnumCaseReferenceNode::class.java)
 
 		util
 	}
@@ -204,6 +208,7 @@ val mainModule = module {
 	single(MirrorInference)
 	single(TypeQueryInference)
 	single(SelfInference)
+	single(EnumCaseReferenceInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }
@@ -232,6 +237,10 @@ val mainModule = module {
 	single(IntrinsicKindInspector.ArrayKindInspector)
 	single(IntrinsicKindInspector.UnionKindInspector)
 	single(IntrinsicKindInspector.Level0Inspector)
+
+	// Type Unifiers
+	single(TypeTypeUnifier)
+	single(ArrowArrowUnifier)
 }
 
 private inline fun <reified T: AnyType> org.koin.core.module.Module.single(inspector: IKindInspector<T>) : BeanDefinition<IKindInspector<T>>
@@ -254,6 +263,9 @@ inline fun <reified T> getKoinInstance(qualifier: Qualifier? = null): T {
 		val value: T by inject(qualifier)
 	}.value
 }
+
+inline fun <reified A: AnyType, reified B: AnyType>  org.koin.core.module.Module.single(unifier: ITypeUnifier<A, B>) : BeanDefinition<ITypeUnifier<A, B>>
+	= single(named("unify${A::class.java.simpleName}_${B::class.java.simpleName}")) { unifier }
 
 fun <T: Any> getKoinInstance(clazz: KClass<T>) : T
 	= KoinPlatformTools.defaultContext().get().get(clazz)

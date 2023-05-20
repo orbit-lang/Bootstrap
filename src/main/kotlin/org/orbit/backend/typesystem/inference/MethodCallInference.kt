@@ -3,6 +3,7 @@ package org.orbit.backend.typesystem.inference
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
+import org.orbit.backend.typesystem.components.Enum
 import org.orbit.backend.typesystem.components.Unit
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.AnyArrow
@@ -18,8 +19,16 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
     private inline fun <reified T: IAccessibleType<String>> inferPropertyAccess(node: MethodCallNode, receiver: AnyType, env: ITypeEnvironment) : AnyType {
         val propertyName = node.messageIdentifier.identifier
 
-        if (receiver !is T)
+        if (receiver is Enum) {
+            val case = receiver.getCaseOrNull(propertyName)
+                ?: throw invocation.make<TypeSystem>("Enum Type does not contain Case `$propertyName`", node)
+
+            return case
+        }
+
+        if (receiver !is T) {
             throw invocation.make<TypeSystem>("Cannot access property `$propertyName` of non-Structural Type $receiver", node)
+        }
 
         return receiver.access(propertyName)
     }

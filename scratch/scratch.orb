@@ -12,7 +12,17 @@ module Orb::Core::Booleans {
 module M with Orb::Core::* {
     type State of on, off
 
+    fun (self State) flip () (State) = .on
+
     fun (Unit) main () () {
-        x = .on
+        x = .on.flip()
+
+        y = select x {
+            case .on = 1
+            case .off = .on
+        }
+
+        typeOf x
+        typeOf y
     }
 }

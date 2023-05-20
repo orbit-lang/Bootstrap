@@ -57,6 +57,27 @@ sealed interface ITypeEnvironment {
     fun getSpecialisationEvidence(context: Context) : Set<Specialisation> = emptySet()
 }
 
+inline fun <reified T: AnyType> ITypeEnvironment.getTypes() : List<T>
+    = getAllTypes().mapNotNull { when (it.component) {
+        is T -> it.component
+        else -> null
+    }}
+
+inline fun <reified T: AnyType> ITypeEnvironment.getTypes(where: (T) -> Boolean) : List<T> = getAllTypes().mapNotNull {
+    val t = it.component as? T ?: return@mapNotNull null
+
+    when (where(t)) {
+        true -> t
+        else -> null
+    }
+}
+
+inline fun <reified T: AnyType, reified R : AnyType> ITypeEnvironment.mapTypes(transform: (T) -> R?) : List<R> = getAllTypes().mapNotNull {
+    val t = it.component as? T ?: return@mapNotNull null
+
+    transform(t)
+}
+
 fun ITypeEnvironment.getContextOrNull(path: Path) : Context?
     = getContextOrNull(path.toString(OrbitMangler))
 

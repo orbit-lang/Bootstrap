@@ -5,6 +5,7 @@ import org.koin.core.component.inject
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.phase.TypeSystem
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
+import org.orbit.backend.typesystem.utils.TypeUnificationUtil
 import org.orbit.backend.typesystem.utils.TypeUtils
 import org.orbit.core.nodes.CaseNode
 import org.orbit.core.nodes.SelectNode
@@ -13,11 +14,26 @@ import org.orbit.util.Invocation
 object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment>, KoinComponent {
     private val invocation: Invocation by inject()
 
+    private fun unify(env: ITypeEnvironment, cases: List<Case>) : AnyType {
+        val codomains = cases.map { it.getCodomain() }
+            .distinct()
+
+        return when (codomains.count()) {
+            0 -> TODO("???")
+            1 -> codomains[0]
+            else -> codomains.reduce { acc, next -> TypeUnificationUtil.unify(env, acc, next) }
+        }
+    }
+
     private fun inferFiniteType(node: SelectNode, conditionType: AnyType, typeAnnotation: AnyType, env: AnnotatedSelfTypeEnvironment) : AnyType {
         val constructableType = conditionType as? IConstructableType<*>
             ?: throw invocation.compilerError<TypeSystem>("Finite non-constructable type?!", node)
 
-        val nEnv = CaseTypeEnvironment(env, env.getSelfType(), constructableType)
+        val nEnv = when (node.inSingleExpressionPosition) {
+            true -> CaseTypeEnvironment(env, env.getSelfType(), conditionType)
+            else -> CaseTypeEnvironment(env, Always, conditionType)
+        }
+
         val nonElseCases = node.cases.filterNot { it.isElseCase }
         val elseNodes = node.cases.filter { it.isElseCase }
 
@@ -32,7 +48,8 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
         }
 
         val requiredConstructors = constructableType.getConstructors()
-        val providedConstructors = TypeInferenceUtils.inferAllAs<CaseNode, Case>(nonElseCases, nEnv)
+        val providedCases = TypeInferenceUtils.inferAllAs<CaseNode, Case>(nonElseCases, nEnv)
+        val providedConstructors = providedCases
             .flatMap { it.condition.getConstructors() }
 
         val missingConstructors = requiredConstructors.toMutableList()
@@ -50,12 +67,18 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
             throw invocation.make<TypeSystem>("Missing ${missingConstructors.count()}/${requiredConstructors.count()} Case(s) for Select expression of Type `$constructableType`:\n\t$prettyMissing", node)
         }
 
-        return typeAnnotation
+        return when (node.inSingleExpressionPosition) {
+            true -> typeAnnotation
+            else -> unify(env, providedCases)
+        }
     }
 
     private fun inferInfiniteType(node: SelectNode, conditionType: AnyType, typeAnnotation: AnyType, env: AnnotatedSelfTypeEnvironment) : AnyType {
         val elseCases = node.cases.filter { it.isElseCase }
-        val nEnv = CaseTypeEnvironment(env, env.getSelfType(), conditionType)
+        val nEnv = when (node.inSingleExpressionPosition) {
+            true -> CaseTypeEnvironment(env, env.getSelfType(), conditionType)
+            else -> CaseTypeEnvironment(env, Always, conditionType)
+        }
 
         if (elseCases.count() > 1) {
             throw invocation.make<TypeSystem>("Multiple Else cases found in Select expression", elseCases.last())
@@ -89,6 +112,10 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
         val typeAnnotation = env.typeAnnotation
         val cType = TypeInferenceUtils.infer(node.condition, env)
         val conditionType = cType.flatten(cType, env)
+
+        if (conditionType is IValue<*, *>) {
+            throw invocation.make<TypeSystem>("Selecting on a constant value always results in the same result and is therefore prohibited: $conditionType", node.condition)
+        }
 
         return when (conditionType.getCardinality()) {
             is ITypeCardinality.Finite -> inferFiniteType(node, conditionType, typeAnnotation, env)
