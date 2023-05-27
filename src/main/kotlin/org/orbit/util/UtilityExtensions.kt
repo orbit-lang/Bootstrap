@@ -66,3 +66,7 @@ fun <T, U> Collection<T>.pairMapAll(transform: (T) -> U) : List<Pair<T, U>> {
 fun <T, U, V> Pair<T, U>.flatten(into: (T, U) -> V) : V {
     return into(first, second)
 }
+
+fun <A, B> Collection<A>.cartesianProduct(other: Collection<B>) : Sequence<Pair<A, B>> = sequence {
+    forEach { a -> other.forEach { b -> yield(Pair(a, b)) } }
+}

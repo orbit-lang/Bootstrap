@@ -19,9 +19,7 @@ object CaseInference : ITypeInference<CaseNode, CaseTypeEnvironment>, KoinCompon
         val selfType = when (val self = env.getSelfType()) {
             is Signature -> self
             is EffectHandler -> return Case(patternType, bodyType)
-            is Always -> {
-                return Case(patternType, bodyType)
-            }
+            is Always -> return Case(patternType, bodyType)
             else -> throw invocation.make<TypeSystem>("Could not infer `Self` Type in this context", node)
         }
 

@@ -14,7 +14,7 @@ class LiteralRule(private vararg val accepts: ValueRule<*> = default) : ValueRul
 			IdentifierRule,
 			RealLiteralRule,
 			IntLiteralRule,
-			BoolLiteralRule,
+//			BoolLiteralRule,
 			SymbolRule,
 			CollectionLiteralRule
 		)

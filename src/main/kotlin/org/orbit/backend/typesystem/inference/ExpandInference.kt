@@ -19,10 +19,8 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
     private fun inferRealLiteral(node: RealLiteralNode) : RealValue
         = RealValue(node.value)
 
-    private fun inferBoolLiteral(node: BoolLiteralNode) : AnyType = when (node.value) {
-        true -> OrbCoreBooleans.trueType
-        else -> OrbCoreBooleans.falseType
-    }
+    private fun inferBoolLiteral(node: BoolLiteralNode) : AnyType
+        = OrbCoreBooleans.boolType
 
     private fun inferConstructorInvocation(node: ConstructorInvocationNode, env: ITypeEnvironment) : IValue<*, *> {
         val type = TypeInferenceUtils.infer(node, env)

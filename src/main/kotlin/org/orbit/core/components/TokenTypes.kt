@@ -65,8 +65,8 @@ object TokenTypes : TokenTypeProvider {
     object Case : TokenType("Case", "case", true, false, Family.Keyword)
     object Select : TokenType("Select", "select", true, false, Family.Keyword)
     object As : TokenType("As", "as", true, false, Family.Keyword)
-    object True : TokenType("True", "true", true, false, Family.Keyword)
-    object False : TokenType("False", "false", true, false, Family.Keyword)
+//    object True : TokenType("True", "true", true, false, Family.Keyword)
+//    object False : TokenType("False", "false", true, false, Family.Keyword)
     object Panic : TokenType("Panic", "panic", true, false, Family.Keyword)
     object Prefix : TokenType("Prefix", "prefix", true, false, Family.Keyword)
     object Infix : TokenType("Infix", "infix", true, false, Family.Keyword)
@@ -95,7 +95,7 @@ object TokenTypes : TokenTypeProvider {
             Synthesise, Self,
             Dollar,
             Prefix, Infix, Postfix, Let, In, Of, By, To, Else, Case, Select, As,
-            True, False, Panic,
+            /*True, False,*/ Panic,
             Colon, Comma, Assignment, Annotation, Whitespace,
             LParen, RParen, LBracket, RBracket, LBrace, RBrace, LAngle, RAngle, LExpand,
             Expand, Mirror, TypeOf, RefOf, Check, ContextOf, Type, Trait, Within, With, Return, Family,

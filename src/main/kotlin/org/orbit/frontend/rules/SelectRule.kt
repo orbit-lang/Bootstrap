@@ -29,6 +29,6 @@ class SelectRule(private val inSingleExpressionPosition: Boolean = false) : Valu
 
         if (block.isEmpty) return ParseRule.Result.Failure.Throw("The body of a Select expression must not be empty", block.firstToken)
 
-        return +SelectNode(start, block.lastToken, condition, binding, block.body as List<CaseNode>)
+        return +SelectNode(start, block.lastToken, condition, binding, block.body as List<CaseNode>, inSingleExpressionPosition)
     }
 }

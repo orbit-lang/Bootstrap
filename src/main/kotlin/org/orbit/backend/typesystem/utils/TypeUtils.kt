@@ -3,6 +3,7 @@ package org.orbit.backend.typesystem.utils
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.components.Array
 import org.orbit.backend.typesystem.components.Enum
+import org.orbit.backend.typesystem.components.Unit
 
 enum class TypeCheckPosition {
     Any, AlwaysLeft, AlwaysRight;
@@ -65,6 +66,28 @@ object TypeUtils {
                 else -> when (right) {
                     is Never -> left
 
+                    is Unit -> when (left) {
+                        is Unit -> right
+                        else -> when (left.id) {
+                            // TODO - This is disgusting!
+                            "Orb::Core::Types::Unit" -> left
+                            else -> error
+                        }
+                    }
+
+                    is Case -> when (left) {
+                        is Case -> {
+                            val cCheck = checkEq(env, left.condition, right.condition)
+                            val rCheck = checkEq(env, left.result, right.result)
+
+                            when (cCheck && rCheck) {
+                                true -> right
+                                else -> error
+                            }
+                        }
+                        else -> error
+                    }
+
                     is Enum -> when (left) {
                         is EnumCase -> check(env, left.type, right)
                         else -> error
@@ -106,23 +129,6 @@ object TypeUtils {
                             true -> right
                             else -> error
                         }
-                    }
-
-                    is Case -> when (left) {
-                        is Case -> {
-                            val lCondition = left.condition.flatten(left.condition, env)
-                            val rCondition = right.condition.flatten(right.condition, env)
-
-                            val lResult = left.result.flatten(left.result, env)
-                            val rResult = right.result.flatten(right.result, env)
-
-                            if (checkEq(env, lCondition, rCondition) && checkEq(env, lResult, rResult)) {
-                                right
-                            } else {
-                                error
-                            }
-                        }
-                        else -> error
                     }
 
                     is AnyArrow -> when (left) {

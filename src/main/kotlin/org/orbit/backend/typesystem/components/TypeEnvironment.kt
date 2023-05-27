@@ -346,8 +346,6 @@ private class TypeEnvironmentStorage(private val context: Context) : IMutableTyp
     private var annotatedValue: Any? = null
 
     override fun annotate(value: Any) {
-        if (annotatedValue != null) throw Exception("FATAL: Attempting to re-annotate Mutable Type Environment before the previous value has been consumed")
-
         annotatedValue = value
     }
 

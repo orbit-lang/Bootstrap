@@ -39,13 +39,6 @@ data class ArrayValue(override val type: Array, override val value: List<AnyType
     override fun toString(): String = prettyPrint()
 }
 
-object FalseValue : IValue<Type, Boolean> {
-    override val type: Type = OrbCoreBooleans.falseType.flatten(Always, GlobalEnvironment) as Type
-    override val value: Boolean = false
-
-    override fun toString(): String = prettyPrint()
-}
-
 data class InstanceValue(override val type: IConstructableType<*>, override val value: Map<String, IValue<*, *>>) : IValue<IConstructableType<*>, Map<String, IValue<*, *>>>,
     IAccessibleType<String> {
     override fun access(at: String): AnyType = when (val member = value[at]) {
@@ -93,11 +86,4 @@ data class RealValue(override val value: Double) : IValue<Type, Double> {
 
     override fun toString(): String
         = prettyPrint()
-}
-
-object TrueValue : IValue<Type, Boolean> {
-    override val type: Type = OrbCoreBooleans.trueType.flatten(Always, GlobalEnvironment) as Type
-    override val value: Boolean = true
-
-    override fun toString(): String = prettyPrint()
 }

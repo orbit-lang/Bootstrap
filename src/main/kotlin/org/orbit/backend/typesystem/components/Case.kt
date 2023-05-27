@@ -1,24 +1,39 @@
 package org.orbit.backend.typesystem.components
 
-data class Case(val condition: AnyType, val result: AnyType) : IArrow<Case> {
-    override val id: String = "case (${condition.id}) -> ${result.id}"
-    override val effects: List<Effect> = emptyList()
+data class ElseCase(val result: AnyType) : IType {
+    override val id: String = "case else -> $result"
 
     override fun getCardinality(): ITypeCardinality
-        = condition.getCardinality()
+        = ITypeCardinality.Mono
 
-    override fun getDomain(): List<AnyType> = listOf(condition)
-    override fun getCodomain(): AnyType = result
+    override fun substitute(substitution: Substitution): AnyType
+        = ElseCase(result.substitute(substitution))
 
-    override fun never(args: List<AnyType>): Never {
-        TODO("Not yet implemented")
+    override fun equals(other: Any?): Boolean = when (other) {
+        is ElseCase -> other.result == result
+        else -> false
     }
 
-    override fun flatten(from: AnyType, env: ITypeEnvironment): AnyType
-        = Case(condition.flatten(from, env), result.flatten(from, env))
+    override fun prettyPrint(depth: Int): String {
+        val indent = "\t".repeat(depth)
 
-    override fun curry(): IArrow<*> = this
-    override fun substitute(substitution: Substitution): Case
+        return "${indent}case else -> $result"
+    }
+
+    override fun toString(): String
+        = prettyPrint()
+}
+
+data class Case(val condition: AnyType, val result: AnyType) : IType {
+    override val id: String = "case $condition -> $result"
+
+    fun eraseResult() : Case
+        = Case(condition, result.erase())
+
+    override fun getCardinality(): ITypeCardinality
+        = ITypeCardinality.Mono
+
+    override fun substitute(substitution: Substitution): AnyType
         = Case(condition.substitute(substitution), result.substitute(substitution))
 
     override fun equals(other: Any?): Boolean = when (other) {
@@ -26,8 +41,12 @@ data class Case(val condition: AnyType, val result: AnyType) : IArrow<Case> {
         else -> false
     }
 
-    override fun prettyPrint(depth: Int): String
-        = "case ($condition) -> $result"
+    override fun prettyPrint(depth: Int): String {
+        val indent = "\t".repeat(depth)
 
-    override fun toString(): String = prettyPrint()
+        return "${indent}case $condition -> $result"
+    }
+
+    override fun toString(): String
+        = prettyPrint()
 }

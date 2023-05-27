@@ -17,7 +17,10 @@ object LambdaLiteralInference : ITypeInference<LambdaLiteralNode, IMutableTypeEn
         }
 
         val partial = parameters.arrowOf(Always)
-        val mEnv = SelfTypeEnvironment(nEnv, partial)
+        val mEnv = when (env) {
+            is ProjectedSignatureEnvironment -> AnnotatedSelfTypeEnvironment(nEnv, partial, env.projectedSignature.returns)
+            else -> SelfTypeEnvironment(nEnv, partial)
+        }
         val body = TypeInferenceUtils.infer(node.body, mEnv)
 
         return parameters.arrowOf(body).apply {

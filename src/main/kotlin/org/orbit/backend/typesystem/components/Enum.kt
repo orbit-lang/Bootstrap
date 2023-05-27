@@ -16,7 +16,7 @@ data class EnumCase(override val type: Enum, override val value: String) : IValu
         get() = TODO("Not yet implemented")
 
     override fun getDomain(): List<AnyType>
-        = emptyList()
+        = listOf(Unit)
 
     override fun getCodomain(): AnyType
         = type

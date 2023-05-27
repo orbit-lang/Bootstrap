@@ -241,6 +241,10 @@ val mainModule = module {
 	// Type Unifiers
 	single(TypeTypeUnifier)
 	single(ArrowArrowUnifier)
+
+	// Pattern Matchers
+	single(EnumPatternMatcher)
+	single(TuplePatternMatcher)
 }
 
 private inline fun <reified T: AnyType> org.koin.core.module.Module.single(inspector: IKindInspector<T>) : BeanDefinition<IKindInspector<T>>
@@ -266,6 +270,9 @@ inline fun <reified T> getKoinInstance(qualifier: Qualifier? = null): T {
 
 inline fun <reified A: AnyType, reified B: AnyType>  org.koin.core.module.Module.single(unifier: ITypeUnifier<A, B>) : BeanDefinition<ITypeUnifier<A, B>>
 	= single(named("unify${A::class.java.simpleName}_${B::class.java.simpleName}")) { unifier }
+
+inline fun <reified P: AnyType>  org.koin.core.module.Module.single(patternMatcher: IPatternMatcher<P>) : BeanDefinition<IPatternMatcher<P>>
+	= single(named("match${P::class.java.simpleName}")) { patternMatcher }
 
 fun <T: Any> getKoinInstance(clazz: KClass<T>) : T
 	= KoinPlatformTools.defaultContext().get().get(clazz)

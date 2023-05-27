@@ -1,5 +1,7 @@
 package org.orbit.backend.typesystem.components
 
+import org.orbit.util.cartesianProduct
+
 data class Tuple(val left: AnyType, val right: AnyType) : IProductType<Int, Tuple>, ICaseIterable<Tuple> {
     override val id: String = "(${left.id} * ${right.id})"
 
@@ -49,31 +51,35 @@ data class Tuple(val left: AnyType, val right: AnyType) : IProductType<Int, Tupl
     }
 
     override fun getConstructors(): List<IConstructor<Tuple>> {
-        val constructors = mutableListOf<TupleConstructor>()
-        for (lConstructor in getLeftConstructors()) {
-            for (rConstructor in getRightConstructors()) {
-                var lDomain = lConstructor.getDomain()
-                var rDomain = rConstructor.getDomain()
+        return getLeftConstructors().cartesianProduct(getRightConstructors())
+            .map { TupleConstructor(it.first, it.second, this) }
+            .toList()
 
-                if (lDomain.count() > 1 || rDomain.count() > 1) TODO("2+-ary Tuple Constructors")
-
-                if (lDomain.isEmpty() && lConstructor is SingletonConstructor) {
-                    lDomain = listOf(lConstructor.getCodomain())
-                }
-
-                if (rDomain.isEmpty() && rConstructor is SingletonConstructor) {
-                    rDomain = listOf(rConstructor.getCodomain())
-                }
-
-                val constructor = TupleConstructor(lDomain[0], rDomain[0], this)
-
-                if (constructors.none { it.id == constructor.id }) {
-                    constructors.add(constructor)
-                }
-            }
-        }
-
-        return constructors
+//        val constructors = mutableListOf<TupleConstructor>()
+//        for (lConstructor in getLeftConstructors()) {
+//            for (rConstructor in getRightConstructors()) {
+//                var lDomain = lConstructor.getDomain()
+//                var rDomain = rConstructor.getDomain()
+//
+//                if (lDomain.count() > 1 || rDomain.count() > 1) TODO("2+-ary Tuple Constructors")
+//
+//                if (lDomain.isEmpty() && lConstructor is SingletonConstructor) {
+//                    lDomain = listOf(lConstructor.getCodomain())
+//                }
+//
+//                if (rDomain.isEmpty() && rConstructor is SingletonConstructor) {
+//                    rDomain = listOf(rConstructor.getCodomain())
+//                }
+//
+//                val constructor = TupleConstructor(lDomain.firstOrNull() ?: Unit, rDomain.firstOrNull() ?: Unit, this)
+//
+//                if (constructors.none { it.id == constructor.id }) {
+//                    constructors.add(constructor)
+//                }
+//            }
+//        }
+//
+//        return constructors
     }
 
     override fun getCardinality(): ITypeCardinality

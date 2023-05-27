@@ -1,28 +1,117 @@
 module Orb::Core::Types {
-    type Unit
+    type Unit of unit
+}
+
+module Orb::Core::Errors {
+    trait Error
 }
 
 module Orb::Core::Booleans {
-    type Bool {
-        constructor True
-        constructor False
+    type Bool of true, false
+
+    fun (self Bool) not () (Bool) = select self {
+        case .true = .false
+        case .false = .true
+    }
+
+    fun (self Bool) and (other Bool) (Bool) = select (self, other) {
+        case (.true, .true) = .true
+        case else = .false
+    }
+
+    fun (self Bool) or (other Bool) (Bool) = select (self, other) {
+        case (.true, .true) = .true
+        case (.true, .false) = .true
+        case (.false, .true) = .true
+        case (.false, .false) = .false
+    }
+
+    fun (self Bool) same (other Bool) (Bool) = select (self, other) {
+        case (.true, .true) = .true
+        case (.false, .false) = .false
+        case else = .false
+    }
+
+    prefix operator notOp `!` by ::not
+    infix operator andOp `&&` by ::and
+    infix operator orOp `||` by ::or
+}
+
+module Orb::More::Eq with Orb::Core::Booleans {
+    context EqCtx [T] with trait Eq {
+        fun (Self) equal (a T, b T) (Bool)
     }
 }
 
-module M with Orb::Core::* {
-    type State of on, off
+module Orb::More::Booleans with Orb::More::Eq {
+    type BoolEq
 
-    fun (self State) flip () (State) = .on
+    projection BoolEq : Eq within EqCtx [Bool]
+        with equal by Bool::same
+}
+
+module Orb::Core::Numbers {
+    type Int
+}
+
+module Orb::More::Numbers {
+    type IntEq
+
+    projection IntEq : Eq within EqCtx [Int]
+         with equal by { (x Int, y Int) -> select x - y {
+            case 0 = .true
+            case else = .false
+        }}
+}
+
+module M with Orb::Core::* with Orb::More::* {
+    alias Range = { startIndex Int, endIndex Int }
+
+    prefix operator intRangeFrom `from` by { (x Int) -> x }
+    infix operator inRangeTo `to` by { (x Int, y Int) -> Range(x, y) }
+
+    alias Given = { condition Bool }
+    alias When = { given Given, block () -> Unit }
+    alias Then = { when When, assertion () -> Bool }
+
+    prefix operator given `given` by { (condition Bool) -> Given(condition) }
+    infix operator whenOp `when` by { (given Given, x () -> Unit) -> x }
+    infix operator thenOp `then` by { (when When, assertion () -> Bool) -> Then(when, assertion) }
+
+    type AssertionFailure of notTrue
+
+    effect Fail = (AssertionFailure) -> Unit
+
+    type Assertion
+
+#    fun (Fail) handleEffect (flow Flow) (Unit) = panic 0
+
+    # Default Effect Handler should be overridden if the caller provides a custom handler
+#   fun (Assertion) assertTrue (condition Bool) (Bool with Fail by ::handleEffect) = select condition {
+    fun (Assertion) assertTrue (condition Bool) (Unit with Fail) = select condition {
+        case .false = cause .Fail(.notTrue)
+        case else = .unit
+    }
+
+    prefix operator assertTrueOp `assert-true` by ::assertTrue
+
+    projection ${0} : Error
+
+#    projection ${.false} : Error
 
     fun (Unit) main () () {
-        x = .on.flip()
+        x = `from` 0 `to` 9
 
-        y = select x {
-            case .on = 1
-            case .off = .on
+        test = `assert-true` .false
+
+        Assertion.assertTrue(.false) by { flow ->
+            case Fail = panic 0
         }
 
-        typeOf x
-        typeOf y
+        /* This fails because of operator precedence :(
+        test = `given` .true
+            `when` { x -> x }
+            `then` { x -> .true }
+        */
     }
 }
