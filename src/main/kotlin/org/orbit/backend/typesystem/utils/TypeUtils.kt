@@ -131,6 +131,15 @@ object TypeUtils {
                         }
                     }
 
+                    is Effect -> when (left) {
+                        is Effect -> when (left == right) {
+                            true -> right
+                            else -> error
+                        }
+
+                        else -> error
+                    }
+
                     is AnyArrow -> when (left) {
                         is AnyArrow -> when (checkArrowsEq(env, left, right)) {
                             true -> right

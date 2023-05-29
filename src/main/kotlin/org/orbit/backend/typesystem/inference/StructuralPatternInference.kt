@@ -16,10 +16,9 @@ object IdentifierBindingPatternInference : ITypeInference<IdentifierBindingPatte
     private val invocation: Invocation by inject()
 
     override fun infer(node: IdentifierBindingPatternNode, env: IndexedStructuralPatternEnvironment): AnyType {
-        // TODO - This is completely wrong! We need to check by index here, not name
         val struct = env.parent.structuralType
-        if (struct.members.count() < env.index) {
-            throw invocation.make<TypeSystem>("Cannot bind identifier at index ${env.index} because pattern matched Type $struct only declares ${struct.members.count()} members", node)
+        if (struct.members.count() <= env.index) {
+            throw invocation.make<TypeSystem>("Cannot bind identifier at index ${env.index} because pattern matched Type $struct only declares ${struct.members.count()} member(s)", node)
         }
 
         val memberType = struct.members[env.index].second

@@ -37,30 +37,30 @@ module Orb::Core::Booleans {
     infix operator orOp `||` by ::or
 }
 
-module Orb::More::Eq with Orb::Core::Booleans {
-    trait Eq {
-        fun (Self) equal (a Self, b Self) (Bool)
-    }
-}
-
-module Orb::More::Booleans with Orb::More::Eq {
-    projection Bool : Eq
-        with equal by Bool::same
-}
-
 module Orb::Core::Numbers {
     type Int
 }
 
-module Orb::More::Numbers {
-    projection Int : Eq
-         with equal by { (x Int, y Int) -> select x - y {
-            case 0 = .true
-            case else = .false
-        }}
+module Orb::More::Fx {
+    context FlowCtx [ResultType] {
+        type Flow
+
+        fun (self Flow) resume (value ResultType) (ResultType) = value
+    }
 }
 
-
 module M with Orb::Core::* with Orb::More::* {
+    projection ${0} : Error
 
+    effect Throw = (Error) -> Unit
+    effect IO = () -> Unit
+
+    fun (Unit) foo () (Unit with Throw, IO) = .unit
+
+    fun (Unit) main () () {
+        Unit.foo() by { flow ->
+            case Throw(error) = flow.resume(.unit)
+            case IO = flow.resume(.unit)
+        }
+    }
 }

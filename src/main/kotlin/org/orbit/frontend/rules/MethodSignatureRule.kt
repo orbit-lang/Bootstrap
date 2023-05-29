@@ -104,22 +104,23 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 
 					if (next.type == TokenTypes.With) {
 						context.consume()
-
-						val effect = context.attempt(TypeIdentifierRule.Naked)
-							?: return ParseRule.Result.Failure.Throw("Expected Effect identifier in after `with`", collector)
-
 						next = context.peek()
 
-						if (next.type == TokenTypes.By) {
-							context.consume()
+						while (next.type != TokenTypes.RParen) {
+							val effect = context.attempt(TypeIdentifierRule.Naked)
+								?: return ParseRule.Result.Failure.Throw("Expected Effect identifier in after `with`", collector)
 
-							val handler = context.attempt(InvokableReferenceRule)
-								?: return ParseRule.Result.Failure.Throw("Expected Effect Handler delegate after `by`", collector)
+							next = context.peek()
 
-							effects.add(EffectDeclarationNode(effect, handler))
+							effects.add(EffectDeclarationNode(effect, null))
+
+							next = context.peek()
+
+							if (next.type == TokenTypes.Comma) {
+								context.consume()
+								next = context.peek()
+							}
 						}
-
-						effects.add(EffectDeclarationNode(effect, null))
 					}
 
 					end = context.expect(TokenTypes.RParen)

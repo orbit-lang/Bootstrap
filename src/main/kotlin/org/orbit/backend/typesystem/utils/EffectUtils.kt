@@ -30,7 +30,7 @@ object EffectUtils : KoinComponent {
             //  we have to do a bunch of gross dynamic stuff
             val flowCtx = GlobalEnvironment.getContextOrNull(OrbMoreFx.flowCtx.getPath())!!
             val specialisedCtx = flowCtx.solving(Specialisation(OrbMoreFx.flowResultType, arrow.getCodomain()))
-            val specialisedResume = specialisedCtx.specialise(OrbMoreFx.flowResume)
+//            val specialisedResume = specialisedCtx.specialise(OrbMoreFx.flowResume)
             val nEnv = env.fork()
 
 //            nEnv.add(specialisedResume)
