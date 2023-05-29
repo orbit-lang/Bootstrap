@@ -2,6 +2,7 @@ package org.orbit.core.nodes
 
 import org.orbit.backend.typesystem.intrinsics.OrbCoreBooleans
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
+import org.orbit.backend.typesystem.intrinsics.OrbCoreStrings
 import org.orbit.core.OrbitMangler
 import org.orbit.core.components.Token
 
@@ -51,3 +52,13 @@ data class SymbolLiteralNode(
     // TODO - Make Symbol
     override fun getTypeName(): String = OrbCoreNumbers.intType.getPath().toString(OrbitMangler)
 }
+
+data class StringLiteralNode(
+    override val firstToken: Token,
+    override val lastToken: Token,
+    val text: String
+) : ILiteralNode<String> {
+    override val value: String = text
+    override fun getTypeName(): String = OrbCoreStrings.stringType.getCanonicalName()
+}
+

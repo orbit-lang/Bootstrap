@@ -15,6 +15,7 @@ abstract class TokenType(
 		object White : Family("White")
 		object Comment : Family("Comment")
 		object Num : Family("Num")
+		object Text : Family("Text")
 		object Kind : Family("Kind")
 		object CompileTime : Family("CompileTime")
 		data class Either(val left: Family, val right: Family) : Family("Either<${left.name}, ${right.name}>")

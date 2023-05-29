@@ -22,6 +22,6 @@ object PanicInference : ITypeInference<PanicNode, ITypeEnvironment>, KoinCompone
             throw invocation.make<TypeSystem>("Panic expression must conform to Trait ${OrbCoreErrors.errorTrait}", node.expr)
         }
 
-        return Lazy("!") { Never("Panic @ ${node.firstToken.position}") }
+        return Lazy("!") { Never("Panic $expr @ ${node.firstToken.position}") }
     }
 }

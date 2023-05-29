@@ -54,6 +54,27 @@ class Lexer(
 					if (!nextChar.isLetter()) continue
 				}
 
+				if (tt.family == TokenType.Family.Text) {
+					if (nextChar != '\"') continue
+					content = content.slice(IntRange(1, content.length - 1))
+					nextChar = content.getOrNull(0) ?: break
+
+					var str = ""
+					while (nextChar != '\"') {
+						str += nextChar
+						position.moveCharacter(1)
+
+						content = content.slice(IntRange(1, content.length - 1))
+						nextChar = content.getOrNull(0) ?: break
+					}
+
+					content = content.slice(IntRange(1, content.length - 1))
+					nextChar = content.getOrNull(0) ?: break
+
+					tokens.add(Token(TokenTypes.String, str, position))
+					continue
+				}
+
 				if (tt.ignoreWhitespace && nextChar.isWhitespace()) {
 					matched = true
 					// We want to skip these whitespace characters but also move the source position forward

@@ -85,8 +85,12 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
                     .distinct()
 
                 if (components.count() > 1) {
-                    // We've failed to narrow down the results, we have to error now
-                    throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0].component}`", node)
+                    possibleArrows = possibleArrows.filter { it.component.receiver == receiver }
+
+                    if (possibleArrows.count() > 1) {
+                        // We've failed to narrow down the results, we have to error now
+                        throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0].component}`", node)
+                    }
                 }
             }
         }

@@ -81,6 +81,7 @@ object TokenTypes : TokenTypeProvider {
     // Literals
     object Int : TokenType("Int", "(\\-|\\+)?[0-9]+", true, false, Family.Num)
     object Real : TokenType("Real", "[0-9]+\\\\.[0-9]+", true, false, Family.Num)
+    object String : TokenType("String", "\"", false, false, Family.Text)
     object Identifier : TokenType("Identifier", "[a-z_]+[a-zA-Z0-9_]*", true, false, Family.Id)
     object TypeIdentifier : TokenType("TypeIdentifier", "(_|([A-Z]+[a-zA-Z0-9_]*)(::[A-Z]+[a-zA-Z0-9_]*)*(::\\*)?)", true, false, Family.Id)
     object Symbol : TokenType("Symbol", "\\:[a-zA-Z_]+[a-zA-Z0-9_]*", false, false, Family.Id)
@@ -90,7 +91,7 @@ object TokenTypes : TokenTypeProvider {
         // NOTE - Keywords MUST be listed before the Identifier token type
         // Generally, the order of this list matters!
         return listOf(
-            Real, Int, Dot, Attribute, Context, Api, Module, Define, Defer, Cause, Effect, For, TypeEffect, Fun, Observe, Where, Print,
+            Real, Int, Dot, String, Attribute, Context, Api, Module, Define, Defer, Cause, Effect, For, TypeEffect, Fun, Observe, Where, Print,
             Required, Projection, Extension, Constructor, Alias, Operator, Variadic, Query,
             Synthesise, Self,
             Dollar,

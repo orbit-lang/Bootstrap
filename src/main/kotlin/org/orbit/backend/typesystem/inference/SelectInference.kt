@@ -198,7 +198,7 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
         return when (conditionType.getCardinality()) {
             is ITypeCardinality.Finite -> inferFiniteType(node, conditionType, typeAnnotation, env)
             is ITypeCardinality.Infinite -> inferInfiniteType(node, conditionType, typeAnnotation, env)
-            else -> TODO("UNSUPPORTED CARDINALITY FOR CASE ANALYSIS")
+            else -> TODO("UNSUPPORTED CARDINALITY FOR CASE ANALYSIS: ${conditionType.getCardinality()}")
         }
     }
 }

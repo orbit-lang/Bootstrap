@@ -52,3 +52,12 @@ object OrbCoreErrors : IOrbModule {
     override fun getPublicOperators(): List<IOperatorArrow<*, *>> = emptyList()
 }
 
+object OrbCoreStrings : IOrbModule {
+    val stringType = Type("Orb::Core::Strings::String", explicitCardinality = ITypeCardinality.Infinite)
+
+    override fun getContexts(): List<Context> = emptyList()
+    override fun getPublicTypes(): List<AnyType> = listOf(stringType)
+    override fun getPublicOperators(): List<IOperatorArrow<*, *>> = emptyList()
+    override fun getPublicTypeAliases(): List<TypeAlias> = emptyList()
+}
+

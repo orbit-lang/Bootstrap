@@ -2,6 +2,7 @@ package org.orbit.backend.typesystem.components
 
 import org.orbit.backend.typesystem.intrinsics.OrbCoreBooleans
 import org.orbit.backend.typesystem.intrinsics.OrbCoreNumbers
+import org.orbit.backend.typesystem.intrinsics.OrbCoreStrings
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
@@ -80,6 +81,21 @@ data class RealValue(override val value: Double) : IValue<Type, Double> {
         val printer = getKoinInstance<Printer>()
         val indent = "\t".repeat(depth)
         val pretty = printer.apply("$value", PrintableKey.Bold)
+
+        return "$indent$pretty"
+    }
+
+    override fun toString(): String
+        = prettyPrint()
+}
+
+data class StringValue(override val value: Pair<Int, String>) : IValue<Type, Pair<Int, String>> {
+    override val type: Type = OrbCoreStrings.stringType
+
+    override fun prettyPrint(depth: Int): String {
+        val printer = getKoinInstance<Printer>()
+        val indent = "\t".repeat(depth)
+        val pretty = printer.apply("\"${value.second}\"", PrintableKey.Bold)
 
         return "$indent$pretty"
     }

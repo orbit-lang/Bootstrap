@@ -41,26 +41,45 @@ module Orb::Core::Numbers {
     type Int
 }
 
-module Orb::More::Fx {
-    context FlowCtx [ResultType] {
-        type Flow
+module Orb::Core::Strings {
+    type String
+}
 
-        fun (self Flow) resume (value ResultType) (ResultType) = value
+module Orb::More::Defaults {
+    trait DefaultValueType {
+        fun (Self) defaultValue () (Self)
+    }
+}
+
+module Orb::More::Strings with Orb::Core::Strings with Orb::More::Defaults {
+    projection String : DefaultValueType {
+        fun (String) defaultValue () (${""}) = ${""}
+    }
+}
+
+module Orb::More::Numbers with Orb::Core::Numbers with Orb::More::Defaults {
+    projection Int : DefaultValueType {
+        fun (Int) defaultValue () (${0}) = ${0}
     }
 }
 
 module M with Orb::Core::* with Orb::More::* {
-    projection ${0} : Error
+    projection ${"Error"} : Error
 
-    effect Throw = (Error) -> Unit
-    effect IO = () -> Unit
+    fun (self String) isEmpty () (Bool) = select self {
+        case "" = .true
+        case else = .false
+    }
 
-    fun (Unit) foo () (Unit with Throw, IO) = .unit
+    fun (self Int) isZero () (Bool) = select self {
+        case 0 = .true
+        case else = .false
+    }
 
     fun (Unit) main () () {
-        Unit.foo() by { flow ->
-            case Throw(error) = flow.resume(.unit)
-            case IO = flow.resume(.unit)
-        }
+        s = "Hello, World!"
+
+        typeOf String.defaultValue()
+        typeOf Int.defaultValue()
     }
 }
