@@ -60,60 +60,7 @@ module Orb::More::Numbers {
         }}
 }
 
-module Orb::More::Fx {
-    context FlowCtx [ResultType] {
-        type Flow
-
-        fun (self Flow) resume (value ResultType) (ResultType) = value
-    }
-}
-
-module Orb::More::Tests {
-    type Assertion
-    type AssertionFailure
-        of notTrue, notFalse, notEqual
-
-    effect Fail = (AssertionFailure) -> Unit
-
-    fun (Assertion) assertTrue (condition Bool) (Unit with Fail) = select condition {
-        case .false = cause .Fail(.notTrue)
-        case else = .unit
-    }
-
-    fun (Assertion) assertFalse (condition Bool) (Unit with Fail) = select condition {
-        case .true = cause .Fail(.notFalse)
-        case else = .unit
-    }
-
-    attribute Like = (A, B) => A : B
-
-    effect Test = (Unit) -> Unit
-
-    context AssertEqualCtx [T : Eq] {
-        fun (Assertion) assertEqual (expected T, actual T) (Unit with Fail) {
-            return select T.equal(actual, expected) {
-                case .true = .unit
-                case else = cause .Fail(.notEqual)
-            }
-        }
-    }
-}
 
 module M with Orb::Core::* with Orb::More::* {
-    projection ${0} : Error
 
-    projection ${.false} : Error
-
-    fun (Unit) main () () within AssertEqualCtx [Bool] {
-        Assertion.assertTrue(.false) by { flow ->
-            case Fail = panic 0
-        }
-
-        x = .true
-        y = .false
-
-        Assertion.assertEqual(x, y) by { flow ->
-            case Fail = panic .false
-        }
-    }
 }

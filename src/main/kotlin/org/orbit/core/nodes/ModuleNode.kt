@@ -21,7 +21,17 @@ data class ModuleNode(
     override val typeEffects: List<TypeEffectNode>,
     override val effects: List<EffectNode>
 ) : ContainerNode {
-    val isEmpty: Boolean get() = entityDefs.isEmpty() && methodDefs.isEmpty() && typeAliasNodes.isEmpty() && extensions.isEmpty() && contexts.isEmpty()
+    val isEmpty: Boolean get()
+        = entityDefs.isEmpty()
+            && methodDefs.isEmpty()
+            && typeAliasNodes.isEmpty()
+            && extensions.isEmpty()
+            && projections.isEmpty()
+            && contexts.isEmpty()
+            && effects.isEmpty()
+            && operatorDefs.isEmpty()
+            && typeEffects.isEmpty()
+            && attributeDefs.isEmpty()
 
     override fun getChildren(): List<INode> = when (within) {
         null -> listOf(identifier) + implements + with + entityDefs + methodDefs + typeAliasNodes + projections + extensions + contexts + operatorDefs + attributeDefs + typeEffects + effects
