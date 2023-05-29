@@ -2,6 +2,7 @@ package org.orbit.graph.pathresolvers
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.orbit.core.GraphEntity
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.core.nodes.*
@@ -16,6 +17,38 @@ import org.orbit.util.Invocation
 data class ContextPathResolver(val parentPath: Path) : IPathResolver<ContextNode>, KoinComponent {
     override val invocation: Invocation by inject()
     private val pathResolverUtil: PathResolverUtil by inject()
+
+    private fun resolveTypeIdentifier(pass: IPathResolver.Pass, environment: Environment, graph: Graph, path: Path, graphID: GraphEntity.Vertex.ID, idx: Int, typeParameter: TypeIdentifierNode) {
+        val nPath = path + typeParameter.value
+
+        typeParameter.annotateByKey(nPath, Annotations.path)
+        typeParameter.annotateByKey(graphID, Annotations.graphId)
+        typeParameter.annotateByKey(idx, Annotations.index)
+
+        val vertexID = graph.insert(typeParameter.value)
+
+        graph.link(graphID, vertexID)
+        graph.alias(nPath.toString(OrbitMangler), vertexID)
+
+        environment.bind(Binding.Kind.Type, typeParameter.value, nPath, vertexID)
+    }
+
+    private fun resolveConstrainedTypeIdentifier(pass: IPathResolver.Pass, environment: Environment, graph: Graph, path: Path, graphID: GraphEntity.Vertex.ID, idx: Int, typeParameter: ConstrainedTypeVarNode) {
+        pathResolverUtil.resolve(typeParameter.constraint, pass, environment, graph)
+
+        val nPath = path + typeParameter.identifier.value
+
+        typeParameter.annotateByKey(nPath, Annotations.path)
+        typeParameter.annotateByKey(graphID, Annotations.graphId)
+        typeParameter.annotateByKey(idx, Annotations.index)
+
+        val vertexID = graph.insert(typeParameter.value)
+
+        graph.link(graphID, vertexID)
+        graph.alias(nPath.toString(OrbitMangler), vertexID)
+
+        environment.bind(Binding.Kind.Type, typeParameter.identifier.value, nPath, vertexID)
+    }
 
     override fun resolve(input: ContextNode, pass: IPathResolver.Pass, environment: Environment, graph: Graph): IPathResolver.Result {
         val path = parentPath + input.contextIdentifier.value
@@ -36,18 +69,10 @@ data class ContextPathResolver(val parentPath: Path) : IPathResolver<ContextNode
             val graphID = input.getGraphID()
 
             for (typeParameter in input.typeVariables.withIndex()) {
-                val nPath = path + typeParameter.value.value
-
-                typeParameter.value.annotateByKey(nPath, Annotations.path)
-                typeParameter.value.annotateByKey(graphID, Annotations.graphId)
-                typeParameter.value.annotateByKey(typeParameter.index, Annotations.index)
-
-                val vertexID = graph.insert(typeParameter.value.value)
-
-                graph.link(graphID, vertexID)
-                graph.alias(nPath.toString(OrbitMangler), vertexID)
-
-                environment.bind(Binding.Kind.Type, typeParameter.value.value, nPath, vertexID)
+                when (val tp = typeParameter.value) {
+                    is TypeIdentifierNode -> resolveTypeIdentifier(pass, environment, graph, path, graphID, typeParameter.index, tp)
+                    is ConstrainedTypeVarNode -> resolveConstrainedTypeIdentifier(pass, environment, graph, path, graphID, typeParameter.index, tp)
+                }
             }
 
             input.variables.forEach {

@@ -262,6 +262,24 @@ object TypeUtils {
 
         return checkEq(env, lArrow, rArrow)
     }
+
+    fun min(a: AnyType, b: AnyType) : AnyType {
+        if (a === Always) return b
+        if (b === Always) return a
+
+        return when (a) {
+            else -> TODO("min($a, $b)")
+        }
+    }
+
+    fun unify(cases: List<ICase>) : AnyType {
+        val results = cases.map(ICase::result)
+            .distinct()
+
+        if (results.count() == 1) return results[0]
+
+        return results.reduce { acc, next -> TypeUtils.min(acc, next) }
+    }
 }
 
 typealias AnyArrow = IArrow<*>

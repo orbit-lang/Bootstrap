@@ -15,7 +15,7 @@ data class MethodSignatureNode(
 	val typeConstraints: List<TypeConstraintWhereClauseNode> = emptyList(),
 	val isInstanceMethod: Boolean,
 	val receiverIdentifier: IdentifierNode?,
-	val effects: List<TypeIdentifierNode> = emptyList()
+	val effects: List<EffectDeclarationNode> = emptyList()
 ) : ISignatureRepresentableNode {
 	inline fun <reified T> annotateParameter(idx: Int, value: T, tag: Annotations<T>) {}
 
@@ -24,12 +24,5 @@ data class MethodSignatureNode(
 		else -> listOf(identifierNode, receiverTypeNode, returnTypeNode) + parameterNodes + typeConstraints + effects
 	}
 
-	fun getAllParameters() : List<TypeExpressionNode> = parameterNodes.map { it.typeExpressionNode }
-
 	fun getAllParameterPairs() : List<PairNode> = parameterNodes
-		//when (isInstanceMethod) {
-//		// TODO - "self" name needs to be captured in MethodSignatureRule
-//		true -> listOf(PairNode(Token.empty, Token.empty, IdentifierNode(Token.empty, Token.empty, "self"), receiverTypeNode)) + parameterNodes
-//		else -> parameterNodes
-//	}
 }

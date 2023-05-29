@@ -44,10 +44,12 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
 
         var args = TypeInferenceUtils.inferAll(node.arguments, env)
         var possibleArrows = env.getSignatures(node.messageIdentifier.identifier)
-        val expected = (env as? AnnotatedTypeEnvironment)?.typeAnnotation ?: Always
+        val expected = (env as? AnnotatedTypeEnvironment)?.typeAnnotation
+//            ?: (env as? AnnotatedSelfTypeEnvironment)?.typeAnnotation
+            ?: Always
 
         if (possibleArrows.isEmpty()) {
-            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> *`", node)
+            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> Any`", node)
         }
 
         if (possibleArrows.count() > 1) {
@@ -56,7 +58,7 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
         }
 
         if (possibleArrows.isEmpty()) {
-            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> *`", node)
+            throw invocation.make<TypeSystem>("No methods found matching signature `$receiver.${node.messageIdentifier.identifier} : (${args.joinToString(", ")}) -> Any`", node)
         }
 
         possibleArrows = possibleArrows.filter { TypeUtils.checkEq(env, receiver, it.component.receiver) }
@@ -79,7 +81,10 @@ object MethodCallInference : ITypeInference<MethodCallNode, ITypeEnvironment>, K
             if (possibleArrows.count() > 1) {
                 possibleArrows = possibleArrows.filter { it.component.parameters == args }
 
-                if (possibleArrows.count() > 1) {
+                val components = possibleArrows.map { it.component }
+                    .distinct()
+
+                if (components.count() > 1) {
                     // We've failed to narrow down the results, we have to error now
                     throw invocation.make<TypeSystem>("Multiple methods found matching signature `${possibleArrows[0].component}`", node)
                 }

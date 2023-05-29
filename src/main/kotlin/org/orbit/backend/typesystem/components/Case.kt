@@ -1,6 +1,10 @@
 package org.orbit.backend.typesystem.components
 
-data class ElseCase(val result: AnyType) : IType {
+sealed interface ICase : IType {
+    val result: AnyType
+}
+
+data class ElseCase(override val result: AnyType) : ICase {
     override val id: String = "case else -> $result"
 
     override fun getCardinality(): ITypeCardinality
@@ -24,7 +28,7 @@ data class ElseCase(val result: AnyType) : IType {
         = prettyPrint()
 }
 
-data class Case(val condition: AnyType, val result: AnyType) : IType {
+data class Case(val condition: AnyType, override val result: AnyType) : ICase {
     override val id: String = "case $condition -> $result"
 
     fun eraseResult() : Case

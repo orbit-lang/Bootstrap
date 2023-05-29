@@ -1,14 +1,42 @@
 package org.orbit.backend.typesystem.inference
 
-import org.koin.core.parameter.parametersOf
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
+import org.orbit.core.OrbitMangler
 import org.orbit.core.getPath
 import org.orbit.core.nodes.*
 
+private sealed interface IContextVariableSpecialiser<N: IContextVariableNode> {
+    fun specialise(node: N, env: ITypeEnvironment) : Specialisation
+}
+
+private object TypeIdentifierSpecialiser : IContextVariableSpecialiser<TypeIdentifierNode> {
+    override fun specialise(node: TypeIdentifierNode, env: ITypeEnvironment): Specialisation
+        = Specialisation(node.getPath())
+}
+
+private object ConstrainedTypeSpecialiser : IContextVariableSpecialiser<ConstrainedTypeVarNode> {
+    override fun specialise(node: ConstrainedTypeVarNode, env: ITypeEnvironment): Specialisation {
+        // TODO - Arbitrary Constraints
+        val constrainedType = TypeVar(node.getPath().toString(OrbitMangler))
+        val constraintType = TypeInferenceUtils.inferAs<INode, Trait>(node.constraint, env)
+        val constraint = ConformanceConstraint(constrainedType, constraintType)
+
+        return Specialisation(node.getPath(), listOf(constraint))
+    }
+}
+
+private object AnyContextVariableSpecialiser : IContextVariableSpecialiser<IContextVariableNode> {
+    override fun specialise(node: IContextVariableNode, env: ITypeEnvironment): Specialisation = when (node) {
+        is TypeIdentifierNode -> TypeIdentifierSpecialiser.specialise(node, env)
+        is ConstrainedTypeVarNode -> ConstrainedTypeSpecialiser.specialise(node, env)
+        else -> TODO("Specialise Context Variable: $node")
+    }
+}
+
 object ContextInference : ITypeInference<ContextNode, IMutableTypeEnvironment> {
     override fun infer(node: ContextNode, env: IMutableTypeEnvironment): AnyType {
-        val abstracts = node.typeVariables.map { Specialisation(it.getPath()) }
+        val abstracts = node.typeVariables.map { AnyContextVariableSpecialiser.specialise(it, env) }
         // TODO - Abstract Value Parameters
         val ctx = Context(node.getPath(), abstracts)
         val nEnv = ContextualTypeEnvironment(env, ctx)

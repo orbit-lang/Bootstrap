@@ -27,6 +27,14 @@ object ContextInstantiationInference : ITypeInference<ContextInstantiationNode, 
             throw invocation.make<TypeSystem>("Context `${ctx.name}` declares ${abstractTypeParameters.count()} Type Parameters, found ${concreteTypeParameters.count()}:\n\t$prettyParameters", node)
         }
 
+        for (tp in abstractTypeParameters.withIndex()) {
+            val cTp = concreteTypeParameters[tp.index]
+
+            if (!tp.value.constraints.all { it.isSolvedBy(cTp, env) }) {
+                throw invocation.make<TypeSystem>("Context Constraint ${tp.value} is not satisfied by concrete Type $cTp", node.typeParameters[tp.index])
+            }
+        }
+
         // TODO - Enforce Type Variable Constraints (if any)
         val nCtx = ctx.solvingAll(abstractTypeParameters.zip(concreteTypeParameters).map(::Specialisation))
 

@@ -1,12 +1,13 @@
 package org.orbit.backend.typesystem.components
 
+import org.orbit.backend.typesystem.utils.AnyArrow
 import org.orbit.core.OrbitMangler
 import org.orbit.core.Path
 import org.orbit.util.PrintableKey
 import org.orbit.util.Printer
 import org.orbit.util.getKoinInstance
 
-data class Effect(val name: String, val takes: List<AnyType>, val gives: AnyType) : IArrow<Effect>, IStructuralType {
+data class Effect(val name: String, val takes: List<AnyType>, val gives: AnyType, val handler: AnyArrow? = null) : IArrow<Effect>, IStructuralType {
     companion object {
         val die = Effect("Die", emptyList(), Always)
     }
@@ -16,6 +17,9 @@ data class Effect(val name: String, val takes: List<AnyType>, val gives: AnyType
     override val id: String = name
     override val effects: List<Effect> = emptyList()
     override val members: List<Pair<String, AnyType>> = takes.map { Pair("", it) }
+
+    fun withHandler(handler: AnyArrow) : Effect
+        = Effect(name, takes, gives, handler)
 
     override fun curry(): IArrow<*> = this
 

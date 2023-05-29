@@ -83,7 +83,7 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 
 		next = context.peek()
 
-		val effects = mutableListOf<TypeIdentifierNode>()
+		val effects = mutableListOf<EffectDeclarationNode>()
 
 		var end = context.peek()
 		val returnTypeNode = when (next.text) {
@@ -103,14 +103,23 @@ class MethodSignatureRule(private val anonymous: Boolean, private val autogenera
 					next = context.peek()
 
 					if (next.type == TokenTypes.With) {
-						// Parse Effect identifier
 						context.consume()
 
-						// TODO - Compound Effects, e.g: `with Throw | Panic`
 						val effect = context.attempt(TypeIdentifierRule.Naked)
 							?: return ParseRule.Result.Failure.Throw("Expected Effect identifier in after `with`", collector)
 
-						effects.add(effect)
+						next = context.peek()
+
+						if (next.type == TokenTypes.By) {
+							context.consume()
+
+							val handler = context.attempt(InvokableReferenceRule)
+								?: return ParseRule.Result.Failure.Throw("Expected Effect Handler delegate after `by`", collector)
+
+							effects.add(EffectDeclarationNode(effect, handler))
+						}
+
+						effects.add(EffectDeclarationNode(effect, null))
 					}
 
 					end = context.expect(TokenTypes.RParen)

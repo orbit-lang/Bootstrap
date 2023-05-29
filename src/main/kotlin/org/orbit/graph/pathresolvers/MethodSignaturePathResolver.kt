@@ -7,6 +7,7 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.Annotations
 import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.core.nodes.annotateByKey
+import org.orbit.frontend.extensions.annotate
 import org.orbit.graph.components.Binding
 import org.orbit.graph.components.Environment
 import org.orbit.graph.components.Graph
@@ -66,7 +67,10 @@ class MethodSignaturePathResolver : IPathResolver<MethodSignatureNode> {
 		// TODO - Should method names contain parameter names as well as/instead of types?
 		// i.e. Are parameter names important/overloadable?
 
-		pathResolverUtil.resolveAll(input.effects, pass, environment, graph)
+		input.effects.forEach {
+			it.annotate(graphID, Annotations.graphId)
+			pathResolverUtil.resolve(it, pass, environment, graph)
+		}
 
 		input.returnTypeNode?.annotateByKey(retPath.path, Annotations.path)
 

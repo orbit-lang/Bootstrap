@@ -137,7 +137,17 @@ object SelectInference : ITypeInference<SelectNode, AnnotatedSelfTypeEnvironment
 
         return when (node.inSingleExpressionPosition) {
             true -> typeAnnotation
-            else -> TODO("UNIFY CASES")
+            else -> {
+                val unified = when (elseCase) {
+                    null -> TypeUtils.unify(cases)
+                    else -> TypeUtils.unify(cases + elseCase)
+                }
+
+                when (TypeUtils.checkEq(env, unified, typeAnnotation)) {
+                    true -> typeAnnotation
+                    else -> throw invocation.make<TypeSystem>("Enclosing environment expects Select expression to resolve to Type $typeAnnotation, found $unified", node)
+                }
+            }
         }
     }
 

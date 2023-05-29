@@ -14,7 +14,7 @@ interface IContextualComponent
 
 data class Specialisation(val abstract: TypeVar, val concrete: AnyType) {
     constructor(abstract: TypeVar) : this(abstract, Never("Type Variable `$abstract` has not been specialised in this Context"))
-    constructor(path: Path) : this(TypeVar(path.toString(OrbitMangler)))
+    constructor(path: Path, constraints: List<ITypeConstraint> = emptyList()) : this(TypeVar(path.toString(OrbitMangler), constraints = constraints))
     constructor(pair: Pair<TypeVar, AnyType>) : this(pair.first, pair.second)
 
     private val uniqueId: String get() = "${abstract.name}__${concrete.id}"

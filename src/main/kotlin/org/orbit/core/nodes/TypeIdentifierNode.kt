@@ -58,7 +58,7 @@ data class TypeIdentifierNode(
     override val lastToken: Token,
     override val value: String,
     val typeParametersNode: TypeParametersNode = TypeParametersNode(firstToken, lastToken)
-) : ITypeLambdaParameterNode, LValueTypeParameter {
+) : ITypeLambdaParameterNode, LValueTypeParameter, ITypeConstraintNode, IContextVariableNode {
 	companion object {
 		private val nullToken = Token(TokenTypes.TypeIdentifier, "AnyType", SourcePosition.unknown)
 		private val anyTypeIdentifierNode = TypeIdentifierNode(nullToken, nullToken, "Any")

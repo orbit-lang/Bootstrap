@@ -18,8 +18,24 @@ object AnyContextClauseExpressionRule : IContextClauseRule<IContextClauseExpress
     }
 }
 
-object AnyContextVariableRule : ParseRule<ILiteralNode<String>> {
-    override fun parse(context: Parser): ParseRule.Result = when (val node = context.attemptAny(listOf(PairRule, TypeIdentifierRule.Naked))) {
+object ConstrainedTypeVarRule : ParseRule<ConstrainedTypeVarNode> {
+    override fun parse(context: Parser): ParseRule.Result {
+        val collector = context.startCollecting()
+        val start = context.attempt(TypeIdentifierRule.Naked)
+            ?: return ParseRule.Result.Failure.Rewind(collector)
+
+        context.expectOrNull(TokenTypes.Colon)
+            ?: return ParseRule.Result.Failure.Rewind(collector)
+
+        val end = context.attempt(TypeIdentifierRule.Naked)
+            ?: return ParseRule.Result.Failure.Abort
+
+        return +ConstrainedTypeVarNode(start.firstToken, end.lastToken, start, end)
+    }
+}
+
+private object AnyContextVariableRule : ParseRule<IContextVariableNode> {
+    override fun parse(context: Parser): ParseRule.Result = when (val node = context.attemptAny(listOf(PairRule, ConstrainedTypeVarRule, TypeIdentifierRule.Naked))) {
         null -> ParseRule.Result.Failure.Abort
         else -> +node
     }
@@ -71,7 +87,7 @@ object ContextRule : ParseRule<ContextNode> {
 
         next = context.peek()
 
-        val typeVariables = delim.nodes.filterIsInstance<TypeIdentifierNode>()
+        val typeVariables = delim.nodes
         val valueVariables = delim.nodes.filterIsInstance<PairNode>()
 
         if (next.type == TokenTypes.With) {

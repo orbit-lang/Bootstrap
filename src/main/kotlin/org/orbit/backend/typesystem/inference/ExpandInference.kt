@@ -129,6 +129,7 @@ object ExpandInference : ITypeInference<ExpandNode, ITypeEnvironment>, KoinCompo
         is MethodCallNode -> inferMethodCall(node, env)
         is CollectionLiteralNode -> inferCollectionLiteral(node, env)
         is BinaryExpressionNode -> inferBinaryExpression(node, env)
+        is EnumCaseReferenceNode -> TypeInferenceUtils.infer(node, env)
 
         else -> throw invocation.make<TypeSystem>("Cannot expand value at compile-time: `${node.firstToken.text}`", node)
     }

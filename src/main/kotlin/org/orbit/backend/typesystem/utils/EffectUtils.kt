@@ -10,6 +10,8 @@ import org.orbit.core.components.SourcePosition
 import org.orbit.core.nodes.CaseNode
 import org.orbit.core.nodes.EffectHandlerNode
 import org.orbit.util.Invocation
+import kotlin.Boolean
+import kotlin.getValue
 
 object EffectUtils : KoinComponent {
     private val invocation: Invocation by inject()

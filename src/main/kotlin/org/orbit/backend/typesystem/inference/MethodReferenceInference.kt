@@ -36,6 +36,7 @@ object MethodReferenceInference : ITypeInference<MethodReferenceNode, ITypeEnvir
         }
 
         possibleSignatures = possibleSignatures.filter { TypeUtils.checkEq(env, it.component.receiver, receiver) }
+            .distinct()
 
         if (possibleSignatures.isEmpty()) {
             throw invocation.make<TypeSystem>(error, node.identifierNode)

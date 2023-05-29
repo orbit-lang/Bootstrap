@@ -3,6 +3,7 @@ package org.orbit.backend.typesystem.inference
 import org.orbit.backend.typesystem.components.*
 import org.orbit.backend.typesystem.components.Unit
 import org.orbit.backend.typesystem.utils.TypeInferenceUtils
+import org.orbit.core.nodes.EffectDeclarationNode
 import org.orbit.core.nodes.MethodSignatureNode
 import org.orbit.core.nodes.TypeIdentifierNode
 
@@ -45,7 +46,7 @@ object SignatureInference : ITypeInference<MethodSignatureNode, IMutableTypeEnvi
             else -> TypeInferenceUtils.infer(r, env)
         }
 
-        val effects = TypeInferenceUtils.inferAllAs<TypeIdentifierNode, Effect>(node.effects, env)
+        val effects = TypeInferenceUtils.inferAllAs<EffectDeclarationNode, Effect>(node.effects, env)
         val signature = Signature(receiver, node.identifierNode.identifier, params, ret, node.isInstanceMethod, effects, isVirtual = options.contains(Option.Virtual))
 
         effects.forEach { env.track(it) }

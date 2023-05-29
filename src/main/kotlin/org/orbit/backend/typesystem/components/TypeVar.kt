@@ -80,9 +80,13 @@ data class TypeVar(override val name: String, val constraints: List<ITypeConstra
 
     override fun prettyPrint(depth: Int): String = when (isVariadic) {
         true -> prettyPrintVariadic(depth)
-        else -> when (isDependent) {
-            true -> prettyPrintDependent(depth)
-            else -> prettyPrintTypeVar(depth)
+        else -> when (constraints.isEmpty()) {
+            true -> when (isDependent) {
+                true -> prettyPrintDependent(depth)
+                else -> prettyPrintTypeVar(depth)
+            }
+
+            else -> constraints.reduce { acc, next -> acc + next }.prettyPrint(depth)
         }
     }
 

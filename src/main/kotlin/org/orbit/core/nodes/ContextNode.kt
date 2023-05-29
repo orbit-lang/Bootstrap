@@ -12,7 +12,7 @@ data class ContextNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val contextIdentifier: TypeIdentifierNode,
-    val typeVariables: List<TypeIdentifierNode>,
+    val typeVariables: List<IContextVariableNode>,
     val variables: List<PairNode>,
     val clauses: List<IContextClauseExpressionNode>,
     val body: List<IContextDeclarationNode>

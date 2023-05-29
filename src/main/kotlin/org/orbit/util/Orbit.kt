@@ -120,6 +120,7 @@ val mainModule = module {
 		util.registerPathResolver(TypeQueryPathResolver, TypeQueryExpressionNode::class.java)
 		util.registerPathResolver(SelfPathResolver, SelfNode::class.java)
 		util.registerPathResolver(EnumCaseReferencePathResolver, EnumCaseReferenceNode::class.java)
+		util.registerPathResolver(EffectDeclarationPathResolver, EffectDeclarationNode::class.java)
 
 		util
 	}
@@ -209,6 +210,7 @@ val mainModule = module {
 	single(TypeQueryInference)
 	single(SelfInference)
 	single(EnumCaseReferenceInference)
+	single(EffectDeclarationInference)
 
 	// Code Gen
 	single { CodeGenUtil(IntrinsicCodeGenTarget.Swift) }

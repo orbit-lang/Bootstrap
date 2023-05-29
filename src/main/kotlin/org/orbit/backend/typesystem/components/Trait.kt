@@ -24,7 +24,10 @@ data class Trait(override val id: String, val properties: List<Property>, val si
     }
 
     fun isImplementedBy(type: AnyType, env: ITypeEnvironment) : Boolean {
-        val type = type.flatten(type, env)
+        val type = when (type) {
+            is EnumCase -> type
+            else -> type.flatten(type, env)
+        }
         if (type is Trait) return false // TODO - Work out the rules for Trait : Trait
         if (type is Struct) return isImplementedBy(type, env)
 

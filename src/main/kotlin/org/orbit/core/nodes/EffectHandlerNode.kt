@@ -7,7 +7,7 @@ data class EffectHandlerNode(
     override val lastToken: Token,
     val flowIdentifier: IdentifierNode,
     val cases: List<CaseNode>
-) : INode {
+) : IInvokableDelegateNode {
     override fun getChildren(): List<INode>
         = cases + flowIdentifier
 }

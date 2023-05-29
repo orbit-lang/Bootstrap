@@ -6,7 +6,9 @@ data class EnumCaseReferenceNode(
     override val firstToken: Token,
     override val lastToken: Token,
     val case: IdentifierNode
-) : IExpressionNode, IPatternNode {
+) : IConstantExpressionNode, IPatternNode {
+    override fun getTypeName(): String = ""
+
     override fun getChildren(): List<INode>
         = listOf(case)
 }
